@@ -16,9 +16,6 @@
 ////////////////////////////////////////////////////////////////////////
 #include "otpch.h"
 #include "scheduler.h"
-#if defined __EXCEPTION_TRACER__
-#include "exception.h"
-#endif
 
 Scheduler::SchedulerState Scheduler::m_threadState = Scheduler::STATE_TERMINATED;
 
@@ -31,11 +28,6 @@ Scheduler::Scheduler()
 
 void Scheduler::schedulerThread()
 {
-	#if defined __EXCEPTION_TRACER__
-	ExceptionHandler schedulerExceptionHandler;
-	schedulerExceptionHandler.InstallHandler();
-	#endif
-
 	boost::unique_lock<boost::mutex> eventLockUnique(m_eventLock, boost::defer_lock);
 	while(Scheduler::m_threadState != Scheduler::STATE_TERMINATED)
 	{
@@ -80,10 +72,6 @@ void Scheduler::schedulerThread()
 		else
 			delete task; // was stopped, have to be deleted here
 	}
-
-	#if defined __EXCEPTION_TRACER__
-	schedulerExceptionHandler.RemoveHandler();
-	#endif
 }
 
 uint32_t Scheduler::addEvent(SchedulerTask* task)

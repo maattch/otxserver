@@ -135,19 +135,6 @@
 	//Windows Seven 0x0601
 
 	#define _WIN32_WINNT 0x0501
-#elif defined __GNUC__
-	#define __USE_ZLIB__
 #endif
 
-#ifdef __MINGW32__
-	#define XML_GCC_FREE
-#endif
-
-#ifdef XML_GCC_FREE
-	#define xmlFree(s) free(s)
-#endif
-
-#ifndef __EXCEPTION_TRACER__
-	#define DEBUG_REPORT
-#endif
 #endif

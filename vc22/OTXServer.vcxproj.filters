@@ -2,8 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\src\actions.cpp" />
-    <ClCompile Include="..\src\admin.cpp" />
-    <ClCompile Include="..\src\allocator.cpp" />
     <ClCompile Include="..\src\baseevents.cpp" />
     <ClCompile Include="..\src\beds.cpp" />
     <ClCompile Include="..\src\chat.cpp" />
@@ -19,10 +17,8 @@
     <ClCompile Include="..\src\databasemanager.cpp" />
     <ClCompile Include="..\src\depot.cpp" />
     <ClCompile Include="..\src\dispatcher.cpp" />
-    <ClCompile Include="..\src\exception.cpp" />
     <ClCompile Include="..\src\fileloader.cpp" />
     <ClCompile Include="..\src\game.cpp" />
-    <ClCompile Include="..\src\gameservers.cpp" />
     <ClCompile Include="..\src\globalevent.cpp" />
     <ClCompile Include="..\src\group.cpp" />
     <ClCompile Include="..\src\house.cpp" />
@@ -37,7 +33,6 @@
     <ClCompile Include="..\src\items.cpp" />
     <ClCompile Include="..\src\luascript.cpp" />
     <ClCompile Include="..\src\mailbox.cpp" />
-    <ClCompile Include="..\src\manager.cpp" />
     <ClCompile Include="..\src\map.cpp" />
     <ClCompile Include="..\src\monster.cpp" />
     <ClCompile Include="..\src\monsters.cpp" />
@@ -53,7 +48,6 @@
     <ClCompile Include="..\src\position.cpp" />
     <ClCompile Include="..\src\protocol.cpp" />
     <ClCompile Include="..\src\protocolgame.cpp" />
-    <ClCompile Include="..\src\protocolhttp.cpp" />
     <ClCompile Include="..\src\protocollogin.cpp" />
     <ClCompile Include="..\src\protocolold.cpp" />
     <ClCompile Include="..\src\quests.cpp" />
@@ -81,8 +75,6 @@
   <ItemGroup>
     <ClInclude Include="..\src\account.h" />
     <ClInclude Include="..\src\actions.h" />
-    <ClInclude Include="..\src\admin.h" />
-    <ClInclude Include="..\src\allocator.h" />
     <ClInclude Include="..\src\baseevents.h" />
     <ClInclude Include="..\src\beds.h" />
     <ClInclude Include="..\src\chat.h" />
@@ -101,10 +93,8 @@
     <ClInclude Include="..\src\depot.h" />
     <ClInclude Include="..\src\dispatcher.h" />
     <ClInclude Include="..\src\enums.h" />
-    <ClInclude Include="..\src\exception.h" />
     <ClInclude Include="..\src\fileloader.h" />
     <ClInclude Include="..\src\game.h" />
-    <ClInclude Include="..\src\gameservers.h" />
     <ClInclude Include="..\src\globalevent.h" />
     <ClInclude Include="..\src\group.h" />
     <ClInclude Include="..\src\house.h" />
@@ -121,7 +111,6 @@
     <ClInclude Include="..\src\lockfree.h" />
     <ClInclude Include="..\src\luascript.h" />
     <ClInclude Include="..\src\mailbox.h" />
-    <ClInclude Include="..\src\manager.h" />
     <ClInclude Include="..\src\map.h" />
     <ClInclude Include="..\src\monster.h" />
     <ClInclude Include="..\src\monsters.h" />
@@ -136,7 +125,6 @@
     <ClInclude Include="..\src\position.h" />
     <ClInclude Include="..\src\protocol.h" />
     <ClInclude Include="..\src\protocolgame.h" />
-    <ClInclude Include="..\src\protocolhttp.h" />
     <ClInclude Include="..\src\protocollogin.h" />
     <ClInclude Include="..\src\protocolold.h" />
     <ClInclude Include="..\src\quests.h" />

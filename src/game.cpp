@@ -18,9 +18,6 @@
 #include "game.h"
 
 #include "configmanager.h"
-#ifdef __LOGIN_SERVER__
-#include "gameservers.h"
-#endif
 #include "server.h"
 #include "chat.h"
 
@@ -55,10 +52,6 @@
 #include "textlogger.h"
 #include "vocation.h"
 #include "group.h"
-
-#ifdef __EXCEPTION_TRACER__
-#include "exception.h"
-#endif
 
 extern ConfigManager g_config;
 extern Actions* g_actions;
@@ -7109,18 +7102,6 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId/* = 0*/, bool compl
 			break;
 		}
 
-#ifdef __LOGIN_SERVER__
-		case RELOAD_GAMESERVERS:
-		{
-			if(GameServers::getInstance()->reload())
-				done = true;
-			else
-				std::clog << "[Error - Game::reloadInfo] Failed to reload game servers." << std::endl;
-
-			break;
-		}
-#endif
-
 		case RELOAD_GLOBALEVENTS:
 		{
 			if(g_globalEvents->reload())
@@ -7146,6 +7127,7 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId/* = 0*/, bool compl
 			break;
 		}
 
+		case RELOAD_GAMESERVERS:
 		case RELOAD_ITEMS:
 		{
 			std::clog << "[Notice - Game::reloadInfo] Reload type does not work." << std::endl;

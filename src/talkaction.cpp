@@ -36,8 +36,6 @@
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 #include "outputmessage.h"
 #include "connection.h"
-#include "admin.h"
-#include "manager.h"
 #include "protocollogin.h"
 #include "protocolold.h"
 #endif
@@ -1223,9 +1221,6 @@ bool TalkAction::diagnostics(Creature* creature, const std::string&, const std::
 		<< "--------------------" << std::endl
 		<< "ProtocolGame: " << ProtocolGame::protocolGameCount << std::endl
 		<< "ProtocolLogin: " << ProtocolLogin::protocolLoginCount << std::endl
-#ifdef __OTADMIN__
-		<< "ProtocolAdmin: " << ProtocolAdmin::protocolAdminCount << std::endl
-#endif
 		<< "ProtocolManager: " << ProtocolManager::protocolManagerCount << std::endl;
 		/*
 		<< "ProtocolStatus: " << ProtocolStatus::protocolStatusCount << std::endl

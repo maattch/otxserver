@@ -25,9 +25,6 @@
 #include "combat.h"
 
 #include "container.h"
-#if defined __EXCEPTION_TRACER__
-#include "exception.h"
-#endif
 
 #include "configmanager.h"
 #include "game.h"

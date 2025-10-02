@@ -21,9 +21,6 @@
 #include "iologindata.h"
 #include "tools.h"
 
-#ifdef __LOGIN_SERVER__
-#include "gameservers.h"
-#endif
 #include "town.h"
 #include "house.h"
 
@@ -42,11 +39,6 @@
 
 extern ConfigManager g_config;
 extern Game g_game;
-
-#ifndef __GNUC__
-#pragma warning( disable : 4005)
-#pragma warning( disable : 4996)
-#endif
 
 Account IOLoginData::loadAccount(uint32_t accountId, bool preLoad/* = false*/)
 {
@@ -98,32 +90,18 @@ bool IOLoginData::loadAccount(Account& account, const std::string& name)
 void IOLoginData::loadCharacters(Account& account)
 {
 	std::ostringstream query;
-
-#ifndef __LOGIN_SERVER__
 	query << "SELECT `name` FROM `players` WHERE `account_id` = " << account.number << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " AND `deleted` = 0";
-#else
-	query << "SELECT `id`, `name`, `world_id`, `online` FROM `players` WHERE `account_id` = " << account.number << " AND `deleted` = 0";
-#endif
+
 	DBResultPtr result;
 	if(!(result = g_database.storeQuery(query.str())))
 		return;
 
 	do
 	{
-#ifndef __LOGIN_SERVER__
 		account.charList.push_back(result->getString("name"));
-#else
-		std::string name = result->getString("name");
-		if(GameServer* srv = GameServers::getInstance()->getServerById(result->getNumber<int32_t>("world_id")))
-			account.charList[name] = Character(name, srv, result->getNumber<int32_t>("online"));
-		else
-			std::clog << "[Warning - IOLoginData::loadAccount] Invalid server for player '" << name << "'." << std::endl;
-#endif
 	}
 	while(result->next());
-#ifndef __LOGIN_SERVER__
 	account.charList.sort();
-#endif
 }
 
 bool IOLoginData::saveAccount(Account account)

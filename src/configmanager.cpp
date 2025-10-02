@@ -107,9 +107,7 @@ bool ConfigManager::load()
 		m_confString[DEFAULT_PRIORITY] = getGlobalString("defaultPriority", "high");
 		m_confBool[BIND_ONLY_GLOBAL_ADDRESS] = getGlobalBool("bindOnlyGlobalAddress", false);
 		m_confBool[GUILD_HALLS] = getGlobalBool("guildHalls", false);
-		#ifndef __LOGIN_SERVER__
 		m_confBool[LOGIN_ONLY_LOGINSERVER] = getGlobalBool("loginOnlyWithLoginServer", false);
-		#endif
 		m_confString[ENCRYPTION_TYPE] = getGlobalString("encryptionType", "sha1");
 	}
 

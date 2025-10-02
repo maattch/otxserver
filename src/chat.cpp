@@ -19,7 +19,6 @@
 
 #include "player.h"
 #include "iologindata.h"
-#include "manager.h"
 
 #include "configmanager.h"
 #include "game.h"
@@ -131,7 +130,6 @@ bool ChatChannel::addUser(Player* player)
 	for(CreatureEventList::iterator it = joinEvents.begin(); it != joinEvents.end(); ++it)
 		(*it)->executeChannel(player, m_id, m_users);
 
-	Manager::getInstance()->addUser(player->getID(), m_id);
 	return true;
 }
 
@@ -149,7 +147,6 @@ bool ChatChannel::removeUser(Player* player, bool/* exclude = false*/)
 	for(CreatureEventList::iterator it = leaveEvents.begin(); it != leaveEvents.end(); ++it)
 		(*it)->executeChannel(player, m_id, m_users);
 
-	Manager::getInstance()->removeUser(player->getID(), m_id);
 	return true;
 }
 
@@ -624,9 +621,6 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 		player->sendCancel("You may not speak in this channel.");
 		return true;
 	}
-
-	if(isPublicChannel(channelId))
-		Manager::getInstance()->talk(player->getID(), channelId, type, text);
 
 	if(channelId != CHANNEL_GUILD || !g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)
 		|| (text[0] != '!' && text[0] != '/'))

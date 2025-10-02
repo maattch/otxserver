@@ -18,9 +18,6 @@
 #include "dispatcher.h"
 
 #include "outputmessage.h"
-#if defined __EXCEPTION_TRACER__
-#include "exception.h"
-#endif
 
 #include "game.h"
 
@@ -36,11 +33,6 @@ Dispatcher::Dispatcher()
 
 void Dispatcher::dispatcherThread()
 {
-	#if defined __EXCEPTION_TRACER__
-	ExceptionHandler dispatcherExceptionHandler;
-	dispatcherExceptionHandler.InstallHandler();
-	#endif
-
 	boost::unique_lock<boost::mutex> taskLockUnique(m_taskLock, boost::defer_lock);
 	while(Dispatcher::m_threadState != Dispatcher::STATE_TERMINATED)
 	{
@@ -67,10 +59,6 @@ void Dispatcher::dispatcherThread()
 			taskLockUnique.unlock();
 		}
 	}
-
-	#if defined __EXCEPTION_TRACER__
-	dispatcherExceptionHandler.RemoveHandler();
-	#endif
 }
 
 void Dispatcher::addTask(Task* task, bool front/* = false*/)

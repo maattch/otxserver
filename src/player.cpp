@@ -18,7 +18,6 @@
 #include <iostream>
 
 #include "player.h"
-#include "manager.h"
 
 #include "iologindata.h"
 #include "ioban.h"
@@ -2811,7 +2810,6 @@ void Player::addDefaultRegeneration(uint32_t addTicks)
 
 void Player::removeList()
 {
-	Manager::getInstance()->removeUser(id);
 	autoList.erase(id);
 	if(!isGhost())
 	{
@@ -2831,7 +2829,6 @@ void Player::removeList()
 void Player::addList()
 {
 	autoList[id] = this;
-	Manager::getInstance()->addUser(this);
 }
 
 void Player::kick(bool displayEffect, bool forceLogout)
