@@ -20,7 +20,6 @@
 
 #include <unordered_set>
 
-#include "otsystem.h"
 #include "enums.h"
 
 #include "protocol.h"

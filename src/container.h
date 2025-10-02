@@ -17,7 +17,6 @@
 
 #ifndef __CONTAINER__
 #define __CONTAINER__
-#include "otsystem.h"
 
 #include "cylinder.h"
 #include "item.h"

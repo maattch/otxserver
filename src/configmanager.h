@@ -48,9 +48,6 @@ class ConfigManager
 			SQL_PASS,
 			SQL_DB,
 			DEFAULT_PRIORITY,
-			#ifdef MULTI_SQL_DRIVERS
-			SQL_TYPE,
-			#endif
 			SQL_FILE,
 			ENCRYPTION_TYPE,
 			MAP_AUTHOR,

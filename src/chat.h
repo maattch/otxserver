@@ -17,7 +17,6 @@
 
 #ifndef __CHAT__
 #define __CHAT__
-#include "otsystem.h"
 
 #include <fstream>
 #include "const.h"

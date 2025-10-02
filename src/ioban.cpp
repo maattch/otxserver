@@ -31,21 +31,20 @@ bool IOBan::isIpBanished(uint32_t ip, uint32_t mask/* = 0xFFFFFFFF*/) const
 	if(!ip)
 		return false;
 
-	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResultPtr result;
 
 	std::ostringstream query;
 	query << "SELECT `id`, `value`, `param`, `expires` FROM `bans` WHERE `type` = " << BAN_IP << " AND `active` = 1";
-	if(!(result = db->storeQuery(query.str())))
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
 	bool ret = false;
 	do
 	{
-		uint32_t value = result->getDataInt("value"), param = result->getDataInt("param");
+		uint32_t value = result->getNumber<int32_t>("value"), param = result->getNumber<int32_t>("param");
 		if((ip & mask & param) == (value & param & mask))
 		{
-			int32_t expires = result->getDataLong("expires");
+			int32_t expires = result->getNumber<uint64_t>("expires");
 			if(expires > 0 && expires <= (int32_t)time(NULL))
 				removeIpBanishment(value, param);
 			else if(!ret)
@@ -53,21 +52,18 @@ bool IOBan::isIpBanished(uint32_t ip, uint32_t mask/* = 0xFFFFFFFF*/) const
 		}
 	}
 	while(result->next());
-	result->free();
 	return ret;
 }
 
 bool IOBan::isPlayerBanished(uint32_t playerId, PlayerBan_t type) const
 {
-	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResultPtr result;
 
 	std::ostringstream query;
 	query << "SELECT `id` FROM `bans` WHERE `type` = " << BAN_PLAYER << " AND `value` = " << playerId << " AND `param` = " << type << " AND `active` = 1 LIMIT 1";
-	if(!(result = db->storeQuery(query.str())))
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	result->free();
 	return true;
 }
 
@@ -80,8 +76,7 @@ bool IOBan::isPlayerBanished(std::string name, PlayerBan_t type) const
 
 bool IOBan::isAccountBanished(uint32_t account, uint32_t playerId/* = 0*/) const
 {
-	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResultPtr result;
 
 	std::ostringstream query;
 	query << "SELECT `expires` FROM `bans` WHERE `type` = " << BAN_ACCOUNT << " AND `value` = " << account;
@@ -89,11 +84,10 @@ bool IOBan::isAccountBanished(uint32_t account, uint32_t playerId/* = 0*/) const
 		query << " AND `param` = " << playerId;
 
 	query << " AND `active` = 1 LIMIT 1";
-	if(!(result = db->storeQuery(query.str())))
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	const int32_t expires = result->getDataInt("expires");
-	result->free();
+	const int32_t expires = result->getNumber<int32_t>("expires");
 	if(expires <= 0 || expires > (int32_t)time(NULL))
 		return true;
 
@@ -111,13 +105,12 @@ bool IOBan::addIpBanishment(uint32_t ip, int64_t banTime, uint32_t reasonId,
 	for(PlayerVector::iterator it = players.begin(); it != players.end(); ++it)
 		(*it)->kick(true, true);
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "INSERT INTO `bans` (`id`, `type`, `value`, `param`, `expires`, `added`, `admin_id`, `comment`, `reason`, `statement`) ";
 	query << "VALUES (NULL, " << BAN_IP << ", " << ip << ", " << mask << ", " << banTime << ", " << time(NULL) << ", " << gamemaster;
-	query << ", " << db->escapeString(comment.c_str()) << ", " << reasonId << ", " << db->escapeString(statement.c_str()) << ")";
-	return db->query(query.str());
+	query << ", " << g_database.escapeString(comment.c_str()) << ", " << reasonId << ", " << g_database.escapeString(statement.c_str()) << ")";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOBan::addPlayerBanishment(uint32_t playerId, int64_t banTime, uint32_t reasonId, ViolationAction_t actionId,
@@ -126,13 +119,12 @@ bool IOBan::addPlayerBanishment(uint32_t playerId, int64_t banTime, uint32_t rea
 	if(isPlayerBanished(playerId, type))
 		return false;
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "INSERT INTO `bans` (`id`, `type`, `value`, `param`, `expires`, `added`, `admin_id`, `comment`, `reason`, `action`, `statement`) ";
 	query << "VALUES (NULL, " << BAN_PLAYER << ", " << playerId << ", " << type << ", " << banTime << ", " << time(NULL) << ", " << gamemaster;
-	query << ", " << db->escapeString(comment.c_str()) << ", " << reasonId << ", " << actionId << ", " << db->escapeString(statement.c_str()) << ")";
-	return db->query(query.str());
+	query << ", " << g_database.escapeString(comment.c_str()) << ", " << reasonId << ", " << actionId << ", " << g_database.escapeString(statement.c_str()) << ")";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOBan::addPlayerBanishment(std::string name, int64_t banTime, uint32_t reasonId, ViolationAction_t actionId, std::string comment, uint32_t gamemaster, PlayerBan_t type, std::string statement/* = ""*/) const
@@ -147,29 +139,26 @@ bool IOBan::addAccountBanishment(uint32_t account, int64_t banTime, uint32_t rea
 	if(isAccountBanished(account))
 		return false;
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "INSERT INTO `bans` (`id`, `type`, `value`, `param`, `expires`, `added`, `admin_id`, `comment`, `reason`, `action`, `statement`) ";
 	query << "VALUES (NULL, " << BAN_ACCOUNT << ", " << account << ", " << playerId << ", " << banTime << ", " << time(NULL) << ", " << gamemaster;
-	query << ", " << db->escapeString(comment.c_str()) << ", " << reasonId << ", " << actionId << ", " << db->escapeString(statement.c_str()) << ")";
-	return db->query(query.str());
+	query << ", " << g_database.escapeString(comment.c_str()) << ", " << reasonId << ", " << actionId << ", " << g_database.escapeString(statement.c_str()) << ")";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOBan::addNotation(uint32_t account, uint32_t reasonId, std::string comment, uint32_t gamemaster, uint32_t playerId, std::string statement/* = ""*/) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "INSERT INTO `bans` (`id`, `type`, `value`, `param`, `expires`, `added`, `admin_id`, `comment`, `reason`, `statement`) ";
 	query << "VALUES (NULL, " << BAN_NOTATION << ", " << account << ", " << playerId << ", '-1', " << time(NULL) << ", " << gamemaster;
-	query << ", " << db->escapeString(comment.c_str()) << ", " << reasonId << ", " << db->escapeString(statement.c_str()) << ")";
-	return db->query(query.str());
+	query << ", " << g_database.escapeString(comment.c_str()) << ", " << reasonId << ", " << g_database.escapeString(statement.c_str()) << ")";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOBan::addStatement(uint32_t playerId, uint32_t reasonId, std::string comment, uint32_t gamemaster, int16_t channelId/* = -1*/, std::string statement/* = ""*/) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "INSERT INTO `bans` (`id`, `type`, `value`, ";
@@ -180,9 +169,9 @@ bool IOBan::addStatement(uint32_t playerId, uint32_t reasonId, std::string comme
 	if(channelId >= 0)
 		query << ", " << channelId;
 
-	query << ", '-1', " << time(NULL) << ", " << gamemaster << ", " << db->escapeString(comment.c_str());
-	query << ", " << reasonId << ", " << db->escapeString(statement.c_str()) << ")";
-	return db->query(query.str());
+	query << ", '-1', " << time(NULL) << ", " << gamemaster << ", " << g_database.escapeString(comment.c_str());
+	query << ", " << reasonId << ", " << g_database.escapeString(statement.c_str()) << ")";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOBan::addStatement(std::string name, uint32_t reasonId, std::string comment, uint32_t gamemaster, int16_t channelId/* = -1*/, std::string statement/* = ""*/) const
@@ -194,22 +183,20 @@ bool IOBan::addStatement(std::string name, uint32_t reasonId, std::string commen
 
 bool IOBan::removeIpBanishment(uint32_t ip, uint32_t mask/* = 0xFFFFFFFF*/) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "UPDATE `bans` SET `active` = 0 WHERE `value` = " << ip << " AND `param` = " << mask
-		<< " AND `type` = " << BAN_IP << " AND `active` = 1" << db->getUpdateLimiter();
-	return db->query(query.str());
+		<< " AND `type` = " << BAN_IP << " AND `active` = 1 LIMIT 1;";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOBan::removePlayerBanishment(uint32_t guid, PlayerBan_t type) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "UPDATE `bans` SET `active` = 0 WHERE `value` = " << guid << " AND `param` = " << type
-		<< " AND `type` = " << BAN_PLAYER << " AND `active` = 1" << db->getUpdateLimiter();
-	return db->query(query.str());
+		<< " AND `type` = " << BAN_PLAYER << " AND `active` = 1 LIMIT 1;";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOBan::removePlayerBanishment(std::string name, PlayerBan_t type) const
@@ -221,20 +208,18 @@ bool IOBan::removePlayerBanishment(std::string name, PlayerBan_t type) const
 
 bool IOBan::removeAccountBanishment(uint32_t account, uint32_t playerId/* = 0*/) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "UPDATE `bans` SET `active` = 0 WHERE `value` = " << account;
 	if(playerId > 0)
 		query << " AND `param` = " << playerId;
 
-	query << " AND `type` = " << BAN_ACCOUNT << " AND `active` = 1" << db->getUpdateLimiter();
-	return db->query(query.str());
+	query << " AND `type` = " << BAN_ACCOUNT << " AND `active` = 1 LIMIT 1;";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOBan::removeNotations(uint32_t account, uint32_t playerId/* = 0*/) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "UPDATE `bans` SET `active` = 0 WHERE `value` = " << account;
@@ -242,12 +227,11 @@ bool IOBan::removeNotations(uint32_t account, uint32_t playerId/* = 0*/) const
 		query << " AND `param` = " << playerId;
 
 	query << " AND `type` = " << BAN_NOTATION << " AND `active` = 1";
-	return db->query(query.str());
+	return g_database.executeQuery(query.str());
 }
 
 bool IOBan::removeStatements(uint32_t playerId, int16_t channelId/* = -1*/) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "UPDATE `bans` SET `active` = 0 WHERE `value` = " << playerId;
@@ -255,7 +239,7 @@ bool IOBan::removeStatements(uint32_t playerId, int16_t channelId/* = -1*/) cons
 		query << " AND `param` = " << channelId;
 
 	query << " AND `type` = " << BAN_STATEMENT << " AND `active` = 1";
-	return db->query(query.str());
+	return g_database.executeQuery(query.str());
 }
 
 bool IOBan::removeStatements(std::string name, int16_t channelId/* = -1*/) const
@@ -266,8 +250,7 @@ bool IOBan::removeStatements(std::string name, int16_t channelId/* = -1*/) const
 
 uint32_t IOBan::getNotationsCount(uint32_t account, uint32_t playerId/* = 0*/) const
 {
-	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResultPtr result;
 
 	std::ostringstream query;
 	query << "SELECT COUNT(`id`) AS `count` FROM `bans` WHERE `value` = " << account;
@@ -275,18 +258,16 @@ uint32_t IOBan::getNotationsCount(uint32_t account, uint32_t playerId/* = 0*/) c
 		query << " AND `param` = " << playerId;
 
 	query << " AND `type` = " << BAN_NOTATION << " AND `active` = 1";
-	if(!(result = db->storeQuery(query.str())))
+	if(!(result = g_database.storeQuery(query.str())))
 		return 0;
 
-	const uint32_t count = result->getDataInt("count");
-	result->free();
+	const uint32_t count = result->getNumber<int32_t>("count");
 	return count;
 }
 
 uint32_t IOBan::getStatementsCount(uint32_t playerId, int16_t channelId/* = -1*/) const
 {
-	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResultPtr result;
 
 	std::ostringstream query;
 	query << "SELECT COUNT(`id`) AS `count` FROM `bans` WHERE `value` = " << playerId;
@@ -294,11 +275,10 @@ uint32_t IOBan::getStatementsCount(uint32_t playerId, int16_t channelId/* = -1*/
 		query << " AND `param` = " << channelId;
 
 	query << " AND `type` = " << BAN_STATEMENT << " AND `active` = 1";
-	if(!(result = db->storeQuery(query.str())))
+	if(!(result = g_database.storeQuery(query.str())))
 		return 0;
 
-	const uint32_t count = result->getDataInt("count");
-	result->free();
+	const uint32_t count = result->getNumber<int32_t>("count");
 	return count;
 }
 
@@ -313,7 +293,6 @@ uint32_t IOBan::getStatementsCount(std::string name, int16_t channelId/* = -1*/)
 
 bool IOBan::getData(Ban& ban) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "SELECT * FROM `bans` WHERE `value` = " << ban.value;
@@ -324,30 +303,28 @@ bool IOBan::getData(Ban& ban) const
 		query << " AND `type` = " << ban.type;
 
 	query << " AND `active` = 1 AND (`expires` > " << time(NULL) << " OR `expires` <= 0) LIMIT 1";
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	ban.id = result->getDataInt("id");
-	ban.type = (Ban_t)result->getDataInt("type");
-	ban.value = result->getDataInt("value");
-	ban.param = result->getDataInt("param");
-	ban.expires = result->getDataLong("expires");
-	ban.added = result->getDataLong("added");
-	ban.adminId = result->getDataInt("admin_id");
-	ban.comment = result->getDataString("comment");
-	ban.reason = result->getDataInt("reason");
-	ban.action = (ViolationAction_t)result->getDataInt("action");
-	ban.statement = result->getDataString("statement");
+	ban.id = result->getNumber<int32_t>("id");
+	ban.type = (Ban_t)result->getNumber<int32_t>("type");
+	ban.value = result->getNumber<int32_t>("value");
+	ban.param = result->getNumber<int32_t>("param");
+	ban.expires = result->getNumber<uint64_t>("expires");
+	ban.added = result->getNumber<uint64_t>("added");
+	ban.adminId = result->getNumber<int32_t>("admin_id");
+	ban.comment = result->getString("comment");
+	ban.reason = result->getNumber<int32_t>("reason");
+	ban.action = (ViolationAction_t)result->getNumber<int32_t>("action");
+	ban.statement = result->getString("statement");
 
-	result->free();
 	return true;
 }
 
 BansVec IOBan::getList(Ban_t type, uint32_t value/* = 0*/, uint32_t param/* = 0*/)
 {
-	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResultPtr result;
 
 	std::ostringstream query;
 	query << "SELECT * FROM `bans` WHERE ";
@@ -359,26 +336,25 @@ BansVec IOBan::getList(Ban_t type, uint32_t value/* = 0*/, uint32_t param/* = 0*
 
 	query << "`type` = " << type << " AND `active` = 1 AND (`expires` > " << time(NULL) << " OR `expires` <= 0)";
 	BansVec data;
-	if((result = db->storeQuery(query.str())))
+	if((result = g_database.storeQuery(query.str())))
 	{
 		Ban tmp;
 		do
 		{
-			tmp.id = result->getDataInt("id");
-			tmp.type = (Ban_t)result->getDataInt("type");
-			tmp.value = result->getDataInt("value");
-			tmp.param = result->getDataInt("param");
-			tmp.expires = result->getDataLong("expires");
-			tmp.added = result->getDataLong("added");
-			tmp.adminId = result->getDataInt("admin_id");
-			tmp.comment = result->getDataString("comment");
-			tmp.reason = result->getDataInt("reason");
-			tmp.action = (ViolationAction_t)result->getDataInt("action");
-			tmp.statement = result->getDataString("statement");
+			tmp.id = result->getNumber<int32_t>("id");
+			tmp.type = (Ban_t)result->getNumber<int32_t>("type");
+			tmp.value = result->getNumber<int32_t>("value");
+			tmp.param = result->getNumber<int32_t>("param");
+			tmp.expires = result->getNumber<uint64_t>("expires");
+			tmp.added = result->getNumber<uint64_t>("added");
+			tmp.adminId = result->getNumber<int32_t>("admin_id");
+			tmp.comment = result->getString("comment");
+			tmp.reason = result->getNumber<int32_t>("reason");
+			tmp.action = (ViolationAction_t)result->getNumber<int32_t>("action");
+			tmp.statement = result->getString("statement");
 			data.push_back(tmp);
 		}
 		while(result->next());
-		result->free();
 	}
 
 	return data;
@@ -386,9 +362,8 @@ BansVec IOBan::getList(Ban_t type, uint32_t value/* = 0*/, uint32_t param/* = 0*
 
 bool IOBan::clearTemporials() const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
-	query << "UPDATE `bans` SET `active` = 0 WHERE `expires` <= " << time(NULL) << " AND `expires` >= 0 AND `active` = 1" << db->getUpdateLimiter();
-	return db->query(query.str());
+	query << "UPDATE `bans` SET `active` = 0 WHERE `expires` <= " << time(NULL) << " AND `expires` >= 0 AND `active` = 1 LIMIT 1;";
+	return g_database.executeQuery(query.str());
 }

@@ -18,7 +18,6 @@
 #ifndef __RSA__
 #define __RSA__
 
-#include "otsystem.h"
 #include <gmp.h>
 
 class RSA

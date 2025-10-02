@@ -17,7 +17,6 @@
 
 #ifndef __BASEEVENTS__
 #define __BASEEVENTS__
-#include "otsystem.h"
 
 #include "luascript.h"
 #include <libxml/parser.h>

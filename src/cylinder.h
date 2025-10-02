@@ -17,7 +17,6 @@
 
 #ifndef __CYLINDER__
 #define __CYLINDER__
-#include "otsystem.h"
 #define INDEX_WHEREEVER -1
 
 class Item;

@@ -17,7 +17,6 @@
 
 #ifndef __HOUSE__
 #define __HOUSE__
-#include "otsystem.h"
 #include <boost/regex.hpp>
 
 #if defined __GNUC__ && __GNUC__ >= 4

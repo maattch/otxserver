@@ -17,7 +17,6 @@
 
 #ifndef __TALKACTION__
 #define __TALKACTION__
-#include "otsystem.h"
 
 #include "enums.h"
 #include "player.h"

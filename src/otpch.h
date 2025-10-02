@@ -15,36 +15,57 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#define BOOST_BIND_NO_PLACEHOLDERS
-
-#ifdef __OTPCH__
-#error "Precompiled header should be included only once."
-#endif
-
+#ifndef __OTPCH__
 #define __OTPCH__
 
-#ifdef _MSC_VER
-	#define strncasecmp _strnicmp
-	#define strcasecmp _stricmp
-	#pragma warning(disable:26812) // prefer 'enum class' over 'enum'
-#endif
-
+// definitions must be called first
+#include "definitions.h"
 
 #if defined WINDOWS
 #include <winerror.h>
 #endif
 
-//libxml
-#include <libxml/xmlmemory.h>
+// STD
+#include <algorithm>
+#include <bitset>
+#include <chrono>
+#include <functional>
+#include <iostream>
+#include <limits>
+#include <list>
+#include <map>
+#include <queue>
+#include <random>
+#include <set>
+#include <string>
+#include <vector>
+
+// LibXML2
 #include <libxml/parser.h>
 #include <libxml/threads.h>
+#include <libxml/xmlmemory.h>
 
-//boost
-#include <boost/config.hpp>
-#include <boost/function.hpp>
+// Boost
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/config.hpp>
+#include <boost/foreach.hpp>
+#include <boost/function.hpp>
 #include <boost/regex.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
+#include <boost/utility.hpp>
+#include <boost/version.hpp>
 
-//otserv
+#if BOOST_VERSION < 104400
+#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename()
+#else
+#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename().string()
+#endif
+
+// OTX
 #include "configmanager.h"
 #include "thing.h"
+
+#endif

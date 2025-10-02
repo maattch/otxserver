@@ -17,7 +17,6 @@
 
 #ifndef __RAIDS__
 #define __RAIDS__
-#include "otsystem.h"
 #include "const.h"
 
 #include <libxml/xmlmemory.h>

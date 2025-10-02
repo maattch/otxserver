@@ -223,7 +223,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	{
 		srand(time(NULL));
 		int random_number = std::rand();
-		sprintf(motd, "%d\nWelcome to cast system!\n\n Do you know you can use CTRL + ARROWS\n to switch casts?\n\nVocê sabia que pode usar CTRL + SETAS\n para alternar casts?", random_number);
+		sprintf(motd, "%d\nWelcome to cast system!\n\n Do you know you can use CTRL + ARROWS\n to switch casts?\n\nVocï¿½ sabia que pode usar CTRL + SETAS\n para alternar casts?", random_number);
 		output->addString(motd);
 	}
 	else

@@ -150,12 +150,6 @@ void ScriptEnviroment::reset()
 	}
 
 	m_tempItems.clear();
-	for(DBResultMap::iterator it = m_tempResults.begin(); it != m_tempResults.end(); ++it)
-	{
-		if(it->second)
-			it->second->free();
-	}
-
 	m_tempResults.clear();
 	for(ConditionMap::iterator it = m_tempConditionMap.begin(); it != m_tempConditionMap.end(); ++it)
 		delete it->second;
@@ -169,20 +163,19 @@ bool ScriptEnviroment::saveGameState()
 	if(!g_config.getBool(ConfigManager::SAVE_GLOBAL_STORAGE))
 		return true;
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "DELETE FROM `global_storage` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << ";";
-	if(!db->query(query.str()))
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
-	DBInsert stmt(db);
+	DBInsert stmt;
 	stmt.setQuery("INSERT INTO `global_storage` (`key`, `world_id`, `value`) VALUES ");
 	for(StorageMap::const_iterator it = m_storageMap.begin(); it != m_storageMap.end(); ++it)
 	{
 		query.str("");
-		query << db->escapeString(it->first) << "," << g_config.getNumber(ConfigManager::WORLD_ID) << "," << db->escapeString(it->second);
-		if(!stmt.addRow(query))
+		query << g_database.escapeString(it->first) << "," << g_config.getNumber(ConfigManager::WORLD_ID) << "," << g_database.escapeString(it->second);
+		if(!stmt.addRow(query.str()))
 			return false;
 	}
 
@@ -191,17 +184,15 @@ bool ScriptEnviroment::saveGameState()
 
 bool ScriptEnviroment::loadGameState()
 {
-	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResultPtr result;
 
 	std::ostringstream query;
 	query << "SELECT `key`, `value` FROM `global_storage` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << ";";
-	if((result = db->storeQuery(query.str())))
+	if((result = g_database.storeQuery(query.str())))
 	{
 		do
-			m_storageMap[result->getDataString("key")] = result->getDataString("value");
+			m_storageMap[result->getString("key")] = result->getString("value");
 		while(result->next());
-		result->free();
 	}
 
 	query.str("");
@@ -470,7 +461,7 @@ void ScriptEnviroment::removeTempItem(Item* item)
 	}
 }
 
-uint32_t ScriptEnviroment::addResult(DBResult* res)
+uint32_t ScriptEnviroment::addResult(DBResultPtr res)
 {
 	uint32_t lastId = 0;
 	while(m_tempResults.find(lastId) != m_tempResults.end())
@@ -486,14 +477,11 @@ bool ScriptEnviroment::removeResult(uint32_t id)
 	if(it == m_tempResults.end())
 		return false;
 
-	if(it->second)
-		it->second->free();
-
 	m_tempResults.erase(it);
 	return true;
 }
 
-DBResult* ScriptEnviroment::getResultByID(uint32_t id)
+DBResultPtr ScriptEnviroment::getResultByID(uint32_t id)
 {
 	DBResultMap::iterator it = m_tempResults.find(id);
 	if(it != m_tempResults.end())
@@ -2663,15 +2651,6 @@ const luaL_Reg LuaInterface::luaDatabaseTable[] =
 	//db.lastInsertId()
 	{"lastInsertId", LuaInterface::luaDatabaseLastInsertId},
 
-	//db.stringComparer()
-	{"stringComparer", LuaInterface::luaDatabaseStringComparer},
-
-	//db.updateLimiter()
-	{"updateLimiter", LuaInterface::luaDatabaseUpdateLimiter},
-
-	//db.connected()
-	{"connected", LuaInterface::luaDatabaseConnected},
-
 	//db.tableExists(name)
 	{"tableExists", LuaInterface::luaDatabaseTableExists},
 
@@ -2692,14 +2671,14 @@ const luaL_Reg LuaInterface::luaResultTable[] =
 	//result.getDataInt(resId, s)
 	{"getDataInt", LuaInterface::luaResultGetDataInt},
 
-	//result.getDataLong(resId, s)
-	{"getDataLong", LuaInterface::luaResultGetDataLong},
+	//result.getNumber<uint64_t>(resId, s)
+	{"getNumber<uint64_t>", LuaInterface::luaResultGetDataLong},
 
 	//result.getDataString(resId, s)
 	{"getDataString", LuaInterface::luaResultGetDataString},
 
-	//result.getDataStream(resId, s, length)
-	{"getDataStream", LuaInterface::luaResultGetDataStream},
+	//result.getStream(resId, s, length)
+	{"getStream", LuaInterface::luaResultGetDataStream},
 
 	//result.next(resId)
 	{"next", LuaInterface::luaResultNext},
@@ -10673,8 +10652,7 @@ int32_t LuaInterface::luaDoSaveHouse(lua_State* L)
 		houses.push_back(house);
 	}
 
-	Database* db = Database::getInstance();
-	DBTransaction trans(db);
+	DBTransaction trans;
 	if(!trans.begin())
 	{
 		lua_pushboolean(L, false);
@@ -10683,14 +10661,14 @@ int32_t LuaInterface::luaDoSaveHouse(lua_State* L)
 
 	for(std::vector<House*>::iterator it = houses.begin(); it != houses.end(); ++it)
 	{
-		if(!IOMapSerialize::getInstance()->saveHouse(db, *it))
+		if(!IOMapSerialize::getInstance()->saveHouse(*it))
 		{
 			std::ostringstream s;
 			s << "Unable to save house information, ID: " << (*it)->getId();
 			errorEx(s.str());
 		}
 
-		if(!IOMapSerialize::getInstance()->saveHouseItems(db, *it))
+		if(!IOMapSerialize::getInstance()->saveHouseItems(*it))
 		{
 			std::ostringstream s;
 			s << "Unable to save house items, ID: " << (*it)->getId();
@@ -11788,7 +11766,7 @@ int32_t LuaInterface::luaDatabaseExecute(lua_State* L)
 	std::ostringstream query; //lock mutex
 	query << popString(L);
 
-	lua_pushboolean(L, Database::getInstance()->query(query.str()));
+	lua_pushboolean(L, g_database.executeQuery(query.str()));
 	return 1;
 }
 
@@ -11799,7 +11777,7 @@ int32_t LuaInterface::luaDatabaseStoreQuery(lua_State* L)
 	std::ostringstream query; //lock mutex
 
 	query << popString(L);
-	if(DBResult* res = Database::getInstance()->storeQuery(query.str()))
+	if(DBResultPtr res = g_database.storeQuery(query.str()))
 		lua_pushnumber(L, env->addResult(res));
 	else
 		lua_pushboolean(L, false);
@@ -11810,7 +11788,7 @@ int32_t LuaInterface::luaDatabaseStoreQuery(lua_State* L)
 int32_t LuaInterface::luaDatabaseEscapeString(lua_State* L)
 {
 	//db.escapeString(str)
-	lua_pushstring(L, Database::getInstance()->escapeString(popString(L)).c_str());
+	lua_pushstring(L, g_database.escapeString(popString(L)).c_str());
 	return 1;
 }
 
@@ -11818,35 +11796,14 @@ int32_t LuaInterface::luaDatabaseEscapeBlob(lua_State* L)
 {
 	//db.escapeBlob(s, length)
 	uint32_t length = popNumber(L);
-	lua_pushstring(L, Database::getInstance()->escapeBlob(popString(L).c_str(), length).c_str());
+	lua_pushstring(L, g_database.escapeBlob(popString(L).c_str(), length).c_str());
 	return 1;
 }
 
 int32_t LuaInterface::luaDatabaseLastInsertId(lua_State* L)
 {
 	//db.lastInsertId()
-	lua_pushnumber(L, Database::getInstance()->getLastInsertId());
-	return 1;
-}
-
-int32_t LuaInterface::luaDatabaseStringComparer(lua_State* L)
-{
-	//db.stringComparer()
-	lua_pushstring(L, Database::getInstance()->getStringComparer().c_str());
-	return 1;
-}
-
-int32_t LuaInterface::luaDatabaseUpdateLimiter(lua_State* L)
-{
-	//db.updateLimiter()
-	lua_pushstring(L, Database::getInstance()->getUpdateLimiter().c_str());
-	return 1;
-}
-
-int32_t LuaInterface::luaDatabaseConnected(lua_State* L)
-{
-	//db.connected()
-	lua_pushboolean(L, Database::getInstance()->isConnected());
+	lua_pushnumber(L, g_database.getLastInsertId());
 	return 1;
 }
 
@@ -11860,21 +11817,21 @@ int32_t LuaInterface::luaDatabaseTableExists(lua_State* L)
 int32_t LuaInterface::luaDatabaseTransBegin(lua_State* L)
 {
 	//db.transBegin()
-	lua_pushboolean(L, Database::getInstance()->beginTransaction());
+	lua_pushboolean(L, g_database.beginTransaction());
 	return 1;
 }
 
 int32_t LuaInterface::luaDatabaseTransRollback(lua_State* L)
 {
 	//db.transRollback()
-	lua_pushboolean(L, Database::getInstance()->rollback());
+	lua_pushboolean(L, g_database.rollback());
 	return 1;
 }
 
 int32_t LuaInterface::luaDatabaseTransCommit(lua_State* L)
 {
 	//db.transCommit()
-	lua_pushboolean(L, Database::getInstance()->commit());
+	lua_pushboolean(L, g_database.commit());
 	return 1;
 }
 
@@ -11891,23 +11848,23 @@ int32_t LuaInterface::luaResultGetDataInt(lua_State* L)
 	const std::string& s = popString(L);
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(popNumber(L));
+	DBResultPtr res = env->getResultByID(popNumber(L));
 	CHECK_RESULT()
 
-	lua_pushnumber(L, res->getDataInt(s));
+	lua_pushnumber(L, res->getNumber<int32_t>(s));
 	return 1;
 }
 
 int32_t LuaInterface::luaResultGetDataLong(lua_State* L)
 {
-	//result.getDataLong(res, s)
+	//result.getNumber<uint64_t>(res, s)
 	const std::string& s = popString(L);
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(popNumber(L));
+	DBResultPtr res = env->getResultByID(popNumber(L));
 	CHECK_RESULT()
 
-	lua_pushnumber(L, res->getDataLong(s));
+	lua_pushnumber(L, res->getNumber<uint64_t>(s));
 	return 1;
 }
 
@@ -11917,24 +11874,24 @@ int32_t LuaInterface::luaResultGetDataString(lua_State* L)
 	const std::string& s = popString(L);
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(popNumber(L));
+	DBResultPtr res = env->getResultByID(popNumber(L));
 	CHECK_RESULT()
 
-	lua_pushstring(L, res->getDataString(s).c_str());
+	lua_pushstring(L, res->getString(s).c_str());
 	return 1;
 }
 
 int32_t LuaInterface::luaResultGetDataStream(lua_State* L)
 {
-	//result.getDataStream(res, s)
+	//result.getStream(res, s)
 	const std::string s = popString(L);
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(popNumber(L));
+	DBResultPtr res = env->getResultByID(popNumber(L));
 	CHECK_RESULT()
 
-	uint64_t length = 0;
-	lua_pushstring(L, res->getDataStream(s, length));
+	unsigned long length = 0;
+	lua_pushstring(L, res->getStream(s, length));
 
 	lua_pushnumber(L, length);
 	return 2;
@@ -11945,7 +11902,7 @@ int32_t LuaInterface::luaResultNext(lua_State* L)
 	//result.next(res)
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(popNumber(L));
+	DBResultPtr res = env->getResultByID(popNumber(L));
 	CHECK_RESULT()
 
 	lua_pushboolean(L, res->next());
@@ -11958,7 +11915,7 @@ int32_t LuaInterface::luaResultFree(lua_State* L)
 	uint32_t rid = popNumber(L);
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(rid);
+	DBResultPtr res = env->getResultByID(rid);
 	CHECK_RESULT()
 
 	lua_pushboolean(L, env->removeResult(rid));

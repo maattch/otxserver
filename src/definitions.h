@@ -38,19 +38,16 @@
 
 #define VERSION_DATABASE 42
 
-#undef MULTI_SQL_DRIVERS
-#define SQL_DRIVERS __USE_SQLITE__+__USE_MYSQL__+__USE_PGSQL__
-
-#if SQL_DRIVERS > 1
-	#define MULTI_SQL_DRIVERS
-#endif
-
 #define MAX_RAND_RANGE 10000000
 #ifndef __FUNCTION__
 	#define	__FUNCTION__ __func__
 #endif
 
 #define BOOST_ASIO_ENABLE_CANCELIO 1
+#define BOOST_BIND_NO_PLACEHOLDERS
+#define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #ifdef _MSC_VER
 	#define __PRETTY_FUNCTION__ __FUNCDNAME__
 	#ifndef NOMINMAX
@@ -75,6 +72,9 @@
 		typedef signed char int8_t;
 	#endif
 
+	#define strncasecmp _strnicmp
+	#define strcasecmp _stricmp
+
 	#pragma warning(disable:4786) // msvc too long debug names in stl
 	#pragma warning(disable:4250) // 'class1' : inherits 'class2::member' via dominance
 	#pragma warning(disable:4244)
@@ -82,6 +82,7 @@
 	#pragma warning(disable:4018)
 	#pragma warning(disable:4309)
 	#pragma warning(disable:4996) // '_ftime64' : this function or variable may be unsafe
+	#pragma warning(disable:26812) // prefer 'enum class' over 'enum'
 
 	#ifndef _WIN32
 		#define _WIN32

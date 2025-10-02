@@ -17,7 +17,6 @@
 
 #ifndef __ITEMS__
 #define __ITEMS__
-#include "otsystem.h"
 #include "itemloader.h"
 
 #include "const.h"

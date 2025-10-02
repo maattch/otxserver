@@ -78,6 +78,11 @@ operator<<(std::basic_ostream<CharT, Traits>& os, _put_time<CharT> f)
 
 extern ConfigManager g_config;
 
+int64_t OTSYS_TIME()
+{
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 std::string transformToSHA1(std::string plainText, bool upperCase)
 {
 	SHA1 sha1;
@@ -304,7 +309,7 @@ bool parseXMLContentString(xmlNodePtr node, std::string& value)
 std::string getLastXMLError()
 {
 	std::ostringstream ss;
-	xmlErrorPtr lastError = xmlGetLastError();
+	auto lastError = xmlGetLastError();
 	if(lastError->line)
 		ss << "Line: " << lastError->line << ", ";
 

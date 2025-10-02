@@ -17,7 +17,6 @@
 
 #ifndef __COMBAT__
 #define __COMBAT__
-#include "otsystem.h"
 
 #include "baseevents.h"
 #include "condition.h"

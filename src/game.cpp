@@ -6546,7 +6546,7 @@ Position Game::getClosestFreeTile(Creature* creature, Position pos, bool extende
 		relList.push_back(PositionPair(2, 0));
 	}
 
-	std::random_shuffle(relList.begin() + 1, relList.end());
+	std::shuffle(relList.begin() + 1, relList.end(), getRandomGenerator());
 	if(Player* player = creature->getPlayer())
 	{
 		for(PairVector::iterator it = relList.begin(); it != relList.end(); ++it)
@@ -6955,8 +6955,7 @@ std::string Game::getHighscoreString(uint16_t skill)
 
 Highscore Game::getHighscore(uint16_t skill)
 {
-	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResultPtr result;
 	std::ostringstream query;
 
 	Highscore hs;
@@ -6967,38 +6966,36 @@ Highscore Game::getHighscore(uint16_t skill)
 		else
 			query << "SELECT `level`, `name` FROM `players` ORDER BY `level` DESC, `experience` DESC LIMIT " << g_config.getNumber(ConfigManager::HIGHSCORES_TOP);
 
-		if(!(result = db->storeQuery(query.str())))
+		if(!(result = g_database.storeQuery(query.str())))
 			return hs;
 
 		do
 		{
 			uint32_t level;
 			if(skill == SKILL__MAGLEVEL)
-				level = result->getDataInt("maglevel");
+				level = result->getNumber<int32_t>("maglevel");
 			else
-				level = result->getDataInt("level");
+				level = result->getNumber<int32_t>("level");
 
-			std::string name = result->getDataString("name");
+			std::string name = result->getString("name");
 			if(name.length() > 0)
 				hs.push_back(std::make_pair(name, level));
 		}
 		while(result->next());
-		result->free();
 	}
 	else
 	{
 		query << "SELECT `player_skills`.`value`, `players`.`name` FROM `player_skills`,`players` WHERE `player_skills`.`skillid`=" << skill << " AND `player_skills`.`player_id`=`players`.`id` ORDER BY `player_skills`.`value` DESC, `player_skills`.`count` DESC LIMIT " << g_config.getNumber(ConfigManager::HIGHSCORES_TOP);
-		if(!(result = db->storeQuery(query.str())))
+		if(!(result = g_database.storeQuery(query.str())))
 			return hs;
 
 		do
 		{
-			std::string name = result->getDataString("name");
+			std::string name = result->getString("name");
 			if(name.length() > 0)
-				hs.push_back(std::make_pair(name, result->getDataInt("value")));
+				hs.push_back(std::make_pair(name, result->getNumber<int32_t>("value")));
 		}
 		while(result->next());
-		result->free();
 	}
 
 	return hs;
@@ -7013,11 +7010,10 @@ int32_t Game::getMotdId()
 	}
 
 	lastMotd = g_config.getString(ConfigManager::MOTD);
-	Database* db = Database::getInstance();
 
 	std::ostringstream query;
-	query << "INSERT INTO `server_motd` (`id`, `world_id`, `text`) VALUES (" << lastMotdId + 1 << ", " << g_config.getNumber(ConfigManager::WORLD_ID) << ", " << db->escapeString(lastMotd) << ")";
-	if(db->query(query.str()))
+	query << "INSERT INTO `server_motd` (`id`, `world_id`, `text`) VALUES (" << lastMotdId + 1 << ", " << g_config.getNumber(ConfigManager::WORLD_ID) << ", " << g_database.escapeString(lastMotd) << ")";
+	if(g_database.executeQuery(query.str()))
 		++lastMotdId;
 
 	return lastMotdId;
@@ -7025,21 +7021,19 @@ int32_t Game::getMotdId()
 
 void Game::loadMotd()
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `id`, `text` FROM `server_motd` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " ORDER BY `id` DESC LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 	{
 		std::clog << "> ERROR: Failed to load motd!" << std::endl;
 		lastMotdId = random_range(5, 500);
 		return;
 	}
 
-	lastMotdId = result->getDataInt("id");
-	lastMotd = result->getDataString("text");
-	result->free();
+	lastMotdId = result->getNumber<int32_t>("id");
+	lastMotd = result->getString("text");
 }
 
 void Game::checkPlayersRecord(Player* player)
@@ -7057,19 +7051,17 @@ void Game::checkPlayersRecord(Player* player)
 
 void Game::loadPlayersRecord()
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `record` FROM `server_record` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " ORDER BY `timestamp` DESC LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 	{
 		std::clog << "> ERROR: Failed to load players record!" << std::endl;
 		return;
 	}
 
-	playersRecord = result->getDataInt("record");
-	result->free();
+	playersRecord = result->getNumber<int32_t>("record");
 }
 
 bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId/* = 0*/, bool completeReload/* = false*/)

@@ -17,7 +17,6 @@
 
 #ifndef __ACCOUNT__
 #define __ACCOUNT__
-#include "otsystem.h"
 #ifndef __LOGIN_SERVER__
 
 typedef std::list<std::string> Characters;

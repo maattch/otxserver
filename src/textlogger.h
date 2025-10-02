@@ -17,7 +17,6 @@
 
 #ifndef __TEXTLOGGER__
 #define __TEXTLOGGER__
-#include "otsystem.h"
 
 enum LogFile_t
 {

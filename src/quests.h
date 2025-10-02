@@ -17,7 +17,6 @@
 
 #ifndef __QUESTS__
 #define __QUESTS__
-#include "otsystem.h"
 
 #include "networkmessage.h"
 #include "player.h"

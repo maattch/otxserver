@@ -17,7 +17,6 @@
 
 #ifndef __FILELOADER__
 #define __FILELOADER__
-#include "otsystem.h"
 
 struct NodeStruct;
 typedef NodeStruct* NODE;

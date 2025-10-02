@@ -17,7 +17,6 @@
 
 #ifndef __TOOLS__
 #define __TOOLS__
-#include "otsystem.h"
 
 #include "enums.h"
 #include "const.h"
@@ -71,6 +70,10 @@ inline T fromString(const std::string& s)
 	ss >> t;
 	return t;
 }
+
+int64_t OTSYS_TIME();
+
+std::mt19937& getRandomGenerator();
 
 void trim_right(std::string& source, const std::string& t);
 void trim_left(std::string& source, const std::string& t);

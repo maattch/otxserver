@@ -18,7 +18,6 @@
 #ifndef __SPECTATORS__
 #define __SPECTATORS__
 
-#include "otsystem.h"
 #include "enums.h"
 
 #include "protocolgame.h"

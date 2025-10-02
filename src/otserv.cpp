@@ -16,7 +16,6 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "otpch.h"
-#include "otsystem.h"
 #include <signal.h>
 
 #include <iostream>
@@ -398,7 +397,7 @@ void otserv(StringVec, ServiceManager* services)
 {
 	std::srand((uint32_t)OTSYS_TIME());
 #if defined(WINDOWS)
-	SetConsoleTitle(SOFTWARE_NAME);
+	SetConsoleTitleA(SOFTWARE_NAME);
 #endif
 
 	g_game.setGameState(GAMESTATE_STARTUP);
@@ -564,7 +563,7 @@ void otserv(StringVec, ServiceManager* services)
 	std::ostringstream mutexName;
 	mutexName << "otxserver_" << g_config.getNumber(ConfigManager::WORLD_ID);
 
-	CreateMutex(NULL, FALSE, mutexName.str().c_str());
+	CreateMutexA(NULL, FALSE, mutexName.str().c_str());
 	if(GetLastError() == ERROR_ALREADY_EXISTS)
 		startupErrorMessage("Another instance of The OTX Server is already running with the same worldId.\nIf you want to run multiple servers, please change the worldId in configuration file.");
 
@@ -623,28 +622,9 @@ void otserv(StringVec, ServiceManager* services)
 	g_RSA.initialize(p, q, d);
 
 	std::clog << ">> Starting SQL connection" << std::endl;
-	Database* db = Database::getInstance();
-	if(db && db->connect())
+	if(g_database.connect())
 	{
 		std::clog << ">> Running Database Manager" << std::endl;
-		if(DatabaseManager::getInstance()->isDatabaseSetup())
-		{
-			uint32_t version = 0;
-			do
-			{
-				version = DatabaseManager::getInstance()->updateDatabase();
-				if(version == 0)
-					break;
-
-				std::clog << "> Database has been updated to version: " << version << "." << std::endl;
-			}
-			while(version < VERSION_DATABASE);
-		}
-		else
-			startupErrorMessage("The database you have specified in config.lua is empty, please import schemas/<engine>.sql to the database.");
-
-		DatabaseManager::getInstance()->checkTriggers();
-		DatabaseManager::getInstance()->checkEncryption();
 		if(g_config.getBool(ConfigManager::OPTIMIZE_DATABASE) && !DatabaseManager::getInstance()->optimizeTables())
 			std::clog << "\033[32m>>> [Done] No tables to optimize.\033[0m" << std::endl;
 	}
@@ -656,94 +636,90 @@ void otserv(StringVec, ServiceManager* services)
 	query << "SELECT unitedItems.serial, COUNT(1) AS duplicatesCount FROM (SELECT serial FROM `player_items` UNION ALL SELECT serial FROM `player_depotitems` UNION ALL SELECT serial FROM `tile_items`) unitedItems GROUP BY unitedItems.serial HAVING COUNT(1) > 1;";
 	std::string logText = "";
 
-	DBResult* result;
+	DBResultPtr result;
 	bool duplicated = false;
 
-	if((result = db->storeQuery(query.str())))
+	if((result = g_database.storeQuery(query.str())))
 	{
 		do
 		{
-			std::string serial = result->getDataString("serial");
+			std::string serial = result->getString("serial");
 			if(serial != "" && serial.length() > 1)
 			{
-				DBResult* result_;
+				DBResultPtr result_;
 				std::ostringstream query_playeritems;
-				query_playeritems << "SELECT `player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`, `serial` FROM `player_items` WHERE `serial` = " << db->escapeString(serial) << ";";
-				if((result_ = db->storeQuery(query_playeritems.str())))
+				query_playeritems << "SELECT `player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`, `serial` FROM `player_items` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				if((result_ = g_database.storeQuery(query_playeritems.str())))
 				{
 					duplicated = true;
 					do
 					{
 						std::string name;
-						IOLoginData::getInstance()->getNameByGuid((uint32_t)result_->getDataInt("player_id"), name, false);
-						std::clog << ">> Deleted item from 'player_items' with SERIAL: [" << serial.c_str() << "] PLAYER: [" << result_->getDataInt("player_id") << "] PLAYER NAME: [" << name.c_str() << "] ITEM: [" << result_->getDataInt("itemtype") << "] COUNT: [" << result_->getDataInt("count") << "]" << std::endl;
+						IOLoginData::getInstance()->getNameByGuid((uint32_t)result_->getNumber<int32_t>("player_id"), name, false);
+						std::clog << ">> Deleted item from 'player_items' with SERIAL: [" << serial.c_str() << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name.c_str() << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]" << std::endl;
 						std::ostringstream logText;
-						logText << "Deleted item from 'player_items' with SERIAL: [" << serial << "] PLAYER: [" << result_->getDataInt("player_id") << "] PLAYER NAME: [" << name << "] ITEM: [" << result_->getDataInt("itemtype") << "] COUNT: [" << result_->getDataInt("count") << "]";
+						logText << "Deleted item from 'player_items' with SERIAL: [" << serial << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]";
 						Logger::getInstance()->eFile("anti_dupe.log", logText.str(), true);
 					}
 					while(result_->next());
-					result_->free();
 				}
 
 				query_playeritems.clear();
 				std::ostringstream query_playerdepotitems;
-				query_playerdepotitems << "SELECT `player_id`, `sid`, `pid`, `itemtype`, `count`, `attributes`, `serial` FROM `player_depotitems` WHERE `serial` = " << db->escapeString(serial) << ";";
-				if((result_ = db->storeQuery(query_playerdepotitems.str())))
+				query_playerdepotitems << "SELECT `player_id`, `sid`, `pid`, `itemtype`, `count`, `attributes`, `serial` FROM `player_depotitems` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				if((result_ = g_database.storeQuery(query_playerdepotitems.str())))
 				{
 					duplicated = true;
 					do
 					{
 						std::string name;
-						IOLoginData::getInstance()->getNameByGuid((uint32_t)result_->getDataInt("player_id"), name, false);
-						std::clog << ">> Deleted item from 'player_depotitems' with SERIAL: [" << serial.c_str() << "] PLAYER: [" << result_->getDataInt("player_id") << "] PLAYER NAME: [" << name.c_str() << "] ITEM: [" << result_->getDataInt("itemtype") << "] COUNT: [" << result_->getDataInt("count") << "]" << std::endl;
+						IOLoginData::getInstance()->getNameByGuid((uint32_t)result_->getNumber<int32_t>("player_id"), name, false);
+						std::clog << ">> Deleted item from 'player_depotitems' with SERIAL: [" << serial.c_str() << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name.c_str() << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]" << std::endl;
 						std::ostringstream logText;
-						logText << "Deleted item from 'player_depotitems' with SERIAL: [" << serial << "] PLAYER: [" << result_->getDataInt("player_id") << "] PLAYER NAME: [" << name << "] ITEM: [" << result_->getDataInt("itemtype") << "] COUNT: [" << result_->getDataInt("count") << "]";
+						logText << "Deleted item from 'player_depotitems' with SERIAL: [" << serial << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]";
 						Logger::getInstance()->eFile("anti_dupe.log", logText.str(), true);
 					}
 					while(result_->next());
-					result_->free();
 				}
 
 				query_playerdepotitems.clear();
 				std::ostringstream query_tileitems;
-				query_tileitems << "SELECT `tile_id`, `world_id`, `sid`, `pid`, `itemtype`, `count`, `attributes`, `serial` FROM `tile_items` WHERE `serial` = " << db->escapeString(serial) << ";";
-				if((result_ = db->storeQuery(query_tileitems.str())))
+				query_tileitems << "SELECT `tile_id`, `world_id`, `sid`, `pid`, `itemtype`, `count`, `attributes`, `serial` FROM `tile_items` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				if((result_ = g_database.storeQuery(query_tileitems.str())))
 				{
 					duplicated = true;
 					do
 					{
-						std::clog << ">> Deleted item from 'tile_items' with SERIAL: [" << serial.c_str() << "] TILE ID: [" << result_->getDataInt("tile_id") << "] WORLD ID: [" << result_->getDataInt("world_id") << "] ITEM: [" << result_->getDataInt("itemtype") << "] COUNT: [" << result_->getDataInt("count") << "]" << std::endl;
+						std::clog << ">> Deleted item from 'tile_items' with SERIAL: [" << serial.c_str() << "] TILE ID: [" << result_->getNumber<int32_t>("tile_id") << "] WORLD ID: [" << result_->getNumber<int32_t>("world_id") << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]" << std::endl;
 						std::ostringstream logText;
-						logText << "Deleted item from 'tile_items' with SERIAL: [" << serial << "] TILE ID: [" << result_->getDataInt("tile_id") << "] WORLD ID: [" << result_->getDataInt("world_id") << "] ITEM: [" << result_->getDataInt("itemtype") << "] COUNT: [" << result_->getDataInt("count") << "]";
+						logText << "Deleted item from 'tile_items' with SERIAL: [" << serial << "] TILE ID: [" << result_->getNumber<int32_t>("tile_id") << "] WORLD ID: [" << result_->getNumber<int32_t>("world_id") << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]";
 						Logger::getInstance()->eFile("anti_dupe.log", logText.str(), true);
 					}
 					while(result_->next());
-					result_->free();
 				}
 
 				query_tileitems.clear();
 				std::ostringstream query_deletepi;
-				query_deletepi << "DELETE FROM `player_items` WHERE `serial` = " << db->escapeString(serial) << ";";
-				if(!db->query(query_deletepi.str()))
+				query_deletepi << "DELETE FROM `player_items` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				if(!g_database.executeQuery(query_deletepi.str()))
 					std::clog << ">> Cannot delete duplicated items from 'player_items'!" << std::endl;
 
 				query_deletepi.clear();
 				std::ostringstream query_deletedi;
-				query_deletedi << "DELETE FROM `player_depotitems` WHERE `serial` = " << db->escapeString(serial) << ";";
-				if(!db->query(query_deletedi.str()))
+				query_deletedi << "DELETE FROM `player_depotitems` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				if(!g_database.executeQuery(query_deletedi.str()))
 					std::clog << ">> Cannot delete duplicated items from 'player_depotitems'!" << std::endl;
 
 				query_deletedi.clear();
 				std::ostringstream query_deleteti;
-				query_deleteti << "DELETE FROM `tile_items` WHERE `serial` = " << db->escapeString(serial) << ";";
-				if(!db->query(query_deleteti.str()))
+				query_deleteti << "DELETE FROM `tile_items` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				if(!g_database.executeQuery(query_deleteti.str()))
 					std::clog << ">> Cannot delete duplicated items from 'tile_items'!" << std::endl;
 
 				query_deleteti.clear();
 			}
 		}
 		while(result->next());
-		result->free();
 
 		if(duplicated)
 			std::clog << ">> Duplicated items successfully removed." << std::endl;

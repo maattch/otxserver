@@ -18,7 +18,6 @@
 #ifndef __MONSTER__
 #define __MONSTER__
 
-#include "otsystem.h"
 #include "monsters.h"
 #include "raids.h"
 #include "tile.h"

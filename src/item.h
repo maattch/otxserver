@@ -17,7 +17,6 @@
 
 #ifndef __ITEM__
 #define __ITEM__
-#include "otsystem.h"
 
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>

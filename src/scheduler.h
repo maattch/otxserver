@@ -17,9 +17,9 @@
 
 #ifndef __SCHEDULER__
 #define __SCHEDULER__
-#include "otsystem.h"
 
 #include "dispatcher.h"
+
 #define SCHEDULER_MINTICKS 50
 
 class SchedulerTask : public Task
@@ -49,7 +49,7 @@ inline SchedulerTask* createSchedulerTask(uint32_t delay, const boost::function<
 	return new SchedulerTask(delay, f);
 }
 
-class lessTask : public std::binary_function<SchedulerTask*&, SchedulerTask*&, bool>
+class lessTask
 {
 	public:
 		bool operator()(SchedulerTask*& t1, SchedulerTask*& t2) {return (*t1) < (*t2);}

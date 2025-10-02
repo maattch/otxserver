@@ -50,25 +50,23 @@ extern Game g_game;
 
 Account IOLoginData::loadAccount(uint32_t accountId, bool preLoad/* = false*/)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "SELECT `name`, `password`, `salt`, `premdays`, `lastday`, `key`, `warnings` FROM `accounts` WHERE `id` = " << accountId << " LIMIT 1";
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return Account();
 
 	Account account;
 	account.number = accountId;
-	account.name = result->getDataString("name");
-	account.password = result->getDataString("password");
-	account.salt = result->getDataString("salt");
-	account.premiumDays = std::max((int32_t)0, std::min((int32_t)GRATIS_PREMIUM, result->getDataInt("premdays")));
-	account.lastDay = result->getDataInt("lastday");
-	account.recoveryKey = result->getDataString("key");
-	account.warnings = result->getDataInt("warnings");
+	account.name = result->getString("name");
+	account.password = result->getString("password");
+	account.salt = result->getString("salt");
+	account.premiumDays = std::max((int32_t)0, std::min((int32_t)GRATIS_PREMIUM, result->getNumber<int32_t>("premdays")));
+	account.lastDay = result->getNumber<uint32_t>("lastday");
+	account.recoveryKey = result->getString("key");
+	account.warnings = result->getNumber<uint16_t>("warnings");
 
-	result->free();
 	if(!preLoad)
 		loadCharacters(account);
 
@@ -77,31 +75,28 @@ Account IOLoginData::loadAccount(uint32_t accountId, bool preLoad/* = false*/)
 
 bool IOLoginData::loadAccount(Account& account, const std::string& name)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
-	query << "SELECT `id`, `password`, `salt`, `premdays`, `lastday`, `key`, `warnings` FROM `accounts` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " LIMIT 1";
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	query << "SELECT `id`, `password`, `salt`, `premdays`, `lastday`, `key`, `warnings` FROM `accounts` WHERE `name` = " << g_database.escapeString(name) << " LIMIT 1";
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	account.number = result->getDataInt("id");
+	account.number = result->getNumber<int32_t>("id");
 	account.name = name;
-	account.password = result->getDataString("password");
-	account.salt = result->getDataString("salt");
-	account.premiumDays = std::max((int32_t)0, std::min((int32_t)GRATIS_PREMIUM, result->getDataInt("premdays")));
-	account.lastDay = result->getDataInt("lastday");
-	account.recoveryKey = result->getDataString("key");
-	account.warnings = result->getDataInt("warnings");
+	account.password = result->getString("password");
+	account.salt = result->getString("salt");
+	account.premiumDays = std::max((int32_t)0, std::min((int32_t)GRATIS_PREMIUM, result->getNumber<int32_t>("premdays")));
+	account.lastDay = result->getNumber<uint32_t>("lastday");
+	account.recoveryKey = result->getString("key");
+	account.warnings = result->getNumber<uint16_t>("warnings");
 
-	result->free();
 	loadCharacters(account);
 	return true;
 }
 
 void IOLoginData::loadCharacters(Account& account)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 #ifndef __LOGIN_SERVER__
@@ -109,24 +104,23 @@ void IOLoginData::loadCharacters(Account& account)
 #else
 	query << "SELECT `id`, `name`, `world_id`, `online` FROM `players` WHERE `account_id` = " << account.number << " AND `deleted` = 0";
 #endif
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return;
 
 	do
 	{
 #ifndef __LOGIN_SERVER__
-		account.charList.push_back(result->getDataString("name"));
+		account.charList.push_back(result->getString("name"));
 #else
-		std::string name = result->getDataString("name");
-		if(GameServer* srv = GameServers::getInstance()->getServerById(result->getDataInt("world_id")))
-			account.charList[name] = Character(name, srv, result->getDataInt("online"));
+		std::string name = result->getString("name");
+		if(GameServer* srv = GameServers::getInstance()->getServerById(result->getNumber<int32_t>("world_id")))
+			account.charList[name] = Character(name, srv, result->getNumber<int32_t>("online"));
 		else
 			std::clog << "[Warning - IOLoginData::loadAccount] Invalid server for player '" << name << "'." << std::endl;
 #endif
 	}
 	while(result->next());
-	result->free();
 #ifndef __LOGIN_SERVER__
 	account.charList.sort();
 #endif
@@ -134,10 +128,9 @@ void IOLoginData::loadCharacters(Account& account)
 
 bool IOLoginData::saveAccount(Account account)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "UPDATE `accounts` SET `premdays` = " << account.premiumDays << ", `warnings` = " << account.warnings << ", `lastday` = " << account.lastDay << " WHERE `id` = " << account.number << db->getUpdateLimiter();
-	return db->query(query.str());
+	query << "UPDATE `accounts` SET `premdays` = " << account.premiumDays << ", `warnings` = " << account.warnings << ", `lastday` = " << account.lastDay << " WHERE `id` = " << account.number << " LIMIT 1;";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOLoginData::getAccountId(const std::string& name, uint32_t& number)
@@ -145,16 +138,14 @@ bool IOLoginData::getAccountId(const std::string& name, uint32_t& number)
 	if(!name.length())
 		return false;
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `id` FROM `accounts` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " LIMIT 1";
+	query << "SELECT `id` FROM `accounts` WHERE `name` = " << g_database.escapeString(name) << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	number = result->getDataInt("id");
-	result->free();
+	number = result->getNumber<int32_t>("id");
 	return true;
 }
 
@@ -166,119 +157,103 @@ bool IOLoginData::getAccountName(uint32_t number, std::string& name)
 		return true;
 	}
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `name` FROM `accounts` WHERE `id` = " << number << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	name = result->getDataString("name");
-	result->free();
+	name = result->getString("name");
 	return true;
 }
 
 bool IOLoginData::hasFlag(uint32_t accountId, PlayerFlags value)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `group_id` FROM `accounts` WHERE `id` = " << accountId << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
-	result->free();
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasFlag(value);
 }
 
 bool IOLoginData::hasCustomFlag(uint32_t accountId, PlayerCustomFlags value)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `group_id` FROM `accounts` WHERE `id` = " << accountId << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
-	result->free();
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasCustomFlag(value);
 }
 
 bool IOLoginData::hasFlag(PlayerFlags value, const std::string& accName)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `group_id` FROM `accounts` WHERE `name` " << db->getStringComparer() << db->escapeString(accName) << " LIMIT 1";
+	query << "SELECT `group_id` FROM `accounts` WHERE `name` = " << g_database.escapeString(accName) << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
-	result->free();
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasFlag(value);
 }
 
 bool IOLoginData::hasCustomFlag(PlayerCustomFlags value, const std::string& accName)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `group_id` FROM `accounts` WHERE `name` " << db->getStringComparer() << db->escapeString(accName) << " LIMIT 1";
+	query << "SELECT `group_id` FROM `accounts` WHERE `name` = " << g_database.escapeString(accName) << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
-	result->free();
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasCustomFlag(value);
 }
 
 bool IOLoginData::accountIdExists(uint32_t accountId)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT 1 FROM `accounts` WHERE `id` = " << accountId << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	result->free();
 	return true;
 }
 
 bool IOLoginData::accountNameExists(const std::string& name)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT 1 FROM `accounts` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " LIMIT 1";
+	query << "SELECT 1 FROM `accounts` WHERE `name` = " << g_database.escapeString(name) << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	result->free();
 	return true;
 }
 
 bool IOLoginData::getPassword(uint32_t accountId, std::string& password, std::string& salt, std::string name/* = ""*/)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `password`, `salt` FROM `accounts` WHERE `id` = " << accountId << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	std::string tmpPassword = result->getDataString("password"), tmpSalt = result->getDataString("salt");
-	result->free();
+	std::string tmpPassword = result->getString("password"), tmpSalt = result->getString("salt");
 	if(name.empty() || name == "Account Manager")
 	{
 		password = tmpPassword;
@@ -288,22 +263,20 @@ bool IOLoginData::getPassword(uint32_t accountId, std::string& password, std::st
 
 	query.str("");
 	query << "SELECT `name` FROM `players` WHERE `account_id` = " << accountId;
-	if(!(result = db->storeQuery(query.str())))
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
 	do
 	{
-		if(result->getDataString("name") != name)
+		if(result->getString("name") != name)
 			continue;
 
 		password = tmpPassword;
 		salt = tmpSalt;
 
-		result->free();
 		return true;
 	}
 	while(result->next());
-	result->free();
 	return false;
 }
 
@@ -316,39 +289,34 @@ bool IOLoginData::setPassword(uint32_t accountId, std::string newPassword)
 		newPassword = salt + newPassword;
 	}
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	_encrypt(newPassword, false);
-	query << "UPDATE `accounts` SET `password` = " << db->escapeString(newPassword) << ", `salt` = "<< db->escapeString(salt) << " WHERE `id` = " << accountId << db->getUpdateLimiter();
-	return db->query(query.str());
+	query << "UPDATE `accounts` SET `password` = " << g_database.escapeString(newPassword) << ", `salt` = "<< g_database.escapeString(salt) << " WHERE `id` = " << accountId << " LIMIT 1;";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOLoginData::validRecoveryKey(uint32_t accountId, std::string recoveryKey)
 {
 	_encrypt(recoveryKey, false);
-	Database* db = Database::getInstance();
 
 	std::ostringstream query;
-	query << "SELECT `id` FROM `accounts` WHERE `id` = " << accountId << " AND `key` "
-		<< db->getStringComparer() << db->escapeString(recoveryKey) << " LIMIT 1";
+	query << "SELECT `id` FROM `accounts` WHERE `id` = " << accountId << " AND `key` = " << g_database.escapeString(recoveryKey) << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	result->free();
 	return true;
 }
 
 bool IOLoginData::setRecoveryKey(uint32_t accountId, std::string newRecoveryKey)
 {
 	_encrypt(newRecoveryKey, false);
-	Database* db = Database::getInstance();
 
 	std::ostringstream query;
-	query << "UPDATE `accounts` SET `key` = " << db->escapeString(newRecoveryKey) << " WHERE `id` = " << accountId << db->getUpdateLimiter();
-	return db->query(query.str());
+	query << "UPDATE `accounts` SET `key` = " << g_database.escapeString(newRecoveryKey) << " WHERE `id` = " << accountId << " LIMIT 1;";
+	return g_database.executeQuery(query.str());
 }
 
 uint64_t IOLoginData::createAccount(std::string name, std::string password)
@@ -357,14 +325,13 @@ uint64_t IOLoginData::createAccount(std::string name, std::string password)
 	password = salt + password;
 	_encrypt(password, false);
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
-	query << "INSERT INTO `accounts` (`id`, `name`, `password`, `salt`) VALUES (NULL, " << db->escapeString(name) << ", " << db->escapeString(password) << ", " << db->escapeString(salt) << ")";
-	if(!db->query(query.str()))
+	query << "INSERT INTO `accounts` (`id`, `name`, `password`, `salt`) VALUES (NULL, " << g_database.escapeString(name) << ", " << g_database.escapeString(password) << ", " << g_database.escapeString(salt) << ")";
+	if(!g_database.executeQuery(query.str()))
 		return 0;
 
-	return db->getLastInsertId();
+	return g_database.getLastInsertId();
 }
 
 void IOLoginData::removePremium(Account& account)
@@ -410,22 +377,19 @@ void IOLoginData::removePremium(Account& account)
 
 const Group* IOLoginData::getPlayerGroupByAccount(uint32_t accountId)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `group_id` FROM `accounts` WHERE `id` = " << accountId << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return NULL;
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
-	result->free();
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 	return group;
 }
 
 bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLoad /*= false*/)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `id`, `account_id`, `group_id`, `world_id`, `sex`, `vocation`, `experience`, `level`, "
 	<< "`maglevel`, `health`, `healthmax`, `blessings`, `pvp_blessing`, `mana`, `manamax`, `manaspent`, `soul`, "
@@ -437,24 +401,22 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	if(g_config.getBool(ConfigManager::RESET_SYSTEM_ENABLE))
 		query <<  ", `reset`";
 	query << " FROM `players` WHERE "
-		<< "`name` " << db->getStringComparer() << db->escapeString(name) << " AND `deleted` = 0 LIMIT 1";
+		<< "`name` = " << g_database.escapeString(name) << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	uint32_t accountId = result->getDataInt("account_id");
+	uint32_t accountId = result->getNumber<int32_t>("account_id");
 	if(accountId < 1)
 	{
-		result->free();
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 	if(!group->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges) &&
-		result->getDataInt("world_id") != g_config.getNumber(ConfigManager::WORLD_ID))
+		result->getNumber<int32_t>("world_id") != g_config.getNumber(ConfigManager::WORLD_ID))
 	{
-		result->free();
 		return false;
 	}
 
@@ -463,7 +425,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	player->accountId = accountId;
 
 	player->setGroup(group);
-	player->setGUID(result->getDataInt("id"));
+	player->setGUID(result->getNumber<int32_t>("id"));
 	player->premiumDays = account.premiumDays;
 
 	nameCacheMap[player->getGUID()] = name;
@@ -471,21 +433,20 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	if(preLoad)
 	{
 		//only loading basic info
-		result->free();
 		return true;
 	}
 
-	player->nameDescription += result->getDataString("description");
-	player->setSex(result->getDataInt("sex"));
+	player->nameDescription += result->getString("description");
+	player->setSex(result->getNumber<int32_t>("sex"));
 	if(g_config.getBool(ConfigManager::STORE_DIRECTION))
-		player->setDirection((Direction)result->getDataInt("direction"));
+		player->setDirection((Direction)result->getNumber<int32_t>("direction"));
 
-	player->level = std::max((uint32_t)1, (uint32_t)result->getDataInt("level"));
+	player->level = std::max((uint32_t)1, (uint32_t)result->getNumber<int32_t>("level"));
 	if(g_config.getBool(ConfigManager::RESET_SYSTEM_ENABLE))
-		player->reset = std::max((uint32_t)0, (uint32_t)result->getDataInt("reset"));	//reset system
+		player->reset = std::max((uint32_t)0, (uint32_t)result->getNumber<int32_t>("reset"));	//reset system
 	
 	uint64_t currExpCount = Player::getExpForLevel(player->level), nextExpCount = Player::getExpForLevel(
-		player->level + 1), experience = (uint64_t)result->getDataLong("experience");
+		player->level + 1), experience = result->getNumber<uint64_t>("experience");
 	if(experience < currExpCount || experience > nextExpCount)
 		experience = currExpCount;
 
@@ -494,21 +455,21 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	if(currExpCount < nextExpCount)
 		player->levelPercent = Player::getPercentLevel(player->experience - currExpCount, nextExpCount - currExpCount);
 
-	player->soul = result->getDataInt("soul");
-	player->capacity = result->getDataInt("cap");
-	player->setStamina(result->getDataLong("stamina"));
-	player->marriage = result->getDataInt("marriage");
+	player->soul = result->getNumber<int32_t>("soul");
+	player->capacity = result->getNumber<int32_t>("cap");
+	player->setStamina(result->getNumber<uint64_t>("stamina"));
+	player->marriage = result->getNumber<int32_t>("marriage");
 
-	player->balance = result->getDataLong("balance");
+	player->balance = result->getNumber<uint64_t>("balance");
 	if(g_config.getBool(ConfigManager::BLESSINGS) && (player->isPremium()
 		|| !g_config.getBool(ConfigManager::BLESSING_ONLY_PREMIUM)))
 	{
-		player->blessings = result->getDataInt("blessings");
-		player->setPVPBlessing(result->getDataInt("pvp_blessing") != 0);
+		player->blessings = result->getNumber<int32_t>("blessings");
+		player->setPVPBlessing(result->getNumber<int32_t>("pvp_blessing") != 0);
 	}
 
-	uint64_t conditionsSize = 0;
-	const char* conditions = result->getDataStream("conditions", conditionsSize);
+	unsigned long conditionsSize = 0;
+	const char* conditions = result->getStream("conditions", conditionsSize);
 
 	PropStream propStream;
 	propStream.init(conditions, conditionsSize);
@@ -522,16 +483,16 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 			delete condition;
 	}
 
-	player->vocationId = result->getDataInt("vocation");
-	player->setPromotionLevel(result->getDataInt("promotion"));
+	player->vocationId = result->getNumber<int32_t>("vocation");
+	player->setPromotionLevel(result->getNumber<int32_t>("promotion"));
 
-	player->health = result->getDataInt("health");
-	player->healthMax = result->getDataInt("healthmax");
-	player->mana = result->getDataInt("mana");
-	player->manaMax = result->getDataInt("manamax");
+	player->health = result->getNumber<int32_t>("health");
+	player->healthMax = result->getNumber<int32_t>("healthmax");
+	player->mana = result->getNumber<int32_t>("mana");
+	player->manaMax = result->getNumber<int32_t>("manamax");
 
-	player->magLevel = result->getDataInt("maglevel");
-	uint64_t nextManaCount = player->vocation->getReqMana(player->magLevel + 1), manaSpent = result->getDataLong("manaspent");
+	player->magLevel = result->getNumber<int32_t>("maglevel");
+	uint64_t nextManaCount = player->vocation->getReqMana(player->magLevel + 1), manaSpent = result->getNumber<uint64_t>("manaspent");
 	if(manaSpent > nextManaCount)
 		manaSpent = 0;
 
@@ -539,7 +500,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	player->magLevelPercent = Player::getPercentLevel(player->manaSpent, nextManaCount);
 	if(!group || !group->getOutfit())
 	{
-		player->defaultOutfit.lookType = result->getDataInt("looktype");
+		player->defaultOutfit.lookType = result->getNumber<int32_t>("looktype");
 		uint32_t outfitId = Outfits::getInstance()->getOutfitId(player->defaultOutfit.lookType);
 
 		bool wearable = true;
@@ -564,59 +525,57 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	else
 		player->defaultOutfit.lookType = group->getOutfit();
 
-	player->defaultOutfit.lookHead = result->getDataInt("lookhead");
-	player->defaultOutfit.lookBody = result->getDataInt("lookbody");
-	player->defaultOutfit.lookLegs = result->getDataInt("looklegs");
-	player->defaultOutfit.lookFeet = result->getDataInt("lookfeet");
-	player->defaultOutfit.lookAddons = result->getDataInt("lookaddons");
+	player->defaultOutfit.lookHead = result->getNumber<int32_t>("lookhead");
+	player->defaultOutfit.lookBody = result->getNumber<int32_t>("lookbody");
+	player->defaultOutfit.lookLegs = result->getNumber<int32_t>("looklegs");
+	player->defaultOutfit.lookFeet = result->getNumber<int32_t>("lookfeet");
+	player->defaultOutfit.lookAddons = result->getNumber<int32_t>("lookaddons");
 
 	player->currentOutfit = player->defaultOutfit;
 	Skulls_t skull = SKULL_RED;
 	if(g_config.getBool(ConfigManager::USE_BLACK_SKULL))
-		skull = (Skulls_t)result->getDataInt("skull");
+		skull = (Skulls_t)result->getNumber<int32_t>("skull");
 
-	player->setSkullEnd((time_t)result->getDataInt("skulltime"), true, skull);
-	player->saving = result->getDataInt("save") != 0;
+	player->setSkullEnd((time_t)result->getNumber<int32_t>("skulltime"), true, skull);
+	player->saving = result->getNumber<int32_t>("save") != 0;
 
-	player->town = result->getDataInt("town_id");
+	player->town = result->getNumber<int32_t>("town_id");
 	if(Town* town = Towns::getInstance()->getTown(player->town))
 		player->setMasterPosition(town->getPosition());
 
-	player->setLossPercent(LOSS_EXPERIENCE, result->getDataInt("loss_experience"));
-	player->setLossPercent(LOSS_MANA, result->getDataInt("loss_mana"));
-	player->setLossPercent(LOSS_SKILLS, result->getDataInt("loss_skills"));
-	player->setLossPercent(LOSS_CONTAINERS, result->getDataInt("loss_containers"));
-	player->setLossPercent(LOSS_ITEMS, result->getDataInt("loss_items"));
+	player->setLossPercent(LOSS_EXPERIENCE, result->getNumber<int32_t>("loss_experience"));
+	player->setLossPercent(LOSS_MANA, result->getNumber<int32_t>("loss_mana"));
+	player->setLossPercent(LOSS_SKILLS, result->getNumber<int32_t>("loss_skills"));
+	player->setLossPercent(LOSS_CONTAINERS, result->getNumber<int32_t>("loss_containers"));
+	player->setLossPercent(LOSS_ITEMS, result->getNumber<int32_t>("loss_items"));
 
-	player->lastLogin = result->getDataLong("lastlogin");
-	player->lastLogout = result->getDataLong("lastlogout");
-	player->lastIP = result->getDataInt("lastip");
+	player->lastLogin = result->getNumber<uint64_t>("lastlogin");
+	player->lastLogout = result->getNumber<uint64_t>("lastlogout");
+	player->lastIP = result->getNumber<int32_t>("lastip");
 
-	player->offlineTrainingTime = result->getDataInt("offlinetraining_time") * 1000;
-	player->offlineTrainingSkill = result->getDataInt("offlinetraining_skill");
+	player->offlineTrainingTime = result->getNumber<int32_t>("offlinetraining_time") * 1000;
+	player->offlineTrainingSkill = result->getNumber<int32_t>("offlinetraining_skill");
 
-	player->loginPosition = Position(result->getDataInt("posx"), result->getDataInt("posy"), result->getDataInt("posz"));
+	player->loginPosition = Position(result->getNumber<int32_t>("posx"), result->getNumber<int32_t>("posy"), result->getNumber<int32_t>("posz"));
 	if(!player->loginPosition.x || !player->loginPosition.y)
 		player->loginPosition = player->getMasterPosition();
 
-	const uint32_t rankId = result->getDataInt("rank_id");
-	const std::string nick = result->getDataString("guildnick");
+	const uint32_t rankId = result->getNumber<int32_t>("rank_id");
+	const std::string nick = result->getString("guildnick");
 
-	result->free();
 	if(rankId > 0)
 	{
 		query.str("");
 		query << "SELECT `guild_ranks`.`name` AS `rank`, `guild_ranks`.`guild_id` AS `guildid`, `guild_ranks`.`level` AS `level`, `guilds`.`name` AS `guildname` FROM `guild_ranks`, `guilds` WHERE `guild_ranks`.`id` = " << rankId << " AND `guild_ranks`.`guild_id` = `guilds`.`id` LIMIT 1";
-		if((result = db->storeQuery(query.str())))
+		if((result = g_database.storeQuery(query.str())))
 		{
-			player->guildId = result->getDataInt("guildid");
-			player->guildName = result->getDataString("guildname");
-			player->guildLevel = (GuildLevel_t)result->getDataInt("level");
+			player->guildId = result->getNumber<int32_t>("guildid");
+			player->guildName = result->getString("guildname");
+			player->guildLevel = (GuildLevel_t)result->getNumber<int32_t>("level");
 
 			player->rankId = rankId;
-			player->rankName = result->getDataString("rank");
+			player->rankName = result->getString("rank");
 			player->guildNick = nick;
-			result->free();
 
 			std::string tmpStatus = "AND `status` IN (1,4)";
 			if(g_config.getBool(ConfigManager::EXTERNAL_GUILD_WARS_MANAGEMENT))
@@ -625,27 +584,26 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 			query.str("");
 			query << "SELECT `id`, `guild_id`, `enemy_id` FROM `guild_wars` WHERE (`guild_id` = "
 				<< player->guildId << " OR `enemy_id` = " << player->guildId << ")" << tmpStatus;
-			if((result = db->storeQuery(query.str())))
+			if((result = g_database.storeQuery(query.str())))
 			{
 				War_t war;
 				do
 				{
-					uint32_t guild = result->getDataInt("guild_id");
+					uint32_t guild = result->getNumber<int32_t>("guild_id");
 					if(player->guildId == guild)
 					{
 						war.type = WAR_ENEMY;
-						war.war = result->getDataInt("id");
-						player->addEnemy(result->getDataInt("enemy_id"), war);
+						war.war = result->getNumber<int32_t>("id");
+						player->addEnemy(result->getNumber<int32_t>("enemy_id"), war);
 					}
 					else
 					{
 						war.type = WAR_GUILD;
-						war.war = result->getDataInt("id");
+						war.war = result->getNumber<int32_t>("id");
 						player->addEnemy(guild, war);
 					}
 				}
 				while(result->next());
-				result->free();
 			}
 		}
 	}
@@ -653,39 +611,37 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	{
 		query.str("");
 		query << "SELECT `guild_id` FROM `guild_invites` WHERE `player_id` = " << player->getGUID();
-		if((result = db->storeQuery(query.str())))
+		if((result = g_database.storeQuery(query.str())))
 		{
 			do
-				player->invitationsList.push_back((uint32_t)result->getDataInt("guild_id"));
+				player->invitationsList.push_back((uint32_t)result->getNumber<int32_t>("guild_id"));
 			while(result->next());
-			result->free();
 		}
 	}
 
 	query.str("");
 	query << "SELECT `password` FROM `accounts` WHERE `id` = " << accountId << " LIMIT 1";
-	if(!(result = db->storeQuery(query.str())))
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	player->password = result->getDataString("password");
-	result->free();
+	player->password = result->getString("password");
 
 	// we need to find out our skills
 	// so we query the skill table
 	query.str("");
 	query << "SELECT `skillid`, `value`, `count` FROM `player_skills` WHERE `player_id` = " << player->getGUID();
-	if((result = db->storeQuery(query.str())))
+	if((result = g_database.storeQuery(query.str())))
 	{
 		//now iterate over the skills
 		do
 		{
-			int16_t skillId = result->getDataInt("skillid");
+			int16_t skillId = result->getNumber<int32_t>("skillid");
 			if(skillId < SKILL_FIRST || skillId > SKILL_LAST)
 				continue;
 
-			uint32_t skillLevel = result->getDataInt("value");
+			uint32_t skillLevel = result->getNumber<int32_t>("value");
 			uint64_t nextSkillCount = player->vocation->getReqSkillTries(
-				skillId, skillLevel + 1), skillCount = result->getDataLong("count");
+				skillId, skillLevel + 1), skillCount = result->getNumber<uint64_t>("count");
 			if(skillCount > nextSkillCount)
 				skillCount = 0;
 
@@ -694,17 +650,15 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 			player->skills[skillId][SKILL_PERCENT] = Player::getPercentLevel(skillCount, nextSkillCount);
 		}
 		while(result->next());
-		result->free();
 	}
 
 	query.str("");
 	query << "SELECT `player_id`, `name` FROM `player_spells` WHERE `player_id` = " << player->getGUID();
-	if((result = db->storeQuery(query.str())))
+	if((result = g_database.storeQuery(query.str())))
 	{
 		do
-			player->learnedInstantSpellList.push_back(result->getDataString("name"));
+			player->learnedInstantSpellList.push_back(result->getString("name"));
 		while(result->next());
-		result->free();
 	}
 
 	ItemMap itemMap;
@@ -713,7 +667,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	//load inventory items
 	query.str("");
 	query << "SELECT `pid`, `sid`, `itemtype`, `count`, `attributes`, `serial` FROM `player_items` WHERE `player_id` = " << player->getGUID() << " ORDER BY `sid` DESC";
-	if((result = db->storeQuery(query.str())))
+	if((result = g_database.storeQuery(query.str())))
 	{
 		loadItems(itemMap, result);
 		for(ItemMap::reverse_iterator rit = itemMap.rbegin(); rit != itemMap.rend(); ++rit)
@@ -734,13 +688,12 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		}
 
 		itemMap.clear();
-		result->free();
 	}
 
 	//load depot items
 	query.str("");
 	query << "SELECT `pid`, `sid`, `itemtype`, `count`, `attributes`, `serial` FROM `player_depotitems` WHERE `player_id` = " << player->getGUID() << " ORDER BY `sid` DESC";
-	if((result = db->storeQuery(query.str())))
+	if((result = g_database.storeQuery(query.str())))
 	{
 		loadItems(itemMap, result);
 		for(ItemMap::reverse_iterator rit = itemMap.rbegin(); rit != itemMap.rend(); ++rit)
@@ -767,27 +720,25 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		}
 
 		itemMap.clear();
-		result->free();
 	}
 
 	//load storage map
 	query.str("");
 	query << "SELECT `key`, `value` FROM `player_storage` WHERE `player_id` = " << player->getGUID();
-	if((result = db->storeQuery(query.str())))
+	if((result = g_database.storeQuery(query.str())))
 	{
 		do
-			player->setStorage(result->getDataString("key"), result->getDataString("value"));
+			player->setStorage(result->getString("key"), result->getString("value"));
 		while(result->next());
-		result->free();
 	}
 	
 	//load autoloot
 	if(g_config.getBool(ConfigManager::AUTOLOOT_ENABLE_SYSTEM)){
 		query.str("");
 		query << "SELECT `autoloot_list` FROM `player_autoloot` WHERE `player_id` = " << player->getGUID();
-		if ((result = db->storeQuery(query.str()))) {
-			LOOTLIST_TYPE lootListSize;
-			const char* autoLootList = result->getDataStream("autoloot_list", lootListSize);
+		if ((result = g_database.storeQuery(query.str()))) {
+			unsigned long lootListSize;
+			const char* autoLootList = result->getStream("autoloot_list", lootListSize);
 			PropStream propStream;
 			propStream.init(autoLootList, lootListSize);
 
@@ -816,16 +767,15 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	else
 		query << "SELECT `vip_id` AS `vip` FROM `player_viplist` WHERE `player_id` = " << player->getGUID();
 
-	if((result = db->storeQuery(query.str())))
+	if((result = g_database.storeQuery(query.str())))
 	{
 		do
 		{
-			uint32_t vid = result->getDataInt("vip");
+			uint32_t vid = result->getNumber<int32_t>("vip");
 			if(storeNameByGuid(vid))
 				player->addVIP(vid, "", false, true);
 		}
 		while(result->next());
-		result->free();
 	}
 
 	query.str("");
@@ -835,16 +785,15 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		<< "`pd`.`date` >= " << (time(NULL) - (7 * 86400)) << " AND `k`.`war` = 0"; // TODO: configurable
 
 	std::map<uint32_t, time_t> deaths;
-	if((result = db->storeQuery(query.str())))
+	if((result = g_database.storeQuery(query.str())))
 	{
 		do
 		{
-			if(!deaths[result->getDataInt("player_id")] || deaths[result->getDataInt("player_id")]
-				< (time_t)result->getDataInt("date")) // pick up the latest date
-				deaths[result->getDataInt("player_id")] = (time_t)result->getDataInt("date");
+			if(!deaths[result->getNumber<int32_t>("player_id")] || deaths[result->getNumber<int32_t>("player_id")]
+				< (time_t)result->getNumber<int32_t>("date")) // pick up the latest date
+				deaths[result->getNumber<int32_t>("player_id")] = (time_t)result->getNumber<int32_t>("date");
 		}
 		while(result->next());
-		result->free();
 	}
 
 	if(!deaths.empty())
@@ -862,28 +811,28 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	return true;
 }
 
-void IOLoginData::loadItems(ItemMap& itemMap, DBResult* result)
+void IOLoginData::loadItems(ItemMap& itemMap, DBResultPtr result)
 {
 	do
 	{
-		uint64_t attrSize = 0;
-		const char* attr = result->getDataStream("attributes", attrSize);
+		unsigned long attrSize = 0;
+		const char* attr = result->getStream("attributes", attrSize);
 
 		PropStream propStream;
 		propStream.init(attr, attrSize);
-		if(Item* item = Item::CreateItem(result->getDataInt("itemtype"), result->getDataInt("count")))
+		if(Item* item = Item::CreateItem(result->getNumber<int32_t>("itemtype"), result->getNumber<int32_t>("count")))
 		{
 			if(!item->unserializeAttr(propStream))
 				std::clog << "[Warning - IOLoginData::loadItems] Unserialize error for item with id " << item->getID() << std::endl;
 
-			std::string serial = result->getDataString("serial");
+			std::string serial = result->getString("serial");
 			if(serial != "")
 			{
 				std::string key = "serial";
 				item->setAttribute(key.c_str(), serial);
 			}
 
-			itemMap[result->getDataInt("sid")] = std::make_pair(item, result->getDataInt("pid"));
+			itemMap[result->getNumber<int32_t>("sid")] = std::make_pair(item, result->getNumber<int32_t>("pid"));
 		}
 	}
 	while(result->next());
@@ -891,17 +840,16 @@ void IOLoginData::loadItems(ItemMap& itemMap, DBResult* result)
 
 bool IOLoginData::setName(Player* player, std::string newName)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
-	DBTransaction trans(db);
+	DBTransaction trans;
 	if(!trans.begin())
 		return false;
 	
 	query.str("");
-	query << "UPDATE `players` SET `name` = " << db->escapeString(newName) << " WHERE `name` = " << db->escapeString(player->getName());
+	query << "UPDATE `players` SET `name` = " << g_database.escapeString(newName) << " WHERE `name` = " << g_database.escapeString(player->getName());
 	
-	if(!db->query(query.str())){
+	if(!g_database.executeQuery(query.str())){
 		return false;
 	}
 	
@@ -910,17 +858,16 @@ bool IOLoginData::setName(Player* player, std::string newName)
 
 bool IOLoginData::deletePlayer(Player* player)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
-	DBTransaction trans(db);
+	DBTransaction trans;
 	if(!trans.begin())
 		return false;
 	
 	query.str("");
-	query << "DELETE FROM `players` WHERE `name` = " << db->escapeString(player->getName());
+	query << "DELETE FROM `players` WHERE `name` = " << g_database.escapeString(player->getName());
 	
-	if(!db->query(query.str())){
+	if(!g_database.executeQuery(query.str())){
 		return false;
 	}
 	
@@ -950,10 +897,9 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 			player->mana = player->manaMax;
 		}
 	}
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
-	DBTransaction trans(db);
+	DBTransaction trans;
 	if(!trans.begin())
 		return false;
 
@@ -961,8 +907,8 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 	query << "UPDATE `players` SET `lastlogin` = " << player->lastLogin << ", `lastip` = " << player->lastIP;
 	if(!player->isSaving() || !g_config.getBool(ConfigManager::SAVE_PLAYER_DATA))
 	{
-		query << " WHERE `id` = " << player->getGUID() << db->getUpdateLimiter();
-		if(!db->query(query.str()))
+		query << " WHERE `id` = " << player->getGUID() << " LIMIT 1;";
+		if(!g_database.executeQuery(query.str()))
 			return false;
 
 		return trans.commit();
@@ -1010,7 +956,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 	{
 		std::string name = player->getName(), nameDescription = player->getNameDescription();
 		if(!player->isAccountManager() && nameDescription.length() > name.length())
-			query << "`description` = " << db->escapeString(nameDescription.substr(name.length())) << ", ";
+			query << "`description` = " << g_database.escapeString(nameDescription.substr(name.length())) << ", ";
 	}
 
 	//serialize conditions
@@ -1028,7 +974,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 
 	uint32_t conditionsSize = 0;
 	const char* conditions = propWriteStream.getStream(conditionsSize);
-	query << "`conditions` = " << db->escapeBlob(conditions, conditionsSize) << ", ";
+	query << "`conditions` = " << g_database.escapeBlob(conditions, conditionsSize) << ", ";
 
 	query << "`loss_experience` = " << (uint32_t)player->getLossPercent(LOSS_EXPERIENCE) << ", ";
 	query << "`loss_mana` = " << (uint32_t)player->getLossPercent(LOSS_MANA) << ", ";
@@ -1050,7 +996,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 	query << "`marriage` = " << player->marriage << ", ";
 	if(g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT))
 	{
-		query << "`guildnick` = " << db->escapeString(player->guildNick) << ", ";
+		query << "`guildnick` = " << g_database.escapeString(player->guildNick) << ", ";
 		query << "`rank_id` = " << IOGuild::getInstance()->getRankIdByLevel(player->getGuildId(), player->getGuildLevel()) << ", ";
 	}
 
@@ -1058,16 +1004,16 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 	for(uint32_t i = 0; i <= player->promotionLevel; ++i)
 		tmpVoc = Vocations::getInstance()->getVocation(tmpVoc->getFromVocation());
 
-	query << "`vocation` = " << tmpVoc->getId() << " WHERE `id` = " << player->getGUID() << db->getUpdateLimiter();
-	if(!db->query(query.str()))
+	query << "`vocation` = " << tmpVoc->getId() << " WHERE `id` = " << player->getGUID() << " LIMIT 1;";
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
 	// skills
 	for(int32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i)
 	{
 		query.str("");
-		query << "UPDATE `player_skills` SET `value` = " << player->skills[i][SKILL_LEVEL] << ", `count` = " << player->skills[i][SKILL_TRIES] << " WHERE `player_id` = " << player->getGUID() << " AND `skillid` = " << i << db->getUpdateLimiter();
-		if(!db->query(query.str()))
+		query << "UPDATE `player_skills` SET `value` = " << player->skills[i][SKILL_LEVEL] << ", `count` = " << player->skills[i][SKILL_TRIES] << " WHERE `player_id` = " << player->getGUID() << " AND `skillid` = " << i << " LIMIT 1;";
+		if(!g_database.executeQuery(query.str()))
 			return false;
 	}
 
@@ -1077,18 +1023,18 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 	// learned spells
 	query.str("");
 	query << "DELETE FROM `player_spells` WHERE `player_id` = " << player->getGUID();
-	if(!db->query(query.str()))
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
-	DBInsert stmt(db);
+	DBInsert stmt;
 	if(player->learnedInstantSpellList.size())
 	{
 		query.str("");
 		stmt.setQuery("INSERT INTO `player_spells` (`player_id`, `name`) VALUES ");
 		for(LearnedInstantSpellList::const_iterator it = player->learnedInstantSpellList.begin(); it != player->learnedInstantSpellList.end(); ++it)
 		{
-			query << player->getGUID() << "," << db->escapeString(*it);
-			if(!stmt.addRow(query))
+			query << player->getGUID() << "," << g_database.escapeString(*it);
+			if(!stmt.addRow(query.str()))
 				return false;
 		}
 
@@ -1099,7 +1045,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 	//item saving
 	query.str("");
 	query << "DELETE FROM `player_items` WHERE `player_id` = " << player->getGUID();
-	if(!db->query(query.str()))
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
 	ItemBlockList itemList;
@@ -1133,7 +1079,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 
 		query.str("");
 		query << "DELETE FROM `player_depotitems` WHERE `player_id` = " << player->getGUID();// << " AND `pid` IN (" << s.substr(0, --size) << ")";
-		if(!db->query(query.str()))
+		if(!g_database.executeQuery(query.str()))
 			return false;
 
 		if(itemList.size())
@@ -1148,7 +1094,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 
 	query.str("");
 	query << "DELETE FROM `player_storage` WHERE `player_id` = " << player->getGUID();
-	if(!db->query(query.str()))
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
 	player->generateReservedStorage();
@@ -1157,8 +1103,8 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 	stmt.setQuery("INSERT INTO `player_storage` (`player_id`, `key`, `value`) VALUES ");
 	for(StorageMap::const_iterator cit = player->getStorageBegin(); cit != player->getStorageEnd(); ++cit)
 	{
-		query << player->getGUID() << "," << db->escapeString(cit->first) << "," << db->escapeString(cit->second);
-		if(!stmt.addRow(query))
+		query << player->getGUID() << "," << g_database.escapeString(cit->first) << "," << g_database.escapeString(cit->second);
+		if(!stmt.addRow(query.str()))
 			return false;
 	}
 
@@ -1170,7 +1116,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 		query.str("");
 		//save guild invites
 		query << "DELETE FROM `guild_invites` WHERE player_id = " << player->getGUID();
-		if(!db->query(query.str()))
+		if(!g_database.executeQuery(query.str()))
 			return false;
 
 		query.str("");
@@ -1184,7 +1130,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 			}
 
 			query << player->getGUID() << "," << (*it);
-			if(!stmt.addRow(query))
+			if(!stmt.addRow(query.str()))
 				return false;
 		}
 
@@ -1199,14 +1145,14 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 	else
 		query << "DELETE FROM `player_viplist` WHERE `player_id` = " << player->getGUID();
 
-	if(!db->query(query.str()))
+	if(!g_database.executeQuery(query.str()))
 		return false;
 	
 	//save autoloot
 	if(g_config.getBool(ConfigManager::AUTOLOOT_ENABLE_SYSTEM)){
 		query.str("");
 		query << "DELETE FROM `player_autoloot` WHERE `player_id` = " << player->getGUID();
-		if (!db->query(query.str())) {
+		if (!g_database.executeQuery(query.str())) {
 			return false;
 		}
 
@@ -1221,8 +1167,8 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 
 		query.str("");
 		stmt.setQuery("INSERT INTO `player_autoloot` (`player_id`, `autoloot_list`) VALUES ");
-		query << player->getGUID() << ',' << db->escapeBlob(autoLoot, PWS_Size);
-		if (!stmt.addRow(query))
+		query << player->getGUID() << ',' << g_database.escapeBlob(autoLoot, PWS_Size);
+		if (!stmt.addRow(query.str()))
 			return false;
 
 		if (!stmt.execute()) {
@@ -1247,7 +1193,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 		else
 			query << player->getGUID() << "," << (*it);
 
-		if(!stmt.addRow(query))
+		if(!stmt.addRow(query.str()))
 			return false;
 	}
 
@@ -1260,23 +1206,21 @@ bool IOLoginData::savePlayer(Player* player, bool preSave/* = true*/, bool shall
 
 bool IOLoginData::savePlayerItems(Player* player)
 {
-
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	DBInsert stmt(db);
+	DBInsert stmt;
 
 	if(!player) {
 		return false;
 	}
 
-	DBTransaction trans(db);
+	DBTransaction trans;
 	if(!trans.begin())
 		return false;
 
 	//item saving
 	query.str("");
 	query << "DELETE FROM `player_items` WHERE `player_id` = " << player->getGUID();
-	if(!db->query(query.str()))
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
 	ItemBlockList itemList;
@@ -1310,7 +1254,7 @@ bool IOLoginData::savePlayerItems(Player* player)
 
 	query.str("");
 	query << "DELETE FROM `player_depotitems` WHERE `player_id` = " << player->getGUID();// << " AND `pid` IN (" << s.substr(0, --size) << ")";
-	if(!db->query(query.str()))
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
 	if(itemList.size())
@@ -1325,7 +1269,7 @@ bool IOLoginData::savePlayerItems(Player* player)
 
 	query.str("");
 	query << "DELETE FROM `player_storage` WHERE `player_id` = " << player->getGUID();
-	if(!db->query(query.str()))
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
 	player->generateReservedStorage();
@@ -1334,8 +1278,8 @@ bool IOLoginData::savePlayerItems(Player* player)
 	stmt.setQuery("INSERT INTO `player_storage` (`player_id`, `key`, `value`) VALUES ");
 	for(StorageMap::const_iterator cit = player->getStorageBegin(); cit != player->getStorageEnd(); ++cit)
 	{
-		query << player->getGUID() << "," << db->escapeString(cit->first) << "," << db->escapeString(cit->second);
-		if(!stmt.addRow(query))
+		query << player->getGUID() << "," << g_database.escapeString(cit->first) << "," << g_database.escapeString(cit->second);
+		if(!stmt.addRow(query.str()))
 			return false;
 	}
 
@@ -1348,7 +1292,6 @@ bool IOLoginData::savePlayerItems(Player* player)
 
 bool IOLoginData::saveItems(const Player* player, const ItemBlockList& itemList, DBInsert& stmt)
 {
-	Database* db = Database::getInstance();
 	typedef std::pair<Container*, uint32_t> Stack;
 	std::list<Stack> stackList;
 
@@ -1375,8 +1318,8 @@ bool IOLoginData::saveItems(const Player* player, const ItemBlockList& itemList,
 
 		std::ostringstream buffer;
 		buffer << player->getGUID() << "," << it->first << "," << runningId << "," << item->getID() << ","
-			<< (int32_t)item->getSubType() << "," << db->escapeBlob(attributes, attributesSize) << "," << db->escapeString(boost::any_cast<std::string>(value).c_str());
-		if(!stmt.addRow(buffer))
+			<< (int32_t)item->getSubType() << "," << g_database.escapeBlob(attributes, attributesSize) << "," << g_database.escapeString(boost::any_cast<std::string>(value).c_str());
+		if(!stmt.addRow(buffer.str()))
 			return false;
 
 		if(Container* container = item->getContainer())
@@ -1413,8 +1356,8 @@ bool IOLoginData::saveItems(const Player* player, const ItemBlockList& itemList,
 
 			std::ostringstream buffer;
 			buffer << player->getGUID() << "," << stack.second << "," << runningId << "," << item->getID() << ","
-				<< (int32_t)item->getSubType() << "," << db->escapeBlob(attributes, attributesSize) << "," << db->escapeString(boost::any_cast<std::string>(value).c_str());
-			if(!stmt.addRow(buffer))
+				<< (int32_t)item->getSubType() << "," << g_database.escapeBlob(attributes, attributesSize) << "," << g_database.escapeString(boost::any_cast<std::string>(value).c_str());
+			if(!stmt.addRow(buffer.str()))
 				return false;
 		}
 	}
@@ -1424,30 +1367,28 @@ bool IOLoginData::saveItems(const Player* player, const ItemBlockList& itemList,
 
 bool IOLoginData::playerStatement(Player* _player, uint16_t channelId, const std::string& text, uint32_t& statementId)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "INSERT INTO `player_statements` (`player_id`, `channel_id`, `text`, `date`) VALUES (" << _player->getGUID()
-		<< ", " << channelId << ", " << db->escapeString(text) << ", " << time(NULL) << ")";
-	if(!db->query(query.str()))
+		<< ", " << channelId << ", " << g_database.escapeString(text) << ", " << time(NULL) << ")";
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
-	statementId = db->getLastInsertId();
+	statementId = g_database.getLastInsertId();
 	return true;
 }
 
 bool IOLoginData::playerDeath(Player* _player, const DeathList& dl)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
-	DBTransaction trans(db);
+	DBTransaction trans;
 	if(!trans.begin())
 		return false;
 
 	query << "INSERT INTO `player_deaths` (`player_id`, `date`, `level`) VALUES (" << _player->getGUID()
 		<< ", " << time(NULL) << ", " << _player->getLevel() << ")";
-	if(!db->query(query.str()))
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
 	uint32_t i = 0, size = dl.size(), tmp = g_config.getNumber(ConfigManager::DEATH_ASSISTS) + 1;
@@ -1457,17 +1398,17 @@ bool IOLoginData::playerDeath(Player* _player, const DeathList& dl)
 	DeathList wl;
 	bool war = false;
 
-	uint64_t deathId = db->getLastInsertId();
+	uint64_t deathId = g_database.getLastInsertId();
 	for(DeathList::const_iterator it = dl.begin(); i < size && it != dl.end(); ++it, ++i)
 	{
 		query.str("");
 		query << "INSERT INTO `killers` (`death_id`, `final_hit`, `unjustified`, `war`) VALUES ("
 			<< deathId << ", " << it->isLast() << ", " << it->isUnjustified() << ", " << it->getWar().war << ")";
-		if(!db->query(query.str()))
+		if(!g_database.executeQuery(query.str()))
 			return false;
 
 		std::string name;
-		uint64_t killId = db->getLastInsertId();
+		uint64_t killId = g_database.getLastInsertId();
 		if(it->isCreatureKill())
 		{
 			Creature* creature = it->getKillerCreature();
@@ -1486,7 +1427,7 @@ bool IOLoginData::playerDeath(Player* _player, const DeathList& dl)
 				query.str("");
 				query << "INSERT INTO `player_killers` (`kill_id`, `player_id`) VALUES ("
 					<< killId << ", " << player->getGUID() << ")";
-				if(!db->query(query.str()))
+				if(!g_database.executeQuery(query.str()))
 					return false;
 			}
 			else
@@ -1499,8 +1440,8 @@ bool IOLoginData::playerDeath(Player* _player, const DeathList& dl)
 		{
 			query.str("");
 			query << "INSERT INTO `environment_killers` (`kill_id`, `name`) VALUES ("
-				<< killId << ", " << db->escapeString(name) << ")";
-			if(!db->query(query.str()))
+				<< killId << ", " << g_database.escapeString(name) << ")";
+			if(!g_database.executeQuery(query.str()))
 				return false;
 		}
 	}
@@ -1565,61 +1506,53 @@ bool IOLoginData::playerMail(Creature* actor, std::string name, uint32_t townId,
 
 bool IOLoginData::hasFlag(const std::string& name, PlayerFlags value)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `group_id` FROM `players` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " AND `deleted` = 0 LIMIT 1";
+	query << "SELECT `group_id` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
-	result->free();
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasFlag(value);
 }
 
 bool IOLoginData::hasCustomFlag(const std::string& name, PlayerCustomFlags value)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `group_id` FROM `players` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " AND `deleted` = 0 LIMIT 1";
+	query << "SELECT `group_id` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
-	result->free();
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasCustomFlag(value);
 }
 
 bool IOLoginData::hasFlag(PlayerFlags value, uint32_t guid)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `group_id` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
-	result->free();
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasFlag(value);
 }
 
 bool IOLoginData::hasCustomFlag(PlayerCustomFlags value, uint32_t guid)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `group_id` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
-	result->free();
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasCustomFlag(value);
 }
 
@@ -1628,28 +1561,25 @@ bool IOLoginData::isPremium(uint32_t guid)
 	if(g_config.getBool(ConfigManager::FREE_PREMIUM))
 		return true;
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `account_id`, `group_id` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id"));
-	const uint32_t account = result->getDataInt("account_id");
+	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	const uint32_t account = result->getNumber<int32_t>("account_id");
 
-	result->free();
 	if(group && group->hasFlag(PlayerFlag_IsAlwaysPremium))
 		return true;
 
 	query.str("");
 	query << "SELECT `premdays` FROM `accounts` WHERE `id` = " << account << " LIMIT 1";
-	if(!(result = db->storeQuery(query.str())))
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	const uint32_t premium = result->getDataInt("premdays");
-	result->free();
+	const uint32_t premium = result->getNumber<int32_t>("premdays");
 	return premium > 0;
 }
 
@@ -1662,7 +1592,6 @@ bool IOLoginData::playerExists(uint32_t guid, bool multiworld /*= false*/, bool 
 			return true;
 	}
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "SELECT `name` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0";
@@ -1670,12 +1599,11 @@ bool IOLoginData::playerExists(uint32_t guid, bool multiworld /*= false*/, bool 
 		query << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
 
 	query << " LIMIT 1";
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	const std::string name = result->getDataString("name");
-	result->free();
+	const std::string name = result->getString("name");
 
 	nameCacheMap[guid] = name;
 	return true;
@@ -1693,22 +1621,20 @@ bool IOLoginData::playerExists(std::string& name, bool multiworld /*= false*/, b
 		}
 	}
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
-	query << "SELECT `id`, `name` FROM `players` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " AND `deleted` = 0";
+	query << "SELECT `id`, `name` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0";
 	if(!multiworld)
 		query << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
 
 	query << " LIMIT 1";
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	name = result->getDataString("name");
-	guidCacheMap[name] = result->getDataInt("id");
+	name = result->getString("name");
+	guidCacheMap[name] = result->getNumber<int32_t>("id");
 
-	result->free();
 	return true;
 }
 
@@ -1721,7 +1647,6 @@ bool IOLoginData::getNameByGuid(uint32_t guid, std::string& name, bool multiworl
 		return true;
 	}
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "SELECT `name` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0";
@@ -1729,12 +1654,11 @@ bool IOLoginData::getNameByGuid(uint32_t guid, std::string& name, bool multiworl
 		query << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
 
 	query << " LIMIT 1";
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	name = result->getDataString("name");
-	result->free();
+	name = result->getString("name");
 
 	nameCacheMap[guid] = name;
 	return true;
@@ -1746,16 +1670,14 @@ bool IOLoginData::storeNameByGuid(uint32_t guid)
 	if(it != nameCacheMap.end())
 		return true;
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `name` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	nameCacheMap[guid] = result->getDataString("name");
-	result->free();
+	nameCacheMap[guid] = result->getString("name");
 	return true;
 }
 
@@ -1769,58 +1691,53 @@ bool IOLoginData::getGuidByName(uint32_t& guid, std::string& name, bool multiwor
 		return true;
 	}
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
-	query << "SELECT `name`, `id` FROM `players` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " AND `deleted` = 0";
+	query << "SELECT `name`, `id` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0";
 	if(!multiworld)
 		query << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
 
 	query << " LIMIT 1";
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	name = result->getDataString("name");
-	guid = result->getDataInt("id");
+	name = result->getString("name");
+	guid = result->getNumber<int32_t>("id");
 
 	guidCacheMap[name] = guid;
-	result->free();
 	return true;
 }
 
 bool IOLoginData::getGuidByNameEx(uint32_t& guid, bool &specialVip, std::string& name)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `id`, `name`, `group_id` FROM `players` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " AND `deleted` = 0 AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " LIMIT 1";
+	query << "SELECT `id`, `name`, `group_id` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0 AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	guid = result->getDataInt("id");
-	name = result->getDataString("name");
-	if(Group* group = Groups::getInstance()->getGroup(result->getDataInt("group_id")))
+	guid = result->getNumber<int32_t>("id");
+	name = result->getString("name");
+	if(Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id")))
 		specialVip = group->hasFlag(PlayerFlag_SpecialVIP);
 
-	result->free();
 	return true;
 }
 
 bool IOLoginData::changeName(uint32_t guid, std::string newName, std::string oldName)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	query << "INSERT INTO `player_namelocks` (`player_id`, `name`, `new_name`, `date`) VALUES ("<< guid << ", "
-		<< db->escapeString(oldName) << ", " << db->escapeString(newName) << ", " << time(NULL) << ")";
-	if(!db->query(query.str()))
+		<< g_database.escapeString(oldName) << ", " << g_database.escapeString(newName) << ", " << time(NULL) << ")";
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
 	query.str("");
-	query << "UPDATE `players` SET `name` = " << db->escapeString(newName) << " WHERE `id` = " << guid << db->getUpdateLimiter();
-	if(!db->query(query.str()))
+	query << "UPDATE `players` SET `name` = " << g_database.escapeString(newName) << " WHERE `id` = " << guid << " LIMIT 1;";
+	if(!g_database.executeQuery(query.str()))
 		return false;
 
 	GuidCacheMap::iterator it = guidCacheMap.find(oldName);
@@ -1836,13 +1753,11 @@ bool IOLoginData::changeName(uint32_t guid, std::string newName, std::string old
 
 bool IOLoginData::createCharacter(uint32_t accountId, std::string characterName, int32_t vocationId, uint16_t sex)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `id` FROM `players` WHERE `name` " << db->getStringComparer() << db->escapeString(characterName) << ";";
-	DBResult* result = db->storeQuery(query.str());
+	query << "SELECT `id` FROM `players` WHERE `name` = " << g_database.escapeString(characterName) << ";";
+	DBResultPtr result = g_database.storeQuery(query.str());
 	if(result)
 	{
-		result->free();
 		return false;
 	}
 
@@ -1873,8 +1788,8 @@ bool IOLoginData::createCharacter(uint32_t accountId, std::string characterName,
 	}
 
 	query.str("");
-	query << "INSERT INTO `players` (`id`, `name`, `world_id`, `group_id`, `account_id`, `level`, `vocation`, `health`, `healthmax`, `experience`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `maglevel`, `mana`, `manamax`, `manaspent`, `soul`, `town_id`, `posx`, `posy`, `posz`, `conditions`, `cap`, `sex`, `lastlogin`, `lastip`, `skull`, `skulltime`, `save`, `rank_id`, `guildnick`, `lastlogout`, `blessings`, `online`) VALUES (NULL, " << db->escapeString(characterName) << ", " << g_config.getNumber(ConfigManager::WORLD_ID) << ", 1, " << accountId << ", " << level << ", " << vocationId << ", " << healthMax << ", " << healthMax << ", " << exp << ", 68, 76, 78, 39, " << lookType << ", 0, " << g_config.getNumber(ConfigManager::START_MAGICLEVEL) << ", " << manaMax << ", " << manaMax << ", 0, 100, " << g_config.getNumber(ConfigManager::SPAWNTOWN_ID) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_X) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_Y) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_Z) << ", 0, " << capMax << ", " << sex << ", 0, 0, 0, 0, 1, 0, '', 0, 0, 0)";
-	return db->query(query.str());
+	query << "INSERT INTO `players` (`id`, `name`, `world_id`, `group_id`, `account_id`, `level`, `vocation`, `health`, `healthmax`, `experience`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `maglevel`, `mana`, `manamax`, `manaspent`, `soul`, `town_id`, `posx`, `posy`, `posz`, `conditions`, `cap`, `sex`, `lastlogin`, `lastip`, `skull`, `skulltime`, `save`, `rank_id`, `guildnick`, `lastlogout`, `blessings`, `online`) VALUES (NULL, " << g_database.escapeString(characterName) << ", " << g_config.getNumber(ConfigManager::WORLD_ID) << ", 1, " << accountId << ", " << level << ", " << vocationId << ", " << healthMax << ", " << healthMax << ", " << exp << ", 68, 76, 78, 39, " << lookType << ", 0, " << g_config.getNumber(ConfigManager::START_MAGICLEVEL) << ", " << manaMax << ", " << manaMax << ", 0, 100, " << g_config.getNumber(ConfigManager::SPAWNTOWN_ID) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_X) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_Y) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_Z) << ", 0, " << capMax << ", " << sex << ", 0, 0, 0, 0, 1, 0, '', 0, 0, 0)";
+	return g_database.executeQuery(query.str());
 }
 
 DeleteCharacter_t IOLoginData::deleteCharacter(uint32_t accountId, const std::string& characterName)
@@ -1882,16 +1797,14 @@ DeleteCharacter_t IOLoginData::deleteCharacter(uint32_t accountId, const std::st
 	if(g_game.getPlayerByName(characterName))
 		return DELETE_ONLINE;
 
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `id` FROM `players` WHERE `name` " << db->getStringComparer() << db->escapeString(characterName) << " AND `account_id` = " << accountId << " AND `deleted` = 0 LIMIT 1";
+	query << "SELECT `id` FROM `players` WHERE `name` = " << g_database.escapeString(characterName) << " AND `account_id` = " << accountId << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return DELETE_INTERNAL;
 
-	uint32_t id = result->getDataInt("id");
-	result->free();
+	uint32_t id = result->getNumber<int32_t>("id");
 
 	House* house = Houses::getInstance()->getHouseByPlayerId(id);
 	if(house)
@@ -1901,17 +1814,17 @@ DeleteCharacter_t IOLoginData::deleteCharacter(uint32_t accountId, const std::st
 		return DELETE_LEADER;
 
 	query.str("");
-	query << "UPDATE `players` SET `deleted` = " << time(NULL) << " WHERE `id` = " << id << db->getUpdateLimiter();
-	if(!db->query(query.str()))
+	query << "UPDATE `players` SET `deleted` = " << time(NULL) << " WHERE `id` = " << id << " LIMIT 1;";
+	if(!g_database.executeQuery(query.str()))
 		return DELETE_INTERNAL;
 
 	query.str("");
 	query << "DELETE FROM `guild_invites` WHERE `player_id` = " << id;
-	db->query(query.str());
+	g_database.executeQuery(query.str());
 
 	query.str("");
 	query << "DELETE FROM `player_viplist` WHERE `vip_id` = " << id;
-	db->query(query.str());
+	g_database.executeQuery(query.str());
 
 	for(AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it)
 	{
@@ -1933,67 +1846,58 @@ DeleteCharacter_t IOLoginData::deleteCharacter(uint32_t accountId, const std::st
 
 uint32_t IOLoginData::getLevel(uint32_t guid) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `level` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return 0;
 
-	uint32_t level = result->getDataInt("level");
-	result->free();
+	uint32_t level = result->getNumber<int32_t>("level");
 	return level;
 }
 
 uint32_t IOLoginData::getLastIP(uint32_t guid) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "SELECT `lastip` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return 0;
 
-	const uint32_t ip = result->getDataInt("lastip");
-	result->free();
+	const uint32_t ip = result->getNumber<int32_t>("lastip");
 	return ip;
 }
 
 uint32_t IOLoginData::getLastIPByName(const std::string& name) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `lastip` FROM `players` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " AND `deleted` = 0 LIMIT 1";
+	query << "SELECT `lastip` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return 0;
 
-	const uint32_t ip = result->getDataInt("lastip");
-	result->free();
+	const uint32_t ip = result->getNumber<int32_t>("lastip");
 	return ip;
 }
 
 uint32_t IOLoginData::getAccountIdByName(const std::string& name) const
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `account_id` FROM `players` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " AND `deleted` = 0 LIMIT 1";
+	query << "SELECT `account_id` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return 0;
 
-	const uint32_t accountId = result->getDataInt("account_id");
-	result->free();
+	const uint32_t accountId = result->getNumber<int32_t>("account_id");
 	return accountId;
 }
 
 bool IOLoginData::getUnjustifiedDates(uint32_t guid, std::vector<time_t>& dateList, time_t _time)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	uint32_t maxLength = std::max(g_config.getNumber(ConfigManager::FRAG_THIRD_LIMIT),
@@ -2003,51 +1907,46 @@ bool IOLoginData::getUnjustifiedDates(uint32_t guid, std::vector<time_t>& dateLi
 		<< "LEFT JOIN `player_deaths` pd ON `k`.`death_id` = `pd`.`id` WHERE `pk`.`player_id` = " << guid
 		<< " AND `k`.`unjustified` = 1 AND `pd`.`date` >= " << (_time - maxLength) << " AND `k`.`war` = 0";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
 	do
-		dateList.push_back((time_t)result->getDataInt("date"));
+		dateList.push_back((time_t)result->getNumber<int32_t>("date"));
 	while(result->next());
-	result->free();
 	return true;
 }
 
 bool IOLoginData::getDefaultTownByName(const std::string& name, uint32_t& townId)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "SELECT `town_id` FROM `players` WHERE `name` " << db->getStringComparer() << db->escapeString(name) << " AND `deleted` = 0 LIMIT 1";
+	query << "SELECT `town_id` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0 LIMIT 1";
 
-	DBResult* result;
-	if(!(result = db->storeQuery(query.str())))
+	DBResultPtr result;
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	townId = result->getDataInt("town_id");
-	result->free();
+	townId = result->getNumber<int32_t>("town_id");
 	return true;
 }
 
 bool IOLoginData::updatePremiumDays()
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
-	DBTransaction trans(db);
+	DBTransaction trans;
 	if(!trans.begin())
 		return false;
 
-	DBResult* result;
+	DBResultPtr result;
 	query << "SELECT `id` FROM `accounts` WHERE `lastday` <= " << time(NULL) - 86400;
-	if(!(result = db->storeQuery(query.str())))
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
 	Account account;
 	do
-		removePremium((account = loadAccount(result->getDataInt("id"), true)));
+		removePremium((account = loadAccount(result->getNumber<int32_t>("id"), true)));
 	while(result->next());
-	result->free();
 
 	query.str("");
 	return trans.commit();
@@ -2055,19 +1954,17 @@ bool IOLoginData::updatePremiumDays()
 
 bool IOLoginData::updateOnlineStatus(uint32_t guid, bool login)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
 
 	uint16_t value = login;
 	if(g_config.getNumber(ConfigManager::ALLOW_CLONES))
 	{
 		query << "SELECT `online` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
-		DBResult* result;
-		if(!(result = db->storeQuery(query.str())))
+		DBResultPtr result;
+		if(!(result = g_database.storeQuery(query.str())))
 			return false;
 
-		value = result->getDataInt("online");
-		result->free();
+		value = result->getNumber<int32_t>("online");
 
 		if(login)
 			value++;
@@ -2077,22 +1974,20 @@ bool IOLoginData::updateOnlineStatus(uint32_t guid, bool login)
 		query.str("");
 	}
 
-	query << "UPDATE `players` SET `online` = " << value << " WHERE `id` = " << guid << db->getUpdateLimiter();
-	return db->query(query.str());
+	query << "UPDATE `players` SET `online` = " << value << " WHERE `id` = " << guid << " LIMIT 1;";
+	return g_database.executeQuery(query.str());
 }
 
 bool IOLoginData::resetGuildInformation(uint32_t guid)
 {
-	Database* db = Database::getInstance();
 	std::ostringstream query;
-	query << "UPDATE `players` SET `rank_id` = 0, `guildnick` = '' WHERE `id` = " << guid << " AND `deleted` = 0" << db->getUpdateLimiter();
-	return db->query(query.str());
+	query << "UPDATE `players` SET `rank_id` = 0, `guildnick` = '' WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1;";
+	return g_database.executeQuery(query.str());
 }
 
 void IOLoginData::increaseBankBalance(uint32_t guid, uint64_t bankBalance)
 {
-	// Database* db = Database::getInstance();
 	std::ostringstream query;
 	query << "UPDATE `players` SET `balance` = `balance` + " << bankBalance << " WHERE `id` = " << guid << ";";
-	// return db->query(query.str());
+	// return g_database.executeQuery(query.str());
 }

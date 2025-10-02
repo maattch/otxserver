@@ -18,7 +18,6 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 
-#include <functional>
 #include <iostream>
 #include <fstream>
 
@@ -2074,7 +2073,7 @@ bool Npc::getRandomStep(Direction& dir)
 	if(dirList.empty())
 		return false;
 
-	std::random_shuffle(dirList.begin(), dirList.end());
+	std::shuffle(dirList.begin(), dirList.end(), getRandomGenerator());
 	dir = dirList[random_range(0, dirList.size() - 1)];
 	return true;
 }

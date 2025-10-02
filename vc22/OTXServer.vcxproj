@@ -144,6 +144,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <AdditionalDependencies>crypt32.lib;secur32.lib;shlwapi.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -163,10 +164,6 @@
     <ClCompile Include="..\src\cylinder.cpp" />
     <ClCompile Include="..\src\database.cpp" />
     <ClCompile Include="..\src\databasemanager.cpp" />
-    <ClCompile Include="..\src\databasemysql.cpp" />
-    <ClCompile Include="..\src\databasemysqlpp.cpp" />
-    <ClCompile Include="..\src\databasepgsql.cpp" />
-    <ClCompile Include="..\src\databasesqlite.cpp" />
     <ClCompile Include="..\src\depot.cpp" />
     <ClCompile Include="..\src\dispatcher.cpp" />
     <ClCompile Include="..\src\exception.cpp" />
@@ -249,10 +246,6 @@
     <ClInclude Include="..\src\cylinder.h" />
     <ClInclude Include="..\src\database.h" />
     <ClInclude Include="..\src\databasemanager.h" />
-    <ClInclude Include="..\src\databasemysql.h" />
-    <ClInclude Include="..\src\databasemysqlpp.h" />
-    <ClInclude Include="..\src\databasepgsql.h" />
-    <ClInclude Include="..\src\databasesqlite.h" />
     <ClInclude Include="..\src\definitions.h" />
     <ClInclude Include="..\src\depot.h" />
     <ClInclude Include="..\src\dispatcher.h" />
@@ -285,7 +278,7 @@
     <ClInclude Include="..\src\networkmessage.h" />
     <ClInclude Include="..\src\npc.h" />
     <ClInclude Include="..\src\otpch.h" />
-    <ClInclude Include="..\src\otsystem.h" />
+    <ClInclude Include="..\src\otx\cast.hpp" />
     <ClInclude Include="..\src\outfit.h" />
     <ClInclude Include="..\src\outputmessage.h" />
     <ClInclude Include="..\src\party.h" />

@@ -17,7 +17,6 @@
 
 #ifndef __SPAWN__
 #define __SPAWN__
-#include "otsystem.h"
 
 #include "templates.h"
 #include "position.h"

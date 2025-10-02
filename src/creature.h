@@ -17,7 +17,6 @@
 
 #ifndef __CREATURE__
 #define __CREATURE__
-#include "otsystem.h"
 
 #include "templates.h"
 #include <boost/any.hpp>

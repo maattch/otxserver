@@ -17,7 +17,6 @@
 
 #ifndef __GAME__
 #define __GAME__
-#include "otsystem.h"
 
 #include "enums.h"
 #include "templates.h"

@@ -18,7 +18,6 @@
 #ifndef __VOCATION__
 #define __VOCATION__
 
-#include "otsystem.h"
 #include "enums.h"
 #include "const.h"
 

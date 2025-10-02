@@ -132,12 +132,11 @@ bool House::setOwnerEx(uint32_t guid, bool transfer)
 	setOwner(guid);
 	lastWarning = guid ? time(NULL) : 0;
 
-	Database* db = Database::getInstance();
-	DBTransaction trans(db);
+	DBTransaction trans;
 	if(!trans.begin())
 		return false;
 
-	IOMapSerialize::getInstance()->saveHouse(db, this);
+	IOMapSerialize::getInstance()->saveHouse(this);
 	return trans.commit();
 }
 
@@ -148,15 +147,13 @@ bool House::isGuild() const
 
 bool House::isBidded() const
 {
-	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResultPtr result;
 
 	std::ostringstream query;
 	query << "SELECT `house_id` FROM `house_auctions` WHERE `house_id` = " << id << " LIMIT 1";
-	if(!(result = db->storeQuery(query.str())))
+	if(!(result = g_database.storeQuery(query.str())))
 		return false;
 
-	result->free();
 	return true;
 }
 

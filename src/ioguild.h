@@ -17,7 +17,6 @@
 
 #ifndef __IOGUILD__
 #define __IOGUILD__
-#include "otsystem.h"
 #include "enums.h"
 
 struct DeathEntry;

@@ -21,7 +21,6 @@
 
 #include <cmath>
 #include <iostream>
-#include <vector>
 
 enum Direction
 {

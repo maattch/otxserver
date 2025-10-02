@@ -18,8 +18,6 @@
 #ifndef __LUASCRIPT__
 #define __LUASCRIPT__
 
-#include "otsystem.h"
-
 #include <luajit/lua.hpp>
 
 #include "database.h"
@@ -132,8 +130,8 @@ class ScriptEnviroment
 		static void removeTempItem(ScriptEnviroment* env, Item* item);
 		static void removeTempItem(Item* item);
 
-		DBResult* getResultByID(uint32_t id);
-		uint32_t addResult(DBResult* res);
+		DBResultPtr getResultByID(uint32_t id);
+		uint32_t addResult(DBResultPtr res);
 		bool removeResult(uint32_t id);
 
 		static void addUniqueThing(Thing* thing);
@@ -167,7 +165,7 @@ class ScriptEnviroment
 		typedef std::map<uint32_t, CombatArea*> AreaMap;
 		typedef std::map<uint32_t, Combat*> CombatMap;
 		typedef std::map<uint32_t, Condition*> ConditionMap;
-		typedef std::map<uint32_t, DBResult*> DBResultMap;
+		typedef std::map<uint32_t, DBResultPtr> DBResultMap;
 
 		LuaInterface* m_interface;
 		int32_t m_scriptId, m_callbackId;
@@ -730,9 +728,6 @@ class LuaInterface
 		static int32_t luaDatabaseEscapeString(lua_State* L);
 		static int32_t luaDatabaseEscapeBlob(lua_State* L);
 		static int32_t luaDatabaseLastInsertId(lua_State* L);
-		static int32_t luaDatabaseStringComparer(lua_State* L);
-		static int32_t luaDatabaseUpdateLimiter(lua_State* L);
-		static int32_t luaDatabaseConnected(lua_State* L);
 		static int32_t luaDatabaseTableExists(lua_State* L);
 		static int32_t luaDatabaseTransBegin(lua_State* L);
 		static int32_t luaDatabaseTransRollback(lua_State* L);

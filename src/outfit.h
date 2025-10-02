@@ -18,7 +18,6 @@
 #ifndef __OUTFIT__
 #define __OUTFIT__
 
-#include "otsystem.h"
 #include "enums.h"
 #include "const.h"
 #include "tools.h"

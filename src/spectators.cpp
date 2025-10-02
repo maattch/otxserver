@@ -178,25 +178,22 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 				StringVec _t = explodeString(t[1], " ", true, 1);
 				if(_t.size() > 1)
 				{
-					Database* db = Database::getInstance();
 					std::ostringstream query;
 
-					query << "SELECT `id`, `salt`, `password` FROM `accounts` WHERE `name` " << db->getStringComparer() << db->escapeString(_t[0]) << " LIMIT 1";
-					if(DBResult* result = db->storeQuery(query.str()))
+					query << "SELECT `id`, `salt`, `password` FROM `accounts` WHERE `name` = " << g_database.escapeString(_t[0]) << " LIMIT 1";
+					if(DBResultPtr result = g_database.storeQuery(query.str()))
 					{
-						std::string password = result->getDataString("salt") + _t[1],
-							hash = result->getDataString("password");
-						uint32_t id = result->getDataInt("id");
+						std::string password = result->getString("salt") + _t[1],
+							hash = result->getString("password");
+						uint32_t id = result->getNumber<int32_t>("id");
 
-						result->free();
 						if(encryptTest(password, hash))
 						{
 							query.str("");
 							query << "SELECT `name` FROM `players` WHERE `account_id` = " << id << " ORDER BY `level` DESC LIMIT 1";
-							if((result = db->storeQuery(query.str())))
+							if((result = g_database.storeQuery(query.str())))
 							{
-								std::string nickname = result->getDataString("name");
-								result->free();
+								std::string nickname = result->getString("name");
 
 								client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "You have authenticated as " + nickname + ".", NULL, 0);
 								if(channel)
@@ -338,14 +335,12 @@ void Spectators::addSpectator(ProtocolGame* client, std::string name, bool spy)
 	if (!spy) {
 		sendTextMessage(MSG_EVENT_ORANGE, s.str() + " has entered the cast.");
 
-		Database* db = Database::getInstance();
 		std::ostringstream query;
 		
 		query << "SELECT `castDescription` FROM `players` WHERE `id` = " << owner->getPlayer()->getGUID() << ";";
-		if(DBResult* result = db->storeQuery(query.str()))
+		if(DBResultPtr result = g_database.storeQuery(query.str()))
 		{
-			std::string comment = result->getDataString("castDescription");
-			result->free();
+			std::string comment = result->getString("castDescription");
 
 			if(comment != "")
 				client->sendCreatureSay(owner->getPlayer(), MSG_STATUS_WARNING, comment, NULL, 0);

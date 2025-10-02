@@ -13,18 +13,6 @@
 .vscode/
 .vs/
 
-# Build results
-
-#future disponible compatible site
-www/
-
-sources/objects/
-**/theotxserver
-theotxserver
-sources/theotxserver
-
-config-ot.lua
-
 [Dd]ebug/
 [Rr]elease/
 x64/
@@ -32,6 +20,12 @@ build/
 [Bb]in/
 [Oo]bj/
 cmake-build-*/
+
+# Release files
+*.exe
+*.exp
+*.lib
+*.pdb
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

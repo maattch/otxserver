@@ -17,7 +17,6 @@
 
 #ifndef __SPELLS__
 #define __SPELLS__
-#include "otsystem.h"
 
 #include "enums.h"
 #include "player.h"

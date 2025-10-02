@@ -17,7 +17,6 @@
 
 #ifndef __WEAPONS__
 #define __WEAPONS__
-#include "otsystem.h"
 
 #include "const.h"
 #include "combat.h"

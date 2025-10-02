@@ -17,7 +17,6 @@
 
 #ifndef __MONSTERS__
 #define __MONSTERS__
-#include "otsystem.h"
 
 #include "creature.h"
 #define MAX_LOOTCHANCE 100000
