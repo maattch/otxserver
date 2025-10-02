@@ -15,35 +15,42 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __PROTOCOL_LOGIN__
-#define __PROTOCOL_LOGIN__
+#pragma once
+
 #include "protocol.h"
 
 class NetworkMessage;
 class ProtocolLogin : public Protocol
 {
-	public:
-		// static protocol information
-		enum {server_sends_first = false};
-		enum {protocol_identifier = 0x01};
-		enum {use_checksum = true};
-		static const char* protocol_name() {
-			return "login protocol";
-		}
+public:
+	// static protocol information
+	enum
+	{
+		server_sends_first = false
+	};
+	enum
+	{
+		protocol_identifier = 0x01
+	};
+	enum
+	{
+		use_checksum = true
+	};
+	static const char* protocol_name()
+	{
+		return "login protocol";
+	}
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
-		static uint32_t protocolLoginCount;
+	static uint32_t protocolLoginCount;
 #endif
-		virtual void onRecvFirstMessage(NetworkMessage& msg);
+	virtual void onRecvFirstMessage(NetworkMessage& msg);
 
-		explicit ProtocolLogin(Connection_ptr connection) : Protocol(connection) {}
+	explicit ProtocolLogin(Connection_ptr connection) :
+		Protocol(connection) {}
 
-		static const char* protocolName() {return "login protocol";}
+	static const char* protocolName() { return "login protocol"; }
 
-	protected:
-		#ifdef __DEBUG_NET_DETAIL__
-		virtual void deleteProtocolTask();
-		#endif
-		void disconnectClient(uint8_t error, const char* message);
+protected:
+	void disconnectClient(uint8_t error, const char* message);
 };
-#endif

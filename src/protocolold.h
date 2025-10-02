@@ -15,28 +15,37 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __PROTOCOL_OLD__
-#define __PROTOCOL_OLD__
+#pragma once
+
 #include "protocol.h"
 
 class NetworkMessage;
 class ProtocolOld : public Protocol
 {
-	public:
-		// static protocol information
-		enum {server_sends_first = false};
-		enum {protocol_identifier = 0x01};
-		enum {use_checksum = false};
-		static const char* protocol_name() {
-			return "old login protocol";
-		}
+public:
+	// static protocol information
+	enum
+	{
+		server_sends_first = false
+	};
+	enum
+	{
+		protocol_identifier = 0x01
+	};
+	enum
+	{
+		use_checksum = false
+	};
+	static const char* protocol_name()
+	{
+		return "old login protocol";
+	}
 
-		explicit ProtocolOld(Connection_ptr connection): Protocol(connection) {}
+	explicit ProtocolOld(Connection_ptr connection) :
+		Protocol(connection) {}
 
-		void onRecvFirstMessage(NetworkMessage& msg) final;
+	void onRecvFirstMessage(NetworkMessage& msg) final;
 
-	protected:
-		void disconnectClient(uint8_t error, const char* message);
+protected:
+	void disconnectClient(uint8_t error, const char* message);
 };
-
-#endif

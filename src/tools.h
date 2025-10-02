@@ -15,8 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __TOOLS__
-#define __TOOLS__
+#pragma once
 
 #include "enums.h"
 #include "const.h"
@@ -28,7 +27,7 @@
 typedef std::vector<std::string> StringVec;
 typedef std::vector<int32_t> IntegerVec;
 
-typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
 typedef std::map<int32_t, bool> VocationMap;
 enum FileType_t
 {
@@ -46,7 +45,7 @@ enum DistributionType_t
 	DISTRO_NORMAL
 };
 
-template <typename T>
+template<typename T>
 inline void asString(const T& object, std::string& s)
 {
 	std::ostringstream ss;
@@ -54,7 +53,7 @@ inline void asString(const T& object, std::string& s)
 	s = ss.str();
 }
 
-template <typename T>
+template<typename T>
 inline std::string asString(const T& object)
 {
 	std::ostringstream ss;
@@ -65,7 +64,7 @@ inline std::string asString(const T& object)
 template<class T>
 inline T fromString(const std::string& s)
 {
-	std::istringstream ss (s);
+	std::istringstream ss(s);
 	T t;
 	ss >> t;
 	return t;
@@ -111,7 +110,7 @@ bool encryptTest(std::string plain, std::string& hash);
 
 StringVec explodeString(const std::string& string, const std::string& separator, bool trim = true, uint16_t limit = 0);
 IntegerVec vectorAtoi(StringVec stringVector);
-std::string parseParams(tokenizer::iterator &it, tokenizer::iterator end); // TODO: replace by StringVec...
+std::string parseParams(tokenizer::iterator& it, tokenizer::iterator end); // TODO: replace by StringVec...
 
 bool checkText(std::string text, std::string str);
 std::string convertIPAddress(uint32_t ip);
@@ -177,5 +176,3 @@ std::string getFilePath(FileType_t type, std::string name = "");
 
 extern uint8_t serverFluidToClient(uint8_t serverFluid);
 extern uint8_t clientFluidToServer(uint8_t clientFluid);
-
-#endif

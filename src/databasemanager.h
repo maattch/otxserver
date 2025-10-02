@@ -15,35 +15,33 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __DATABASE_MANAGER__
-#define __DATABASE_MANAGER__
+#pragma once
+
 #include "database.h"
 
 class DatabaseManager
 {
-	public:
-		DatabaseManager() {}
-		virtual ~DatabaseManager() {}
+public:
+	DatabaseManager() {}
+	virtual ~DatabaseManager() {}
 
-		static DatabaseManager* getInstance()
-		{
-			static DatabaseManager instance;
-			return &instance;
-		}
+	static DatabaseManager* getInstance()
+	{
+		static DatabaseManager instance;
+		return &instance;
+	}
 
-		bool tableExists(std::string table);
-		bool triggerExists(std::string trigger);
+	bool tableExists(std::string table);
+	bool triggerExists(std::string trigger);
 
-		int32_t getDatabaseVersion();
-		bool isDatabaseSetup();
+	int32_t getDatabaseVersion();
+	bool isDatabaseSetup();
 
-		bool optimizeTables();
+	bool optimizeTables();
 
-		bool getDatabaseConfig(std::string config, int32_t &value);
-		void registerDatabaseConfig(std::string config, int32_t value);
+	bool getDatabaseConfig(std::string config, int32_t& value);
+	void registerDatabaseConfig(std::string config, int32_t value);
 
-		bool getDatabaseConfig(std::string config, std::string &value);
-		void registerDatabaseConfig(std::string config, std::string value);
+	bool getDatabaseConfig(std::string config, std::string& value);
+	void registerDatabaseConfig(std::string config, std::string value);
 };
-#endif
-

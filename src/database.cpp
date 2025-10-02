@@ -54,15 +54,14 @@ namespace
 #endif
 		// connects to database
 		if (!mysql_real_connect(
-			handle.get(),
-			g_config.getString(ConfigManager::SQL_HOST).data(),
-			g_config.getString(ConfigManager::SQL_USER).data(),
-			g_config.getString(ConfigManager::SQL_PASS).data(),
-			g_config.getString(ConfigManager::SQL_DB).data(),
-			static_cast<unsigned int>(g_config.getNumber(ConfigManager::SQL_PORT)),
-			nullptr,
-			0)) {
-
+				handle.get(),
+				g_config.getString(ConfigManager::SQL_HOST).data(),
+				g_config.getString(ConfigManager::SQL_USER).data(),
+				g_config.getString(ConfigManager::SQL_PASS).data(),
+				g_config.getString(ConfigManager::SQL_DB).data(),
+				static_cast<unsigned int>(g_config.getNumber(ConfigManager::SQL_PORT)),
+				nullptr,
+				0)) {
 			std::cout << "[Error - connectToDatabase]\nMessage: " << mysql_error(handle.get()) << " (" << mysql_errno(handle.get()) << ')' << std::endl;
 			goto error;
 		}
@@ -77,8 +76,7 @@ namespace
 
 	bool isLostConnectionError(const unsigned errn)
 	{
-		return errn == CR_SERVER_LOST || errn == CR_SERVER_GONE_ERROR || errn == CR_CONN_HOST_ERROR ||
-			errn == 1053 /*ER_SERVER_SHUTDOWN*/ || errn == CR_CONNECTION_ERROR;
+		return errn == CR_SERVER_LOST || errn == CR_SERVER_GONE_ERROR || errn == CR_CONN_HOST_ERROR || errn == 1053 /*ER_SERVER_SHUTDOWN*/ || errn == CR_CONNECTION_ERROR;
 	}
 
 	bool executeDatabaseQuery(MysqlPtr& handle, std::string_view query, const bool retryIfLostConnection)
@@ -222,7 +220,8 @@ std::string Database::escapeBlob(const char* s, uint32_t length) const
 	return escaped;
 }
 
-DBResult::DBResult(MysqlResultPtr&& res) : handle(std::move(res))
+DBResult::DBResult(MysqlResultPtr&& res) :
+	handle(std::move(res))
 {
 	size_t i = 0;
 	MYSQL_FIELD* field = mysql_fetch_field(handle.get());
@@ -295,7 +294,8 @@ bool DBResult::next()
 	return row != nullptr;
 }
 
-DBInsert::DBInsert(std::string query) : query(std::move(query))
+DBInsert::DBInsert(std::string query) :
+	query(std::move(query))
 {
 	this->length = this->query.length();
 }

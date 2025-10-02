@@ -24,17 +24,9 @@
 extern Game g_game;
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
-//uint32_t ProtocolOld::protocolOldCount = 0;
-
+// uint32_t ProtocolOld::protocolOldCount = 0;
 #endif
-#ifdef __DEBUG_NET_DETAIL__
-void ProtocolOld::deleteProtocolTask()
-{
-	std::clog << "Deleting ProtocolOld" << std::endl;
-	Protocol::deleteProtocolTask();
-}
 
-#endif
 void ProtocolOld::disconnectClient(uint8_t error, const char* message)
 {
 	OutputMessage_ptr output = OutputMessagePool::getOutputMessage();
@@ -46,8 +38,7 @@ void ProtocolOld::disconnectClient(uint8_t error, const char* message)
 
 void ProtocolOld::onRecvFirstMessage(NetworkMessage& msg)
 {
-	if(g_game.getGameState() == GAMESTATE_SHUTDOWN)
-	{
+	if (g_game.getGameState() == GAMESTATE_SHUTDOWN) {
 		disconnect();
 		return;
 	}
@@ -56,21 +47,22 @@ void ProtocolOld::onRecvFirstMessage(NetworkMessage& msg)
 	uint16_t version = msg.get<uint16_t>();
 
 	msg.skipBytes(12);
-	if(version <= 760)
+	if (version <= 760) {
 		disconnectClient(0x0A, "Only clients with protocol " CLIENT_VERSION_STRING " allowed!");
+	}
 
-	if(!RSA_decrypt(msg))
-	{
+	if (!RSA_decrypt(msg)) {
 		disconnect();
 		return;
 	}
 
-	uint32_t key[4] = {msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>()};
+	uint32_t key[4] = { msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>() };
 	enableXTEAEncryption();
 	setXTEAKey(key);
 
-	if(version <= 822)
+	if (version <= 822) {
 		disableChecksum();
+	}
 
 	disconnectClient(0x0A, "Only clients with protocol " CLIENT_VERSION_STRING " allowed!");
 }

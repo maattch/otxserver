@@ -15,8 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __SPAWN__
-#define __SPAWN__
+#pragma once
 
 #include "templates.h"
 #include "position.h"
@@ -29,34 +28,34 @@ typedef std::list<Spawn*> SpawnList;
 
 class Spawns
 {
-	public:
-		virtual ~Spawns();
-		static Spawns* getInstance()
-		{
-			static Spawns instance;
-			return &instance;
-		}
+public:
+	virtual ~Spawns();
+	static Spawns* getInstance()
+	{
+		static Spawns instance;
+		return &instance;
+	}
 
-		bool isInZone(const Position& centerPos, int32_t radius, const Position& pos);
+	bool isInZone(const Position& centerPos, int32_t radius, const Position& pos);
 
-		bool loadFromXml(const std::string& _filename);
-		bool parseSpawnNode(xmlNodePtr p, bool checkDuplicate);
+	bool loadFromXml(const std::string& _filename);
+	bool parseSpawnNode(xmlNodePtr p, bool checkDuplicate);
 
-		void startup();
-		void clear();
+	void startup();
+	void clear();
 
-		bool isLoaded() const {return loaded;}
-		bool isStarted() const {return started;}
+	bool isLoaded() const { return loaded; }
+	bool isStarted() const { return started; }
 
-	private:
-		Spawns();
-		SpawnList spawnList;
+private:
+	Spawns();
+	SpawnList spawnList;
 
-		typedef std::list<Npc*> NpcList;
-		NpcList npcList;
+	typedef std::list<Npc*> NpcList;
+	NpcList npcList;
 
-		bool loaded, started;
-		std::string filename;
+	bool loaded, started;
+	std::string filename;
 };
 
 struct spawnBlock_t
@@ -71,40 +70,39 @@ struct spawnBlock_t
 
 class Spawn
 {
-	public:
-		Spawn(const Position& _pos, int32_t _radius);
-		virtual ~Spawn();
+public:
+	Spawn(const Position& _pos, int32_t _radius);
+	virtual ~Spawn();
 
-		bool addMonster(const std::string& _name, const Position& _pos, Direction _dir, uint32_t _interval);
-		void removeMonster(Monster* monster);
+	bool addMonster(const std::string& _name, const Position& _pos, Direction _dir, uint32_t _interval);
+	void removeMonster(Monster* monster);
 
-		Position getPosition() const {return centerPos;}
-		uint32_t getInterval() const {return interval;}
+	Position getPosition() const { return centerPos; }
+	uint32_t getInterval() const { return interval; }
 
-		void startEvent(MonsterType* mType);
-		void stopEvent();
+	void startEvent(MonsterType* mType);
+	void stopEvent();
 
-		void startup();
-		bool isInSpawnZone(const Position& pos) {return Spawns::getInstance()->isInZone(centerPos, radius, pos);}
+	void startup();
+	bool isInSpawnZone(const Position& pos) { return Spawns::getInstance()->isInZone(centerPos, radius, pos); }
 
-	private:
-		uint32_t interval, checkSpawnEvent;
+private:
+	uint32_t interval, checkSpawnEvent;
 
-		Position centerPos;
-		int32_t radius, despawnRange, despawnRadius;
+	Position centerPos;
+	int32_t radius, despawnRange, despawnRadius;
 
-		void checkSpawn();
-		bool spawnMonster(uint32_t spawnId, MonsterType* mType, const Position& pos, Direction dir, bool startup = false);
+	void checkSpawn();
+	bool spawnMonster(uint32_t spawnId, MonsterType* mType, const Position& pos, Direction dir, bool startup = false);
 
-		bool findPlayer(const Position& pos, bool blocked);
+	bool findPlayer(const Position& pos, bool blocked);
 
-		//map of creatures in the spawn
-		typedef std::map<uint32_t, spawnBlock_t> SpawnMap;
-		SpawnMap spawnMap;
+	// map of creatures in the spawn
+	typedef std::map<uint32_t, spawnBlock_t> SpawnMap;
+	SpawnMap spawnMap;
 
-		//map of the spawned creatures
-		typedef std::multimap<uint32_t, Monster*, std::less<uint32_t> > SpawnedMap;
-		typedef SpawnedMap::value_type SpawnedPair;
-		SpawnedMap spawnedMap;
+	// map of the spawned creatures
+	typedef std::multimap<uint32_t, Monster*, std::less<uint32_t>> SpawnedMap;
+	typedef SpawnedMap::value_type SpawnedPair;
+	SpawnedMap spawnedMap;
 };
-#endif

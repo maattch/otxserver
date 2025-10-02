@@ -15,8 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __DATABASE__
-#define __DATABASE__
+#pragma once
 
 #include "otx/cast.hpp"
 
@@ -148,7 +147,7 @@ public:
 
 	template<typename T>
 	std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>, T>
-		getNumber(const std::string& s) const
+	getNumber(const std::string& s) const
 	{
 		auto it = listNames.find(s);
 		if (it == listNames.end()) {
@@ -192,7 +191,8 @@ public:
 	bool addRow(const std::string& row);
 	bool execute();
 
-	void setQuery(const std::string& s) {
+	void setQuery(const std::string& s)
+	{
 		query = s;
 		values = std::string();
 		length = query.length();
@@ -218,11 +218,11 @@ public:
 	bool commit();
 
 private:
-	enum : uint8_t {
+	enum : uint8_t
+	{
 		STATE_NO_START,
 		STATE_START,
 		STATE_COMMIT,
-	} state = STATE_NO_START;
+	} state
+		= STATE_NO_START;
 };
-
-#endif

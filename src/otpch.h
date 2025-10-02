@@ -15,14 +15,13 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __OTPCH__
-#define __OTPCH__
+#pragma once
 
 // definitions must be called first
 #include "definitions.h"
 
 #if defined WINDOWS
-#include <winerror.h>
+	#include <winerror.h>
 #endif
 
 // STD
@@ -59,13 +58,11 @@
 #include <boost/version.hpp>
 
 #if BOOST_VERSION < 104400
-#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename()
+	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename()
 #else
-#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename().string()
+	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename().string()
 #endif
 
 // OTX
 #include "configmanager.h"
 #include "thing.h"
-
-#endif

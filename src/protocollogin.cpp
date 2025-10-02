@@ -33,20 +33,13 @@
 extern ConfigManager g_config;
 extern Game g_game;
 
-extern std::list<std::pair<uint32_t, uint32_t> > serverIps;
+extern std::list<std::pair<uint32_t, uint32_t>> serverIps;
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 uint32_t ProtocolLogin::protocolLoginCount = 0;
 
 #endif
-#ifdef __DEBUG_NET_DETAIL__
-void ProtocolLogin::deleteProtocolTask()
-{
-	std::clog << "Deleting ProtocolLogin" << std::endl;
-	Protocol::deleteProtocolTask();
-}
 
-#endif
 void ProtocolLogin::disconnectClient(uint8_t error, const char* message)
 {
 	OutputMessage_ptr output = OutputMessagePool::getOutputMessage();
@@ -58,8 +51,7 @@ void ProtocolLogin::disconnectClient(uint8_t error, const char* message)
 
 void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 {
-	if(g_game.getGameState() == GAMESTATE_SHUTDOWN)
-	{
+	if (g_game.getGameState() == GAMESTATE_SHUTDOWN) {
 		getConnection()->close();
 		return;
 	}
@@ -76,80 +68,66 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 #else
 	msg.skipBytes(12);
 #endif
-	if(!RSA_decrypt(msg))
-	{
+	if (!RSA_decrypt(msg)) {
 		getConnection()->close();
 		return;
 	}
 
-	uint32_t key[4] = {msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>()};
+	uint32_t key[4] = { msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>() };
 	enableXTEAEncryption();
 	setXTEAKey(key);
 
 	std::string name = msg.getString(), password = msg.getString();
-	if(name.empty())
-	{
+	if (name.empty()) {
 		name = "10";
 	}
 
-	if(!g_config.getBool(ConfigManager::MANUAL_ADVANCED_CONFIG))
-	{
-		if(version < g_config.getNumber(ConfigManager::VERSION_MIN) || version > g_config.getNumber(ConfigManager::VERSION_MAX))
-		{
+	if (!g_config.getBool(ConfigManager::MANUAL_ADVANCED_CONFIG)) {
+		if (version < g_config.getNumber(ConfigManager::VERSION_MIN) || version > g_config.getNumber(ConfigManager::VERSION_MAX)) {
 			disconnectClient(0x14, g_config.getString(ConfigManager::VERSION_MSG).c_str());
 			return;
 		}
-	}
-	else
-	{
-		if(version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX)
-		{
+	} else {
+		if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
 			disconnectClient(0x14, "Only clients with protocol " CLIENT_VERSION_STRING " allowed!");
 			return;
 		}
 	}
 
 #ifdef CLIENT_VERSION_DATA
-	if(sprSignature != CLIENT_VERSION_SPR)
-	{
+	if (sprSignature != CLIENT_VERSION_SPR) {
 		disconnectClient(0x0A, CLIENT_VERSION_DATA);
 		return;
 	}
 
-	if(datSignature != CLIENT_VERSION_DAT)
-	{
+	if (datSignature != CLIENT_VERSION_DAT) {
 		disconnectClient(0x0A, CLIENT_VERSION_DATA);
 		return;
 	}
 
-	if(picSignature != CLIENT_VERSION_PIC)
-	{
+	if (picSignature != CLIENT_VERSION_PIC) {
 		disconnectClient(0x0A, CLIENT_VERSION_DATA);
 		return;
 	}
 #endif
 
-	if(g_game.getGameState() < GAMESTATE_NORMAL)
-	{
+	if (g_game.getGameState() < GAMESTATE_NORMAL) {
 		disconnectClient(0x0A, "Server is just starting up, please wait.");
 		return;
 	}
 
-	if(g_game.getGameState() == GAMESTATE_MAINTAIN)
-	{
+	if (g_game.getGameState() == GAMESTATE_MAINTAIN) {
 		disconnectClient(0x0A, "Server is under maintenance, please re-connect in a while.");
 		return;
 	}
 
-	if(IOBan::getInstance()->isIpBanished(clientIp))
-	{
+	if (IOBan::getInstance()->isIpBanished(clientIp)) {
 		disconnectClient(0x0A, "Your IP is banished!");
 		return;
 	}
 
 	Account account;
-	if(!IOLoginData::getInstance()->loadAccount(account, name) || (account.name != "10" && !encryptTest(account.salt + password, account.password)))
-	{
+	if (!IOLoginData::getInstance()->loadAccount(account, name) || (account.name != "10" && !encryptTest(account.salt + password, account.password))) {
 		disconnectClient(0x0A, "Invalid account name or password.");
 		return;
 	}
@@ -158,19 +136,20 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	ban.value = account.number;
 
 	ban.type = BAN_ACCOUNT;
-	if(IOBan::getInstance()->getData(ban) && !IOLoginData::getInstance()->hasFlag(account.number, PlayerFlag_CannotBeBanned))
-	{
+	if (IOBan::getInstance()->getData(ban) && !IOLoginData::getInstance()->hasFlag(account.number, PlayerFlag_CannotBeBanned)) {
 		bool deletion = ban.expires < 0;
 		std::string name_ = "Automatic ";
-		if(!ban.adminId)
+		if (!ban.adminId) {
 			name_ += (deletion ? "deletion" : "banishment");
-		else
+		} else {
 			IOLoginData::getInstance()->getNameByGuid(ban.adminId, name_, true);
+		}
 
 		std::ostringstream ss;
-		ss << "Your account has been " << (deletion ? "deleted" : "banished") << " at:\n" << formatDateEx(ban.added, "%d %b %Y").c_str()
-			<< " by: " << name_.c_str() << ".\nThe comment given was:\n" << ban.comment.c_str() << ".\nYour " << (deletion ?
-			"account won't be undeleted" : "banishment will be lifted at:\n") << (deletion ? "" : formatDateEx(ban.expires).c_str()) << ".";
+		ss << "Your account has been " << (deletion ? "deleted" : "banished") << " at:\n"
+		   << formatDateEx(ban.added, "%d %b %Y").c_str()
+		   << " by: " << name_.c_str() << ".\nThe comment given was:\n"
+		   << ban.comment.c_str() << ".\nYour " << (deletion ? "account won't be undeleted" : "banishment will be lifted at:\n") << (deletion ? "" : formatDateEx(ban.expires).c_str()) << ".";
 
 		disconnectClient(0x0A, ss.str().c_str());
 		return;
@@ -178,10 +157,8 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 	// remove premium days
 	IOLoginData::getInstance()->removePremium(account);
-	if(account.name != "10" && !g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && !account.charList.size())
-	{
-		disconnectClient(0x0A, std::string("This account does not contain any character yet.\nCreate a new character on the "
-			+ g_config.getString(ConfigManager::SERVER_NAME) + " website at " + g_config.getString(ConfigManager::URL) + ".").c_str());
+	if (account.name != "10" && !g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && !account.charList.size()) {
+		disconnectClient(0x0A, std::string("This account does not contain any character yet.\nCreate a new character on the " + g_config.getString(ConfigManager::SERVER_NAME) + " website at " + g_config.getString(ConfigManager::URL) + ".").c_str());
 		return;
 	}
 
@@ -189,59 +166,54 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 	output->addByte(0x14);
 	uint32_t serverIp = serverIps.front().first;
-	for(std::list<std::pair<uint32_t, uint32_t> >::iterator it = serverIps.begin(); it != serverIps.end(); ++it)
-	{
-		if((it->first & it->second) != (clientIp & it->second))
+	for (std::list<std::pair<uint32_t, uint32_t>>::iterator it = serverIps.begin(); it != serverIps.end(); ++it) {
+		if ((it->first & it->second) != (clientIp & it->second)) {
 			continue;
+		}
 
 		serverIp = it->first;
 		break;
 	}
 
 	char motd[1300];
-	if (account.name == "10" && account.name != "0")
-	{
+	if (account.name == "10" && account.name != "0") {
 		srand(time(NULL));
 		int random_number = std::rand();
 		sprintf(motd, "%d\nWelcome to cast system!\n\n Do you know you can use CTRL + ARROWS\n to switch casts?\n\nVoc� sabia que pode usar CTRL + SETAS\n para alternar casts?", random_number);
 		output->addString(motd);
-	}
-	else
-	{
+	} else {
 		sprintf(motd, "%d\n%s", g_game.getMotdId(), g_config.getString(ConfigManager::MOTD).c_str());
 		output->addString(motd);
 	}
 
-	//Add char list
+	// Add char list
 	output->addByte(0x64);
-	if (account.name == "10" && account.name != "0")
-	{
+	if (account.name == "10" && account.name != "0") {
 		PlayerVector players;
-		for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it)
-		{
-			if (!it->second->isRemoved() && it->second->client->isBroadcasting())
+		for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
+			if (!it->second->isRemoved() && it->second->client->isBroadcasting()) {
 				players.push_back(it->second);
+			}
 		}
 
-		if (!players.size())
+		if (!players.size()) {
 			disconnectClient(0x0A, "There are no livestreams online right now.");
-		else
-		{
+		} else {
 			std::sort(players.begin(), players.end(), Player::sort);
 			output->addByte(players.size());
-			for (PlayerVector::iterator it = players.begin(); it != players.end(); ++it)
-			{
+			for (PlayerVector::iterator it = players.begin(); it != players.end(); ++it) {
 				char tVoc[3];
-				if ((*it)->getVocationId() == 1 || (*it)->getVocationId() == 5)
+				if ((*it)->getVocationId() == 1 || (*it)->getVocationId() == 5) {
 					sprintf(tVoc, "MS");
-				else if ((*it)->getVocationId() == 2 || (*it)->getVocationId() == 6)
+				} else if ((*it)->getVocationId() == 2 || (*it)->getVocationId() == 6) {
 					sprintf(tVoc, "ED");
-				else if ((*it)->getVocationId() == 3 || (*it)->getVocationId() == 7)
+				} else if ((*it)->getVocationId() == 3 || (*it)->getVocationId() == 7) {
 					sprintf(tVoc, "RP");
-				else if ((*it)->getVocationId() == 4 || (*it)->getVocationId() == 8)
+				} else if ((*it)->getVocationId() == 4 || (*it)->getVocationId() == 8) {
 					sprintf(tVoc, "EK");
-				else
+				} else {
 					sprintf(tVoc, "*");
+				}
 
 				std::string viewersStr;
 				// change search DB by size();
@@ -250,13 +222,14 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 				std::ostringstream s;
 				s << "L.";
 				s << (*it)->getLevel();
-				s << " "; 
+				s << " ";
 				s << tVoc;
 				s << " | ";
 				s << viewersStr;
 				s << "/50";
-				if (!(*it)->client->check(password))
+				if (!(*it)->client->check(password)) {
 					s << " *";
+				}
 
 				output->addString((*it)->getName());
 				output->addString(s.str());
@@ -266,11 +239,8 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 				output->add<uint16_t>(games[random_range(0, games.size() - 1)]);
 			}
 		}
-	}
-	else
-	{
-		if(g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && account.number != 1)
-		{
+	} else {
+		if (g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && account.number != 1) {
 			output->addByte(account.charList.size() + 1);
 			output->addString("Account Manager");
 
@@ -279,22 +249,21 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 			IntegerVec games = vectorAtoi(explodeString(g_config.getString(ConfigManager::GAME_PORT), ","));
 			output->add<uint16_t>(games[random_range(0, games.size() - 1)]);
-		}
-		else
+		} else {
 			output->addByte((uint8_t)account.charList.size());
+		}
 
-		for(Characters::iterator it = account.charList.begin(); it != account.charList.end(); ++it)
-		{
+		for (Characters::iterator it = account.charList.begin(); it != account.charList.end(); ++it) {
 			output->addString((*it));
-			if(g_config.getBool(ConfigManager::ON_OR_OFF_CHARLIST))
-			{
-				if(g_game.getPlayerByName((*it)))
+			if (g_config.getBool(ConfigManager::ON_OR_OFF_CHARLIST)) {
+				if (g_game.getPlayerByName((*it))) {
 					output->addString("Online");
-				else
+				} else {
 					output->addString("Offline");
-			}
-			else
+				}
+			} else {
 				output->addString(g_config.getString(ConfigManager::SERVER_NAME));
+			}
 
 			output->add<uint32_t>(serverIp);
 			IntegerVec games = vectorAtoi(explodeString(g_config.getString(ConfigManager::GAME_PORT), ","));
@@ -302,11 +271,12 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 		}
 	}
 
-	//Add premium days
-	if(g_config.getBool(ConfigManager::FREE_PREMIUM))
+	// Add premium days
+	if (g_config.getBool(ConfigManager::FREE_PREMIUM)) {
 		output->add<uint16_t>(GRATIS_PREMIUM);
-	else
+	} else {
 		output->add<uint16_t>(account.premiumDays);
+	}
 
 	send(output);
 	disconnect();

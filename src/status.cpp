@@ -29,14 +29,14 @@
 #include "configmanager.h"
 #include "game.h"
 
-
 extern ConfigManager g_config;
 extern Game g_game;
 
 std::map<uint32_t, int64_t> ProtocolStatus::ipConnectMap;
 const uint64_t ProtocolStatus::start = OTSYS_TIME();
 
-enum RequestedInfo_t : uint16_t {
+enum RequestedInfo_t : uint16_t
+{
 	REQUEST_BASIC_SERVER_INFO = 1 << 0,
 	REQUEST_OWNER_SERVER_INFO = 1 << 1,
 	REQUEST_MISC_SERVER_INFO = 1 << 2,
@@ -61,28 +61,25 @@ void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
 	ipConnectMap[ip] = OTSYS_TIME();
 
 	uint8_t type = msg.get<char>();
-	switch(type)
-	{
-		case 0xFF:
-		{
-			if(msg.getString(4) == "info")
-			{
+	switch (type) {
+		case 0xFF: {
+			if (msg.getString(4) == "info") {
 				Dispatcher::getInstance().addTask(createTask(std::bind(&ProtocolStatus::sendStatusString,
-                                      std::static_pointer_cast<ProtocolStatus>(shared_from_this()))));
+					std::static_pointer_cast<ProtocolStatus>(shared_from_this()))));
 				return;
 			}
 
 			break;
 		}
 
-		case 0x01:
-		{
+		case 0x01: {
 			uint32_t requestedInfo = msg.get<uint16_t>(); // only a byte is necessary, though we could add new infos here
 			std::string characterName;
-			if (requestedInfo & REQUEST_PLAYER_STATUS_INFO)
+			if (requestedInfo & REQUEST_PLAYER_STATUS_INFO) {
 				characterName = msg.getString();
+			}
 
-			Dispatcher::getInstance().addTask(createTask(std::bind(&ProtocolStatus::sendInfo, std::dynamic_pointer_cast<ProtocolStatus>(shared_from_this()), 
+			Dispatcher::getInstance().addTask(createTask(std::bind(&ProtocolStatus::sendInfo, std::dynamic_pointer_cast<ProtocolStatus>(shared_from_this()),
 				requestedInfo, characterName)));
 			return;
 		}
@@ -107,7 +104,7 @@ void ProtocolStatus::sendStatusString()
 	char buffer[90];
 	xmlSetProp(root, (const xmlChar*)"version", (const xmlChar*)"1.0");
 
-	xmlNodePtr p = xmlNewNode(NULL,(const xmlChar*)"serverinfo");
+	xmlNodePtr p = xmlNewNode(NULL, (const xmlChar*)"serverinfo");
 	sprintf(buffer, "%u", (uint32_t)((OTSYS_TIME() - ProtocolStatus::start) / 1000));
 	xmlSetProp(p, (const xmlChar*)"uptime", (const xmlChar*)buffer);
 	xmlSetProp(p, (const xmlChar*)"ip", (const xmlChar*)g_config.getString(ConfigManager::IP).c_str());
@@ -121,41 +118,41 @@ void ProtocolStatus::sendStatusString()
 	xmlSetProp(p, (const xmlChar*)"client", (const xmlChar*)CLIENT_VERSION_STRING);
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL,(const xmlChar*)"owner");
+	p = xmlNewNode(NULL, (const xmlChar*)"owner");
 	xmlSetProp(p, (const xmlChar*)"name", (const xmlChar*)g_config.getString(ConfigManager::OWNER_NAME).c_str());
 	xmlSetProp(p, (const xmlChar*)"email", (const xmlChar*)g_config.getString(ConfigManager::OWNER_EMAIL).c_str());
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL,(const xmlChar*)"players");
-	//this get function in game.cpp with limit = 4 to otservlist. Xinn can check here https://github.com/FeTads/otxserver/blob/a9bef7ac0fe7584a924a7426aae0f44ec372fe12/sources/game.cpp#L7081
-	//sprintf(buffer, "%d", g_game.getPlayersWithMcLimit());
-	
+	p = xmlNewNode(NULL, (const xmlChar*)"players");
+	// this get function in game.cpp with limit = 4 to otservlist. Xinn can check here https://github.com/FeTads/otxserver/blob/a9bef7ac0fe7584a924a7426aae0f44ec372fe12/sources/game.cpp#L7081
+	// sprintf(buffer, "%d", g_game.getPlayersWithMcLimit());
+
 	std::map<uint32_t, uint32_t> mcLimit4;
-    std::vector<uint32_t> uniqueIp;
-    uint32_t count = 0;
+	std::vector<uint32_t> uniqueIp;
+	uint32_t count = 0;
 	uint32_t uniqueOnline = 0;
 
-    for (const auto& player : Player::autoList) {
+	for (const auto& player : Player::autoList) {
 		if (!player.second->isRemoved() && player.second->getIdleTime() < 900000 && player.second->getIP() != 0) {
 			uint32_t ip = player.second->getIP();
 			auto it = mcLimit4.find(ip);
 			if (it == mcLimit4.end()) {
 				mcLimit4[ip] = 1;
 				count++;
-			} else if (it->second < 4) {		//only 4 mc per IP
+			} else if (it->second < 4) { // only 4 mc per IP
 				it->second++;
 				count++;
 			}
-			if (std::find(uniqueIp.begin(), uniqueIp.end(), ip) == uniqueIp.end()) {	//unique IP
+			if (std::find(uniqueIp.begin(), uniqueIp.end(), ip) == uniqueIp.end()) { // unique IP
 				uniqueIp.push_back(ip);
 				++uniqueOnline;
 			}
 		}
 	}
-	
+
 	sprintf(buffer, "%d", count);
 	xmlSetProp(p, (const xmlChar*)"online", (const xmlChar*)buffer);
-	
+
 	sprintf(buffer, "%d", uniqueOnline);
 	xmlSetProp(p, (const xmlChar*)"unique", (const xmlChar*)buffer);
 
@@ -165,22 +162,22 @@ void ProtocolStatus::sendStatusString()
 	sprintf(buffer, "%d", g_game.getPlayersRecord());
 	xmlSetProp(p, (const xmlChar*)"peak", (const xmlChar*)buffer);
 
-	//this get function in game.cpp with limit = 1 by IP (Unique Players) to otservlist. Xinn can check here https://github.com/FeTads/otxserver/blob/a9bef7ac0fe7584a924a7426aae0f44ec372fe12/sources/game.cpp#L7108
-	//sprintf(buffer, "%d", g_game.getUniquePlayersOnline());
+	// this get function in game.cpp with limit = 1 by IP (Unique Players) to otservlist. Xinn can check here https://github.com/FeTads/otxserver/blob/a9bef7ac0fe7584a924a7426aae0f44ec372fe12/sources/game.cpp#L7108
+	// sprintf(buffer, "%d", g_game.getUniquePlayersOnline());
 
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL,(const xmlChar*)"monsters");
+	p = xmlNewNode(NULL, (const xmlChar*)"monsters");
 	sprintf(buffer, "%d", g_game.getMonstersOnline());
 	xmlSetProp(p, (const xmlChar*)"total", (const xmlChar*)buffer);
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL,(const xmlChar*)"npcs");
+	p = xmlNewNode(NULL, (const xmlChar*)"npcs");
 	sprintf(buffer, "%d", g_game.getNpcsOnline());
 	xmlSetProp(p, (const xmlChar*)"total", (const xmlChar*)buffer);
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL,(const xmlChar*)"map");
+	p = xmlNewNode(NULL, (const xmlChar*)"map");
 	xmlSetProp(p, (const xmlChar*)"name", (const xmlChar*)g_config.getString(ConfigManager::MAP_NAME).c_str());
 	xmlSetProp(p, (const xmlChar*)"author", (const xmlChar*)g_config.getString(ConfigManager::MAP_AUTHOR).c_str());
 
@@ -200,8 +197,9 @@ void ProtocolStatus::sendStatusString()
 	xmlDocDumpMemory(doc, (xmlChar**)&s, &len);
 
 	std::string xml;
-	if(s)
+	if (s) {
 		xml = std::string((char*)s, len);
+	}
 
 	xmlFree(s);
 	xmlFreeDoc(doc);
@@ -215,8 +213,7 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 {
 	auto output = OutputMessagePool::getOutputMessage();
 
-	if(requestedInfo & REQUEST_BASIC_SERVER_INFO)
-	{
+	if (requestedInfo & REQUEST_BASIC_SERVER_INFO) {
 		output->addByte(0x10);
 		output->addString(g_config.getString(ConfigManager::SERVER_NAME).c_str());
 		output->addString(g_config.getString(ConfigManager::IP).c_str());
@@ -226,15 +223,13 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 		output->addString(buffer);
 	}
 
-	if (requestedInfo & REQUEST_OWNER_SERVER_INFO)
-	{
+	if (requestedInfo & REQUEST_OWNER_SERVER_INFO) {
 		output->addByte(0x11);
 		output->addString(g_config.getString(ConfigManager::OWNER_NAME).c_str());
 		output->addString(g_config.getString(ConfigManager::OWNER_EMAIL).c_str());
 	}
 
-	if(requestedInfo & REQUEST_MISC_SERVER_INFO)
-	{
+	if (requestedInfo & REQUEST_MISC_SERVER_INFO) {
 		output->addByte(0x12);
 		output->addString(g_config.getString(ConfigManager::MOTD).c_str());
 		output->addString(g_config.getString(ConfigManager::LOCATION).c_str());
@@ -243,16 +238,14 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 		output->add<uint64_t>((OTSYS_TIME() - ProtocolStatus::start) / 1000);
 	}
 
-	if(requestedInfo & REQUEST_PLAYERS_INFO)
-	{
+	if (requestedInfo & REQUEST_PLAYERS_INFO) {
 		output->addByte(0x20);
 		output->add<uint32_t>(g_game.getPlayersOnline());
 		output->add<uint32_t>((uint32_t)g_config.getNumber(ConfigManager::MAX_PLAYERS));
 		output->add<uint32_t>(g_game.getPlayersRecord());
 	}
 
-	if(requestedInfo & REQUEST_MAP_INFO)
-	{
+	if (requestedInfo & REQUEST_MAP_INFO) {
 		output->addByte(0x30);
 		output->addString(g_config.getString(ConfigManager::MAP_NAME).c_str());
 		output->addString(g_config.getString(ConfigManager::MAP_AUTHOR).c_str());
@@ -263,37 +256,34 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 		output->add<uint16_t>(mapHeight);
 	}
 
-	if(requestedInfo & REQUEST_EXT_PLAYERS_INFO)
-	{
+	if (requestedInfo & REQUEST_EXT_PLAYERS_INFO) {
 		output->addByte(0x21);
-		std::list<std::pair<std::string, uint32_t> > players;
-		for(AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it)
-		{
-			if(!it->second->isRemoved() && !it->second->isGhost())
+		std::list<std::pair<std::string, uint32_t>> players;
+		for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
+			if (!it->second->isRemoved() && !it->second->isGhost()) {
 				players.push_back(std::make_pair(it->second->getName(), it->second->getLevel()));
+			}
 		}
 
 		output->add<uint32_t>(players.size());
-		for(std::list<std::pair<std::string, uint32_t> >::iterator it = players.begin(); it != players.end(); ++it)
-		{
+		for (std::list<std::pair<std::string, uint32_t>>::iterator it = players.begin(); it != players.end(); ++it) {
 			output->addString(it->first);
 			output->add<uint32_t>(it->second);
 		}
 	}
 
-	if(requestedInfo & REQUEST_PLAYER_STATUS_INFO)
-	{
+	if (requestedInfo & REQUEST_PLAYER_STATUS_INFO) {
 		output->addByte(0x22);
 
 		Player* p = NULL;
-		if(g_game.getPlayerByNameWildcard(characterName, p) == RET_NOERROR && !p->isGhost())
+		if (g_game.getPlayerByNameWildcard(characterName, p) == RET_NOERROR && !p->isGhost()) {
 			output->addByte(0x01);
-		else
+		} else {
 			output->addByte(0x00);
+		}
 	}
 
-	if(requestedInfo & REQUEST_SERVER_SOFTWARE_INFO)
-	{
+	if (requestedInfo & REQUEST_SERVER_SOFTWARE_INFO) {
 		output->addByte(0x23);
 		output->addString(SOFTWARE_NAME);
 		output->addString(SOFTWARE_VERSION);

@@ -23,10 +23,10 @@
 #include <iomanip>
 
 #ifndef WINDOWS
-#include <unistd.h>
-#include <termios.h>
+	#include <unistd.h>
+	#include <termios.h>
 #else
-#include <conio.h>
+	#include <conio.h>
 #endif
 
 #include <boost/config.hpp>
@@ -481,9 +481,6 @@ void otserv(StringVec, ServiceManager* services)
 #endif
 #ifdef __DEBUG_NET__
 	ss << " NET";
-#endif
-#ifdef __DEBUG_NET_DETAIL__
-	ss << " NET-DETAIL";
 #endif
 #ifdef __DEBUG_RAID__
 	ss << " RAIDS";

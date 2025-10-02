@@ -27,7 +27,7 @@
 
 extern ConfigManager g_config;
 
-std::string NetworkMessage::getString(uint16_t stringLen/* = 0*/)
+std::string NetworkMessage::getString(uint16_t stringLen /* = 0*/)
 {
 	if (stringLen == 0) {
 		stringLen = get<uint16_t>();
@@ -37,7 +37,7 @@ std::string NetworkMessage::getString(uint16_t stringLen/* = 0*/)
 		return std::string();
 	}
 
-	char* v = reinterpret_cast<char*>(buffer) + position; //does not break strict aliasing
+	char* v = reinterpret_cast<char*>(buffer) + position; // does not break strict aliasing
 	position += stringLen;
 	return std::string(v, stringLen);
 }
@@ -64,7 +64,7 @@ void NetworkMessage::addString(const std::string& value)
 	length += stringLen;
 }
 
-void NetworkMessage::addDouble(double value, uint8_t precision/* = 2*/)
+void NetworkMessage::addDouble(double value, uint8_t precision /* = 2*/)
 {
 	addByte(precision);
 	add<uint32_t>((value * std::pow(static_cast<float>(10), precision)) + std::numeric_limits<int32_t>::max());
@@ -100,14 +100,15 @@ void NetworkMessage::addPosition(const Position& pos)
 
 uint16_t NetworkMessage::getReplaceMW(uint16_t spriteId /*= 0*/, Player* player)
 {
-	if(!player)
+	if (!player) {
 		return spriteId;
-	
+	}
+
 	uint16_t mwId = g_config.getNumber(ConfigManager::MWSPRITE_TO_REPLACE);
-	if(player && mwId > 0 && spriteId == mwId){
+	if (player && mwId > 0 && spriteId == mwId) {
 		std::string value = "-1";
 		player->getStorage("212121", value);
-		if(std::stoi(value) == 1){
+		if (std::stoi(value) == 1) {
 			spriteId = g_config.getNumber(ConfigManager::NEWSPRITE_TO_MW);
 		}
 	}
@@ -118,7 +119,7 @@ void NetworkMessage::addItem(uint16_t id, uint8_t count, Player* player)
 {
 	const ItemType& it = Item::items[id];
 	uint16_t spriteId = it.clientId;
-	if(g_config.getBool(ConfigManager::MW_REPLACE_ENABLE)){
+	if (g_config.getBool(ConfigManager::MW_REPLACE_ENABLE)) {
 		spriteId = getReplaceMW(spriteId, player);
 	}
 	add<uint16_t>(spriteId);
@@ -133,7 +134,7 @@ void NetworkMessage::addItem(const Item* item, Player* player)
 {
 	const ItemType& it = Item::items[item->getID()];
 	uint16_t spriteId = it.clientId;
-	if(g_config.getBool(ConfigManager::MW_REPLACE_ENABLE)){
+	if (g_config.getBool(ConfigManager::MW_REPLACE_ENABLE)) {
 		spriteId = getReplaceMW(spriteId, player);
 	}
 	add<uint16_t>(spriteId);
@@ -147,7 +148,7 @@ void NetworkMessage::addItem(const Item* item, Player* player)
 void NetworkMessage::addItemId(uint16_t itemId, Player* player)
 {
 	uint16_t spriteId = Item::items[itemId].clientId;
-	if(g_config.getBool(ConfigManager::MW_REPLACE_ENABLE)){
+	if (g_config.getBool(ConfigManager::MW_REPLACE_ENABLE)) {
 		spriteId = getReplaceMW(spriteId, player);
 	}
 	add<uint16_t>(spriteId);

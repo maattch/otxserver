@@ -15,8 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __ENUMS__
-#define __ENUMS__
+#pragma once
 
 #include <string>
 #include <list>
@@ -90,7 +89,7 @@ enum Channels_t
 	CHANNEL_RVR = 0x03,
 	CHANNEL_HELP = 0x09,
 	CHANNEL_LOOT = 0x10,
-	CHANNEL_DEFAULT = 0xFFFE, //internal usage only, there is no such channel
+	CHANNEL_DEFAULT = 0xFFFE, // internal usage only, there is no such channel
 	CHANNEL_PRIVATE = 0xFFFF
 };
 
@@ -103,7 +102,7 @@ enum ViolationAction_t
 	ACTION_BANFINAL,
 	ACTION_BANREPORTFINAL,
 	ACTION_STATEMENT,
-	//internal use
+	// internal use
 	ACTION_DELETION,
 	ACTION_NAMELOCK,
 	ACTION_BANLOCK,
@@ -123,24 +122,24 @@ enum RaceType_t
 
 enum CombatType_t
 {
-	COMBAT_NONE				= 0x00,
-	COMBAT_ALL				= COMBAT_NONE, /* for internal use only.*/
+	COMBAT_NONE = 0x00,
+	COMBAT_ALL = COMBAT_NONE, /* for internal use only.*/
 
-	COMBAT_PHYSICALDAMAGE	= 1 << 0,
-	COMBAT_ENERGYDAMAGE		= 1 << 1,
-	COMBAT_EARTHDAMAGE		= 1 << 2,
-	COMBAT_FIREDAMAGE		= 1 << 3,
-	COMBAT_UNDEFINEDDAMAGE	= 1 << 4,
-	COMBAT_LIFEDRAIN		= 1 << 5,
-	COMBAT_MANADRAIN		= 1 << 6,
-	COMBAT_HEALING			= 1 << 7,
-	COMBAT_DROWNDAMAGE		= 1 << 8,
-	COMBAT_ICEDAMAGE		= 1 << 9,
-	COMBAT_HOLYDAMAGE		= 1 << 10,
-	COMBAT_DEATHDAMAGE		= 1 << 11,
+	COMBAT_PHYSICALDAMAGE = 1 << 0,
+	COMBAT_ENERGYDAMAGE = 1 << 1,
+	COMBAT_EARTHDAMAGE = 1 << 2,
+	COMBAT_FIREDAMAGE = 1 << 3,
+	COMBAT_UNDEFINEDDAMAGE = 1 << 4,
+	COMBAT_LIFEDRAIN = 1 << 5,
+	COMBAT_MANADRAIN = 1 << 6,
+	COMBAT_HEALING = 1 << 7,
+	COMBAT_DROWNDAMAGE = 1 << 8,
+	COMBAT_ICEDAMAGE = 1 << 9,
+	COMBAT_HOLYDAMAGE = 1 << 10,
+	COMBAT_DEATHDAMAGE = 1 << 11,
 
-	COMBAT_FIRST			= COMBAT_NONE,
-	COMBAT_LAST				= COMBAT_DEATHDAMAGE
+	COMBAT_FIRST = COMBAT_NONE,
+	COMBAT_LAST = COMBAT_DEATHDAMAGE
 };
 
 enum CombatParam_t
@@ -415,9 +414,10 @@ struct LightInfo
 {
 	uint32_t level, color;
 
-	LightInfo() {level = color = 0;}
-	LightInfo(uint32_t _level, uint32_t _color):
-		level(_level), color(_color) {}
+	LightInfo() { level = color = 0; }
+	LightInfo(uint32_t _level, uint32_t _color) :
+		level(_level),
+		color(_color) {}
 };
 
 struct ShopInfo
@@ -434,9 +434,12 @@ struct ShopInfo
 		itemName = "";
 	}
 	ShopInfo(uint32_t _itemId, int32_t _subType = 1, int32_t _buyPrice = -1, int32_t _sellPrice = -1,
-		const std::string& _itemName = ""): itemId(_itemId), subType(_subType), buyPrice(_buyPrice),
-		sellPrice(_sellPrice), itemName(_itemName) {}
+		const std::string& _itemName = "") :
+		itemId(_itemId),
+		subType(_subType),
+		buyPrice(_buyPrice),
+		sellPrice(_sellPrice),
+		itemName(_itemName) {}
 };
 
 typedef std::list<ShopInfo> ShopInfoList;
-#endif

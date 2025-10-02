@@ -15,8 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __ACCOUNT__
-#define __ACCOUNT__
+#pragma once
 
 typedef std::list<std::string> Characters;
 
@@ -31,4 +30,3 @@ public:
 	std::string name, password, recoveryKey, salt;
 	Characters charList;
 };
-#endif

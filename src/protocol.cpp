@@ -46,13 +46,14 @@ void Protocol::onRecvMessage(NetworkMessage& msg)
 
 OutputMessage_ptr Protocol::getOutputBuffer()
 {
-	if(!outputBuffer)
+	if (!outputBuffer) {
 		outputBuffer = OutputMessagePool::getOutputMessage();
+	}
 	return outputBuffer;
 }
 OutputMessage_ptr Protocol::getOutputBuffer(int32_t size)
 {
-	//dispatcher thread
+	// dispatcher thread
 	if (!outputBuffer) {
 		outputBuffer = OutputMessagePool::getOutputMessage();
 	} else if ((outputBuffer->getLength() + size) > NetworkMessage::MAX_PROTOCOL_BODY_LENGTH) {
@@ -62,34 +63,34 @@ OutputMessage_ptr Protocol::getOutputBuffer(int32_t size)
 	return outputBuffer;
 }
 
-//by reason182
+// by reason182
 void Protocol::XTEA_encrypt(OutputMessage& msg) const
 {
-    const uint32_t delta = 0x61C88647;
-    const uint32_t k[] = { key[0], key[1], key[2], key[3] };
+	const uint32_t delta = 0x61C88647;
+	const uint32_t k[] = { key[0], key[1], key[2], key[3] };
 
-    // Ensure message is a multiple of 8
-    size_t paddingBytes = msg.getLength() % 8;
-    if(paddingBytes != 0) {
-        msg.addPaddingBytes(8 - paddingBytes);
-    }
+	// Ensure message is a multiple of 8
+	size_t paddingBytes = msg.getLength() % 8;
+	if (paddingBytes != 0) {
+		msg.addPaddingBytes(8 - paddingBytes);
+	}
 
-    uint8_t* buffer = msg.getOutputBuffer();
-    const uint8_t* bufferEnd = buffer + msg.getLength();
+	uint8_t* buffer = msg.getOutputBuffer();
+	const uint8_t* bufferEnd = buffer + msg.getLength();
 
-    while(buffer < bufferEnd) {
-        uint32_t* v0 = reinterpret_cast<uint32_t*>(buffer);
-        uint32_t* v1 = reinterpret_cast<uint32_t*>(buffer + 4);
+	while (buffer < bufferEnd) {
+		uint32_t* v0 = reinterpret_cast<uint32_t*>(buffer);
+		uint32_t* v1 = reinterpret_cast<uint32_t*>(buffer + 4);
 
-        uint32_t sum = 0;
-        for(int32_t i = 0; i < 32; ++i) {
-            *v0 += (((*v1 << 4) ^ (*v1 >> 5)) + *v1) ^ (sum + k[sum & 3]);
-            sum -= delta;
-            *v1 += (((*v0 << 4) ^ (*v0 >> 5)) + *v0) ^ (sum + k[(sum >> 11) & 3]);
-        }
+		uint32_t sum = 0;
+		for (int32_t i = 0; i < 32; ++i) {
+			*v0 += (((*v1 << 4) ^ (*v1 >> 5)) + *v1) ^ (sum + k[sum & 3]);
+			sum -= delta;
+			*v1 += (((*v0 << 4) ^ (*v0 >> 5)) + *v0) ^ (sum + k[(sum >> 11) & 3]);
+		}
 
-        buffer += 8;
-    }
+		buffer += 8;
+	}
 }
 
 bool Protocol::XTEA_decrypt(NetworkMessage& msg) const
@@ -103,7 +104,7 @@ bool Protocol::XTEA_decrypt(NetworkMessage& msg) const
 	uint8_t* buffer = msg.getBuffer() + msg.getBufferPosition();
 	const size_t messageLength = (msg.getLength() - 6);
 	size_t readPos = 0;
-	const uint32_t k[] = {key[0], key[1], key[2], key[3]};
+	const uint32_t k[] = { key[0], key[1], key[2], key[3] };
 	while (readPos < messageLength) {
 		uint32_t v0;
 		memcpy(&v0, buffer + readPos, 4);
@@ -139,7 +140,7 @@ bool Protocol::RSA_decrypt(NetworkMessage& msg)
 		return false;
 	}
 
-	g_RSA.decrypt(reinterpret_cast<char*>(msg.getBuffer()) + msg.getBufferPosition()); //does not break strict aliasing
+	g_RSA.decrypt(reinterpret_cast<char*>(msg.getBuffer()) + msg.getBufferPosition()); // does not break strict aliasing
 	return msg.getByte() == 0;
 }
 

@@ -15,8 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __FILELOADER__
-#define __FILELOADER__
+#pragma once
 
 struct NodeStruct;
 typedef NodeStruct* NODE;
@@ -34,33 +33,41 @@ struct NodeStruct
 	NodeStruct* next;
 	NodeStruct* child;
 
-	static void clearNet(NodeStruct* root) {if(root) clearChild(root);}
-	private:
-		static void clearNext(NodeStruct* node)
-		{
-			NodeStruct* deleteNode = node;
-			NodeStruct* nextNode;
-			while(deleteNode)
-			{
-				if(deleteNode->child)
-					clearChild(deleteNode->child);
+	static void clearNet(NodeStruct* root)
+	{
+		if (root) {
+			clearChild(root);
+		}
+	}
 
-				nextNode = deleteNode->next;
-				delete deleteNode;
-				deleteNode = nextNode;
+private:
+	static void clearNext(NodeStruct* node)
+	{
+		NodeStruct* deleteNode = node;
+		NodeStruct* nextNode;
+		while (deleteNode) {
+			if (deleteNode->child) {
+				clearChild(deleteNode->child);
 			}
+
+			nextNode = deleteNode->next;
+			delete deleteNode;
+			deleteNode = nextNode;
+		}
+	}
+
+	static void clearChild(NodeStruct* node)
+	{
+		if (node->child) {
+			clearChild(node->child);
 		}
 
-		static void clearChild(NodeStruct* node)
-		{
-			if(node->child)
-				clearChild(node->child);
-
-			if(node->next)
-				clearNext(node->next);
-
-			delete node;
+		if (node->next) {
+			clearNext(node->next);
 		}
+
+		delete node;
+	}
 };
 
 #define NO_NODE 0
@@ -83,281 +90,286 @@ enum FILELOADER_ERRORS
 class PropStream;
 class FileLoader
 {
-	public:
-		FileLoader();
-		virtual ~FileLoader();
+public:
+	FileLoader();
+	virtual ~FileLoader();
 
-		bool openFile(const char* name, const char* identifier, bool write, bool caching = false);
-		const uint8_t* getProps(const NODE, uint32_t &size);
-		bool getProps(const NODE, PropStream& props);
-		NODE getChildNode(const NODE& parent, uint32_t &type) const;
-		NODE getNextNode(const NODE& prev, uint32_t &type) const;
+	bool openFile(const char* name, const char* identifier, bool write, bool caching = false);
+	const uint8_t* getProps(const NODE, uint32_t& size);
+	bool getProps(const NODE, PropStream& props);
+	NODE getChildNode(const NODE& parent, uint32_t& type) const;
+	NODE getNextNode(const NODE& prev, uint32_t& type) const;
 
-		void startNode(uint8_t type);
-		void endNode();
-		int32_t setProps(void* data, uint16_t size);
+	void startNode(uint8_t type);
+	void endNode();
+	int32_t setProps(void* data, uint16_t size);
 
-		int32_t getError() const {return m_lastError;}
-		void clearError() {m_lastError = ERROR_NONE;}
+	int32_t getError() const { return m_lastError; }
+	void clearError() { m_lastError = ERROR_NONE; }
 
-	protected:
-		enum SPECIAL_BYTES
-		{
-			NODE_START = 0xFE,
-			NODE_END = 0xFF,
-			ESCAPE_CHAR = 0xFD,
-		};
-		bool parseNode(NODE node);
+protected:
+	enum SPECIAL_BYTES
+	{
+		NODE_START = 0xFE,
+		NODE_END = 0xFF,
+		ESCAPE_CHAR = 0xFD,
+	};
+	bool parseNode(NODE node);
 
-		inline bool readByte(int32_t &value);
-		inline bool readBytes(unsigned char* buffer, int32_t size, int32_t pos);
-		inline bool checks(const NODE& node);
-		inline bool safeSeek(uint32_t pos);
-		inline bool safeTell(int32_t &pos);
+	inline bool readByte(int32_t& value);
+	inline bool readBytes(unsigned char* buffer, int32_t size, int32_t pos);
+	inline bool checks(const NODE& node);
+	inline bool safeSeek(uint32_t pos);
+	inline bool safeTell(int32_t& pos);
 
-	public:
-		inline bool writeData(const void* data, int32_t size, bool unescape)
-		{
-			for(int32_t i = 0; i < size; ++i)
-			{
-				uint8_t c = *(((uint8_t*)data) + i);
-				if(unescape && (c == NODE_START || c == NODE_END || c == ESCAPE_CHAR))
-				{
-					uint8_t tmp = ESCAPE_CHAR;
+public:
+	inline bool writeData(const void* data, int32_t size, bool unescape)
+	{
+		for (int32_t i = 0; i < size; ++i) {
+			uint8_t c = *(((uint8_t*)data) + i);
+			if (unescape && (c == NODE_START || c == NODE_END || c == ESCAPE_CHAR)) {
+				uint8_t tmp = ESCAPE_CHAR;
 
-					size_t value = fwrite(&tmp, 1, 1, m_file);
-					if(value != 1)
-					{
-						m_lastError = ERROR_COULDNOTWRITE;
-						return false;
-					}
-				}
-
-				size_t value = fwrite(&c, 1, 1, m_file);
-				if(value != 1)
-				{
+				size_t value = fwrite(&tmp, 1, 1, m_file);
+				if (value != 1) {
 					m_lastError = ERROR_COULDNOTWRITE;
 					return false;
 				}
 			}
 
-			return true;
+			size_t value = fwrite(&c, 1, 1, m_file);
+			if (value != 1) {
+				m_lastError = ERROR_COULDNOTWRITE;
+				return false;
+			}
 		}
 
-	protected:
-		FILELOADER_ERRORS m_lastError;
+		return true;
+	}
 
-		FILE* m_file;
+protected:
+	FILELOADER_ERRORS m_lastError;
 
-		NODE m_root;
-		uint32_t m_buffer_size;
-		uint8_t* m_buffer;
+	FILE* m_file;
 
-		bool m_use_cache;
-		struct _cache
-		{
-			uint32_t loaded, base;
-			uint8_t* data;
-			size_t size;
-		};
+	NODE m_root;
+	uint32_t m_buffer_size;
+	uint8_t* m_buffer;
 
-		#define CACHE_BLOCKS 3
-		uint32_t m_cache_size;
-		_cache m_cached_data[CACHE_BLOCKS];
+	bool m_use_cache;
+	struct _cache
+	{
+		uint32_t loaded, base;
+		uint8_t* data;
+		size_t size;
+	};
 
-		#define NO_VALID_CACHE 0xFFFFFFFF
-		uint32_t m_cache_index, m_cache_offset;
+#define CACHE_BLOCKS 3
+	uint32_t m_cache_size;
+	_cache m_cached_data[CACHE_BLOCKS];
 
-		inline uint32_t getCacheBlock(uint32_t pos);
-		int32_t loadCacheBlock(uint32_t pos);
+#define NO_VALID_CACHE 0xFFFFFFFF
+	uint32_t m_cache_index, m_cache_offset;
+
+	inline uint32_t getCacheBlock(uint32_t pos);
+	int32_t loadCacheBlock(uint32_t pos);
 };
 
 class PropStream
 {
-	public:
-		PropStream() {end = NULL; p = NULL;}
-		virtual ~PropStream() {}
+public:
+	PropStream()
+	{
+		end = NULL;
+		p = NULL;
+	}
+	virtual ~PropStream() {}
 
-		void init(const char* a, uint32_t size)
-		{
-			p = a;
-			end = a + size;
-		}
-		int32_t size() const {return end - p;}
+	void init(const char* a, uint32_t size)
+	{
+		p = a;
+		end = a + size;
+	}
+	int32_t size() const { return end - p; }
 
-		template <typename T>
-		inline bool getType(T& ret)
-		{
-			if(size() < (int32_t)sizeof(T))
-				return false;
-
-			ret = *((T*)p);
-			p += sizeof(T);
-			return true;
-		}
-
-		template <typename T>
-		inline bool getStruct(T* &ret)
-		{
-			if(size() < (int32_t)sizeof(T))
-			{
-				ret = NULL;
-				return false;
-			}
-
-			ret = (T*)p;
-			p += sizeof(T);
-			return true;
+	template<typename T>
+	inline bool getType(T& ret)
+	{
+		if (size() < (int32_t)sizeof(T)) {
+			return false;
 		}
 
-		inline bool getByte(uint8_t& ret) {return getType(ret);}
-		inline bool getShort(uint16_t& ret) {return getType(ret);}
-		inline bool getTime(time_t& ret) {return getType(ret);}
-		inline bool getLong(uint32_t& ret) {return getType(ret);}
+		ret = *((T*)p);
+		p += sizeof(T);
+		return true;
+	}
 
-		inline bool getFloat(float& ret)
-		{
-			// ugly hack, but it makes reading not depending on arch
-			if(size() < (int32_t)sizeof(uint32_t))
-				return false;
-
-			float f;
-			memcpy(&f, (uint32_t*)p, sizeof(uint32_t));
-
-			ret = f;
-			p += sizeof(uint32_t);
-			return true;
+	template<typename T>
+	inline bool getStruct(T*& ret)
+	{
+		if (size() < (int32_t)sizeof(T)) {
+			ret = NULL;
+			return false;
 		}
 
-		inline bool getString(std::string& ret)
-		{
-			uint16_t strLen;
-			return getShort(strLen) && getString(ret, strLen);
+		ret = (T*)p;
+		p += sizeof(T);
+		return true;
+	}
+
+	inline bool getByte(uint8_t& ret) { return getType(ret); }
+	inline bool getShort(uint16_t& ret) { return getType(ret); }
+	inline bool getTime(time_t& ret) { return getType(ret); }
+	inline bool getLong(uint32_t& ret) { return getType(ret); }
+
+	inline bool getFloat(float& ret)
+	{
+		// ugly hack, but it makes reading not depending on arch
+		if (size() < (int32_t)sizeof(uint32_t)) {
+			return false;
 		}
 
-		inline bool getString(std::string& ret, uint16_t strLen)
-		{
-			if(size() < (int32_t)strLen)
-				return false;
+		float f;
+		memcpy(&f, (uint32_t*)p, sizeof(uint32_t));
 
-			char* str = new char[strLen + 1];
-			memcpy(str, p, strLen);
-			str[strLen] = 0;
+		ret = f;
+		p += sizeof(uint32_t);
+		return true;
+	}
 
-			ret.assign(str, strLen);
-			delete[] str;
-			p = p + strLen;
-			return true;
+	inline bool getString(std::string& ret)
+	{
+		uint16_t strLen;
+		return getShort(strLen) && getString(ret, strLen);
+	}
+
+	inline bool getString(std::string& ret, uint16_t strLen)
+	{
+		if (size() < (int32_t)strLen) {
+			return false;
 		}
 
-		inline bool getLongString(std::string& ret)
-		{
-			uint32_t strLen;
-			if(!getLong(strLen))
-				return false;
+		char* str = new char[strLen + 1];
+		memcpy(str, p, strLen);
+		str[strLen] = 0;
 
-			if(size() < (int32_t)strLen)
-				return false;
+		ret.assign(str, strLen);
+		delete[] str;
+		p = p + strLen;
+		return true;
+	}
 
-			char* str = new char[strLen + 1];
-			memcpy(str, p, strLen);
-			str[strLen] = 0;
-
-			ret.assign(str, strLen);
-			delete[] str;
-			p = p + strLen;
-			return true;
+	inline bool getLongString(std::string& ret)
+	{
+		uint32_t strLen;
+		if (!getLong(strLen)) {
+			return false;
 		}
 
-		inline bool skip(int16_t n)
-		{
-			if(size() < n)
-				return false;
-
-			p += n;
-			return true;
+		if (size() < (int32_t)strLen) {
+			return false;
 		}
 
-	protected:
-		const char* p;
-		const char* end;
+		char* str = new char[strLen + 1];
+		memcpy(str, p, strLen);
+		str[strLen] = 0;
+
+		ret.assign(str, strLen);
+		delete[] str;
+		p = p + strLen;
+		return true;
+	}
+
+	inline bool skip(int16_t n)
+	{
+		if (size() < n) {
+			return false;
+		}
+
+		p += n;
+		return true;
+	}
+
+protected:
+	const char* p;
+	const char* end;
 };
 
 class PropWriteStream
 {
-	public:
-		PropWriteStream()
-		{
-			bufferSize = 32;
-			buffer = reinterpret_cast<char*>(malloc(bufferSize));
-			if (!buffer) {
-				throw std::bad_alloc();
-			}
-			size = 0;
+public:
+	PropWriteStream()
+	{
+		bufferSize = 32;
+		buffer = reinterpret_cast<char*>(malloc(bufferSize));
+		if (!buffer) {
+			throw std::bad_alloc();
 		}
-		~PropWriteStream() {free(buffer);}
+		size = 0;
+	}
+	~PropWriteStream() { free(buffer); }
 
-		inline void clear() {
-			size = 0;
-		}
+	inline void clear()
+	{
+		size = 0;
+	}
 
-		const char* getStream(uint32_t& _size) const
-		{
-			_size = size;
-			return buffer;
-		}
+	const char* getStream(uint32_t& _size) const
+	{
+		_size = size;
+		return buffer;
+	}
 
-		template <typename T>
-		inline void addType(T add)
-		{
-			reserve(sizeof(T));
-			memcpy(buffer + size, &add, sizeof(T));
-			size += sizeof(T);
-		}
+	template<typename T>
+	inline void addType(T add)
+	{
+		reserve(sizeof(T));
+		memcpy(buffer + size, &add, sizeof(T));
+		size += sizeof(T);
+	}
 
-		inline void addByte(uint8_t ret) {addType(ret);}
-		inline void addShort(uint16_t ret) {addType(ret);}
-		inline void addTime(time_t ret) {addType(ret);}
-		inline void addLong(uint32_t ret) {addType(ret);}
+	inline void addByte(uint8_t ret) { addType(ret); }
+	inline void addShort(uint16_t ret) { addType(ret); }
+	inline void addTime(time_t ret) { addType(ret); }
+	inline void addLong(uint32_t ret) { addType(ret); }
 
-		inline void addString(const std::string& add)
-		{
-			uint16_t strLen = add.size();
-			addShort(strLen);
-			reserve(strLen);
-			memcpy(buffer + size, add.c_str(), strLen);
-			size += strLen;
-		}
+	inline void addString(const std::string& add)
+	{
+		uint16_t strLen = add.size();
+		addShort(strLen);
+		reserve(strLen);
+		memcpy(buffer + size, add.c_str(), strLen);
+		size += strLen;
+	}
 
-		inline void addLongString(const std::string& add)
-		{
-			uint32_t strLen = add.size();
-			addLong(strLen);
-			reserve(strLen);
-			memcpy(buffer + size, add.c_str(), strLen);
-			size += strLen;
-		}
+	inline void addLongString(const std::string& add)
+	{
+		uint32_t strLen = add.size();
+		addLong(strLen);
+		reserve(strLen);
+		memcpy(buffer + size, add.c_str(), strLen);
+		size += strLen;
+	}
 
-
-	protected:
-		void reserve(size_t length) {
-			if ((bufferSize - size) >= length) {
-				return;
-			}
-
-			do {
-				bufferSize <<= 1;
-			} while ((bufferSize - size) < length);
-
-			void* newBuffer = realloc(buffer, bufferSize);
-			if (!newBuffer) {
-				throw std::bad_alloc();
-			}
-
-			buffer = reinterpret_cast<char*>(newBuffer);
+protected:
+	void reserve(size_t length)
+	{
+		if ((bufferSize - size) >= length) {
+			return;
 		}
 
-		char* buffer;
-		uint32_t bufferSize, size;
+		do {
+			bufferSize <<= 1;
+		} while ((bufferSize - size) < length);
+
+		void* newBuffer = realloc(buffer, bufferSize);
+		if (!newBuffer) {
+			throw std::bad_alloc();
+		}
+
+		buffer = reinterpret_cast<char*>(newBuffer);
+	}
+
+	char* buffer;
+	uint32_t bufferSize, size;
 };
-#endif

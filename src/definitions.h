@@ -15,8 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __DEFINITIONS__
-#define __DEFINITIONS__
+#pragma once
 
 #define CLIENT_VERSION_MIN 860
 #define CLIENT_VERSION_MAX 860
@@ -31,7 +30,7 @@
 #define SOFTWARE_CODENAME "SNAPSHOT"
 #define SOFTWARE_DEVELOPERS "https://github.com/FeTads/otxserver"
 
-//#define CLIENT_VERSION_DATA
+// #define CLIENT_VERSION_DATA
 #define CLIENT_VERSION_DAT 0
 #define CLIENT_VERSION_SPR 0
 #define CLIENT_VERSION_PIC 0
@@ -40,7 +39,7 @@
 
 #define MAX_RAND_RANGE 10000000
 #ifndef __FUNCTION__
-	#define	__FUNCTION__ __func__
+	#define __FUNCTION__ __func__
 #endif
 
 #define BOOST_ASIO_ENABLE_CANCELIO 1
@@ -61,28 +60,18 @@
 
 	#include <cstring>
 	#define atoll _atoi64
-	#if VISUALC_VERSION < 10
-		typedef unsigned long long uint64_t;
-		typedef signed long long int64_t;
-		typedef unsigned int uint32_t;
-		typedef signed int int32_t;
-		typedef unsigned short uint16_t;
-		typedef signed short int16_t;
-		typedef unsigned char uint8_t;
-		typedef signed char int8_t;
-	#endif
 
 	#define strncasecmp _strnicmp
 	#define strcasecmp _stricmp
 
-	#pragma warning(disable:4786) // msvc too long debug names in stl
-	#pragma warning(disable:4250) // 'class1' : inherits 'class2::member' via dominance
-	#pragma warning(disable:4244)
-	#pragma warning(disable:4267)
-	#pragma warning(disable:4018)
-	#pragma warning(disable:4309)
-	#pragma warning(disable:4996) // '_ftime64' : this function or variable may be unsafe
-	#pragma warning(disable:26812) // prefer 'enum class' over 'enum'
+	#pragma warning(disable : 4786) // msvc too long debug names in stl
+	#pragma warning(disable : 4250) // 'class1' : inherits 'class2::member' via dominance
+	#pragma warning(disable : 4244)
+	#pragma warning(disable : 4267)
+	#pragma warning(disable : 4018)
+	#pragma warning(disable : 4309)
+	#pragma warning(disable : 4996) // '_ftime64' : this function or variable may be unsafe
+	#pragma warning(disable : 26812) // prefer 'enum class' over 'enum'
 
 	#ifndef _WIN32
 		#define _WIN32
@@ -128,13 +117,11 @@
 		#undef _WIN32_WINNT
 	#endif
 
-	//Windows 2000	0x0500
-	//Windows XP	0x0501
-	//Windows 2003	0x0502
-	//Windows Vista	0x0600
-	//Windows Seven 0x0601
+	// Windows 2000	0x0500
+	// Windows XP	0x0501
+	// Windows 2003	0x0502
+	// Windows Vista	0x0600
+	// Windows Seven 0x0601
 
 	#define _WIN32_WINNT 0x0501
-#endif
-
 #endif

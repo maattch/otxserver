@@ -42,8 +42,9 @@ RSA::~RSA()
 bool RSA::initialize(const std::string& file)
 {
 	FILE* f = fopen(file.c_str(), "r");
-	if(!f)
+	if (!f) {
 		return false;
+	}
 
 	char p[512], q[512], d[512];
 	delete fgets(p, 512, f);
@@ -100,8 +101,7 @@ void RSA::decrypt(char* msg)
 	mpz_mul(tmp, u2, m_u);
 
 	mpz_mod(u2, tmp, m_q);
-	if(mpz_cmp_si(u2, 0) < 0)
-	{
+	if (mpz_cmp_si(u2, 0) < 0) {
 		mpz_add(tmp, u2, m_q);
 		mpz_set(u2, tmp);
 	}
@@ -110,7 +110,7 @@ void RSA::decrypt(char* msg)
 	mpz_set_ui(c, 0);
 	mpz_add(c, v1, tmp);
 
-	size_t count = (mpz_sizeinbase(c, 2) + 7)/8;
+	size_t count = (mpz_sizeinbase(c, 2) + 7) / 8;
 	memset(msg, 0, 128 - count);
 	mpz_export(&msg[128 - count], NULL, 1, 1, 0, 0, c);
 

@@ -15,8 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __OUTFIT__
-#define __OUTFIT__
+#pragma once
 
 #include "enums.h"
 #include "const.h"
@@ -69,36 +68,35 @@ typedef std::map<uint32_t, Outfit> OutfitMap;
 
 class Outfits
 {
-	public:
-		virtual ~Outfits() {}
-		static Outfits* getInstance()
-		{
-			static Outfits instance;
-			return &instance;
-		}
+public:
+	virtual ~Outfits() {}
+	static Outfits* getInstance()
+	{
+		static Outfits instance;
+		return &instance;
+	}
 
-		bool loadFromXml();
-		bool parseOutfitNode(xmlNodePtr p);
+	bool loadFromXml();
+	bool parseOutfitNode(xmlNodePtr p);
 
-		const OutfitMap& getOutfits(uint16_t sex) {return outfitsMap[sex];}
+	const OutfitMap& getOutfits(uint16_t sex) { return outfitsMap[sex]; }
 
-		bool getOutfit(uint32_t outfitId, uint16_t sex, Outfit& outfit);
-		bool getOutfit(uint32_t lookType, Outfit& outfit);
+	bool getOutfit(uint32_t outfitId, uint16_t sex, Outfit& outfit);
+	bool getOutfit(uint32_t lookType, Outfit& outfit);
 
-		bool addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, uint16_t addons);
-		bool removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex);
+	bool addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, uint16_t addons);
+	bool removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex);
 
-		uint32_t getOutfitId(uint32_t lookType);
-		
-		const Outfit* getOutfitByLookType(uint16_t sex, uint16_t lookType);
+	uint32_t getOutfitId(uint32_t lookType);
 
-		int16_t getOutfitAbsorb(uint32_t lookType, uint16_t sex, CombatType_t combat);
-		int16_t getOutfitReflect(uint32_t lookType, uint16_t sex, CombatType_t combat);
+	const Outfit* getOutfitByLookType(uint16_t sex, uint16_t lookType);
 
-	private:
-		Outfits() {}
+	int16_t getOutfitAbsorb(uint32_t lookType, uint16_t sex, CombatType_t combat);
+	int16_t getOutfitReflect(uint32_t lookType, uint16_t sex, CombatType_t combat);
 
-		OutfitList allOutfits;
-		std::map<uint16_t, OutfitMap> outfitsMap;
+private:
+	Outfits() {}
+
+	OutfitList allOutfits;
+	std::map<uint16_t, OutfitMap> outfitsMap;
 };
-#endif
