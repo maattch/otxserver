@@ -1074,34 +1074,6 @@ public:
 	void unlearnInstantSpell(const std::string& name);
 	bool hasLearnedInstantSpell(const std::string& name) const;
 
-	// Autoloot by: Naze
-	std::list<uint16_t> getAutoLoot()
-	{
-		return AutoLoot;
-	}
-	void clearAutoLoot(); // edited by feetads, fix clear autoloot online
-	void addAutoLoot(uint16_t id);
-	void removeAutoLoot(uint16_t id);
-	bool limitAutoLoot();
-	bool checkAutoLoot(uint16_t id);
-	bool isMoneyAutoLoot(Item* item, uint32_t& count);
-	std::string statusAutoLoot()
-	{
-		return (autoLootStatus ? "On" : "Off");
-	}
-	void updateStatusAutoLoot(bool status)
-	{
-		autoLootStatus = status;
-	}
-	std::string statusAutoMoneyCollect()
-	{
-		return (autoMoneyCollect ? "Bank" : "Bag");
-	}
-	void updateMoneyCollect(bool status)
-	{
-		autoMoneyCollect = status;
-	}
-
 	VIPSet VIPList;
 	ContainerVector containerVec;
 	InvitationsList invitationsList;
@@ -1190,10 +1162,6 @@ protected:
 	bool hasCapacity(const Item* item, uint32_t count) const;
 
 private:
-	bool autoLootStatus; // autoloot by naze
-	bool autoMoneyCollect; // autoloot by naze
-	std::list<uint16_t> AutoLoot; // autoloot by naze
-
 	bool talkState[13];
 	bool inventoryAbilities[SLOT_LAST];
 	bool pzLocked;

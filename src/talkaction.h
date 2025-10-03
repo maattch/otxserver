@@ -107,7 +107,6 @@ protected:
 	static TalkFunction thingProporties;
 	static TalkFunction banishmentInfo;
 	static TalkFunction diagnostics;
-	static TalkFunction autoLoot; // autoloot by naze
 	static TalkFunction houseProtect; // house protecte
 	static TalkFunction ghost;
 	static TalkFunction software;

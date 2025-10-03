@@ -5877,7 +5877,7 @@ int32_t LuaInterface::luaSetHouseOwner(lua_State* L)
 
 int32_t LuaInterface::luaGetWorldType(lua_State* L)
 {
-	lua_pushnumber(L, (uint32_t)g_game.getWorldType(nullptr));
+	lua_pushnumber(L, g_game.getWorldType());
 	return 1;
 }
 

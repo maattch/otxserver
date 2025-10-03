@@ -98,10 +98,6 @@ bool argumentsHandler(StringVec args)
 			g_config.setNumber(ConfigManager::LOGIN_PORT, atoi(tmp[1].c_str()));
 		} else if (tmp[0] == "--game-port") {
 			g_config.setNumber(ConfigManager::GAME_PORT, atoi(tmp[1].c_str()));
-		} else if (tmp[0] == "--admin-port") {
-			g_config.setNumber(ConfigManager::ADMIN_PORT, atoi(tmp[1].c_str()));
-		} else if (tmp[0] == "--manager-port") {
-			g_config.setNumber(ConfigManager::MANAGER_PORT, atoi(tmp[1].c_str()));
 		} else if (tmp[0] == "--status-port") {
 			g_config.setNumber(ConfigManager::STATUS_PORT, atoi(tmp[1].c_str()));
 		}

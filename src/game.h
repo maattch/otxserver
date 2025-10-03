@@ -187,7 +187,7 @@ public:
 	}
 
 	void setWorldType(WorldType_t type) { worldType = type; }
-	WorldType_t getWorldType(const Player* player, const Player* target = nullptr) const;
+	WorldType_t getWorldType() const;
 
 	Cylinder* internalGetCylinder(Player* player, const Position& pos);
 	Thing* internalGetThing(Player* player, const Position& pos, int32_t index,

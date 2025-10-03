@@ -671,34 +671,6 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		} while (result->next());
 	}
 
-	// load autoloot
-	if (g_config.getBool(ConfigManager::AUTOLOOT_ENABLE_SYSTEM)) {
-		query.str("");
-		query << "SELECT `autoloot_list` FROM `player_autoloot` WHERE `player_id` = " << player->getGUID();
-		if ((result = g_database.storeQuery(query.str()))) {
-			unsigned long lootListSize;
-			const char* autoLootList = result->getStream("autoloot_list", lootListSize);
-			PropStream propStream;
-			propStream.init(autoLootList, lootListSize);
-
-			uint16_t value;
-			uint16_t item = propStream.getType<uint16_t>(value);
-			while (item) {
-				player->addAutoLoot(value);
-				item = propStream.getType<uint16_t>(value);
-			}
-		}
-
-		player->updateStatusAutoLoot(true);
-
-		std::string msg = g_config.getString(ConfigManager::AUTOLOOT_MONEYIDS);
-		StringVec strVector = explodeString(msg, ";");
-		for (const std::string& str : strVector) {
-			uint16_t id = atoi(str.c_str());
-			player->addAutoLoot(id);
-		}
-	}
-
 	// load vip
 	query.str("");
 	if (!g_config.getBool(ConfigManager::VIPLIST_PER_PLAYER)) {
@@ -1082,35 +1054,6 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	if (!g_database.executeQuery(query.str())) {
 		return false;
-	}
-
-	// save autoloot
-	if (g_config.getBool(ConfigManager::AUTOLOOT_ENABLE_SYSTEM)) {
-		query.str("");
-		query << "DELETE FROM `player_autoloot` WHERE `player_id` = " << player->getGUID();
-		if (!g_database.executeQuery(query.str())) {
-			return false;
-		}
-
-		std::list<uint16_t> autoLootList = player->getAutoLoot();
-		PropWriteStream PWS_AutoLoot;
-		for (const uint16_t loot : autoLootList) {
-			PWS_AutoLoot.addShort(loot);
-		}
-
-		uint32_t PWS_Size = 0;
-		const char* autoLoot = PWS_AutoLoot.getStream(PWS_Size);
-
-		query.str("");
-		stmt.setQuery("INSERT INTO `player_autoloot` (`player_id`, `autoloot_list`) VALUES ");
-		query << player->getGUID() << ',' << g_database.escapeBlob(autoLoot, PWS_Size);
-		if (!stmt.addRow(query.str())) {
-			return false;
-		}
-
-		if (!stmt.execute()) {
-			return false;
-		}
 	}
 
 	if (!g_config.getBool(ConfigManager::VIPLIST_PER_PLAYER)) {

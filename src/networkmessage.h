@@ -128,9 +128,6 @@ public:
 	void addItem(const Item* item, Player* player);
 	void addItemId(uint16_t itemId, Player* player);
 
-	// replace mw sprite
-	uint16_t getReplaceMW(uint16_t spriteId = 0, Player* player = nullptr);
-
 	MsgSize_t getLength() const { return length; }
 	void setLength(MsgSize_t newLength) { length = newLength; }
 

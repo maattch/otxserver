@@ -67,8 +67,6 @@ Player::Player(const std::string& _name, ProtocolGame_ptr p) :
 
 	pvpBlessing = pzLocked = isConnecting = addAttackSkillPoint = requestedOutfit = outfitAttributes = sentChat = showLoot = false;
 	saving = true;
-	autoLootStatus = true;
-	autoMoneyCollect = true;
 
 	lastAttackBlockType = BLOCK_NONE;
 	chaseMode = CHASEMODE_STANDSTILL;
@@ -297,6 +295,7 @@ Item* Player::getEquippedItem(slots_t slot) const
 			if (item->getWieldPosition() == SLOT_HAND) {
 				return item;
 			}
+			break;
 
 		default:
 			break;
@@ -936,7 +935,7 @@ bool Player::canWalkthrough(const Creature* creature) const
 		return false;
 	}
 
-	if (((g_game.getWorldType(this, player) == WORLDTYPE_OPTIONAL && !player->isEnemy(this, true) && !player->isProtected())
+	if (((g_game.getWorldType() == WORLDTYPE_OPTIONAL && !player->isEnemy(this, true) && !player->isProtected())
 			|| player->getTile()->hasFlag(TILESTATE_PROTECTIONZONE) || player->isProtected())
 		&& player->getTile()->ground
 		&& Item::items[player->getTile()->ground->getID()].walkStack && (!player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges) || player->getAccess() <= getAccess())) {
@@ -1446,15 +1445,6 @@ void Player::onCreatureAppear(const Creature* creature)
 		return;
 	}
 
-	// by feetads, use "protect mode" in players
-	Condition* condition = nullptr;
-	if (this->getGroupId() < 3) {
-		int32_t cooldown = g_config.getNumber(ConfigManager::LOGIN_PROTECTION) - 100; // ghost mode by protect login time
-		if (this->getPlayer() && (condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_GAMEMASTER, cooldown, 0, false, GAMEMASTER_INVISIBLE))) {
-			this->addCondition(condition);
-		}
-	}
-
 	Item* item = nullptr;
 	for (int32_t slot = SLOT_FIRST; slot < SLOT_LAST; ++slot) {
 		if (!(item = getInventoryItem((slots_t)slot))) {
@@ -1663,7 +1653,7 @@ void Player::onTargetChangeZone(ZoneType_t zone)
 			onTargetDisappear(false);
 		}
 	} else if (zone == ZONE_OPEN) {
-		if (g_game.getWorldType(this, attackedCreature->getPlayer()) == WORLDTYPE_OPTIONAL
+		if (g_game.getWorldType() == WORLDTYPE_OPTIONAL
 			&& attackedCreature->getPlayer() && !attackedCreature->getPlayer()->isEnemy(this, true)) {
 			// attackedCreature can leave a pvp zone if not pzlocked
 			setAttackedCreature(nullptr);
@@ -2196,18 +2186,11 @@ void Player::addExperience(uint64_t exp)
 	experience += exp;
 	while (experience >= nextLevelExp) {
 		++level;
-		Vocation* voc = vocation;
-		if (voc->getId() > 0 && g_config.getBool(ConfigManager::ROOK_SYSTEM) && level <= (uint32_t)g_config.getNumber(ConfigManager::ROOK_TOLEVEL)) {
-			if (Vocation* tmp = Vocations::getInstance()->getVocation(0)) {
-				voc = tmp;
-			}
-		}
-
-		healthMax += voc->getGain(GAIN_HEALTH);
-		health += voc->getGain(GAIN_HEALTH);
-		manaMax += voc->getGain(GAIN_MANA);
-		mana += voc->getGain(GAIN_MANA);
-		capacity += voc->getGainCap();
+		healthMax += vocation->getGain(GAIN_HEALTH);
+		health += vocation->getGain(GAIN_HEALTH);
+		manaMax += vocation->getGain(GAIN_MANA);
+		mana += vocation->getGain(GAIN_MANA);
+		capacity += vocation->getGainCap();
 
 		nextLevelExp = Player::getExpForLevel(level + 1);
 		if (Player::getExpForLevel(level) > nextLevelExp) { // player has reached max level
@@ -2254,16 +2237,9 @@ void Player::removeExperience(uint64_t exp, bool updateStats /* = true*/)
 	experience -= std::min(exp, experience);
 	while (level > 1 && experience < Player::getExpForLevel(level)) {
 		--level;
-		Vocation* voc = vocation;
-		if (voc->getId() > 0 && g_config.getBool(ConfigManager::ROOK_SYSTEM) && level < (uint32_t)g_config.getNumber(ConfigManager::ROOK_TOLEVEL)) {
-			if (Vocation* tmp = Vocations::getInstance()->getVocation(0)) {
-				voc = tmp;
-			}
-		}
-
-		healthMax = std::max((int32_t)0, (healthMax - (int32_t)voc->getGain(GAIN_HEALTH)));
-		manaMax = std::max((int32_t)0, (manaMax - (int32_t)voc->getGain(GAIN_MANA)));
-		capacity = std::max((double)0, (capacity - (double)voc->getGainCap()));
+		healthMax = std::max((int32_t)0, (healthMax - (int32_t)vocation->getGain(GAIN_HEALTH)));
+		manaMax = std::max((int32_t)0, (manaMax - (int32_t)vocation->getGain(GAIN_MANA)));
+		capacity = std::max((double)0, (capacity - (double)vocation->getGainCap()));
 	}
 
 	if (prevLevel != level) {
@@ -2636,34 +2612,7 @@ bool Player::onDeath()
 		}
 
 		loginPosition = masterPosition;
-		if (vocationId > VOCATION_NONE && g_config.getBool(ConfigManager::ROOK_SYSTEM) && level <= (uint32_t)g_config.getNumber(ConfigManager::ROOK_LEVELTO)) {
-			if (Town* rook = Towns::getInstance()->getTown(g_config.getNumber(ConfigManager::ROOK_TOWN))) {
-				level = 1;
-				soulMax = soul = 100;
-				capacity = 400;
-				stamina = STAMINA_MAX;
-				health = healthMax = 150;
-				loginPosition = masterPosition = rook->getPosition();
-				experience = magLevel = manaSpent = mana = manaMax = balance = marriage = 0;
-				promotionLevel = defaultOutfit.lookAddons = 0;
-
-				setTown(rook->getID());
-				setVocation(0);
-				leaveGuild();
-
-				storageMap.clear();
-				for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
-					skills[i][SKILL_LEVEL] = 10;
-					skills[i][SKILL_TRIES] = 0;
-				}
-
-				for (uint32_t i = SLOT_FIRST; i < SLOT_LAST; ++i) {
-					if (inventory[i]) {
-						g_game.internalRemoveItem(nullptr, inventory[i]);
-					}
-				}
-			}
-		} else if (!inventory[SLOT_BACKPACK]) { // FIXME: you should receive the bag after you login back...
+		if (!inventory[SLOT_BACKPACK]) { // FIXME: you should receive the bag after you login back...
 			__internalAddThing(SLOT_BACKPACK, Item::CreateItem(g_config.getNumber(ConfigManager::DEATH_CONTAINER)));
 		}
 
@@ -4042,7 +3991,7 @@ void Player::onCombatRemoveCondition(const Creature* attacker, Condition* condit
 	if (condition->getId() > 0) {
 		remove = false;
 		// Means the condition is from an item, id == slot
-		if (g_game.getWorldType(this, attacker->getPlayer()) == WORLDTYPE_HARDCORE) {
+		if (g_game.getWorldType() == WORLDTYPE_HARDCORE) {
 			if (Item* item = getInventoryItem((slots_t)condition->getId())) {
 				// 25% chance to destroy the item
 				if (random_range(1, 100) < 26) {
@@ -4095,7 +4044,7 @@ void Player::onTarget(Creature* target)
 
 	Player* targetPlayer = target->getPlayer();
 	if (targetPlayer && !isPartner(targetPlayer) && !isAlly(targetPlayer)) {
-		if (!pzLocked && g_game.getWorldType(this, targetPlayer) == WORLDTYPE_HARDCORE && !targetPlayer->getTile()->hasFlag(TILESTATE_HARDCOREZONE)) {
+		if (!pzLocked && g_game.getWorldType() == WORLDTYPE_HARDCORE && !targetPlayer->getTile()->hasFlag(TILESTATE_HARDCOREZONE)) {
 			pzLocked = true;
 			sendIcons();
 		}
@@ -4264,7 +4213,7 @@ bool Player::isEnemy(const Player* player, bool allies) const
 		return false;
 	}
 
-	return !warMap.empty() && (((g_game.getWorldType(this, player) != WORLDTYPE_OPTIONAL || g_config.getBool(ConfigManager::OPTIONAL_WAR_ATTACK_ALLY)) && allies && guildId == guild) || warMap.find(guild) != warMap.end());
+	return !warMap.empty() && (((g_game.getWorldType() != WORLDTYPE_OPTIONAL || g_config.getBool(ConfigManager::OPTIONAL_WAR_ATTACK_ALLY)) && allies && guildId == guild) || warMap.find(guild) != warMap.end());
 }
 
 bool Player::isAlly(const Player* player) const
@@ -4615,7 +4564,7 @@ Skulls_t Player::getSkull() const
 Skulls_t Player::getSkullType(const Creature* creature) const
 {
 	if (const Player* player = creature->getPlayer()) {
-		if (g_game.getWorldType(this, player) != WORLDTYPE_OPEN) {
+		if (g_game.getWorldType() != WORLDTYPE_OPEN) {
 			return SKULL_NONE;
 		}
 
@@ -4623,7 +4572,7 @@ Skulls_t Player::getSkullType(const Creature* creature) const
 			return SKULL_YELLOW;
 		}
 
-		if (player->getSkull() == SKULL_NONE && (isPartner(player) || isAlly(player)) && g_game.getWorldType(this, player) != WORLDTYPE_OPTIONAL) {
+		if (player->getSkull() == SKULL_NONE && (isPartner(player) || isAlly(player)) && g_game.getWorldType() != WORLDTYPE_OPTIONAL) {
 			return SKULL_GREEN;
 		}
 	}
@@ -4663,7 +4612,7 @@ void Player::addAttacked(const Player* attacked)
 
 void Player::setSkullEnd(time_t _time, bool login, Skulls_t _skull)
 {
-	if (g_game.getWorldType(this) != WORLDTYPE_OPEN
+	if (g_game.getWorldType() != WORLDTYPE_OPEN
 		|| hasFlag(PlayerFlag_NotGainInFight) || hasCustomFlag(PlayerCustomFlag_NotGainSkull)) {
 		return;
 	}
@@ -4688,7 +4637,7 @@ void Player::setSkullEnd(time_t _time, bool login, Skulls_t _skull)
 
 bool Player::addUnjustifiedKill(const Player* attacked, bool countNow)
 {
-	if (!g_config.getBool(ConfigManager::USE_FRAG_HANDLER) || hasFlag(PlayerFlag_NotGainInFight) || g_game.getWorldType(this, attacked) != WORLDTYPE_OPEN
+	if (!g_config.getBool(ConfigManager::USE_FRAG_HANDLER) || hasFlag(PlayerFlag_NotGainInFight) || g_game.getWorldType() != WORLDTYPE_OPEN
 		|| hasCustomFlag(PlayerCustomFlag_NotGainUnjustified) || hasCustomFlag(PlayerCustomFlag_NotGainSkull)) {
 		return false;
 	}
@@ -5443,11 +5392,6 @@ PartyShields_t Player::getPartyShield(const Creature* creature) const
 	if (player->isInviting(this)) {
 		return SHIELD_WHITEYELLOW;
 	}
-
-	if (g_game.getWorldType(nullptr) != g_game.getWorldType(player) && player != this) {
-		return SHIELD_YELLOW;
-	}
-
 	return SHIELD_NONE;
 }
 
@@ -5621,140 +5565,6 @@ void Player::sendCritical() const
 	if (g_config.getBool(ConfigManager::DISPLAY_CRITICAL_HIT)) {
 		g_game.addAnimatedText(getPosition(), COLOR_DARKRED, "CRITICAL!");
 	}
-}
-
-void Player::addAutoLoot(uint16_t id)
-{
-	if (!g_config.getBool(ConfigManager::AUTOLOOT_ENABLE_SYSTEM)) {
-		return;
-	}
-
-	if (checkAutoLoot(id)) {
-		return;
-	}
-
-	AutoLoot.emplace_back(id);
-}
-
-void Player::removeAutoLoot(uint16_t id)
-{
-	if (!g_config.getBool(ConfigManager::AUTOLOOT_ENABLE_SYSTEM)) {
-		return;
-	}
-
-	if (!checkAutoLoot(id)) {
-		return;
-	}
-
-	auto it = std::find(AutoLoot.begin(), AutoLoot.end(), id);
-	if (it != AutoLoot.end()) {
-		AutoLoot.erase(it);
-	}
-}
-
-bool Player::limitAutoLoot()
-{
-	if (!g_config.getBool(ConfigManager::AUTOLOOT_ENABLE_SYSTEM)) {
-		return false;
-	}
-
-	uint16_t max_items = g_config.getNumber(ConfigManager::AUTOLOOT_MAXITEM);
-	uint16_t max_allowed = isPremium() ? g_config.getNumber(ConfigManager::AUTOLOOT_MAXPREMIUM) : g_config.getNumber(ConfigManager::AUTOLOOT_MAXFREE);
-	std::list<uint16_t> lootList = getAutoLoot();
-	uint16_t lootsize = lootList.size();
-
-	std::string moneyIds = g_config.getString(ConfigManager::AUTOLOOT_MONEYIDS);
-	StringVec strVector = explodeString(moneyIds, ";");
-	lootsize -= strVector.size();
-
-	if (max_allowed > 0) {
-		return lootsize >= max_allowed;
-	} else {
-		return lootsize >= max_items;
-	}
-}
-
-bool Player::checkAutoLoot(uint16_t id)
-{
-	if (!g_config.getBool(ConfigManager::AUTOLOOT_ENABLE_SYSTEM)) {
-		return false;
-	}
-
-	if (Item::items[id].isContainer()) {
-		return false;
-	}
-
-	std::string blockIds = g_config.getString(ConfigManager::AUTOLOOT_BLOCKIDS);
-	StringVec blockStrVector = explodeString(blockIds, ";");
-	std::unordered_set<int> blockIdSet;
-
-	for (const auto& str : blockStrVector) {
-		if (!blockIds.empty() && !str.empty()) {
-			blockIdSet.insert(std::stoi(str));
-		}
-	}
-
-	if (blockIdSet.find(id) != blockIdSet.end()) {
-		return false;
-	}
-
-	for (const auto& lootId : AutoLoot) {
-		if (lootId == id) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-void Player::clearAutoLoot()
-{
-	if (!g_config.getBool(ConfigManager::AUTOLOOT_ENABLE_SYSTEM)) {
-		return;
-	}
-
-	std::string moneyIds = g_config.getString(ConfigManager::AUTOLOOT_MONEYIDS);
-	StringVec strVector = explodeString(moneyIds, ";");
-	std::unordered_set<int> moneyIdSet;
-
-	for (const auto& str : strVector) {
-		moneyIdSet.insert(std::stoi(str));
-	}
-
-	for (auto it = AutoLoot.begin(); it != AutoLoot.end();) {
-		if (moneyIdSet.find(*it) != moneyIdSet.end()) {
-			++it;
-			continue;
-		}
-		it = AutoLoot.erase(it);
-	}
-}
-
-bool Player::isMoneyAutoLoot(Item* item, uint32_t& count)
-{
-	if (!g_config.getBool(ConfigManager::AUTOLOOT_ENABLE_SYSTEM)) {
-		return false;
-	}
-
-	bool isMoney = false;
-	std::string moneyIds = g_config.getString(ConfigManager::AUTOLOOT_MONEYIDS);
-	std::unordered_set<int> moneyIdSet;
-
-	StringVec strVector = explodeString(moneyIds, ";");
-	for (const auto& str : strVector) {
-		moneyIdSet.insert(std::stoi(str));
-	}
-
-	if (moneyIdSet.find(item->getID()) != moneyIdSet.end()) {
-		isMoney = true;
-	}
-
-	if (!isMoney) {
-		return false;
-	}
-
-	count += item->getWorth();
-	return true;
 }
 
 bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)

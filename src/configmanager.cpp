@@ -30,7 +30,7 @@ ConfigManager::ConfigManager()
 
 	m_confString[CONFIG_FILE] = getFilePath(FILE_TYPE_CONFIG, "config.lua");
 
-	m_confNumber[LOGIN_PORT] = m_confNumber[ADMIN_PORT] = m_confNumber[MANAGER_PORT] = m_confNumber[STATUS_PORT] = 0;
+	m_confNumber[LOGIN_PORT] = m_confNumber[STATUS_PORT] = 0;
 	m_confString[DATA_DIRECTORY] = m_confString[LOGS_DIRECTORY] = m_confString[IP] = m_confString[RUNFILE] = m_confString[OUTPUT_LOG] = "";
 	m_confBool[LOGIN_ONLY_LOGINSERVER] = m_confBool[START_CLOSED] = m_confBool[DAEMONIZE] = false;
 	m_confBool[SCRIPT_SYSTEM] = true;
@@ -76,14 +76,6 @@ bool ConfigManager::load()
 			m_confString[GAME_PORT] = getGlobalString("gamePort", "7172");
 		}
 
-		if (m_confNumber[ADMIN_PORT] == 0) {
-			m_confNumber[ADMIN_PORT] = getGlobalNumber("adminPort", 7171);
-		}
-
-		if (m_confNumber[MANAGER_PORT] == 0) {
-			m_confNumber[MANAGER_PORT] = getGlobalNumber("managerPort", 7171);
-		}
-
 		if (m_confNumber[STATUS_PORT] == 0) {
 			m_confNumber[STATUS_PORT] = getGlobalNumber("statusPort", 7171);
 		}
@@ -121,23 +113,11 @@ bool ConfigManager::load()
 		m_confBool[LOGIN_ONLY_LOGINSERVER] = getGlobalBool("loginOnlyWithLoginServer", false);
 	}
 
-	m_confString[AUTOLOOT_BLOCKIDS] = getGlobalString("AutoLoot_BlockIDs", ""); // autoloot by naze#3578
-	m_confString[AUTOLOOT_MONEYIDS] = getGlobalString("AutoLoot_MoneyIDs", "2148;2152;2160;9971"); // autoloot by naze#3578
-	m_confNumber[AUTOLOOT_MAXITEM] = getGlobalNumber("AutoLoot_MaxItem", 5); // autoloot by naze#3578
-	m_confNumber[AUTOLOOT_MAXPREMIUM] = getGlobalNumber("AutoLoot_MaxItemPremium", 5); // this edit by feetads
-	m_confNumber[AUTOLOOT_MAXFREE] = getGlobalNumber("AutoLoot_MaxItemFree", 3); // this edit by feetads
-	m_confBool[AUTOLOOT_ENABLE_SYSTEM] = getGlobalBool("Autoloot_enabled", false); // this edit by feetads
 	m_confBool[CAST_EXP_ENABLED] = getGlobalBool("expInCast", false); // this edit by feetads
 	m_confNumber[CAST_EXP_PERCENT] = getGlobalNumber("expPercentIncast", 5.0);
 	m_confBool[LIFE_IN_PERCENTUAL] = getGlobalBool("lifeAndManaInPercentual", false); // this edit by feetads
 	m_confBool[MAXIP_USECONECT] = getGlobalBool("UseMaxIpConnect", false); // this edit by feetads
 	m_confBool[RESET_SYSTEM_ENABLE] = getGlobalBool("resetSystemEnable", false); // this edit by feetads
-
-	m_confNumber[NEWSPRITE_TO_MW] = getGlobalNumber("newSpriteIdMW", 0);
-	m_confNumber[MWSPRITE_TO_REPLACE] = getGlobalNumber("mwSpriteId", 10180);
-	m_confBool[MW_REPLACE_ENABLE] = getGlobalBool("useMwReplaceSystem", false);
-
-	m_confBool[CRITICALANDDODGE] = getGlobalBool("enableCriticalAndDodgeSource", false);
 
 	m_confBool[ADD_FRAG_SAMEIP] = getGlobalBool("addFragToSameIp", false);
 
@@ -272,7 +252,6 @@ bool ConfigManager::load()
 	m_confNumber[EXTRA_PARTY_PERCENT] = getGlobalNumber("extraPartyExperiencePercent", 5);
 	m_confNumber[EXTRA_PARTY_LIMIT] = getGlobalNumber("extraPartyExperienceLimit", 20);
 	m_confBool[DISABLE_OUTFITS_PRIVILEGED] = getGlobalBool("disableOutfitsForPrivilegedPlayers", false);
-	m_confBool[TRACER_BOX] = getGlobalBool("promptExceptionTracerErrorBox", true);
 	m_confNumber[LOGIN_PROTECTION] = getGlobalNumber("loginProtectionPeriod", 10000);
 	m_confBool[STORE_DIRECTION] = getGlobalBool("storePlayerDirection", false);
 	m_confNumber[PLAYER_DEEPNESS] = getGlobalNumber("playerQueryDeepness", -1);
@@ -346,17 +325,6 @@ bool ConfigManager::load()
 	m_confDouble[RATE_MONSTER_MANA] = getGlobalDouble("rateMonsterMana", 1);
 	m_confDouble[RATE_MONSTER_ATTACK] = getGlobalDouble("rateMonsterAttack", 1);
 	m_confDouble[RATE_MONSTER_DEFENSE] = getGlobalDouble("rateMonsterDefense", 1);
-	m_confBool[MANAGER_LOCALHOST_ONLY] = getGlobalBool("managerLocalhostOnly", true);
-	m_confNumber[MANAGER_CONNECTIONS_LIMIT] = getGlobalNumber("managerConnectionsLimit", 1);
-	m_confString[MANAGER_PASSWORD] = getGlobalString("managerPassword", "");
-	m_confBool[MANAGER_LOGS] = getGlobalBool("managerLogs", false);
-	m_confBool[ADMIN_LOGS] = getGlobalBool("adminLogs", false);
-	m_confString[ADMIN_PASSWORD] = getGlobalString("adminPassword", "");
-	m_confNumber[ADMIN_CONNECTIONS_LIMIT] = getGlobalNumber("adminConnectionsLimit", 1);
-	m_confBool[ADMIN_LOCALHOST_ONLY] = getGlobalBool("adminLocalhostOnly", true);
-	m_confBool[ADMIN_REQUIRE_LOGIN] = getGlobalBool("adminRequireLogin", true);
-	m_confString[ADMIN_ENCRYPTION] = getGlobalString("adminEncryption", "");
-	m_confString[ADMIN_ENCRYPTION_DATA] = getGlobalString("adminEncryptionData", "");
 	m_confBool[ADDONS_PREMIUM] = getGlobalBool("addonsOnlyPremium", true);
 	m_confBool[UNIFIED_SPELLS] = getGlobalBool("unifiedSpells", true);
 	m_confBool[OPTIONAL_WAR_ATTACK_ALLY] = getGlobalBool("optionalWarAttackableAlly", false);
@@ -376,10 +344,6 @@ bool ConfigManager::load()
 	m_confNumber[MAIL_ATTEMPTS] = getGlobalNumber("mailMaxAttempts", 20);
 	m_confNumber[MAIL_BLOCK] = getGlobalNumber("mailBlockPeriod", 3600000);
 	m_confNumber[MAIL_ATTEMPTS_FADE] = getGlobalNumber("mailAttemptsFadeTime", 600000);
-	m_confBool[ROOK_SYSTEM] = getGlobalBool("useRookSystem", false);
-	m_confNumber[ROOK_TOWN] = getGlobalNumber("rookTownId", 1);
-	m_confNumber[ROOK_LEVELTO] = getGlobalNumber("rookLevelToGetRooked", 5);
-	m_confNumber[ROOK_TOLEVEL] = getGlobalNumber("rookLevelToLeaveRook", 8);
 	m_confBool[HOUSE_SKIP_INIT_RENT] = getGlobalBool("houseSkipInitialRent", true);
 	m_confBool[HOUSE_PROTECTION] = getGlobalBool("houseProtection", false);
 	m_confBool[HOUSE_OWNED_BY_ACCOUNT] = getGlobalBool("houseOwnedByAccount", true);
@@ -391,7 +355,6 @@ bool ConfigManager::load()
 	m_confNumber[MAX_PACKETS_PER_SECOND] = getGlobalNumber("packetsPerSecond", 50);
 	m_confString[ADVERTISING_BLOCK] = getGlobalString("advertisingBlock", "");
 	m_confBool[SAVE_STATEMENT] = getGlobalBool("logPlayersStatements", true);
-	m_confNumber[GUI_PREMIUM_DAYS] = getGlobalNumber("premiumDaysToAddByGui", 30);
 	m_confBool[MANUAL_ADVANCED_CONFIG] = getGlobalBool("manualVersionConfig", false);
 	m_confNumber[VERSION_MIN] = getGlobalNumber("versionMin", CLIENT_VERSION_MIN);
 	m_confNumber[VERSION_MAX] = getGlobalNumber("versionMax", CLIENT_VERSION_MAX);

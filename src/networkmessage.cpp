@@ -97,31 +97,10 @@ void NetworkMessage::addPosition(const Position& pos)
 	addByte(pos.z);
 }
 
-uint16_t NetworkMessage::getReplaceMW(uint16_t spriteId /*= 0*/, Player* player)
-{
-	if (!player) {
-		return spriteId;
-	}
-
-	uint16_t mwId = g_config.getNumber(ConfigManager::MWSPRITE_TO_REPLACE);
-	if (player && mwId > 0 && spriteId == mwId) {
-		std::string value = "-1";
-		player->getStorage("212121", value);
-		if (std::stoi(value) == 1) {
-			spriteId = g_config.getNumber(ConfigManager::NEWSPRITE_TO_MW);
-		}
-	}
-	return spriteId;
-}
-
 void NetworkMessage::addItem(uint16_t id, uint8_t count, Player* player)
 {
 	const ItemType& it = Item::items[id];
-	uint16_t spriteId = it.clientId;
-	if (g_config.getBool(ConfigManager::MW_REPLACE_ENABLE)) {
-		spriteId = getReplaceMW(spriteId, player);
-	}
-	add<uint16_t>(spriteId);
+	add<uint16_t>(it.clientId);
 	if (it.stackable) {
 		addByte(count);
 	} else if (it.isSplash() || it.isFluidContainer()) {
@@ -132,11 +111,7 @@ void NetworkMessage::addItem(uint16_t id, uint8_t count, Player* player)
 void NetworkMessage::addItem(const Item* item, Player* player)
 {
 	const ItemType& it = Item::items[item->getID()];
-	uint16_t spriteId = it.clientId;
-	if (g_config.getBool(ConfigManager::MW_REPLACE_ENABLE)) {
-		spriteId = getReplaceMW(spriteId, player);
-	}
-	add<uint16_t>(spriteId);
+	add<uint16_t>(it.clientId);
 	if (it.stackable) {
 		addByte(std::min<uint16_t>(0xFF, item->getItemCount()));
 	} else if (it.isSplash() || it.isFluidContainer()) {
@@ -146,9 +121,5 @@ void NetworkMessage::addItem(const Item* item, Player* player)
 
 void NetworkMessage::addItemId(uint16_t itemId, Player* player)
 {
-	uint16_t spriteId = Item::items[itemId].clientId;
-	if (g_config.getBool(ConfigManager::MW_REPLACE_ENABLE)) {
-		spriteId = getReplaceMW(spriteId, player);
-	}
-	add<uint16_t>(spriteId);
+	add<uint16_t>(Item::items[itemId].clientId);
 }

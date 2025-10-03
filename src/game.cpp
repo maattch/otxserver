@@ -84,12 +84,9 @@ Game::~Game()
 	delete map;
 }
 
-WorldType_t Game::getWorldType(const Player* player, const Player* target /* = nullptr*/) const
+WorldType_t Game::getWorldType() const
 {
-	std::string value;
-	return g_config.getBool(ConfigManager::OPTIONAL_PROTECTION) && ((player && player->getStorage("protected", value) && booleanString(value)) || (player && target && target->getStorage("protected", value) && booleanString(value) && !player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges)))
-		? WORLDTYPE_OPTIONAL
-		: worldType;
+	return g_config.getBool(ConfigManager::OPTIONAL_PROTECTION) ? WORLDTYPE_OPTIONAL : worldType;
 }
 
 void Game::start(ServiceManager* servicer)
@@ -1237,7 +1234,7 @@ bool Game::playerMoveCreature(const uint32_t playerId, const uint32_t movingCrea
 			}
 
 			if (Player* movingPlayer = movingCreature->getPlayer()) {
-				if ((player->isProtected() && !movingPlayer->isProtected()) || (getWorldType(player) == WORLDTYPE_OPTIONAL && getWorldType(movingPlayer) != WORLDTYPE_OPTIONAL && !player->isEnemy(movingPlayer, true) && !player->isAlly(movingPlayer))) {
+				if (player->isProtected() && !movingPlayer->isProtected()) {
 					player->sendCancelMessage(RET_NOTMOVABLE);
 					return false;
 				}
@@ -4364,22 +4361,6 @@ bool Game::playerSay(const uint32_t playerId, const uint16_t channelId, const Me
 
 	player->setIdleTime(0);
 
-	if (channelId == CHANNEL_HELP) {
-		std::string helpmute = "0";
-		player->getStorage("455010", helpmute);
-
-		time_t now = time(nullptr);
-		time_t seconds = atoi(helpmute.c_str()) - now;
-
-		if (seconds > 0) {
-			std::stringstream sec;
-			sec << "You are muted for " << seconds << " seconds on this channel.";
-
-			player->sendTextMessage(MSG_STATUS_SMALL, sec.str());
-			return false;
-		}
-	}
-
 	int32_t muted = 0;
 	bool mute = player->isMuted(channelId, type, muted);
 	if (muted && mute) {
@@ -4774,22 +4755,7 @@ bool Game::internalCreatureSay(Creature* creature, MessageClasses type, const st
 				continue;
 			}
 
-			if (isSpell && g_config.getBool(ConfigManager::EMOTE_SPELLS)) { // can use !emotespells on/off/none
-				std::string value;
-				if (tmpPlayer->getStorage("35001", value)) {
-					if (std::stoi(value) == 1) {
-						tmpPlayer->sendCreatureSay(creature, MSG_SPEAK_YELL, text, &destPos, statementId, fakeChat);
-					} else if (std::stoi(value) == 2) {
-						// tmpPlayer->sendCreatureSay(creature, MSG_NONE, text, &destPos, statementId); //no message needed
-					} else {
-						tmpPlayer->sendCreatureSay(creature, type, text, &destPos, statementId, fakeChat);
-					}
-				} else {
-					tmpPlayer->sendCreatureSay(creature, type, text, &destPos, statementId, fakeChat);
-				}
-			} else {
-				tmpPlayer->sendCreatureSay(creature, type, text, &destPos, statementId, fakeChat);
-			}
+			tmpPlayer->sendCreatureSay(creature, type, text, &destPos, statementId, fakeChat);
 		}
 	}
 
@@ -5211,31 +5177,6 @@ bool Game::combatChangeHealth(const CombatParams& params, Creature* attacker, Cr
 				elementDamage = 0; // TODO: I don't know how it works ;(
 				if (manaDamage && combatChangeMana(attacker, target, -manaDamage, params.combatType, true)) {
 					addMagicEffect(list, targetPos, MAGIC_EFFECT_LOSE_ENERGY);
-				}
-			}
-
-			// Dodge/Critical storage, disabled for now
-			bool useCritAndDodge = g_config.getBool(ConfigManager::CRITICALANDDODGE);
-			if (useCritAndDodge && attacker && target) {
-				Player* ptarget = nullptr;
-				if ((ptarget = target->getPlayer())) {
-					std::string valuedod = "-1";
-					if ((ptarget->getStorage("48902", valuedod))) {
-						if (!valuedod.empty() && (std::stoi(valuedod)) > random_range(0, 1000)) {
-							damage = 0; // damage = 0 / can change to damage /= 2 (50%)
-							addAnimatedText(target->getPosition(), COLOR_LIGHTGREEN, "Dodge!");
-						}
-					}
-				}
-				Player* pattack = nullptr;
-				if (damage > 0 && (pattack = attacker->getPlayer())) {
-					std::string valuecrit = "-1";
-					if ((pattack->getStorage("48913", valuecrit))) {
-						if (!valuecrit.empty() && (std::stoi(valuecrit)) > random_range(0, 1000)) {
-							damage *= 2;
-							addAnimatedText(attacker->getPosition(), COLOR_DARKRED, "CRITICAL!");
-						}
-					}
 				}
 			}
 
