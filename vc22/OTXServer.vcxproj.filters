@@ -73,7 +73,6 @@
     <ClCompile Include="..\src\wildcardtree.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\account.h" />
     <ClInclude Include="..\src\actions.h" />
     <ClInclude Include="..\src\baseevents.h" />
     <ClInclude Include="..\src\beds.h" />

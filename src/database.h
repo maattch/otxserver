@@ -223,6 +223,5 @@ private:
 		STATE_NO_START,
 		STATE_START,
 		STATE_COMMIT,
-	} state
-		= STATE_NO_START;
+	} state = STATE_NO_START;
 };

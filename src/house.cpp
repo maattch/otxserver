@@ -1017,7 +1017,6 @@ House* Houses::getHouseByPlayerId(uint32_t playerId)
 			return it->second;
 		}
 	}
-
 	return nullptr;
 }
 
@@ -1034,13 +1033,19 @@ House* Houses::getHouseByGuildId(uint32_t guildId)
 
 uint32_t Houses::getHousesCount(uint32_t accId)
 {
-	Account account = IOLoginData::getInstance()->loadAccount(accId);
-	uint32_t guid, count = 0;
-	for (Characters::iterator it = account.charList.begin(); it != account.charList.end(); ++it) {
-		if (IOLoginData::getInstance()->getGuidByName(guid, (*it)) && getHouseByPlayerId(guid)) {
-			count++;
-		}
+	std::ostringstream query;
+	query << "SELECT `id` FROM `players` WHERE `account_id` = " << accId << " AND `deleted` = 0";
+
+	DBResultPtr result = g_database.storeQuery(query.str());
+	if (!result) {
+		return 0;
 	}
 
+	uint32_t count = 0;
+	do {
+		if (getHouseByPlayerId(result->getNumber<uint32_t>("id"))) {
+			++count;
+		}
+	} while (result->next());
 	return count;
 }

@@ -84,17 +84,13 @@ bool IOLoginData::loadAccount(Account& account, const std::string& name)
 void IOLoginData::loadCharacters(Account& account)
 {
 	std::ostringstream query;
-	query << "SELECT `name` FROM `players` WHERE `account_id` = " << account.number << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " AND `deleted` = 0";
+	query << "SELECT `name` FROM `players` WHERE `account_id` = " << account.number << " AND `deleted` = 0";
 
-	DBResultPtr result;
-	if (!(result = g_database.storeQuery(query.str()))) {
-		return;
+	if (DBResultPtr result = g_database.storeQuery(query.str())) {
+		do {
+			account.charList.push_back(result->getString("name"));
+		} while (result->next());
 	}
-
-	do {
-		account.charList.push_back(result->getString("name"));
-	} while (result->next());
-	account.charList.sort();
 }
 
 bool IOLoginData::saveAccount(Account account)
@@ -347,7 +343,7 @@ const Group* IOLoginData::getPlayerGroupByAccount(uint32_t accountId)
 bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLoad /*= false*/)
 {
 	std::ostringstream query;
-	query << "SELECT `id`, `account_id`, `group_id`, `world_id`, `sex`, `vocation`, `experience`, `level`, "
+	query << "SELECT `id`, `account_id`, `group_id`, `sex`, `vocation`, `experience`, `level`, "
 		  << "`maglevel`, `health`, `healthmax`, `blessings`, `pvp_blessing`, `mana`, `manamax`, `manaspent`, `soul`, "
 		  << "`lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `posx`, `posy`, "
 		  << "`posz`, `cap`, `lastlogin`, `lastlogout`, `lastip`, `conditions`, `skull`, `skulltime`, `guildnick`, "
@@ -367,9 +363,6 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	}
 
 	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
-	if (!group->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges) && result->getNumber<int32_t>("world_id") != g_config.getNumber(ConfigManager::WORLD_ID)) {
-		return false;
-	}
 
 	Account account = loadAccount(accountId, true);
 	player->account = account.name;
@@ -667,7 +660,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	// load vip
 	query.str("");
 	if (!g_config.getBool(ConfigManager::VIPLIST_PER_PLAYER)) {
-		query << "SELECT `player_id` AS `vip` FROM `account_viplist` WHERE `account_id` = " << account.number << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
+		query << "SELECT `player_id` AS `vip` FROM `account_viplist` WHERE `account_id` = " << account.number;
 	} else {
 		query << "SELECT `vip_id` AS `vip` FROM `player_viplist` WHERE `player_id` = " << player->getGUID();
 	}
@@ -1040,7 +1033,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	query.str("");
 	// save vip list
 	if (!g_config.getBool(ConfigManager::VIPLIST_PER_PLAYER)) {
-		query << "DELETE FROM `account_viplist` WHERE `account_id` = " << player->getAccount() << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
+		query << "DELETE FROM `account_viplist` WHERE `account_id` = " << player->getAccount();
 	} else {
 		query << "DELETE FROM `player_viplist` WHERE `player_id` = " << player->getGUID();
 	}
@@ -1050,19 +1043,19 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	}
 
 	if (!g_config.getBool(ConfigManager::VIPLIST_PER_PLAYER)) {
-		stmt.setQuery("INSERT INTO `account_viplist` (`account_id`, `world_id`, `player_id`) VALUES ");
+		stmt.setQuery("INSERT INTO `account_viplist` (`account_id`, `player_id`) VALUES ");
 	} else {
 		stmt.setQuery("INSERT INTO `player_viplist` (`player_id`, `vip_id`) VALUES ");
 	}
 
 	query.str("");
 	for (VIPSet::iterator it = player->VIPList.begin(); it != player->VIPList.end(); ++it) {
-		if (!playerExists(*it, false, false)) {
+		if (!playerExists(*it, false)) {
 			continue;
 		}
 
 		if (!g_config.getBool(ConfigManager::VIPLIST_PER_PLAYER)) {
-			query << player->getAccount() << "," << g_config.getNumber(ConfigManager::WORLD_ID) << "," << (*it);
+			query << player->getAccount() << "," << (*it);
 		} else {
 			query << player->getGUID() << "," << (*it);
 		}
@@ -1479,7 +1472,7 @@ bool IOLoginData::isPremium(uint32_t guid)
 	return premium > 0;
 }
 
-bool IOLoginData::playerExists(uint32_t guid, bool multiworld /*= false*/, bool checkCache /*= true*/)
+bool IOLoginData::playerExists(uint32_t guid, bool checkCache /*= true*/)
 {
 	if (checkCache) {
 		NameCacheMap::iterator it = nameCacheMap.find(guid);
@@ -1490,12 +1483,7 @@ bool IOLoginData::playerExists(uint32_t guid, bool multiworld /*= false*/, bool 
 
 	std::ostringstream query;
 
-	query << "SELECT `name` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0";
-	if (!multiworld) {
-		query << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
-	}
-
-	query << " LIMIT 1";
+	query << "SELECT `name` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
@@ -1507,7 +1495,7 @@ bool IOLoginData::playerExists(uint32_t guid, bool multiworld /*= false*/, bool 
 	return true;
 }
 
-bool IOLoginData::playerExists(std::string& name, bool multiworld /*= false*/, bool checkCache /*= true*/)
+bool IOLoginData::playerExists(std::string& name, bool checkCache /*= true*/)
 {
 	if (checkCache) {
 		GuidCacheMap::iterator it = guidCacheMap.find(name);
@@ -1519,12 +1507,7 @@ bool IOLoginData::playerExists(std::string& name, bool multiworld /*= false*/, b
 
 	std::ostringstream query;
 
-	query << "SELECT `id`, `name` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0";
-	if (!multiworld) {
-		query << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
-	}
-
-	query << " LIMIT 1";
+	query << "SELECT `id`, `name` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0 LIMIT 1";
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
@@ -1536,7 +1519,7 @@ bool IOLoginData::playerExists(std::string& name, bool multiworld /*= false*/, b
 	return true;
 }
 
-bool IOLoginData::getNameByGuid(uint32_t guid, std::string& name, bool multiworld /*= false*/)
+bool IOLoginData::getNameByGuid(uint32_t guid, std::string& name)
 {
 	NameCacheMap::iterator it = nameCacheMap.find(guid);
 	if (it != nameCacheMap.end()) {
@@ -1545,13 +1528,7 @@ bool IOLoginData::getNameByGuid(uint32_t guid, std::string& name, bool multiworl
 	}
 
 	std::ostringstream query;
-
-	query << "SELECT `name` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0";
-	if (!multiworld) {
-		query << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
-	}
-
-	query << " LIMIT 1";
+	query << "SELECT `name` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
@@ -1582,7 +1559,7 @@ bool IOLoginData::storeNameByGuid(uint32_t guid)
 	return true;
 }
 
-bool IOLoginData::getGuidByName(uint32_t& guid, std::string& name, bool multiworld /*= false*/)
+bool IOLoginData::getGuidByName(uint32_t& guid, std::string& name)
 {
 	GuidCacheMap::iterator it = guidCacheMap.find(name);
 	if (it != guidCacheMap.end()) {
@@ -1593,12 +1570,7 @@ bool IOLoginData::getGuidByName(uint32_t& guid, std::string& name, bool multiwor
 
 	std::ostringstream query;
 
-	query << "SELECT `name`, `id` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0";
-	if (!multiworld) {
-		query << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
-	}
-
-	query << " LIMIT 1";
+	query << "SELECT `name`, `id` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0 LIMIT 1";
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
@@ -1614,7 +1586,7 @@ bool IOLoginData::getGuidByName(uint32_t& guid, std::string& name, bool multiwor
 bool IOLoginData::getGuidByNameEx(uint32_t& guid, bool& specialVip, std::string& name)
 {
 	std::ostringstream query;
-	query << "SELECT `id`, `name`, `group_id` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0 AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " LIMIT 1";
+	query << "SELECT `id`, `name`, `group_id` FROM `players` WHERE `name` = " << g_database.escapeString(name) << " AND `deleted` = 0 LIMIT 1";
 
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
@@ -1692,7 +1664,7 @@ bool IOLoginData::createCharacter(uint32_t accountId, std::string characterName,
 	}
 
 	query.str("");
-	query << "INSERT INTO `players` (`id`, `name`, `world_id`, `group_id`, `account_id`, `level`, `vocation`, `health`, `healthmax`, `experience`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `maglevel`, `mana`, `manamax`, `manaspent`, `soul`, `town_id`, `posx`, `posy`, `posz`, `conditions`, `cap`, `sex`, `lastlogin`, `lastip`, `skull`, `skulltime`, `save`, `rank_id`, `guildnick`, `lastlogout`, `blessings`, `online`) VALUES (NULL, " << g_database.escapeString(characterName) << ", " << g_config.getNumber(ConfigManager::WORLD_ID) << ", 1, " << accountId << ", " << level << ", " << vocationId << ", " << healthMax << ", " << healthMax << ", " << exp << ", 68, 76, 78, 39, " << lookType << ", 0, " << g_config.getNumber(ConfigManager::START_MAGICLEVEL) << ", " << manaMax << ", " << manaMax << ", 0, 100, " << g_config.getNumber(ConfigManager::SPAWNTOWN_ID) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_X) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_Y) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_Z) << ", 0, " << capMax << ", " << sex << ", 0, 0, 0, 0, 1, 0, '', 0, 0, 0)";
+	query << "INSERT INTO `players` (`id`, `name`, `group_id`, `account_id`, `level`, `vocation`, `health`, `healthmax`, `experience`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `maglevel`, `mana`, `manamax`, `manaspent`, `soul`, `town_id`, `posx`, `posy`, `posz`, `conditions`, `cap`, `sex`, `lastlogin`, `lastip`, `skull`, `skulltime`, `save`, `rank_id`, `guildnick`, `lastlogout`, `blessings`, `online`) VALUES (NULL, " << g_database.escapeString(characterName) << ", 1, " << accountId << ", " << level << ", " << vocationId << ", " << healthMax << ", " << healthMax << ", " << exp << ", 68, 76, 78, 39, " << lookType << ", 0, " << g_config.getNumber(ConfigManager::START_MAGICLEVEL) << ", " << manaMax << ", " << manaMax << ", 0, 100, " << g_config.getNumber(ConfigManager::SPAWNTOWN_ID) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_X) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_Y) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_Z) << ", 0, " << capMax << ", " << sex << ", 0, 0, 0, 0, 1, 0, '', 0, 0, 0)";
 	return g_database.executeQuery(query.str());
 }
 

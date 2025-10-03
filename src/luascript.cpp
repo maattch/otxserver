@@ -159,40 +159,32 @@ bool ScriptEnviroment::saveGameState()
 		return true;
 	}
 
-	std::ostringstream query;
-
-	query << "DELETE FROM `global_storage` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << ";";
-	if (!g_database.executeQuery(query.str())) {
+	if (!g_database.executeQuery("DELETE FROM `global_storage`")) {
 		return false;
 	}
 
 	DBInsert stmt;
-	stmt.setQuery("INSERT INTO `global_storage` (`key`, `world_id`, `value`) VALUES ");
+	stmt.setQuery("INSERT INTO `global_storage` (`key`, `value`) VALUES ");
+
+	std::ostringstream query;
 	for (StorageMap::const_iterator it = m_storageMap.begin(); it != m_storageMap.end(); ++it) {
-		query.str("");
-		query << g_database.escapeString(it->first) << "," << g_config.getNumber(ConfigManager::WORLD_ID) << "," << g_database.escapeString(it->second);
+		query << g_database.escapeString(it->first) << "," << g_database.escapeString(it->second);
 		if (!stmt.addRow(query.str())) {
 			return false;
 		}
+		query.str("");
 	}
 
 	return stmt.execute();
 }
 
-bool ScriptEnviroment::loadGameState()
+void ScriptEnviroment::loadGameState()
 {
-	DBResultPtr result;
-
-	std::ostringstream query;
-	query << "SELECT `key`, `value` FROM `global_storage` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << ";";
-	if ((result = g_database.storeQuery(query.str()))) {
+	if (DBResultPtr result = g_database.storeQuery("SELECT `key`, `value` FROM `global_storage`")) {
 		do {
 			m_storageMap[result->getString("key")] = result->getString("value");
 		} while (result->next());
 	}
-
-	query.str("");
-	return true;
 }
 
 bool ScriptEnviroment::setCallbackId(int32_t callbackId, LuaInterface* interface)
@@ -2015,10 +2007,10 @@ void LuaInterface::registerFunctions()
 	// getPlayerByNameWildcard(name~[, ret = false])
 	lua_register(m_luaState, "getPlayerByNameWildcard", LuaInterface::luaGetPlayerByNameWildcard);
 
-	// getPlayerGUIDByName(name[, multiworld = false])
+	// getPlayerGUIDByName(name)
 	lua_register(m_luaState, "getPlayerGUIDByName", LuaInterface::luaGetPlayerGUIDByName);
 
-	// getPlayerNameByGUID(guid[, multiworld = false])
+	// getPlayerNameByGUID(guid)
 	lua_register(m_luaState, "getPlayerNameByGUID", LuaInterface::luaGetPlayerNameByGUID);
 
 	// doPlayerChangeName(guid, oldName, newName)
@@ -7922,17 +7914,12 @@ int32_t LuaInterface::luaGetPlayerByNameWildcard(lua_State* L)
 
 int32_t LuaInterface::luaGetPlayerGUIDByName(lua_State* L)
 {
-	// getPlayerGUIDByName(name[, multiworld = false])
-	bool multiworld = false;
-	if (lua_gettop(L) > 1) {
-		multiworld = popBoolean(L);
-	}
-
+	// getPlayerGUIDByName(name)
 	std::string name = popString(L);
 	uint32_t guid;
 	if (Player* player = g_game.getPlayerByName(name)) {
 		lua_pushnumber(L, player->getGUID());
-	} else if (IOLoginData::getInstance()->getGuidByName(guid, name, multiworld)) {
+	} else if (IOLoginData::getInstance()->getGuidByName(guid, name)) {
 		lua_pushnumber(L, guid);
 	} else {
 		lua_pushnil(L);
@@ -7943,15 +7930,10 @@ int32_t LuaInterface::luaGetPlayerGUIDByName(lua_State* L)
 
 int32_t LuaInterface::luaGetPlayerNameByGUID(lua_State* L)
 {
-	// getPlayerNameByGUID(guid[, multiworld = false])
-	bool multiworld = false;
-	if (lua_gettop(L) > 1) {
-		multiworld = popBoolean(L);
-	}
-
+	// getPlayerNameByGUID(guid)
 	uint32_t guid = popNumber(L);
 	std::string name;
-	if (!IOLoginData::getInstance()->getNameByGuid(guid, name, multiworld)) {
+	if (!IOLoginData::getInstance()->getNameByGuid(guid, name)) {
 		errorEx(getError(LUA_ERROR_PLAYER_NOT_FOUND));
 		lua_pushnil(L);
 		return 1;

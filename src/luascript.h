@@ -78,7 +78,7 @@ public:
 	virtual ~ScriptEnviroment();
 
 	static bool saveGameState();
-	static bool loadGameState();
+	static void loadGameState();
 
 	bool getStorage(const std::string& key, std::string& value) const;
 	void setStorage(const std::string& key, const std::string& value) { m_storageMap[key] = value; }

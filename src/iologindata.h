@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "account.h"
 #include "creature.h"
 #include "database.h"
 #include "group.h"
@@ -34,6 +33,19 @@ enum DeleteCharacter_t
 
 typedef std::pair<int32_t, Item*> itemBlock;
 typedef std::list<itemBlock> ItemBlockList;
+
+struct Account
+{
+	std::string name;
+	std::string password;
+	std::string recoveryKey;
+	std::string salt;
+	uint32_t number = 0;
+	uint32_t lastDay = 0;
+	uint16_t premiumDays = 0;
+	uint16_t warnings = 0;
+	std::vector<std::string> charList;
+};
 
 class IOLoginData
 {
@@ -88,10 +100,10 @@ public:
 
 	bool isPremium(uint32_t guid);
 
-	bool playerExists(uint32_t guid, bool multiworld = false, bool checkCache = true);
-	bool playerExists(std::string& name, bool multiworld = false, bool checkCache = true);
-	bool getNameByGuid(uint32_t guid, std::string& name, bool multiworld = false);
-	bool getGuidByName(uint32_t& guid, std::string& name, bool multiworld = false);
+	bool playerExists(uint32_t guid, bool checkCache = true);
+	bool playerExists(std::string& name, bool checkCache = true);
+	bool getNameByGuid(uint32_t guid, std::string& name);
+	bool getGuidByName(uint32_t& guid, std::string& name);
 	bool getGuidByNameEx(uint32_t& guid, bool& specialVip, std::string& name);
 
 	bool changeName(uint32_t guid, std::string newName, std::string oldName);

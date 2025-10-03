@@ -6667,108 +6667,55 @@ double Game::getExperienceStage(const uint32_t level, const double& divider /* =
 bool Game::loadExperienceStages()
 {
 	if (!g_config.getBool(ConfigManager::EXPERIENCE_STAGES)) {
-		if (!stages.empty()) {
-			stages.clear();
-		}
-
+		stages.clear();
 		return true;
 	}
 
 	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_XML, "stages.xml").c_str());
 	if (!doc) {
-		std::clog << "[Warning - Game::loadExperienceStages] Cannot load stages file."
-				  << std::endl
-				  << getLastXMLError() << std::endl;
+		std::clog << "[Warning - Game::loadExperienceStages] Cannot load stages file." << std::endl << getLastXMLError() << std::endl;
 		return false;
 	}
 
-	xmlNodePtr q, p, root = xmlDocGetRootElement(doc);
+	xmlNodePtr root = xmlDocGetRootElement(doc);
 	if (xmlStrcmp(root->name, (const xmlChar*)"stages")) {
 		std::clog << "[Error - Game::loadExperienceStages] Malformed stages file" << std::endl;
 		xmlFreeDoc(doc);
 		return false;
 	}
 
-	int32_t intValue, low = 0, high = 0;
-	float floatValue, mul = 1.0f, defStageMultiplier;
-	std::string strValue;
-
 	lastStageLevel = 0;
 	stages.clear();
 
-	q = root->children;
+	int32_t intValue;
+	float floatValue;
+	std::string strValue;
+
+	xmlNodePtr q = root->children;
 	while (q) {
-		if (!xmlStrcmp(q->name, (const xmlChar*)"world")) {
-			if (readXMLString(q, "id", strValue)) {
-				IntegerVec intVector;
-				if (!parseIntegerVec(strValue, intVector) || std::find(intVector.begin(), intVector.end(), g_config.getNumber(ConfigManager::WORLD_ID)) == intVector.end()) {
-					q = q->next;
-					continue;
-				}
-			}
-
-			defStageMultiplier = 1.0f;
-			if (readXMLFloat(q, "multiplier", floatValue)) {
-				defStageMultiplier = floatValue;
-			}
-
-			p = q->children;
-			while (p) {
-				if (!xmlStrcmp(p->name, (const xmlChar*)"stage")) {
-					low = 1;
-					if (readXMLInteger(p, "minlevel", intValue) || readXMLInteger(p, "minLevel", intValue)) {
-						low = intValue;
-					}
-
-					high = 0;
-					if (readXMLInteger(p, "maxlevel", intValue) || readXMLInteger(p, "maxLevel", intValue)) {
-						high = intValue;
-					} else {
-						lastStageLevel = low;
-					}
-
-					mul = 1.0f;
-					if (readXMLFloat(p, "multiplier", floatValue)) {
-						mul = floatValue;
-					}
-
-					mul *= defStageMultiplier;
-					if (lastStageLevel && lastStageLevel == (uint32_t)low) {
-						stages[lastStageLevel] = mul;
-					} else {
-						for (int32_t i = low; i <= high; ++i) {
-							stages[i] = mul;
-						}
-					}
-				}
-
-				p = p->next;
-			}
-		}
-
 		if (!xmlStrcmp(q->name, (const xmlChar*)"stage")) {
-			low = 1;
+			int32_t minLevel = 1;
 			if (readXMLInteger(q, "minlevel", intValue)) {
-				low = intValue;
-			} else {
-				high = 0;
+				minLevel = std::max<int32_t>(1, intValue);
 			}
+
+			int32_t maxLevel = 1;
 			if (readXMLInteger(q, "maxlevel", intValue)) {
-				high = intValue;
+				maxLevel = std::max<int32_t>(1, intValue);
 			} else {
-				lastStageLevel = low;
+				lastStageLevel = minLevel;
 			}
 
-			mul = 1.0f;
+			float multiplier = 1.0f;
 			if (readXMLFloat(q, "multiplier", floatValue)) {
-				mul = floatValue;
+				multiplier = floatValue;
 			}
 
-			if (lastStageLevel && lastStageLevel == (uint32_t)low) {
-				stages[lastStageLevel] = mul;
+			if (lastStageLevel == static_cast<uint32_t>(minLevel)) {
+				stages[lastStageLevel] = multiplier;
 			} else {
-				for (int32_t i = low; i <= high; ++i) {
-					stages[i] = mul;
+				for (int32_t level = minLevel; level <= maxLevel; ++level) {
+					stages[level] = multiplier;
 				}
 			}
 		}
@@ -6874,7 +6821,7 @@ int32_t Game::getMotdId()
 	lastMotd = g_config.getString(ConfigManager::MOTD);
 
 	std::ostringstream query;
-	query << "INSERT INTO `server_motd` (`id`, `world_id`, `text`) VALUES (" << lastMotdId + 1 << ", " << g_config.getNumber(ConfigManager::WORLD_ID) << ", " << g_database.escapeString(lastMotd) << ")";
+	query << "INSERT INTO `server_motd` (`id`, `text`) VALUES (" << lastMotdId + 1 << ", " << g_database.escapeString(lastMotd) << ")";
 	if (g_database.executeQuery(query.str())) {
 		++lastMotdId;
 	}
@@ -6884,18 +6831,13 @@ int32_t Game::getMotdId()
 
 void Game::loadMotd()
 {
-	std::ostringstream query;
-	query << "SELECT `id`, `text` FROM `server_motd` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " ORDER BY `id` DESC LIMIT 1";
-
-	DBResultPtr result;
-	if (!(result = g_database.storeQuery(query.str()))) {
+	if (DBResultPtr result = g_database.storeQuery("SELECT `id`, `text` FROM `server_motd` ORDER BY `id` DESC LIMIT 1")) {
+		lastMotdId = result->getNumber<int32_t>("id");
+		lastMotd = result->getString("text");
+	} else {
 		std::clog << "> ERROR: Failed to load motd!" << std::endl;
 		lastMotdId = random_range(5, 500);
-		return;
 	}
-
-	lastMotdId = result->getNumber<int32_t>("id");
-	lastMotd = result->getString("text");
 }
 
 void Game::checkPlayersRecord(Player* player)
@@ -6915,16 +6857,11 @@ void Game::checkPlayersRecord(Player* player)
 
 void Game::loadPlayersRecord()
 {
-	std::ostringstream query;
-	query << "SELECT `record` FROM `server_record` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " ORDER BY `timestamp` DESC LIMIT 1";
-
-	DBResultPtr result;
-	if (!(result = g_database.storeQuery(query.str()))) {
+	if (DBResultPtr result = g_database.storeQuery("SELECT `record` FROM `server_record` ORDER BY `timestamp` DESC LIMIT 1")) {
+		playersRecord = result->getNumber<uint32_t>("record");
+	} else {
 		std::clog << "> ERROR: Failed to load players record!" << std::endl;
-		return;
 	}
-
-	playersRecord = result->getNumber<int32_t>("record");
 }
 
 bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool completeReload /* = false*/)

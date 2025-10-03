@@ -33,13 +33,12 @@ bool BaseEvents::loadFromXml()
 		return false;
 	}
 
-	std::string scriptsPath = getScriptPath(scriptsName);
-	std::string path = getFilePath(FILE_TYPE_OTHER, std::string(scriptsPath + "/lib/"));
+	std::string path = getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/lib/"));
 	if (!fileExists(path) || !getInterface().loadDirectory(path, false, true)) {
 		std::clog << "[Warning - BaseEvents::loadFromXml] Cannot load " << path << std::endl;
 	}
 
-	path = getFilePath(FILE_TYPE_OTHER, std::string(scriptsPath + "/" + scriptsName + ".xml"));
+	path = getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/" + scriptsName + ".xml"));
 	xmlDocPtr doc = xmlParseFile(path.c_str());
 	if (!doc) {
 		std::clog << "[Warning - BaseEvents::loadFromXml] Cannot open " << path << " file." << std::endl;
@@ -54,7 +53,7 @@ bool BaseEvents::loadFromXml()
 		return false;
 	}
 
-	path = getFilePath(FILE_TYPE_OTHER, std::string(scriptsPath + "/scripts/"));
+	path = getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/scripts/"));
 	for (xmlNodePtr p = root->children; p; p = p->next) {
 		parseEventNode(p, path, false);
 	}
@@ -62,19 +61,6 @@ bool BaseEvents::loadFromXml()
 	xmlFreeDoc(doc);
 	m_loaded = true;
 	return m_loaded;
-}
-
-std::string BaseEvents::getScriptPath(std::string path /* = ""*/) const
-{
-	if (path.empty()) {
-		path = getScriptBaseName();
-	}
-
-	if (fileExists(getFilePath(FILE_TYPE_OTHER, std::string(path + "." + std::to_string(g_config.getNumber(ConfigManager::WORLD_ID)) + "/" + path + ".xml")))) {
-		path += "." + std::to_string(g_config.getNumber(ConfigManager::WORLD_ID));
-	}
-
-	return path;
 }
 
 bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool override)
@@ -104,7 +90,7 @@ bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool over
 			}
 
 			if (success) {
-				success = event->checkScript(getScriptPath(), strValue, file) && event->loadScript(strValue, file);
+				success = event->checkScript(getScriptBaseName(), strValue, file) && event->loadScript(strValue, file);
 			}
 		} else if (tmpStrValue == "buffer") {
 			if (!readXMLString(p, "value", strValue)) {
@@ -112,7 +98,7 @@ bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool over
 			}
 
 			if (success) {
-				success = event->checkBuffer(getScriptPath(), strValue) && event->loadBuffer(strValue);
+				success = event->checkBuffer(getScriptBaseName(), strValue) && event->loadBuffer(strValue);
 			}
 		} else if (tmpStrValue == "function") {
 			if (readXMLString(p, "value", strValue)) {
@@ -135,7 +121,7 @@ bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool over
 			}
 
 			if (success) {
-				success = event->checkScript(getScriptPath(), strValue, file) && event->loadScript(strValue, file);
+				success = event->checkScript(getScriptBaseName(), strValue, file) && event->loadScript(strValue, file);
 			}
 		} else if (readXMLString(p, "buffer", strValue)) {
 			if (asLowerCaseString(strValue) == "cdata") {
@@ -143,10 +129,10 @@ bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool over
 			}
 
 			if (success) {
-				success = event->checkBuffer(getScriptPath(), strValue) && event->loadBuffer(strValue);
+				success = event->checkBuffer(getScriptBaseName(), strValue) && event->loadBuffer(strValue);
 			}
 		} else if ((readXMLString(p, "function", strValue) && event->loadFunction(strValue))
-			|| (parseXMLContentString(p->children, strValue) && event->checkBuffer(getScriptPath(), strValue) && event->loadBuffer(strValue))) {
+			|| (parseXMLContentString(p->children, strValue) && event->checkBuffer(getScriptBaseName(), strValue) && event->loadBuffer(strValue))) {
 			success = true;
 		} else {
 			success = false;

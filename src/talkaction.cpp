@@ -1048,7 +1048,7 @@ bool TalkAction::banishmentInfo(Creature* creature, const std::string&, const st
 
 			ban.value = atoi(params[1].c_str());
 			if (!ban.value) {
-				IOLoginData::getInstance()->getGuidByName(ban.value, params[1], true);
+				IOLoginData::getInstance()->getGuidByName(ban.value, params[1]);
 				if (!ban.value) {
 					ban.value = IOLoginData::getInstance()->getAccountIdByName(params[1]);
 				}
@@ -1088,7 +1088,7 @@ bool TalkAction::banishmentInfo(Creature* creature, const std::string&, const st
 	if (!ban.adminId) {
 		admin += (deletion ? "deletion" : "banishment");
 	} else {
-		IOLoginData::getInstance()->getNameByGuid(ban.adminId, admin, true);
+		IOLoginData::getInstance()->getNameByGuid(ban.adminId, admin);
 	}
 
 	std::string end = "Banishment will be lifted at:\n";

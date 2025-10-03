@@ -301,7 +301,7 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 			if (!ban.adminId) {
 				name_ += (deletion ? "deletion" : "banishment");
 			} else {
-				IOLoginData::getInstance()->getNameByGuid(ban.adminId, name_, true);
+				IOLoginData::getInstance()->getNameByGuid(ban.adminId, name_);
 			}
 
 			std::stringstream stream;
@@ -705,7 +705,7 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 		if (!ban.adminId) {
 			name_ += (deletion ? "deletion" : "banishment");
 		} else {
-			IOLoginData::getInstance()->getNameByGuid(ban.adminId, name_, true);
+			IOLoginData::getInstance()->getNameByGuid(ban.adminId, name_);
 		}
 
 		std::ostringstream stream;

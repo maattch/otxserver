@@ -35,7 +35,6 @@ public:
 
 protected:
 	virtual std::string getScriptBaseName() const = 0;
-	std::string getScriptPath(std::string name = "") const;
 	virtual void clear() = 0;
 
 	virtual bool registerEvent(Event* event, xmlNodePtr p, bool override) = 0;

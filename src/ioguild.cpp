@@ -34,7 +34,7 @@ bool IOGuild::getGuildId(uint32_t& id, const std::string& name)
 	DBResultPtr result;
 
 	std::ostringstream query;
-	query << "SELECT `id` FROM `guilds` WHERE `name` = " << g_database.escapeString(name) << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " LIMIT 1";
+	query << "SELECT `id` FROM `guilds` WHERE `name` = " << g_database.escapeString(name) << " LIMIT 1";
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
 	}
@@ -48,7 +48,7 @@ bool IOGuild::getGuildById(std::string& name, uint32_t id)
 	DBResultPtr result;
 
 	std::ostringstream query;
-	query << "SELECT `name` FROM `guilds` WHERE `id` = " << id << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " LIMIT 1";
+	query << "SELECT `name` FROM `guilds` WHERE `id` = " << id << " LIMIT 1";
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
 	}
@@ -62,7 +62,7 @@ bool IOGuild::swapGuildIdToOwner(uint32_t& value)
 	DBResultPtr result;
 
 	std::ostringstream query;
-	query << "SELECT `ownerid` FROM `guilds` WHERE `id` = " << value << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " LIMIT 1";
+	query << "SELECT `ownerid` FROM `guilds` WHERE `id` = " << value << " LIMIT 1";
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
 	}
@@ -76,7 +76,7 @@ bool IOGuild::guildExists(uint32_t guild)
 	DBResultPtr result;
 
 	std::ostringstream query;
-	query << "SELECT `id` FROM `guilds` WHERE `id` = " << guild << " AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " LIMIT 1";
+	query << "SELECT `id` FROM `guilds` WHERE `id` = " << guild << " LIMIT 1";
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
 	}
@@ -180,7 +180,7 @@ bool IOGuild::createGuild(Player* player)
 	DBResultPtr result;
 
 	std::ostringstream query;
-	query << "INSERT INTO `guilds` (`id`, `world_id`, `name`, `ownerid`, `creationdata`, `motd`, `checkdata`) VALUES (NULL, " << g_config.getNumber(ConfigManager::WORLD_ID) << ", " << g_database.escapeString(player->getGuildName()) << ", " << player->getGUID() << ", " << time(nullptr) << ", 'Your guild has been successfully created, to view all available commands type: !commands. If you would like to remove this message use !cleanmotd and to set new motd use !setmotd text.', 0)";
+	query << "INSERT INTO `guilds` (`id`, `name`, `ownerid`, `creationdata`, `motd`, `checkdata`) VALUES (NULL, " << g_database.escapeString(player->getGuildName()) << ", " << player->getGUID() << ", " << time(nullptr) << ", 'Your guild has been successfully created, to view all available commands type: !commands. If you would like to remove this message use !cleanmotd and to set new motd use !setmotd text.', 0)";
 	if (!g_database.executeQuery(query.str())) {
 		return false;
 	}

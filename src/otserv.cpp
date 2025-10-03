@@ -373,12 +373,9 @@ void otserv(ServiceManager* services)
 		SetProcessAffinityMask(GetCurrentProcess(), mask);
 	}
 
-	std::ostringstream mutexName;
-	mutexName << "otxserver_" << g_config.getNumber(ConfigManager::WORLD_ID);
-
-	CreateMutexA(nullptr, FALSE, mutexName.str().c_str());
+	CreateMutexA(nullptr, FALSE, "otxserver");
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
-		startupErrorMessage("Another instance of The OTX Server is already running with the same worldId.\nIf you want to run multiple servers, please change the worldId in configuration file.");
+		startupErrorMessage("Another instance is already running.");
 	}
 
 	std::string defaultPriority = asLowerCaseString(g_config.getString(ConfigManager::DEFAULT_PRIORITY));
@@ -449,7 +446,7 @@ void otserv(ServiceManager* services)
 					duplicated = true;
 					do {
 						std::string name;
-						IOLoginData::getInstance()->getNameByGuid((uint32_t)result_->getNumber<int32_t>("player_id"), name, false);
+						IOLoginData::getInstance()->getNameByGuid((uint32_t)result_->getNumber<int32_t>("player_id"), name);
 						std::clog << ">> Deleted item from 'player_items' with SERIAL: [" << serial.c_str() << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name.c_str() << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]" << std::endl;
 						std::ostringstream logText;
 						logText << "Deleted item from 'player_items' with SERIAL: [" << serial << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]";
@@ -464,7 +461,7 @@ void otserv(ServiceManager* services)
 					duplicated = true;
 					do {
 						std::string name;
-						IOLoginData::getInstance()->getNameByGuid((uint32_t)result_->getNumber<int32_t>("player_id"), name, false);
+						IOLoginData::getInstance()->getNameByGuid((uint32_t)result_->getNumber<int32_t>("player_id"), name);
 						std::clog << ">> Deleted item from 'player_depotitems' with SERIAL: [" << serial.c_str() << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name.c_str() << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]" << std::endl;
 						std::ostringstream logText;
 						logText << "Deleted item from 'player_depotitems' with SERIAL: [" << serial << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]";
@@ -474,13 +471,13 @@ void otserv(ServiceManager* services)
 
 				query_playerdepotitems.clear();
 				std::ostringstream query_tileitems;
-				query_tileitems << "SELECT `tile_id`, `world_id`, `sid`, `pid`, `itemtype`, `count`, `attributes`, `serial` FROM `tile_items` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				query_tileitems << "SELECT `tile_id`, `sid`, `pid`, `itemtype`, `count`, `attributes`, `serial` FROM `tile_items` WHERE `serial` = " << g_database.escapeString(serial) << ";";
 				if ((result_ = g_database.storeQuery(query_tileitems.str()))) {
 					duplicated = true;
 					do {
-						std::clog << ">> Deleted item from 'tile_items' with SERIAL: [" << serial.c_str() << "] TILE ID: [" << result_->getNumber<int32_t>("tile_id") << "] WORLD ID: [" << result_->getNumber<int32_t>("world_id") << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]" << std::endl;
+						std::clog << ">> Deleted item from 'tile_items' with SERIAL: [" << serial.c_str() << "] TILE ID: [" << result_->getNumber<int32_t>("tile_id") << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]" << std::endl;
 						std::ostringstream logText;
-						logText << "Deleted item from 'tile_items' with SERIAL: [" << serial << "] TILE ID: [" << result_->getNumber<int32_t>("tile_id") << "] WORLD ID: [" << result_->getNumber<int32_t>("world_id") << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]";
+						logText << "Deleted item from 'tile_items' with SERIAL: [" << serial << "] TILE ID: [" << result_->getNumber<int32_t>("tile_id") << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]";
 						Logger::getInstance()->eFile("anti_dupe.log", logText.str(), true);
 					} while (result_->next());
 				}

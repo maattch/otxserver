@@ -121,7 +121,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 		if (!ban.adminId) {
 			name_ += (deletion ? "deletion" : "banishment");
 		} else {
-			IOLoginData::getInstance()->getNameByGuid(ban.adminId, name_, true);
+			IOLoginData::getInstance()->getNameByGuid(ban.adminId, name_);
 		}
 
 		std::ostringstream ss;
@@ -213,10 +213,10 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 			output->addByte((uint8_t)account.charList.size());
 		}
 
-		for (Characters::iterator it = account.charList.begin(); it != account.charList.end(); ++it) {
-			output->addString((*it));
+		for (const std::string& charName : account.charList) {
+			output->addString(charName);
 			if (g_config.getBool(ConfigManager::ON_OR_OFF_CHARLIST)) {
-				if (g_game.getPlayerByName((*it))) {
+				if (g_game.getPlayerByName(charName)) {
 					output->addString("Online");
 				} else {
 					output->addString("Offline");
