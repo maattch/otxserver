@@ -1735,10 +1735,10 @@ DeleteCharacter_t IOLoginData::deleteCharacter(uint32_t accountId, const std::st
 	query << "DELETE FROM `player_viplist` WHERE `vip_id` = " << id;
 	g_database.executeQuery(query.str());
 
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		VIPSet::iterator it_ = it->second->VIPList.find(id);
-		if (it_ != it->second->VIPList.end()) {
-			it->second->VIPList.erase(it_);
+	for (const auto& it : g_game.getPlayers()) {
+		auto it_ = it.second->VIPList.find(id);
+		if (it_ != it.second->VIPList.end()) {
+			it.second->VIPList.erase(it_);
 		}
 	}
 
@@ -1876,24 +1876,6 @@ bool IOLoginData::updateOnlineStatus(uint32_t guid, bool login)
 	std::ostringstream query;
 
 	uint16_t value = login;
-	if (g_config.getNumber(ConfigManager::ALLOW_CLONES)) {
-		query << "SELECT `online` FROM `players` WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
-		DBResultPtr result;
-		if (!(result = g_database.storeQuery(query.str()))) {
-			return false;
-		}
-
-		value = result->getNumber<int32_t>("online");
-
-		if (login) {
-			value++;
-		} else if (value > 0) {
-			value--;
-		}
-
-		query.str("");
-	}
-
 	query << "UPDATE `players` SET `online` = " << value << " WHERE `id` = " << guid << " LIMIT 1;";
 	return g_database.executeQuery(query.str());
 }

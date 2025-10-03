@@ -120,33 +120,25 @@ void ProtocolStatus::sendStatusString()
 	xmlAddChild(root, p);
 
 	p = xmlNewNode(nullptr, (const xmlChar*)"players");
-	// this get function in game.cpp with limit = 4 to otservlist. Xinn can check here https://github.com/FeTads/otxserver/blob/a9bef7ac0fe7584a924a7426aae0f44ec372fe12/sources/game.cpp#L7081
-	// sprintf(buffer, "%d", g_game.getPlayersWithMcLimit());
 
-	std::map<uint32_t, uint32_t> mcLimit4;
-	std::vector<uint32_t> uniqueIp;
-	uint32_t count = 0;
+	uint32_t realOnline = 0;
 	uint32_t uniqueOnline = 0;
-
-	for (const auto& player : Player::autoList) {
-		if (!player.second->isRemoved() && player.second->getIdleTime() < 900000 && player.second->getIP() != 0) {
-			uint32_t ip = player.second->getIP();
-			auto it = mcLimit4.find(ip);
-			if (it == mcLimit4.end()) {
-				mcLimit4[ip] = 1;
-				count++;
-			} else if (it->second < 4) { // only 4 mc per IP
-				it->second++;
-				count++;
-			}
-			if (std::find(uniqueIp.begin(), uniqueIp.end(), ip) == uniqueIp.end()) { // unique IP
-				uniqueIp.push_back(ip);
+	std::map<uint32_t, uint32_t> listIP;
+	for (const auto& it : g_game.getPlayers()) {
+		uint32_t ipAddress = it.second->getIP();
+		if (ipAddress != 0 && it.second->getIdleTime() < 960000) {
+			auto& count = listIP[ipAddress];
+			if (count == 0) {
 				++uniqueOnline;
+			}
+
+			if (++count <= 4) {
+				++realOnline;
 			}
 		}
 	}
 
-	sprintf(buffer, "%d", count);
+	sprintf(buffer, "%d", realOnline);
 	xmlSetProp(p, (const xmlChar*)"online", (const xmlChar*)buffer);
 
 	sprintf(buffer, "%d", uniqueOnline);
@@ -255,9 +247,9 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 	if (requestedInfo & REQUEST_EXT_PLAYERS_INFO) {
 		output->addByte(0x21);
 		std::list<std::pair<std::string, uint32_t>> players;
-		for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-			if (!it->second->isRemoved() && !it->second->isGhost()) {
-				players.push_back(std::make_pair(it->second->getName(), it->second->getLevel()));
+		for (const auto& it : g_game.getPlayers()) {
+			if (!it.second->isGhost()) {
+				players.emplace_back(it.second->getName(), it.second->getLevel());
 			}
 		}
 

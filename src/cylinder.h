@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "const.h"
+
 #define INDEX_WHEREEVER -1
 
 class Item;

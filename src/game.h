@@ -21,14 +21,10 @@
 #include "item.h"
 #include "map.h"
 #include "monster.h"
-#include "npc.h"
 #include "player.h"
 #include "server.h"
-#include "templates.h"
+#include "wildcardtree.h"
 
-class Creature;
-class Player;
-class Monster;
 class Npc;
 class CombatInfo;
 struct CombatParams;
@@ -152,11 +148,16 @@ typedef std::map<int32_t, float> StageList;
  * This class is responsible to control everything that happens
  */
 
-class Game
+class Game final
 {
 public:
 	Game();
-	virtual ~Game();
+	~Game();
+
+	// non-copyable
+	Game(const Game&) = delete;
+	Game& operator=(const Game&) = delete;
+
 	void start(ServiceManager* servicer);
 
 	Highscore getHighscore(uint16_t skill);
@@ -233,6 +234,8 @@ public:
 	 * \returns A Pointer to the player
 	 */
 	Player* getPlayerByID(const uint32_t id);
+	Monster* getMonsterByID(const uint32_t id);
+	Npc* getNpcByID(const uint32_t id);
 
 	/**
 	 * Returns a player based on guid
@@ -244,16 +247,17 @@ public:
 	/**
 	 * Returns a creature based on a string name identifier
 	 * \param s is the name identifier
+	 * \param type is the creature type
 	 * \returns A Pointer to the creature
 	 */
-	Creature* getCreatureByName(std::string s);
+	Creature* getCreatureByName(const std::string& s, CreatureType_t type);
 
 	/**
 	 * Returns a player based on a string name identifier
 	 * \param s is the name identifier
 	 * \returns A Pointer to the player
 	 */
-	Player* getPlayerByName(std::string s);
+	Player* getPlayerByName(const std::string& s);
 
 	/**
 	 * Returns a player based on a string name identifier
@@ -271,16 +275,6 @@ public:
 	 * it is up to the caller of the function to delete the pointer - if the player is offline
 	 * use isOffline() to determine if the player was offline
 	 * \param guid is the identifier
-	 * \return A Pointer to the player
-	 */
-	Player* getPlayerByGuid(const uint32_t guid);
-
-	/**
-	 * Returns a player based on a guid identifier
-	 * this function returns a pointer even if the player is offline,
-	 * it is up to the caller of the function to delete the pointer - if the player is offline
-	 * use isOffline() to determine if the player was offline
-	 * \param guid is the identifier
 	 */
 	Player* getPlayerByGuidEx(const uint32_t guid);
 
@@ -290,28 +284,21 @@ public:
 	 * \param player will point to the found player (if any)
 	 * \return "RET_PLAYERWITHTHISNAMEISNOTONLINE" or "RET_NAMEISTOOAMBIGUOUS"
 	 */
-	ReturnValue getPlayerByNameWildcard(std::string s, Player*& player);
+	ReturnValue getPlayerByNameWildcard(const std::string& s, Player*& player);
 
 	/**
 	 * Returns a player based on an account number identifier
 	 * \param acc is the account identifier
 	 * \returns A Pointer to the player
 	 */
-	Player* getPlayerByAccount(const uint32_t acc);
-
-	/**
-	 * Returns all players based on their name
-	 * \param s is the player name
-	 * \return A vector of all players with the selected name
-	 */
-	std::vector<Player*> getPlayersByName(std::string s);
+	Player* getPlayerByAccount(const uint32_t accountId);
 
 	/**
 	 * Returns all players based on their account number identifier
 	 * \param acc is the account identifier
 	 * \return A vector of all players with the selected account number
 	 */
-	std::vector<Player*> getPlayersByAccount(const uint32_t acc);
+	std::vector<Player*> getPlayersByAccount(const uint32_t accountId);
 
 	/**
 	 * Returns all players with a certain IP address
@@ -347,11 +334,6 @@ public:
 
 	void addCreatureCheck(Creature* creature);
 	void removeCreatureCheck(Creature* creature);
-
-	uint32_t getPlayersOnline() { return (uint32_t)Player::autoList.size(); }
-	uint32_t getMonstersOnline() { return (uint32_t)Monster::autoList.size(); }
-	uint32_t getNpcsOnline() { return (uint32_t)Npc::autoList.size(); }
-	uint32_t getCreaturesOnline() { return (uint32_t)autoList.size(); }
 
 	bool existMonsterByName(const std::string& name);
 
@@ -702,6 +684,24 @@ public:
 	// progressbar to otcv8
 	void startProgressbar(Creature* creature, uint32_t duration, bool ltr = true);
 
+	void addPlayer(Player* player);
+	void removePlayer(Player* player);
+
+	void addNpc(Npc* npc);
+	void removeNpc(Npc* npc);
+
+	void addMonster(Monster* monster);
+	void removeMonster(Monster* monster);
+
+	const auto& getPlayers() { return players; }
+	const auto& getMonsters() { return monsters; }
+	const auto& getNpcs() { return npcs; }
+
+	uint32_t getPlayersOnline() { return static_cast<uint32_t>(players.size()); }
+	uint32_t getMonstersOnline() { return static_cast<uint32_t>(monsters.size()); }
+	uint32_t getNpcsOnline() { return static_cast<uint32_t>(npcs.size()); }
+	uint32_t getCreaturesOnline() { return getPlayersOnline() + getMonstersOnline() + getNpcsOnline(); }
+
 protected:
 	bool playerWhisper(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
 	bool playerYell(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
@@ -711,26 +711,27 @@ protected:
 	bool playerReportRuleViolation(Player* player, const std::string& text);
 	bool playerContinueReport(Player* player, const std::string& text);
 
-	struct GameEvent
-	{
-		int64_t tick;
-		int32_t type;
-		void* data;
-	};
+	void checkDecay();
+	void internalDecayItem(Item* item);
+
+	WildcardTreeNode wildcardTree{ false };
 
 	std::vector<Thing*> releaseThings;
 	std::map<Item*, uint32_t> tradeItems;
-	AutoList<Creature> autoList;
-	RuleViolationsMap ruleViolations;
 
+	std::unordered_map<uint32_t, Monster*> monsters;
+	std::unordered_map<uint32_t, Player*> players;
+	std::unordered_map<uint32_t, Npc*> npcs;
+
+	std::unordered_map<std::string, Player*> mappedPlayerNames;
+	std::unordered_map<uint32_t, Player*> mappedPlayerGuids;
+
+	RuleViolationsMap ruleViolations;
 	std::map<std::string, bool> monsterNamesMap_;
 
 	size_t checkCreatureLastIndex;
 	std::vector<Creature*> checkCreatureVectors[EVENT_CREATURECOUNT];
 	std::vector<Creature*> toAddCheckCreatureVector;
-
-	void checkDecay();
-	void internalDecayItem(Item* item);
 
 	typedef std::list<Item*> DecayList;
 	DecayList decayItems[EVENT_DECAYBUCKETS];

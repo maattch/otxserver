@@ -195,7 +195,7 @@ void MonsterType::dropLoot(Container* corpse)
 		return;
 	}
 
-	Player* owner = g_game.getPlayerByGuid(ownerId);
+	Player* owner = g_game.getPlayerByGUID(ownerId);
 	if (!owner) {
 		return;
 	}

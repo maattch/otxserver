@@ -36,8 +36,6 @@ extern Npcs g_npcs;
 uint32_t Npc::npcAutoID = 0x80000000;
 extern LuaEnvironment g_luaEnvironment;
 
-AutoList<Npc> Npc::autoList;
-
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 uint32_t Npc::npcCount = 0;
 #endif
@@ -161,8 +159,8 @@ bool Npcs::parseNpcNode(xmlNodePtr node, FileType_t path, bool reloading /* = fa
 
 void Npcs::reload()
 {
-	for (AutoList<Npc>::iterator it = Npc::autoList.begin(); it != Npc::autoList.end(); ++it) {
-		it->second->closeAllShopWindows();
+	for (const auto& it : g_game.getNpcs()) {
+		it.second->closeAllShopWindows();
 	}
 
 	delete Npc::m_interface;
@@ -177,8 +175,8 @@ void Npcs::reload()
 		tmp.clear();
 	}
 
-	for (AutoList<Npc>::iterator it = Npc::autoList.begin(); it != Npc::autoList.end(); ++it) {
-		it->second->reload();
+	for (const auto& it : g_game.getNpcs()) {
+		it.second->reload();
 	}
 }
 
@@ -299,6 +297,16 @@ void Npc::reset()
 	responseScriptMap.clear();
 	shopPlayerList.clear();
 	voiceList.clear();
+}
+
+void Npc::addList()
+{
+	g_game.addNpc(this);
+}
+
+void Npc::removeList()
+{
+	g_game.removeNpc(this);
 }
 
 bool Npc::load()

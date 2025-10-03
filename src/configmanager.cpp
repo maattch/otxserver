@@ -152,7 +152,6 @@ bool ConfigManager::load()
 	m_confString[URL] = getGlobalString("url");
 	m_confString[LOCATION] = getGlobalString("location");
 	m_confString[MOTD] = getGlobalString("motd");
-	m_confNumber[ALLOW_CLONES] = getGlobalNumber("allowClones", 0);
 	m_confBool[EXPERIENCE_STAGES] = getGlobalBool("experienceStages", false);
 	m_confDouble[RATE_EXPERIENCE] = getGlobalDouble("rateExperience", 1);
 	m_confDouble[RATE_SKILL] = getGlobalDouble("rateSkill", 1);

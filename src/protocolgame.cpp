@@ -77,23 +77,18 @@ void ProtocolGame::release()
 
 void ProtocolGame::spectate(const std::string& name, const std::string& password)
 {
-	PlayerVector players = g_game.getPlayersByName(name);
-	Player* _player = nullptr;
-	if (!players.empty()) {
-		_player = players[random_range(0, (players.size() - 1))];
-	}
-
-	if (!_player || _player->isRemoved() || !_player->client->isBroadcasting() || !_player->client->getOwner()) {
+	Player* foundPlayer = g_game.getPlayerByName(name);
+	if (!foundPlayer || foundPlayer->isRemoved() || !foundPlayer->client->isBroadcasting() || !foundPlayer->client->getOwner()) {
 		disconnectClient(0x14, "Cast unavailable.");
 		return;
 	}
 
-	if (_player->client->banned(getIP())) {
+	if (foundPlayer->client->banned(getIP())) {
 		disconnectClient(0x14, "You are banned from this cast.");
 		return;
 	}
 
-	if (!_player->client->check(password)) {
+	if (!foundPlayer->client->check(password)) {
 		disconnectClient(0x14, "This cast is protected! Invalid password.");
 		return;
 	}
@@ -102,7 +97,7 @@ void ProtocolGame::spectate(const std::string& name, const std::string& password
 	acceptPackets = true;
 	OutputMessagePool::getInstance().addProtocolToAutosend(shared_from_this());
 
-	sendSpectatorAppear(_player);
+	sendSpectatorAppear(foundPlayer);
 }
 
 void ProtocolGame::sendSpectatorAppear(Player* p)
@@ -151,13 +146,13 @@ void ProtocolGame::castNavigation(uint16_t direction)
 	}
 
 	StringVec castNames;
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (!it->second->isRemoved() && it->second->client->isBroadcasting()) {
-			if (it->second->client->getPassword() != "" || it->second->client->banned(getIP())) {
+	for (const auto& it : g_game.getPlayers()) {
+		if (it.second->client->isBroadcasting()) {
+			if (it.second->client->getPassword() != "" || it.second->client->banned(getIP())) {
 				continue;
 			}
 
-			castNames.push_back(it->second->getName());
+			castNames.push_back(it.second->getName());
 		}
 	}
 
@@ -256,14 +251,8 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 	OperatingSystem_t operatingSystem, uint16_t version, bool gamemaster)
 {
 	// dispatcher thread
-	PlayerVector players = g_game.getPlayersByName(name);
-	Player* foundPlayer = nullptr;
-	if (!players.empty()) {
-		foundPlayer = players[random_range(0, (players.size() - 1))];
-	}
-
-	bool accountManager = g_config.getBool(ConfigManager::ACCOUNT_MANAGER);
-	if (!foundPlayer || g_config.getNumber(ConfigManager::ALLOW_CLONES) || (accountManager && name == "Account Manager")) {
+	Player* foundPlayer = g_game.getPlayerByName(name);
+	if (!foundPlayer || (g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && name == "Account Manager")) {
 		player = new Player(name, getThis());
 		player->addRef();
 
@@ -3757,16 +3746,16 @@ void ProtocolGame::sendCastList()
 
 	PlayerVector players;
 	if (!spy) {
-		for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-			if (!canWatch(it->second) || it->second == player) {
+		for (const auto& it : g_game.getPlayers()) {
+			if (!canWatch(it.second) || it.second == player) {
 				continue;
 			}
-			players.emplace_back(it->second);
+			players.emplace_back(it.second);
 		}
 	} else {
-		for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-			if (player != it->second) {
-				players.emplace_back(it->second);
+		for (const auto& it: g_game.getPlayers()) {
+			if (player != it.second) {
+				players.emplace_back(it.second);
 			}
 		}
 	}

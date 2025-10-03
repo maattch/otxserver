@@ -33,7 +33,6 @@ extern Monsters g_monsters;
 extern CreatureEvents* g_creatureEvents;
 
 uint32_t Monster::monsterAutoID = 0x40000000;
-AutoList<Monster> Monster::autoList;
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 uint32_t Monster::monsterCount = 0;
@@ -120,6 +119,16 @@ Monster::~Monster()
 		raid->unRef();
 		raid = nullptr;
 	}
+}
+
+void Monster::addList()
+{
+	g_game.addMonster(this);
+}
+
+void Monster::removeList()
+{
+	g_game.removeMonster(this);
 }
 
 void Monster::onTarget(Creature* target)

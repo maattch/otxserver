@@ -20,7 +20,6 @@
 #include "const.h"
 #include "creature.h"
 #include "luascript.h"
-#include "templates.h"
 
 class Npc;
 struct NpcType
@@ -357,7 +356,7 @@ struct Voice
 	std::string text;
 };
 
-class Npc : public Creature
+class Npc final : public Creature
 {
 public:
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
@@ -378,13 +377,11 @@ public:
 
 	virtual Npc* getNpc() { return this; }
 	virtual const Npc* getNpc() const { return this; }
-	virtual CreatureType_t getType() const { return CREATURETYPE_NPC; }
 
-	virtual uint32_t rangeId() { return NPC_ID_RANGE; }
-	static AutoList<Npc> autoList;
+	CreatureType_t getType() const override { return CREATURE_TYPE_NPC; }
 
-	void addList() { autoList[id] = this; }
-	void removeList() { autoList.erase(id); }
+	void addList() override;
+	void removeList() override;
 
 	virtual bool isPushable() const { return false; }
 	virtual bool isAttackable() const { return attackable; }

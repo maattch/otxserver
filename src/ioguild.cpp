@@ -167,12 +167,11 @@ bool IOGuild::changeRank(uint32_t guild, const std::string& oldName, const std::
 		return false;
 	}
 
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (it->second->getRankId() == id) {
-			it->second->setRankName(newName);
+	for (const auto& it : g_game.getPlayers()) {
+		if (it.second->getRankId() == id) {
+			it.second->setRankName(newName);
 		}
 	}
-
 	return true;
 }
 
@@ -247,13 +246,11 @@ bool IOGuild::disbandGuild(uint32_t guildId)
 	}
 
 	InvitationsList::iterator iit;
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (it->second->getGuildId() == guildId) {
-			it->second->leaveGuild();
-		} else if ((iit = std::find(it->second->invitationsList.begin(), it->second->invitationsList.end(),
-						guildId))
-			!= it->second->invitationsList.end()) {
-			it->second->invitationsList.erase(iit);
+	for (const auto& it : g_game.getPlayers()) {
+		if (it.second->getGuildId() == guildId) {
+			it.second->leaveGuild();
+		} else if ((iit = std::find(it.second->invitationsList.begin(), it.second->invitationsList.end(), guildId)) != it.second->invitationsList.end()) {
+			it.second->invitationsList.erase(iit);
 		}
 	}
 
@@ -439,24 +436,20 @@ void IOGuild::checkWars()
 			tmp.war = result->getNumber<int32_t>("id");
 			tmp.ids[WAR_GUILD] = result->getNumber<int32_t>("guild_id");
 			tmp.ids[WAR_ENEMY] = result->getNumber<int32_t>("enemy_id");
-			for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-				if (it->second->isRemoved()) {
-					continue;
-				}
-
+			for (const auto& it : g_game.getPlayers()) {
 				bool update = false;
-				if (it->second->getGuildId() == tmp.ids[WAR_GUILD]) {
+				if (it.second->getGuildId() == tmp.ids[WAR_GUILD]) {
 					tmp.type = WAR_ENEMY;
-					it->second->addEnemy(tmp.ids[WAR_ENEMY], tmp);
+					it.second->addEnemy(tmp.ids[WAR_ENEMY], tmp);
 					update = true;
-				} else if (it->second->getGuildId() == tmp.ids[WAR_ENEMY]) {
+				} else if (it.second->getGuildId() == tmp.ids[WAR_ENEMY]) {
 					tmp.type = WAR_ENEMY;
-					it->second->addEnemy(tmp.ids[WAR_GUILD], tmp);
+					it.second->addEnemy(tmp.ids[WAR_GUILD], tmp);
 					update = true;
 				}
 
 				if (update) {
-					g_game.updateCreatureEmblem(it->second);
+					g_game.updateCreatureEmblem(it.second);
 				}
 			}
 		} while (result->next());
@@ -497,22 +490,18 @@ void IOGuild::checkWars()
 			tmp.war = result->getNumber<int32_t>("id");
 			tmp.ids[WAR_GUILD] = result->getNumber<int32_t>("guild_id");
 			tmp.ids[WAR_ENEMY] = result->getNumber<int32_t>("enemy_id");
-			for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-				if (it->second->isRemoved()) {
-					continue;
-				}
-
+			for (const auto& it : g_game.getPlayers()) {
 				bool update = false;
-				if (it->second->getGuildId() == tmp.ids[WAR_GUILD]) {
-					it->second->removeEnemy(tmp.ids[WAR_ENEMY]);
+				if (it.second->getGuildId() == tmp.ids[WAR_GUILD]) {
+					it.second->removeEnemy(tmp.ids[WAR_ENEMY]);
 					update = true;
-				} else if (it->second->getGuildId() == tmp.ids[WAR_ENEMY]) {
-					it->second->removeEnemy(tmp.ids[WAR_GUILD]);
+				} else if (it.second->getGuildId() == tmp.ids[WAR_ENEMY]) {
+					it.second->removeEnemy(tmp.ids[WAR_GUILD]);
 					update = true;
 				}
 
 				if (update) {
-					g_game.updateCreatureEmblem(it->second);
+					g_game.updateCreatureEmblem(it.second);
 				}
 			}
 
@@ -605,22 +594,18 @@ void IOGuild::finishWar(War_t war, bool finished)
 		return;
 	}
 
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (it->second->isRemoved()) {
-			continue;
-		}
-
+	for (const auto& it : g_game.getPlayers()) {
 		bool update = false;
-		if (it->second->getGuildId() == war.ids[WAR_GUILD]) {
-			it->second->removeEnemy(war.ids[WAR_ENEMY]);
+		if (it.second->getGuildId() == war.ids[WAR_GUILD]) {
+			it.second->removeEnemy(war.ids[WAR_ENEMY]);
 			update = true;
-		} else if (it->second->getGuildId() == war.ids[WAR_ENEMY]) {
-			it->second->removeEnemy(war.ids[WAR_GUILD]);
+		} else if (it.second->getGuildId() == war.ids[WAR_ENEMY]) {
+			it.second->removeEnemy(war.ids[WAR_GUILD]);
 			update = true;
 		}
 
 		if (update) {
-			g_game.updateCreatureEmblem(it->second);
+			g_game.updateCreatureEmblem(it.second);
 		}
 	}
 

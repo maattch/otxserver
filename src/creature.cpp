@@ -27,10 +27,6 @@
 
 #include <iomanip>
 
-std::recursive_mutex AutoId::lock;
-uint32_t AutoId::count = 1000;
-AutoId::List AutoId::list;
-
 extern Game g_game;
 extern ConfigManager g_config;
 extern CreatureEvents* g_creatureEvents;
@@ -522,15 +518,6 @@ void Creature::internalCreatureDisappear(const Creature* creature, bool isLogout
 	if (followCreature == creature) {
 		setFollowCreature(nullptr);
 		onFollowCreatureDisappear(isLogout);
-	}
-}
-
-void Creature::onRemovedCreature()
-{
-	setRemoved();
-	removeList();
-	if (master && !master->isRemoved()) {
-		master->removeSummon(this);
 	}
 }
 

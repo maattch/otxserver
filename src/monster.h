@@ -34,7 +34,7 @@ enum TargetSearchType_t
 };
 
 typedef std::list<Creature*> CreatureList;
-class Monster : public Creature
+class Monster final : public Creature
 {
 private:
 	Monster(MonsterType* _mType);
@@ -50,7 +50,8 @@ public:
 
 	virtual Monster* getMonster() { return this; }
 	virtual const Monster* getMonster() const { return this; }
-	virtual CreatureType_t getType() const { return CREATURETYPE_MONSTER; }
+
+	CreatureType_t getType() const override { return CREATURE_TYPE_MONSTER; }
 
 	static uint32_t monsterAutoID;
 	void setID() override
@@ -60,11 +61,8 @@ public:
 		}
 	}
 
-	virtual uint32_t rangeId() { return MONSTER_ID_RANGE; }
-	static AutoList<Monster> autoList;
-
-	void addList() { autoList[id] = this; }
-	void removeList() { autoList.erase(id); }
+	void addList() override;
+	void removeList() override;
 
 	virtual const std::string& getName() const { return mType->name; }
 	virtual const std::string& getNameDescription() const { return mType->nameDescription; }

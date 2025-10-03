@@ -207,11 +207,12 @@ void Game::setGameState(GameState_t newState)
 
 			case GAMESTATE_SHUTDOWN: {
 				g_globalEvents->execute(GLOBALEVENT_SHUTDOWN);
-				AutoList<Player>::iterator it = Player::autoList.begin();
-				while (it != Player::autoList.end()) // kick all players that are still online
-				{
-					it->second->kick(true, true);
-					it = Player::autoList.begin();
+
+				auto it = players.begin();
+				while (it != players.end()) {
+					// kick all players that are still online
+					it->second->kick(false, true);
+					it = players.begin();
 				}
 
 				Houses::getInstance()->check();
@@ -224,12 +225,12 @@ void Game::setGameState(GameState_t newState)
 			}
 
 			case GAMESTATE_CLOSED: {
-				AutoList<Player>::iterator it = Player::autoList.begin();
-				while (it != Player::autoList.end()) // kick all players who not allowed to stay
-				{
+				auto it = players.begin();
+				while (it != players.end()) {
+					// kick all players who not allowed to stay
 					if (!it->second->hasFlag(PlayerFlag_CanAlwaysLogin)) {
-						it->second->kick(true, true);
-						it = Player::autoList.begin();
+						it->second->kick(false, true);
+						it = players.begin();
 					} else {
 						++it;
 					}
@@ -259,9 +260,9 @@ void Game::saveGameState(uint8_t flags)
 
 	if (hasBitSet(SAVE_PLAYERS, flags)) {
 		IOLoginData* io = IOLoginData::getInstance();
-		for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-			it->second->loginPosition = it->second->getPosition();
-			io->savePlayer(it->second, false, hasBitSet(SAVE_PLAYERS_SHALLOW, flags));
+		for (const auto& it : players) {
+			it.second->loginPosition = it.second->getPosition();
+			io->savePlayer(it.second, false, hasBitSet(SAVE_PLAYERS_SHALLOW, flags));
 		}
 	}
 
@@ -707,24 +708,14 @@ bool Game::existMonsterByName(const std::string& name)
 
 Creature* Game::getCreatureByID(const uint32_t id)
 {
-	if (!id) {
-		return nullptr;
-	}
-
-	if (id <= Player::playerAutoID) { // id belongs to a player
+	if (id <= Player::playerAutoID) {
 		return getPlayerByID(id);
-	} else if (id <= Monster::monsterAutoID) { // id belongs to a monster
-		AutoList<Monster>::const_iterator it = Monster::autoList.find(id);
-		if (it != Monster::autoList.end()) {
-			return it->second;
-		}
-	} else if (id <= Npc::npcAutoID) { // id belongs to a NPC
-		auto it = Npc::autoList.find(id);
-		if (it != Npc::autoList.end()) {
-			return it->second;
-		}
+	} else if (id <= Monster::monsterAutoID) {
+		return getMonsterByID(id);
+	} else if (id <= Npc::npcAutoID) {
+		return getNpcByID(id);
 	}
-	return nullptr; // just in case the player doesnt exist
+	return nullptr;
 }
 
 Player* Game::getPlayerByID(const uint32_t id)
@@ -733,61 +724,100 @@ Player* Game::getPlayerByID(const uint32_t id)
 		return nullptr;
 	}
 
-	AutoList<Player>::iterator it = Player::autoList.find(id);
-	if (it != Player::autoList.end() && !it->second->isRemoved()) {
-		return it->second;
+	auto it = players.find(id);
+	if (it == players.end()) {
+		return nullptr;
+	}
+	return it->second;
+}
+
+Monster* Game::getMonsterByID(uint32_t id)
+{
+	if (id == 0) {
+		return nullptr;
 	}
 
-	return nullptr; // just in case the player doesnt exist
+	auto it = monsters.find(id);
+	if (it == monsters.end()) {
+		return nullptr;
+	}
+	return it->second;
+}
+
+Npc* Game::getNpcByID(uint32_t id)
+{
+	if (id == 0) {
+		return nullptr;
+	}
+
+	auto it = npcs.find(id);
+	if (it == npcs.end()) {
+		return nullptr;
+	}
+	return it->second;
 }
 
 Player* Game::getPlayerByGUID(const uint32_t guid)
 {
-	if (!guid) {
+	if (guid == 0) {
 		return nullptr;
 	}
 
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		Player* player = (*it).second;
-		if (!player->isRemoved()) {
-			if (guid == player->getGUID()) {
-				return player;
-			}
-		}
+	auto it = mappedPlayerGuids.find(guid);
+	if (it == mappedPlayerGuids.end()) {
+		return nullptr;
 	}
-	return nullptr;
+	return it->second;
 }
 
-Creature* Game::getCreatureByName(std::string s)
+Creature* Game::getCreatureByName(const std::string& s, CreatureType_t type)
 {
 	if (s.empty()) {
 		return nullptr;
 	}
 
-	toLowerCaseString(s);
-	for (AutoList<Creature>::iterator it = autoList.begin(); it != autoList.end(); ++it) {
-		if (!it->second->isRemoved() && asLowerCaseString(it->second->getName()) == s) {
+	const std::string lowerCaseName = asLowerCaseString(s);
+	if (type == CREATURE_TYPE_UNDEFINED || type == CREATURE_TYPE_PLAYER) {
+		auto it = mappedPlayerNames.find(lowerCaseName);
+		if (it != mappedPlayerNames.end()) {
 			return it->second;
 		}
 	}
 
-	return nullptr; // just in case the creature doesnt exist
+	auto equalCreatureName = [&](const std::pair<uint32_t, Creature*>& it) {
+		const std::string& name = it.second->getName();
+		return lowerCaseName.size() == name.size() && std::equal(lowerCaseName.begin(), lowerCaseName.end(), name.begin(), [](char a, char b) {
+			return a == std::tolower(b);
+		});
+	};
+
+	if (type == CREATURE_TYPE_UNDEFINED || type == CREATURE_TYPE_MONSTER) {
+		auto it = std::find_if(monsters.begin(), monsters.end(), equalCreatureName);
+		if (it != monsters.end()) {
+			return it->second;
+		}
+	}
+
+	if (type == CREATURE_TYPE_UNDEFINED || type == CREATURE_TYPE_NPC) {
+		auto it = std::find_if(npcs.begin(), npcs.end(), equalCreatureName);
+		if (it != npcs.end()) {
+			return it->second;
+		}
+	}
+	return nullptr;
 }
 
-Player* Game::getPlayerByName(std::string s)
+Player* Game::getPlayerByName(const std::string& s)
 {
 	if (s.empty()) {
 		return nullptr;
 	}
 
-	toLowerCaseString(s);
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (!it->second->isRemoved() && asLowerCaseString(it->second->getName()) == s) {
-			return it->second;
-		}
+	auto it = mappedPlayerNames.find(asLowerCaseString(s));
+	if (it == mappedPlayerNames.end()) {
+		return nullptr;
 	}
-
-	return nullptr;
+	return it->second;
 }
 
 Player* Game::getPlayerByNameEx(const std::string& s)
@@ -814,24 +844,9 @@ Player* Game::getPlayerByNameEx(const std::string& s)
 	return nullptr;
 }
 
-Player* Game::getPlayerByGuid(const uint32_t guid)
-{
-	if (!guid) {
-		return nullptr;
-	}
-
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (!it->second->isRemoved() && it->second->getGUID() == guid) {
-			return it->second;
-		}
-	}
-
-	return nullptr;
-}
-
 Player* Game::getPlayerByGuidEx(const uint32_t guid)
 {
-	Player* player = getPlayerByGuid(guid);
+	Player* player = getPlayerByGUID(guid);
 	if (player) {
 		return player;
 	}
@@ -853,98 +868,62 @@ Player* Game::getPlayerByGuidEx(const uint32_t guid)
 	return nullptr;
 }
 
-ReturnValue Game::getPlayerByNameWildcard(std::string s, Player*& player)
+ReturnValue Game::getPlayerByNameWildcard(const std::string& s, Player*& player)
 {
-	player = nullptr;
-	if (s.empty()) {
+	size_t strlen = s.length();
+	if (strlen == 0) {
 		return RET_PLAYERWITHTHISNAMEISNOTONLINE;
 	}
 
-	char tmp = *s.rbegin();
-	if (tmp != '~' && tmp != '*') {
+	if (s.back() == '~') {
+		const std::string query = asLowerCaseString(s.substr(0, strlen - 1));
+		std::string result;
+		ReturnValue ret = wildcardTree.findOne(query, result);
+		if (ret != RET_NOERROR) {
+			return ret;
+		}
+
+		player = getPlayerByName(result);
+	} else {
 		player = getPlayerByName(s);
-		if (!player) {
-			return RET_PLAYERWITHTHISNAMEISNOTONLINE;
-		}
-
-		return RET_NOERROR;
 	}
 
-	Player* last = nullptr;
-	s = s.substr(0, s.length() - 1);
-
-	toLowerCaseString(s);
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (it->second->isRemoved()) {
-			continue;
-		}
-
-		std::string name = asLowerCaseString(it->second->getName());
-		if (name.substr(0, s.length()) != s) {
-			continue;
-		}
-
-		if (last) {
-			return RET_NAMEISTOOAMBIGUOUS;
-		}
-
-		last = it->second;
-	}
-
-	if (!last) {
+	if (!player) {
 		return RET_PLAYERWITHTHISNAMEISNOTONLINE;
 	}
-
-	player = last;
 	return RET_NOERROR;
 }
 
-Player* Game::getPlayerByAccount(const uint32_t acc)
+Player* Game::getPlayerByAccount(const uint32_t accountId)
 {
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (!it->second->isRemoved() && it->second->getAccount() == acc) {
-			return it->second;
+	for (const auto& it : players) {
+		if (it.second->getAccount() == accountId) {
+			return it.second;
 		}
 	}
-
 	return nullptr;
 }
 
-std::vector<Player*> Game::getPlayersByName(std::string s)
+std::vector<Player*> Game::getPlayersByAccount(const uint32_t accountId)
 {
-	toLowerCaseString(s);
-	std::vector<Player*> players;
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (!it->second->isRemoved() && asLowerCaseString(it->second->getName()) == s) {
-			players.push_back(it->second);
+	std::vector<Player*> playersVec;
+	for (const auto& it : players) {
+		if (it.second->getAccount() == accountId) {
+			playersVec.push_back(it.second);
 		}
 	}
-
-	return players;
-}
-
-std::vector<Player*> Game::getPlayersByAccount(const uint32_t acc)
-{
-	std::vector<Player*> players;
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (!it->second->isRemoved() && it->second->getAccount() == acc) {
-			players.push_back(it->second);
-		}
-	}
-
-	return players;
+	return playersVec;
 }
 
 std::vector<Player*> Game::getPlayersByIP(const uint32_t ip, const uint32_t mask)
 {
-	std::vector<Player*> players;
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (!it->second->isRemoved() && (it->second->getIP() & mask) == (ip & mask)) {
-			players.push_back(it->second);
+	std::vector<Player*> playersVec;
+	for (const auto& it : players) {
+		if ((it.second->getIP() & mask) == (ip & mask)) {
+			playersVec.push_back(it.second);
 		}
 	}
-
-	return players;
+	return playersVec;
 }
 
 bool Game::internalPlaceCreature(Creature* creature, const Position& pos, const bool extendedPos /*= false*/, const bool forced /*= false*/)
@@ -959,8 +938,6 @@ bool Game::internalPlaceCreature(Creature* creature, const Position& pos, const 
 
 	creature->addRef();
 	creature->setID();
-
-	autoList[creature->getID()] = creature;
 	creature->addList();
 	return true;
 }
@@ -1074,17 +1051,21 @@ bool Game::removeCreature(Creature* creature, const bool isLogout /*= true*/)
 		++i;
 	}
 
-	creature->getParent()->postRemoveNotification(nullptr, creature, nullptr, oldIndex, true);
-	creature->onRemovedCreature();
+	Creature* master = creature->getMaster();
+	if (master && !master->isRemoved()) {
+		master->removeSummon(creature);
+	}
 
-	autoList.erase(creature->getID());
+	creature->getParent()->postRemoveNotification(nullptr, creature, nullptr, oldIndex, true);
+
+	creature->setRemoved();
+	creature->removeList();
 	freeThing(creature);
 
 	removeCreatureCheck(creature);
 	for (std::list<Creature*>::iterator it = creature->summons.begin(); it != creature->summons.end(); ++it) {
 		removeCreature(*it);
 	}
-
 	return true;
 }
 
@@ -2513,8 +2494,8 @@ bool Game::playerBroadcastMessage(Player* player, MessageClasses type, const std
 	}
 
 	Logger::getInstance()->eFile("talkactions/" + player->getName() + ".log", "#b " + text, true);
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		it->second->sendCreatureSay(player, type, text, nullptr, statementId);
+	for (const auto& it : players) {
+		it.second->sendCreatureSay(player, type, text, nullptr, statementId);
 	}
 
 	std::clog << "> " << player->getName() << " broadcasted: \"" << text << "\"." << std::endl;
@@ -4638,12 +4619,6 @@ bool Game::canThrowObjectTo(const Position& fromPos, const Position& toPos, bool
 
 bool Game::playerReportRuleViolation(Player* player, const std::string& text)
 {
-	// Do not allow reports on multiclones worlds since reports are name-based
-	if (g_config.getNumber(ConfigManager::ALLOW_CLONES)) {
-		player->sendTextMessage(MSG_INFO_DESCR, "Rule violation reports are disabled.");
-		return false;
-	}
-
 	cancelRuleViolation(player);
 	std::shared_ptr<RuleViolation> rvr(new RuleViolation(player, text, time(nullptr)));
 	ruleViolations[player->getID()] = rvr;
@@ -5794,9 +5769,9 @@ void Game::checkLight()
 	if (lightChange) {
 		LightInfo lightInfo;
 		getWorldLightInfo(lightInfo);
-		for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-			if (!it->second->hasCustomFlag(PlayerCustomFlag_HasFullLight)) {
-				it->second->sendWorldLight(lightInfo);
+		for (const auto& it : players) {
+			if (!it.second->hasCustomFlag(PlayerCustomFlag_HasFullLight)) {
+				it.second->sendWorldLight(lightInfo);
 			}
 		}
 	}
@@ -6409,10 +6384,10 @@ bool Game::broadcastMessage(const std::string& text, MessageClasses type)
 	if (g_config.getBool(ConfigManager::DISPLAY_BROADCAST)) { // by kizuno18
 		std::clog << "> Broadcasted message: \"" << text << "\"." << std::endl;
 	}
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		it->second->sendTextMessage(type, text);
-	}
 
+	for (const auto& it : players) {
+		it.second->sendTextMessage(type, text);
+	}
 	return true;
 }
 
@@ -7309,4 +7284,42 @@ uint32_t Game::spawnDivider(MonsterType* mType)
 		}
 	}
 	return multiplier;
+}
+
+void Game::addPlayer(Player* player)
+{
+	const std::string lowercase_name = asLowerCaseString(player->getName());
+	mappedPlayerNames[lowercase_name] = player;
+	mappedPlayerGuids[player->getGUID()] = player;
+	wildcardTree.insert(lowercase_name);
+	players[player->getID()] = player;
+}
+
+void Game::removePlayer(Player* player)
+{
+	const std::string lowercase_name = asLowerCaseString(player->getName());
+	mappedPlayerNames.erase(lowercase_name);
+	mappedPlayerGuids.erase(player->getGUID());
+	wildcardTree.remove(lowercase_name);
+	players.erase(player->getID());
+}
+
+void Game::addNpc(Npc* npc)
+{
+	npcs[npc->getID()] = npc;
+}
+
+void Game::removeNpc(Npc* npc)
+{
+	npcs.erase(npc->getID());
+}
+
+void Game::addMonster(Monster* monster)
+{
+	monsters[monster->getID()] = monster;
+}
+
+void Game::removeMonster(Monster* monster)
+{
+	monsters.erase(monster->getID());
 }

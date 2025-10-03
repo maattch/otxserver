@@ -18,8 +18,8 @@
 #pragma once
 
 #include "baseevents.h"
+#include "const.h"
 #include "luascript.h"
-#include "thing.h"
 
 class Action;
 class Container;
@@ -33,11 +33,17 @@ enum ActionType_t
 	ACTION_RUNEID
 };
 
-class Actions : public BaseEvents
+using ActionUseMap = std::map<uint16_t, Action*>;
+
+class Actions final : public BaseEvents
 {
 public:
 	Actions();
-	virtual ~Actions();
+	~Actions();
+
+	// non-copyable
+	Actions(const Actions&) = delete;
+	Actions& operator=(const Actions&) = delete;
 
 	bool useItem(Player* player, const Position& pos, uint8_t index, Item* item);
 	bool useItemEx(Player* player, const Position& fromPos, const Position& toPos,
@@ -48,37 +54,30 @@ public:
 	ReturnValue canUseFar(const Creature* creature, const Position& toPos, bool checkLineOfSight);
 	bool hasAction(const Item* item) const { return getAction(item, ACTION_ANY) != nullptr; }
 
-protected:
-	Action* defaultAction;
+private:
+	std::string getScriptBaseName() const override { return "actions"; }
+	void clear() override;
 
-	virtual std::string getScriptBaseName() const { return "actions"; }
-	virtual void clear();
+	Event* getEvent(const std::string& nodeName) override;
+	bool registerEvent(Event* event, xmlNodePtr p, bool override) override;
 
-	virtual Event* getEvent(const std::string& nodeName);
-	virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+	bool executeUse(Action* action, Player* player, Item* item, const PositionEx& posEx, uint32_t creatureId);
+	ReturnValue internalUseItem(Player* player, const Position& pos, uint8_t index, Item* item, uint32_t creatureId);
+	bool executeUseEx(Action* action, Player* player, Item* item, const PositionEx& fromPosEx, const PositionEx& toPosEx, bool isHotkey, uint32_t creatureId);
+	ReturnValue internalUseItemEx(Player* player, const PositionEx& fromPosEx, const PositionEx& toPosEx, Item* item, bool isHotkey, uint32_t creatureId);
 
-	virtual LuaInterface& getInterface() { return m_interface; }
+	Action* getAction(const Item* item, ActionType_t type) const;
+	void clearMap(ActionUseMap& map);
+
+	LuaInterface& getInterface() override { return m_interface; }
+
 	LuaInterface m_interface;
 
-	void registerItemID(int32_t itemId, Event* event);
-	void registerActionID(int32_t actionId, Event* event);
-	void registerUniqueID(int32_t uniqueId, Event* event);
-
-	typedef std::map<uint16_t, Action*> ActionUseMap;
 	ActionUseMap useItemMap;
 	ActionUseMap uniqueItemMap;
 	ActionUseMap actionItemMap;
 
-	bool executeUse(Action* action, Player* player, Item* item, const PositionEx& posEx, uint32_t creatureId);
-	ReturnValue internalUseItem(Player* player, const Position& pos,
-		uint8_t index, Item* item, uint32_t creatureId);
-	bool executeUseEx(Action* action, Player* player, Item* item, const PositionEx& fromPosEx,
-		const PositionEx& toPosEx, bool isHotkey, uint32_t creatureId);
-	ReturnValue internalUseItemEx(Player* player, const PositionEx& fromPosEx, const PositionEx& toPosEx,
-		Item* item, bool isHotkey, uint32_t creatureId);
-
-	Action* getAction(const Item* item, ActionType_t type) const;
-	void clearMap(ActionUseMap& map);
+	Action* defaultAction;
 };
 
 class Action : public Event

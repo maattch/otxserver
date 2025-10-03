@@ -32,7 +32,6 @@
 #include "movement.h"
 #include "quests.h"
 #include "spectators.h"
-#include "town.h"
 #include "weapons.h"
 
 extern ConfigManager g_config;
@@ -43,7 +42,6 @@ extern Weapons* g_weapons;
 extern CreatureEvents* g_creatureEvents;
 
 uint32_t Player::playerAutoID = 0x10000000;
-AutoList<Player> Player::autoList;
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 uint32_t Player::playerCount = 0;
@@ -1586,9 +1584,9 @@ void Player::onCreatureAppear(const Creature* creature)
 
 	// update online status for players with ghost protection
 	IOLoginData::getInstance()->updateOnlineStatus(guid, true);
-	for (AutoList<Player>::iterator it = autoList.begin(); it != autoList.end(); ++it) {
-		if (it->second->canSeeCreature(this)) {
-			it->second->notifyLogIn(this);
+	for (const auto& it : g_game.getPlayers()) {
+		if (it.second->canSeeCreature(this)) {
+			it.second->notifyLogIn(this);
 		}
 	}
 
@@ -2759,25 +2757,25 @@ void Player::addDefaultRegeneration(uint32_t addTicks)
 	}
 }
 
+void Player::addList()
+{
+	g_game.addPlayer(this);
+}
+
 void Player::removeList()
 {
-	autoList.erase(id);
+	g_game.removePlayer(this);
 	if (!isGhost()) {
-		for (AutoList<Player>::iterator it = autoList.begin(); it != autoList.end(); ++it) {
-			it->second->notifyLogOut(this);
+		for (const auto& it : g_game.getPlayers()) {
+			it.second->notifyLogOut(this);
 		}
 	} else {
-		for (AutoList<Player>::iterator it = autoList.begin(); it != autoList.end(); ++it) {
-			if (it->second->canSeeCreature(this)) {
-				it->second->notifyLogOut(this);
+		for (const auto& it : g_game.getPlayers()) {
+			if (it.second->canSeeCreature(this)) {
+				it.second->notifyLogOut(this);
 			}
 		}
 	}
-}
-
-void Player::addList()
-{
-	autoList[id] = this;
 }
 
 void Player::kick(bool displayEffect, bool forceLogout)

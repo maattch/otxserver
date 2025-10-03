@@ -121,7 +121,7 @@ typedef std::map<uint32_t, War_t> WarMap;
 #define STAMINA_MAX (42 * 60 * 60 * 1000)
 #define STAMINA_MULTIPLIER (60 * 1000)
 
-class Player : public Creature, public Cylinder
+class Player final : public Creature, public Cylinder
 {
 public:
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
@@ -132,7 +132,8 @@ public:
 
 	virtual Player* getPlayer() { return this; }
 	virtual const Player* getPlayer() const { return this; }
-	virtual CreatureType_t getType() const { return CREATURETYPE_PLAYER; }
+
+	CreatureType_t getType() const override { return CREATURE_TYPE_PLAYER; }
 
 	void setID() override
 	{
@@ -157,12 +158,8 @@ public:
 	void setGUID(uint32_t _guid) { guid = _guid; }
 	uint32_t getGUID() const { return guid; }
 
-	static AutoList<Player> autoList;
-	virtual uint32_t rangeId() { return PLAYER_ID_RANGE; }
-	static bool sort(Player* lhs, Player* rhs) { return lhs->getName() < rhs->getName(); }
-
-	void addList();
-	void removeList();
+	void addList() override;
+	void removeList() override;
 
 	static uint64_t getExpForLevel(uint32_t lv)
 	{

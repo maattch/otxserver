@@ -168,49 +168,30 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	// Add char list
 	output->addByte(0x64);
 	if (account.name == "10" && account.name != "0") {
-		PlayerVector players;
-		for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-			if (!it->second->isRemoved() && it->second->client->isBroadcasting()) {
-				players.push_back(it->second);
+		std::vector<Player*> players;
+		for (const auto& it : g_game.getPlayers()) {
+			if (it.second->client->isBroadcasting()) {
+				players.push_back(it.second);
 			}
 		}
 
 		if (!players.size()) {
 			disconnectClient(0x0A, "There are no livestreams online right now.");
 		} else {
-			std::sort(players.begin(), players.end(), Player::sort);
+			// sort alphabetically
+			std::sort(players.begin(), players.end(), [](const Player* lhs, const Player* rhs) {
+				return lhs->getName() < rhs->getName();
+			});
+
 			output->addByte(players.size());
-			for (PlayerVector::iterator it = players.begin(); it != players.end(); ++it) {
-				char tVoc[3];
-				if ((*it)->getVocationId() == 1 || (*it)->getVocationId() == 5) {
-					sprintf(tVoc, "MS");
-				} else if ((*it)->getVocationId() == 2 || (*it)->getVocationId() == 6) {
-					sprintf(tVoc, "ED");
-				} else if ((*it)->getVocationId() == 3 || (*it)->getVocationId() == 7) {
-					sprintf(tVoc, "RP");
-				} else if ((*it)->getVocationId() == 4 || (*it)->getVocationId() == 8) {
-					sprintf(tVoc, "EK");
-				} else {
-					sprintf(tVoc, "*");
-				}
-
-				std::string viewersStr;
-				// change search DB by size();
-				viewersStr = std::to_string((*it)->client->list().size());
-
+			for (Player* player : players) {
 				std::ostringstream s;
-				s << "L.";
-				s << (*it)->getLevel();
-				s << " ";
-				s << tVoc;
-				s << " | ";
-				s << viewersStr;
-				s << "/50";
-				if (!(*it)->client->check(password)) {
+				s << "L." << player->getLevel() << " | " << player->client->list().size() << "/50";
+				if (!player->client->check(password)) {
 					s << " *";
 				}
 
-				output->addString((*it)->getName());
+				output->addString(player->getName());
 				output->addString(s.str());
 				output->add<uint32_t>(serverIp);
 

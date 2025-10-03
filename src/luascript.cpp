@@ -293,6 +293,10 @@ void ScriptEnviroment::insertThing(uint32_t uid, Thing* thing)
 
 Thing* ScriptEnviroment::getThingByUID(uint32_t uid)
 {
+	if (uid >= PLAYER_ID_RANGE) {
+		return g_game.getCreatureByID(uid);
+	}
+
 	Thing* tmp = m_localMap[uid];
 	if (tmp && !tmp->isRemoved()) {
 		return tmp;
@@ -302,17 +306,7 @@ Thing* ScriptEnviroment::getThingByUID(uint32_t uid)
 	if (tmp && !tmp->isRemoved()) {
 		return tmp;
 	}
-
-	if (uid < PLAYER_ID_RANGE) {
-		return nullptr;
-	}
-
-	if (!(tmp = g_game.getCreatureByID(uid)) || tmp->isRemoved()) {
-		return nullptr;
-	}
-
-	m_localMap[uid] = tmp;
-	return tmp;
+	return nullptr;
 }
 
 Item* ScriptEnviroment::getItemByUID(uint32_t uid)
@@ -7870,12 +7864,11 @@ int32_t LuaInterface::luaGetCreatureByName(lua_State* L)
 {
 	// getCreatureByName(name)
 	ScriptEnviroment* env = getEnv();
-	if (Creature* creature = g_game.getCreatureByName(popString(L))) {
+	if (Creature* creature = g_game.getCreatureByName(popString(L), CREATURE_TYPE_UNDEFINED)) {
 		lua_pushnumber(L, env->addThing(creature));
 	} else {
 		lua_pushnil(L);
 	}
-
 	return 1;
 }
 
@@ -7897,12 +7890,11 @@ int32_t LuaInterface::luaGetPlayerByGUID(lua_State* L)
 {
 	// getPlayerByGUID(guid)
 	ScriptEnviroment* env = getEnv();
-	if (Player* player = g_game.getPlayerByGuid(popNumber(L))) {
+	if (Player* player = g_game.getPlayerByGUID(popNumber(L))) {
 		lua_pushnumber(L, env->addThing(player));
 	} else {
 		lua_pushnil(L);
 	}
-
 	return 1;
 }
 
@@ -9579,15 +9571,14 @@ int32_t LuaInterface::luaGetPlayersOnline(lua_State* L)
 {
 	// getPlayersOnline()
 	ScriptEnviroment* env = getEnv();
-	AutoList<Player>::iterator it = Player::autoList.begin();
+	const auto& players = g_game.getPlayers();
+	lua_createtable(L, players.size(), 0);
 
-	lua_newtable(L);
-	for (int32_t i = 1; it != Player::autoList.end(); ++it, ++i) {
-		lua_pushnumber(L, i);
-		lua_pushnumber(L, env->addThing(it->second));
-		pushTable(L);
+	int index = 0;
+	for (const auto& it : players) {
+		lua_pushnumber(L, env->addThing(it.second));
+		lua_rawseti(L, -2, ++index);
 	}
-
 	return 1;
 }
 
@@ -11105,14 +11096,14 @@ int32_t LuaInterface::luaDoGuildAddEnemy(lua_State* L)
 	war.war = popNumber(L);
 
 	uint32_t enemy = popNumber(L), guild = popNumber(L), count = 0;
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (it->second->isRemoved() || it->second->getGuildId() != guild) {
+	for (const auto& it : g_game.getPlayers()) {
+		if (it.second->isRemoved() || it.second->getGuildId() != guild) {
 			continue;
 		}
 
 		++count;
-		it->second->addEnemy(enemy, war);
-		g_game.updateCreatureEmblem(it->second);
+		it.second->addEnemy(enemy, war);
+		g_game.updateCreatureEmblem(it.second);
 	}
 
 	lua_pushnumber(L, count);
@@ -11123,14 +11114,14 @@ int32_t LuaInterface::luaDoGuildRemoveEnemy(lua_State* L)
 {
 	// doGuildRemoveEnemy(guild, enemy)
 	uint32_t enemy = popNumber(L), guild = popNumber(L), count = 0;
-	for (AutoList<Player>::iterator it = Player::autoList.begin(); it != Player::autoList.end(); ++it) {
-		if (it->second->isRemoved() || it->second->getGuildId() != guild) {
+	for (const auto& it : g_game.getPlayers()) {
+		if (it.second->isRemoved() || it.second->getGuildId() != guild) {
 			continue;
 		}
 
 		++count;
-		it->second->removeEnemy(enemy);
-		g_game.updateCreatureEmblem(it->second);
+		it.second->removeEnemy(enemy);
+		g_game.updateCreatureEmblem(it.second);
 	}
 
 	lua_pushnumber(L, count);

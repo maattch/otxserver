@@ -20,10 +20,6 @@
 #include <string>
 #include <list>
 
-#define PLAYER_ID_RANGE 0x10000000
-#define MONSTER_ID_RANGE 0x40000000
-#define NPC_ID_RANGE 0x80000000
-
 enum Vocation_t
 {
 	VOCATION_NONE = 0,
@@ -59,13 +55,6 @@ enum gain_t
 	GAIN_MANA = 1,
 	GAIN_SOUL = 2,
 	GAIN_LAST = GAIN_SOUL
-};
-
-enum CreatureType_t
-{
-	CREATURETYPE_PLAYER = 0,
-	CREATURETYPE_MONSTER = 1,
-	CREATURETYPE_NPC = 2
 };
 
 enum GuildLevel_t

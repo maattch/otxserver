@@ -22,7 +22,6 @@
 #include "creatureevent.h"
 #include "enums.h"
 #include "map.h"
-#include "templates.h"
 
 #include <boost/any.hpp>
 
@@ -150,7 +149,7 @@ protected:
 	Position targetPos;
 };
 
-class Creature : public AutoId, virtual public Thing
+class Creature : virtual public Thing
 {
 protected:
 	Creature();
@@ -166,7 +165,8 @@ public:
 	virtual const Npc* getNpc() const { return nullptr; }
 	virtual Monster* getMonster() { return nullptr; }
 	virtual const Monster* getMonster() const { return nullptr; }
-	virtual CreatureType_t getType() const = 0;
+
+	virtual CreatureType_t getType() const { return CREATURE_TYPE_UNDEFINED; }
 
 	virtual const std::string& getName() const = 0;
 	virtual const std::string& getNameDescription() const = 0;
@@ -178,7 +178,6 @@ public:
 	void setRemoved() { removed = true; }
 	virtual bool isRemoved() const { return removed; }
 
-	virtual uint32_t rangeId() = 0;
 	virtual void removeList() = 0;
 	virtual void addList() = 0;
 
@@ -401,7 +400,6 @@ public:
 	virtual void onCreatureConvinced(const Creature*, const Creature*) {}
 	virtual void onCreatureChangeVisible(const Creature*, Visible_t) {}
 	virtual void onPlacedCreature() {}
-	virtual void onRemovedCreature();
 
 	virtual WeaponType_t getWeaponType() { return WEAPON_NONE; }
 	virtual bool getCombatValues(int32_t&, int32_t&) { return false; }

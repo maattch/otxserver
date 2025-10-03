@@ -70,6 +70,7 @@
     <ClCompile Include="..\src\vocation.cpp" />
     <ClCompile Include="..\src\waitlist.cpp" />
     <ClCompile Include="..\src\weapons.cpp" />
+    <ClCompile Include="..\src\wildcardtree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\account.h" />
@@ -138,7 +139,6 @@
     <ClInclude Include="..\src\status.h" />
     <ClInclude Include="..\src\talkaction.h" />
     <ClInclude Include="..\src\teleport.h" />
-    <ClInclude Include="..\src\templates.h" />
     <ClInclude Include="..\src\textlogger.h" />
     <ClInclude Include="..\src\thing.h" />
     <ClInclude Include="..\src\tile.h" />
@@ -153,6 +153,7 @@
       <Filter>otx</Filter>
     </ClInclude>
     <ClInclude Include="..\src\thread_holder_base.h" />
+    <ClInclude Include="..\src\wildcardtree.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OTXServer.rc" />
