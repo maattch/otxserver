@@ -19,6 +19,7 @@
 
 // definitions must be called first
 #include "definitions.h"
+#include "config.h"
 
 // STD
 #include <algorithm>

@@ -784,7 +784,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 		} else if (tmpStrValue == "shoottype") {
 			if (readXMLString(itemAttributesNode, "value", strValue)) {
 				ShootEffect_t shoot = getShootType(strValue);
-				if (shoot != SHOOT_EFFECT_UNKNOWN) {
+				if (shoot != SHOOT_EFFECT_NONE) {
 					it.shootType = shoot;
 				} else {
 					std::clog << "[Warning - Items::loadFromXml] Unknown shootType " << strValue << std::endl;
@@ -793,7 +793,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 		} else if (tmpStrValue == "effect") {
 			if (readXMLString(itemAttributesNode, "value", strValue)) {
 				MagicEffect_t effect = getMagicEffect(strValue);
-				if (effect != MAGIC_EFFECT_UNKNOWN) {
+				if (effect != MAGIC_EFFECT_NONE) {
 					it.magicEffect = effect;
 				} else {
 					std::clog << "[Warning - Items::loadFromXml] Unknown effect " << strValue << std::endl;

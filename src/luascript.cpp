@@ -3922,7 +3922,7 @@ int32_t LuaInterface::luaDoCreatureAddHealth(lua_State* L)
 		hitColor = (Color_t)popNumber(L);
 	}
 
-	MagicEffect_t hitEffect = MAGIC_EFFECT_UNKNOWN;
+	MagicEffect_t hitEffect = MAGIC_EFFECT_NONE;
 	if (params > 2) {
 		hitEffect = (MagicEffect_t)popNumber(L);
 	}

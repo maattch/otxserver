@@ -218,7 +218,6 @@ private:
 		owner->sendFYIBox(message);
 	}
 
-#ifdef __EXTENDED_DISTANCE_SHOOT__
 	void sendDistanceShoot(const Position& from, const Position& to, uint16_t type)
 	{
 		if (!owner) {
@@ -230,21 +229,7 @@ private:
 			it->first->sendDistanceShoot(from, to, type);
 		}
 	}
-#else
-	void sendDistanceShoot(const Position& from, const Position& to, uint8_t type)
-	{
-		if (!owner) {
-			return;
-		}
 
-		owner->sendDistanceShoot(from, to, type);
-		for (SpectatorList::iterator it = spectators.begin(); it != spectators.end(); ++it) {
-			it->first->sendDistanceShoot(from, to, type);
-		}
-	}
-#endif
-
-#ifdef __EXTENDED_MAGIC_EFFECTS__
 	void sendMagicEffect(const Position& pos, uint16_t type)
 	{
 		if (!owner) {
@@ -256,19 +241,6 @@ private:
 			it->first->sendMagicEffect(pos, type);
 		}
 	}
-#else
-	void sendMagicEffect(const Position& pos, uint8_t type)
-	{
-		if (!owner) {
-			return;
-		}
-
-		owner->sendMagicEffect(pos, type);
-		for (SpectatorList::iterator it = spectators.begin(); it != spectators.end(); ++it) {
-			it->first->sendMagicEffect(pos, type);
-		}
-	}
-#endif
 
 	void sendAnimatedText(const Position& pos, uint8_t color, const std::string& text)
 	{

@@ -5027,7 +5027,7 @@ bool Game::combatBlockHit(const CombatType_t& combatType, Creature* attacker, Cr
 }
 
 bool Game::combatChangeHealth(const CombatType_t& combatType, Creature* attacker, Creature* target, int32_t healthChange,
-	const MagicEffect_t& hitEffect /* = MAGIC_EFFECT_UNKNOWN*/, const Color_t& hitColor /* = COLOR_UNKNOWN*/, const bool force /* = false*/)
+	const MagicEffect_t& hitEffect /* = MAGIC_EFFECT_NONE*/, const Color_t& hitColor /* = COLOR_UNKNOWN*/, const bool force /* = false*/)
 {
 	CombatParams params;
 	params.effects.hit = hitEffect;
@@ -5223,7 +5223,7 @@ bool Game::combatChangeHealth(const CombatParams& params, Creature* attacker, Cr
 					getCombatDetails(params.combatType, magicEffect, textColor);
 				}
 
-				if (params.effects.hit != MAGIC_EFFECT_UNKNOWN) {
+				if (params.effects.hit != MAGIC_EFFECT_NONE) {
 					magicEffect = params.effects.hit;
 				}
 
@@ -5540,7 +5540,7 @@ void Game::addAnimatedText(const SpectatorVec& list, const Position& pos, const 
 		}
 	}
 }
-#ifdef __EXTENDED_MAGIC_EFFECTS__
+
 void Game::addMagicEffect(const Position& pos, const uint16_t effect, bool ghostMode /* = false*/)
 {
 	if (ghostMode) {
@@ -5566,35 +5566,7 @@ void Game::addMagicEffect(const SpectatorVec& list, const Position& pos, const u
 		}
 	}
 }
-#else
-void Game::addMagicEffect(const Position& pos, const uint8_t effect, bool ghostMode /* = false*/)
-{
-	if (ghostMode) {
-		return;
-	}
 
-	SpectatorVec list;
-	map->getSpectators(list, pos, true, true);
-	addMagicEffect(list, pos, effect);
-}
-
-void Game::addMagicEffect(const SpectatorVec& list, const Position& pos, const uint8_t effect,
-	bool ghostMode /* = false*/)
-{
-	if (ghostMode) {
-		return;
-	}
-
-	Player* player = nullptr;
-	for (SpectatorVec::const_iterator it = list.begin(); it != list.end(); ++it) {
-		if ((player = (*it)->getPlayer())) {
-			player->sendMagicEffect(pos, effect);
-		}
-	}
-}
-#endif
-
-#ifdef __EXTENDED_DISTANCE_SHOOT__
 void Game::addDistanceEffect(const Position& fromPos, const Position& toPos, const uint16_t effect)
 {
 	SpectatorVec list;
@@ -5613,26 +5585,6 @@ void Game::addDistanceEffect(const SpectatorVec& list, const Position& fromPos,
 		}
 	}
 }
-#else
-void Game::addDistanceEffect(const Position& fromPos, const Position& toPos, const uint8_t effect)
-{
-	SpectatorVec list;
-	getSpectators(list, fromPos, false, true);
-	getSpectators(list, toPos, false, true);
-	addDistanceEffect(list, fromPos, toPos, effect);
-}
-
-void Game::addDistanceEffect(const SpectatorVec& list, const Position& fromPos,
-	const Position& toPos, const uint8_t effect)
-{
-	Player* player = nullptr;
-	for (SpectatorVec::const_iterator it = list.begin(); it != list.end(); ++it) {
-		if ((player = (*it)->getPlayer())) {
-			player->sendDistanceShoot(fromPos, toPos, effect);
-		}
-	}
-}
-#endif
 
 void Game::addStatsMessage(const SpectatorVec& list, const MessageClasses& mClass, const std::string& message,
 	const Position& pos, MessageDetails* details /* = nullptr*/)

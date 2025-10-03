@@ -34,7 +34,7 @@ struct CombatEffects
 		color = COLOR_UNKNOWN;
 		distance = SHOOT_EFFECT_NONE;
 		impact = MAGIC_EFFECT_NONE;
-		hit = MAGIC_EFFECT_UNKNOWN;
+		hit = MAGIC_EFFECT_NONE;
 	}
 
 	CombatEffects()
@@ -42,7 +42,7 @@ struct CombatEffects
 		color = COLOR_UNKNOWN;
 		distance = SHOOT_EFFECT_NONE;
 		impact = MAGIC_EFFECT_NONE;
-		hit = MAGIC_EFFECT_UNKNOWN;
+		hit = MAGIC_EFFECT_NONE;
 		show = true;
 	}
 

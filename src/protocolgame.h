@@ -217,17 +217,8 @@ private:
 	void sendIcons(int32_t icons);
 	void sendFYIBox(const std::string& message);
 
-#ifdef __EXTENDED_DISTANCE_SHOOT__
 	void sendDistanceShoot(const Position& from, const Position& to, uint16_t type);
-#else
-	void sendDistanceShoot(const Position& from, const Position& to, uint8_t type);
-#endif
-
-#ifdef __EXTENDED_MAGIC_EFFECTS__
 	void sendMagicEffect(const Position& pos, uint16_t type);
-#else
-	void sendMagicEffect(const Position& pos, uint8_t type);
-#endif
 
 	void sendAnimatedText(const Position& pos, uint8_t color, std::string text);
 	void sendCreatureHealth(const Creature* creature);
@@ -324,22 +315,11 @@ private:
 		int32_t width, int32_t height, OutputMessage_ptr msg);
 
 	void AddMapDescription(OutputMessage_ptr msg, const Position& pos);
-	void AddTextMessage(MessageClasses mclass, const std::string& message,
-		Position* pos = nullptr, MessageDetails* details = nullptr);
-	void AddAnimatedText(OutputMessage_ptr msg, const Position& pos,
-		uint8_t color, const std::string& text);
+	void AddTextMessage(MessageClasses mclass, const std::string& message, Position* pos = nullptr, MessageDetails* details = nullptr);
+	void AddAnimatedText(OutputMessage_ptr msg, const Position& pos, uint8_t color, const std::string& text);
 
-#ifdef __EXTENDED_MAGIC_EFFECTS__
 	void AddMagicEffect(OutputMessage_ptr msg, const Position& pos, uint16_t type);
-#else
-	void AddMagicEffect(OutputMessage_ptr msg, const Position& pos, uint8_t type);
-#endif
-
-#ifdef __EXTENDED_DISTANCE_SHOOT__
 	void AddDistanceShoot(OutputMessage_ptr msg, const Position& from, const Position& to, uint16_t type);
-#else
-	void AddDistanceShoot(OutputMessage_ptr msg, const Position& from, const Position& to, uint8_t type);
-#endif
 
 	void AddCreature(OutputMessage_ptr msg, const Creature* creature, bool known, uint32_t remove);
 	void AddPlayerStats(OutputMessage_ptr msg);

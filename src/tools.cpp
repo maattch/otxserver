@@ -1203,8 +1203,7 @@ MagicEffect_t getMagicEffect(const std::string& strValue)
 			return magicEffectNames[i].magicEffect;
 		}
 	}
-
-	return MAGIC_EFFECT_UNKNOWN;
+	return MAGIC_EFFECT_NONE;
 }
 
 ShootEffect_t getShootType(const std::string& strValue)
@@ -1214,8 +1213,7 @@ ShootEffect_t getShootType(const std::string& strValue)
 			return shootTypeNames[i].shootType;
 		}
 	}
-
-	return SHOOT_EFFECT_UNKNOWN;
+	return SHOOT_EFFECT_NONE;
 }
 
 CombatType_t getCombatType(const std::string& strValue)

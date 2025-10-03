@@ -621,7 +621,7 @@ public:
 		int32_t& healthChange, const bool checkDefense, const bool checkArmor, const bool field = false, const bool element = false);
 
 	bool combatChangeHealth(const CombatType_t& combatType, Creature* attacker, Creature* target, int32_t healthChange,
-		const MagicEffect_t& hitEffect = MAGIC_EFFECT_UNKNOWN, const Color_t& hitColor = COLOR_UNKNOWN, const bool force = false);
+		const MagicEffect_t& hitEffect = MAGIC_EFFECT_NONE, const Color_t& hitColor = COLOR_UNKNOWN, const bool force = false);
 	bool combatChangeHealth(const CombatParams& params, Creature* attacker, Creature* target, int32_t healthChange, const bool force);
 	bool combatChangeMana(Creature* attacker, Creature* target, int32_t manaChange,
 		const CombatType_t& combatType = COMBAT_MANADRAIN, const bool inherited = false);
@@ -635,21 +635,11 @@ public:
 	void addAnimatedText(const Position& pos, const uint8_t textColor, const std::string& text);
 	void addAnimatedText(const SpectatorVec& list, const Position& pos, const uint8_t textColor, const std::string& text);
 
-#ifdef __EXTENDED_MAGIC_EFFECTS__
 	void addMagicEffect(const Position& pos, const uint16_t effect, bool ghostMode = false);
 	void addMagicEffect(const SpectatorVec& list, const Position& pos, const uint16_t effect, bool ghostMode = false);
-#else
-	void addMagicEffect(const Position& pos, const uint8_t effect, bool ghostMode = false);
-	void addMagicEffect(const SpectatorVec& list, const Position& pos, const uint8_t effect, bool ghostMode = false);
-#endif
 
-#ifdef __EXTENDED_DISTANCE_SHOOT__
 	void addDistanceEffect(const SpectatorVec& list, const Position& fromPos, const Position& toPos, const uint16_t effect);
 	void addDistanceEffect(const Position& fromPos, const Position& toPos, const uint16_t effect);
-#else
-	void addDistanceEffect(const SpectatorVec& list, const Position& fromPos, const Position& toPos, const uint8_t effect);
-	void addDistanceEffect(const Position& fromPos, const Position& toPos, const uint8_t effect);
-#endif
 
 	void addStatsMessage(const SpectatorVec& list, const MessageClasses& mClass, const std::string& message,
 		const Position& pos, MessageDetails* details = nullptr);

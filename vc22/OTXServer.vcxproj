@@ -229,6 +229,7 @@
     <ClInclude Include="..\src\chat.h" />
     <ClInclude Include="..\src\combat.h" />
     <ClInclude Include="..\src\condition.h" />
+    <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\configmanager.h" />
     <ClInclude Include="..\src\connection.h" />
     <ClInclude Include="..\src\const.h" />

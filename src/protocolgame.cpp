@@ -2458,10 +2458,9 @@ void ProtocolGame::sendPing()
 	msg->addByte(0x1E);
 }
 
-#ifdef __EXTENDED_DISTANCE_SHOOT__
 void ProtocolGame::sendDistanceShoot(const Position& from, const Position& to, uint16_t type)
 {
-	if (type > SHOOT_EFFECT_LAST || (!canSee(from) && !canSee(to))) {
+	if (type == SHOOT_EFFECT_NONE || (!canSee(from) && !canSee(to))) {
 		return;
 	}
 
@@ -2472,26 +2471,10 @@ void ProtocolGame::sendDistanceShoot(const Position& from, const Position& to, u
 
 	AddDistanceShoot(msg, from, to, type);
 }
-#else
-void ProtocolGame::sendDistanceShoot(const Position& from, const Position& to, uint8_t type)
-{
-	if (type > SHOOT_EFFECT_LAST || (!canSee(from) && !canSee(to))) {
-		return;
-	}
 
-	OutputMessage_ptr msg = getOutputBuffer();
-	if (!msg) {
-		return;
-	}
-
-	AddDistanceShoot(msg, from, to, type);
-}
-#endif
-
-#ifdef __EXTENDED_MAGIC_EFFECTS__
 void ProtocolGame::sendMagicEffect(const Position& pos, uint16_t type)
 {
-	if (type > MAGIC_EFFECT_LAST || !canSee(pos)) {
+	if (type == MAGIC_EFFECT_NONE || !canSee(pos)) {
 		return;
 	}
 
@@ -2502,21 +2485,6 @@ void ProtocolGame::sendMagicEffect(const Position& pos, uint16_t type)
 
 	AddMagicEffect(msg, pos, type);
 }
-#else
-void ProtocolGame::sendMagicEffect(const Position& pos, uint8_t type)
-{
-	if (type > MAGIC_EFFECT_LAST || !canSee(pos)) {
-		return;
-	}
-
-	OutputMessage_ptr msg = getOutputBuffer();
-	if (!msg) {
-		return;
-	}
-
-	AddMagicEffect(msg, pos, type);
-}
-#endif
 
 void ProtocolGame::sendAnimatedText(const Position& pos, uint8_t color, std::string text)
 {
@@ -3166,41 +3134,29 @@ void ProtocolGame::AddAnimatedText(OutputMessage_ptr msg, const Position& pos,
 	msg->addString(text);
 }
 
-#ifdef __EXTENDED_MAGIC_EFFECTS__
 void ProtocolGame::AddMagicEffect(OutputMessage_ptr msg, const Position& pos, uint16_t type)
 {
 	msg->addByte(0x83);
 	msg->addPosition(pos);
+#if FEATURE_EXTENDED_EFFECTS > 0
 	msg->add<uint16_t>(type + 1);
-}
 #else
-void ProtocolGame::AddMagicEffect(OutputMessage_ptr msg, const Position& pos, uint8_t type)
-{
-	msg->addByte(0x83);
-	msg->addPosition(pos);
 	msg->addByte(type + 1);
-}
 #endif
+}
 
-#ifdef __EXTENDED_DISTANCE_SHOOT__
 void ProtocolGame::AddDistanceShoot(OutputMessage_ptr msg, const Position& from, const Position& to,
 	uint16_t type)
 {
 	msg->addByte(0x85);
 	msg->addPosition(from);
 	msg->addPosition(to);
+#if FEATURE_EXTENDED_DISTANCE_EFFECTS > 0
 	msg->add<uint16_t>(type + 1);
-}
 #else
-void ProtocolGame::AddDistanceShoot(OutputMessage_ptr msg, const Position& from, const Position& to,
-	uint8_t type)
-{
-	msg->addByte(0x85);
-	msg->addPosition(from);
-	msg->addPosition(to);
 	msg->addByte(type + 1);
-}
 #endif
+}
 
 void ProtocolGame::AddCreature(OutputMessage_ptr msg, const Creature* creature, bool known, uint32_t remove)
 {
