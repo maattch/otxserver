@@ -108,17 +108,17 @@ bool Map::updateAuctions()
 Tile* Map::getTile(int32_t x, int32_t y, int32_t z) const
 {
 	if (x < 0 || x > 0xFFFF || y < 0 || y > 0xFFFF || z < 0 || z >= MAP_MAX_LAYERS) {
-		return NULL;
+		return nullptr;
 	}
 
 	const QTreeLeafNode* leaf = QTreeNode::getLeafStatic<const QTreeLeafNode*, const QTreeNode*>(&root, x, y);
 	if (!leaf) {
-		return NULL;
+		return nullptr;
 	}
 
 	const Floor* floor = leaf->getFloor(z);
 	if (!floor) {
-		return NULL;
+		return nullptr;
 	}
 
 	return floor->tiles[x & FLOOR_MASK][y & FLOOR_MASK];
@@ -253,7 +253,7 @@ bool Map::placeCreature(const Position& centerPos, Creature* creature, bool exte
 	int32_t index = 0;
 	uint32_t flags = 0;
 
-	Item* toItem = NULL;
+	Item* toItem = nullptr;
 	if (Cylinder* toCylinder = tile->__queryDestination(index, creature, &toItem, flags)) {
 		toCylinder->__internalAddThing(creature);
 		if (Tile* toTile = toCylinder->getTile()) {
@@ -585,7 +585,7 @@ const Tile* Map::canWalkTo(const Creature* creature, const Position& pos)
 {
 	switch (creature->getWalkCache(pos)) {
 		case 0:
-			return NULL;
+			return nullptr;
 		case 1:
 			return getTile(pos);
 		default:
@@ -595,14 +595,14 @@ const Tile* Map::canWalkTo(const Creature* creature, const Position& pos)
 	// used for none-cached tiles
 	Tile* tile = getTile(pos);
 	if (creature->getTile() != tile && (!tile || tile->__queryAdd(0, creature, 1, FLAG_PATHFINDING | FLAG_IGNOREFIELDDAMAGE) != RET_NOERROR)) {
-		return NULL;
+		return nullptr;
 	}
 
 	return tile;
 }
 
 bool Map::getPathTo(const Creature* creature, const Position& destPos,
-	std::list<Direction>& listDir, int32_t maxSearchDist /*= -1*/)
+	std::vector<Direction>& listDir, int32_t maxSearchDist /*= -1*/)
 {
 	FindPathParams fpp;
 	fpp.maxSearchDist = maxSearchDist;
@@ -610,7 +610,7 @@ bool Map::getPathTo(const Creature* creature, const Position& destPos,
 	return !listDir.empty();
 }
 
-bool Map::getPathMatching(const Creature* creature, std::list<Direction>& dirList,
+bool Map::getPathMatching(const Creature* creature, std::vector<Direction>& dirList,
 	const FrozenPathingConditionCall& pathCondition, const FindPathParams& fpp)
 {
 	dirList.clear();
@@ -638,7 +638,7 @@ bool Map::getPathMatching(const Creature* creature, std::list<Direction>& dirLis
 
 	const Position startPos = pos;
 
-	AStarNode* found = NULL;
+	AStarNode* found = nullptr;
 	while (fpp.maxSearchDist != -1 || nodes.getClosedNodes() < fpp.maxClosedNodes) {
 		AStarNode* n = nodes.getBestNode();
 		if (!n) {
@@ -766,21 +766,21 @@ bool Map::getPathMatching(const Creature* creature, std::list<Direction>& dirLis
 		prevy = pos.y;
 
 		if (dx == 1 && dy == 1) {
-			dirList.push_front(NORTHWEST);
+			dirList.push_back(NORTHWEST);
 		} else if (dx == -1 && dy == 1) {
-			dirList.push_front(NORTHEAST);
+			dirList.push_back(NORTHEAST);
 		} else if (dx == 1 && dy == -1) {
-			dirList.push_front(SOUTHWEST);
+			dirList.push_back(SOUTHWEST);
 		} else if (dx == -1 && dy == -1) {
-			dirList.push_front(SOUTHEAST);
+			dirList.push_back(SOUTHEAST);
 		} else if (dx == 1) {
-			dirList.push_front(WEST);
+			dirList.push_back(WEST);
 		} else if (dx == -1) {
-			dirList.push_front(EAST);
+			dirList.push_back(EAST);
 		} else if (dy == 1) {
-			dirList.push_front(NORTH);
+			dirList.push_back(NORTH);
 		} else if (dy == -1) {
-			dirList.push_front(SOUTH);
+			dirList.push_back(SOUTH);
 		}
 
 		found = found->parent;
@@ -925,7 +925,7 @@ QTreeNode::QTreeNode()
 {
 	m_isLeaf = false;
 	for (int32_t i = 0; i < 4; ++i) {
-		m_child[i] = NULL;
+		m_child[i] = nullptr;
 	}
 }
 
@@ -947,7 +947,7 @@ QTreeLeafNode* QTreeNode::getLeaf(uint16_t x, uint16_t y)
 		return m_child[index]->getLeaf(x << 1, y << 1);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 QTreeLeafNode* QTreeNode::createLeaf(uint16_t x, uint16_t y, uint16_t level)
@@ -995,12 +995,12 @@ bool QTreeLeafNode::newLeaf = false;
 QTreeLeafNode::QTreeLeafNode()
 {
 	for (int32_t i = 0; i < MAP_MAX_LAYERS; ++i) {
-		m_array[i] = NULL;
+		m_array[i] = nullptr;
 	}
 
 	m_isLeaf = true;
-	m_leafS = NULL;
-	m_leafE = NULL;
+	m_leafS = nullptr;
+	m_leafE = nullptr;
 }
 
 QTreeLeafNode::~QTreeLeafNode()

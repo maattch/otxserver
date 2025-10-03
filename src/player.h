@@ -234,14 +234,14 @@ public:
 			group->setFlags(flags);
 		}
 	}
-	bool hasFlag(PlayerFlags value) const { return group != NULL && group->hasFlag(value); }
+	bool hasFlag(PlayerFlags value) const { return group != nullptr && group->hasFlag(value); }
 	void setCustomFlags(uint64_t flags)
 	{
 		if (group) {
 			group->setCustomFlags(flags);
 		}
 	}
-	bool hasCustomFlag(PlayerCustomFlags value) const { return group != NULL && group->hasCustomFlag(value); }
+	bool hasCustomFlag(PlayerCustomFlags value) const { return group != nullptr && group->hasCustomFlag(value); }
 
 	void addBlessing(int16_t blessing) { blessings += blessing; }
 	bool hasBlessing(int16_t blessing) const { return ((blessings & ((int16_t)1 << blessing)) != 0); }
@@ -255,13 +255,13 @@ public:
 	uint32_t getClientVersion() const { return clientVersion; }
 	void setClientVersion(uint32_t version) { clientVersion = version; }
 
-	bool hasClient() const { return (client->getOwner() != NULL); }
+	bool hasClient() const { return (client->getOwner() != nullptr); }
 	ProtocolGame_ptr getClient() const
 	{
 		if (client) {
 			return client->getOwner();
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	bool isVirtual() const { return (getID() == 0); }
@@ -296,7 +296,7 @@ public:
 	void setIdleTime(uint32_t amount) { idleTime = amount; }
 
 	bool checkLoginDelay() const;
-	bool isTrading() const { return (tradePartner != NULL); }
+	bool isTrading() const { return (tradePartner != nullptr); }
 
 	uint32_t getAccount() const { return accountId; }
 	std::string getAccountName() const { return account; }
@@ -634,7 +634,7 @@ public:
 			client->sendCreatureTurn(creature, creature->getTile()->getClientIndexOfThing(this, creature));
 		}
 	}
-	void sendCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* pos = NULL, uint32_t statementId = 0, bool fakeChat = false)
+	void sendCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* pos = nullptr, uint32_t statementId = 0, bool fakeChat = false)
 	{
 		if (client) {
 			client->sendCreatureSay(creature, type, text, pos, statementId, fakeChat);
@@ -744,8 +744,8 @@ public:
 	virtual Position getPosition() const { return Creature::getPosition(); }
 	virtual Tile* getTile() { return Creature::getTile(); }
 	virtual const Tile* getTile() const { return Creature::getTile(); }
-	virtual Item* getItem() { return NULL; }
-	virtual const Item* getItem() const { return NULL; }
+	virtual Item* getItem() { return nullptr; }
+	virtual const Item* getItem() const { return nullptr; }
 	virtual Creature* getCreature() { return this; }
 	virtual const Creature* getCreature() const { return this; }
 
@@ -892,7 +892,7 @@ public:
 			client->sendTextMessage(type, message);
 		}
 	}
-	void sendStatsMessage(MessageClasses type, const std::string& message, Position pos, MessageDetails* details = NULL) const
+	void sendStatsMessage(MessageClasses type, const std::string& message, Position pos, MessageDetails* details = nullptr) const
 	{
 		if (client) {
 			client->sendStatsMessage(type, message, pos, details);
@@ -1135,7 +1135,6 @@ protected:
 	}
 
 	void setNextWalkActionTask(SchedulerTaskPtr task);
-	void setNextWalkTask(SchedulerTaskPtr task);
 	void setNextActionTask(SchedulerTaskPtr task);
 
 	virtual bool onDeath();
@@ -1146,10 +1145,10 @@ protected:
 
 	// cylinder implementations
 	virtual ReturnValue __queryAdd(int32_t index, const Thing* thing, uint32_t count,
-		uint32_t flags, Creature* actor = NULL) const;
+		uint32_t flags, Creature* actor = nullptr) const;
 	virtual ReturnValue __queryMaxCount(int32_t index, const Thing* thing, uint32_t count, uint32_t& maxQueryCount,
 		uint32_t flags) const;
-	virtual ReturnValue __queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor = NULL) const;
+	virtual ReturnValue __queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor = nullptr) const;
 	virtual Cylinder* __queryDestination(int32_t& index, const Thing* thing, Item** destItem,
 		uint32_t& flags);
 
@@ -1254,7 +1253,6 @@ private:
 	uint32_t damageImmunities;
 	uint32_t conditionImmunities;
 	uint32_t conditionSuppressions;
-	uint32_t nextStepEvent;
 	uint32_t actionTaskEvent;
 	uint32_t walkTaskEvent;
 	uint32_t lossPercent[LOSS_LAST + 1];

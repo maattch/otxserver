@@ -87,7 +87,7 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 		newOutfit.isPremium = booleanString(strValue);
 	}
 
-	for (xmlNodePtr listNode = p->children; listNode != NULL; listNode = listNode->next) {
+	for (xmlNodePtr listNode = p->children; listNode != nullptr; listNode = listNode->next) {
 		if (xmlStrcmp(listNode->name, (const xmlChar*)"list")) {
 			continue;
 		}
@@ -175,7 +175,7 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 			outfit.attackSpeed = intValue;
 		}
 
-		for (xmlNodePtr configNode = listNode->children; configNode != NULL; configNode = configNode->next) {
+		for (xmlNodePtr configNode = listNode->children; configNode != nullptr; configNode = configNode->next) {
 			if (!xmlStrcmp(configNode->name, (const xmlChar*)"reflect")) {
 				if (readXMLInteger(configNode, "percentAll", intValue)) {
 					for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {

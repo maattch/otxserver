@@ -82,8 +82,8 @@ public:
 	Door(uint16_t type) :
 		Item(type),
 		doorId(0),
-		house(NULL),
-		accessList(NULL) {}
+		house(nullptr),
+		accessList(nullptr) {}
 	virtual ~Door();
 
 	virtual Door* getDoor() { return this; }
@@ -209,7 +209,7 @@ public:
 	AccessHouseLevel_t getHouseAccessLevel(const Player* player);
 
 	bool kickPlayer(Player* player, Player* target);
-	void updateDoorDescription(std::string _name = "", Door* door = NULL);
+	void updateDoorDescription(std::string _name = "", Door* door = nullptr);
 	void clean();
 
 	void addDoor(Door* door);

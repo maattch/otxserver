@@ -38,9 +38,9 @@ extern CreatureEvents* g_creatureEvents;
 Creature::Creature()
 {
 	id = 0;
-	_tile = NULL;
+	_tile = nullptr;
 	direction = SOUTH;
-	master = NULL;
+	master = nullptr;
 	lootDrop = LOOT_DROP_FULL;
 	skillLoss = true;
 	hideName = hideHealth = cannotMove = false;
@@ -62,7 +62,7 @@ Creature::Creature()
 	masterRadius = -1;
 	masterPosition = Position();
 
-	followCreature = NULL;
+	followCreature = nullptr;
 	hasFollowPath = false;
 	removed = false;
 	eventWalk = 0;
@@ -73,7 +73,7 @@ Creature::Creature()
 	checked = false;
 	memset(localMapCache, false, sizeof(localMapCache));
 
-	attackedCreature = NULL;
+	attackedCreature = nullptr;
 	lastHitCreature = 0;
 	lastDamageSource = COMBAT_NONE;
 	blockCount = 0;
@@ -87,11 +87,11 @@ Creature::Creature()
 
 Creature::~Creature()
 {
-	attackedCreature = NULL;
+	attackedCreature = nullptr;
 	removeConditions(CONDITIONEND_CLEANUP, false);
 	for (std::list<Creature*>::iterator cit = summons.begin(); cit != summons.end(); ++cit) {
-		(*cit)->setAttackedCreature(NULL);
-		(*cit)->setMaster(NULL);
+		(*cit)->setAttackedCreature(nullptr);
+		(*cit)->setMaster(nullptr);
 		(*cit)->unRef();
 	}
 
@@ -237,7 +237,7 @@ void Creature::onAttacking(uint32_t interval)
 	}
 
 	if (deny) {
-		setAttackedCreature(NULL);
+		setAttackedCreature(nullptr);
 	}
 
 	if (!attackedCreature) {
@@ -283,7 +283,7 @@ void Creature::onWalk(Direction& dir)
 {
 	int32_t drunk = -1;
 	if (!isSuppress(CONDITION_DRUNK)) {
-		Condition* condition = NULL;
+		Condition* condition = nullptr;
 		for (ConditionList::const_iterator it = conditions.begin(); it != conditions.end(); ++it) {
 			if (!(condition = *it) || condition->getType() != CONDITION_DRUNK) {
 				continue;
@@ -326,17 +326,28 @@ bool Creature::getNextStep(Direction& dir, uint32_t&)
 		return false;
 	}
 
-	dir = listWalkDir.front();
-	listWalkDir.pop_front();
+	dir = listWalkDir.back();
+	listWalkDir.pop_back();
 	onWalk(dir);
 	return true;
 }
 
-bool Creature::startAutoWalk(const std::list<Direction>& listDir)
+void Creature::startAutoWalk()
+{
+	addEventWalk(listWalkDir.size() == 1);
+}
+
+void Creature::startAutoWalk(Direction dir)
+{
+	listWalkDir.clear();
+	listWalkDir.push_back(dir);
+	addEventWalk(true);
+}
+
+void Creature::startAutoWalk(const std::vector<Direction>& listDir)
 {
 	listWalkDir = listDir;
 	addEventWalk(listDir.size() == 1);
-	return true;
 }
 
 void Creature::addEventWalk(bool firstStep /* = false*/)
@@ -375,7 +386,7 @@ void Creature::updateMapCache()
 	const Position& pos = getPosition();
 	Position dest(0, 0, pos.z);
 
-	Tile* tile = NULL;
+	Tile* tile = nullptr;
 	for (int32_t y = -((mapWalkHeight - 1) / 2); y <= ((mapWalkHeight - 1) / 2); ++y) {
 		for (int32_t x = -((mapWalkWidth - 1) / 2); x <= ((mapWalkWidth - 1) / 2); ++x) {
 			dest.x = pos.x + x;
@@ -504,12 +515,12 @@ void Creature::onCreatureAppear(const Creature* creature)
 void Creature::internalCreatureDisappear(const Creature* creature, bool isLogout)
 {
 	if (attackedCreature == creature) {
-		setAttackedCreature(NULL);
+		setAttackedCreature(nullptr);
 		onTargetDisappear(isLogout);
 	}
 
 	if (followCreature == creature) {
-		setFollowCreature(NULL);
+		setFollowCreature(nullptr);
 		onFollowCreatureDisappear(isLogout);
 	}
 }
@@ -579,7 +590,7 @@ void Creature::onCreatureMove(const Creature* creature, const Tile* newTile, con
 		// update map cache
 		if (isMapLoaded) {
 			if (!teleport && oldPos.z == newPos.z) {
-				Tile* tile = NULL;
+				Tile* tile = nullptr;
 				const Position& myPos = getPosition();
 				if (oldPos.y > newPos.y) // north
 				{
@@ -721,7 +732,7 @@ bool Creature::onDeath()
 		size = limit;
 	}
 
-	Creature* tmp = NULL;
+	Creature* tmp = nullptr;
 	CreatureVector justifyVec;
 	for (DeathList::iterator it = deathList.begin(); it != deathList.end(); ++it, ++i) {
 		if (it->isNameKill()) {
@@ -746,7 +757,7 @@ bool Creature::onDeath()
 				justifyVec.push_back(tmp);
 			}
 
-			tmp = NULL;
+			tmp = nullptr;
 		}
 
 		if (!it->getKillerCreature()->onKilledCreature(this, (*it)) && it->isLast()) {
@@ -792,7 +803,7 @@ void Creature::dropCorpse(DeathList deathList)
 		return;
 	}
 
-	corpse->setParent(NULL);
+	corpse->setParent(nullptr);
 	if (deny) {
 		return;
 	}
@@ -802,7 +813,7 @@ void Creature::dropCorpse(DeathList deathList)
 		return;
 	}
 
-	Item* splash = NULL;
+	Item* splash = nullptr;
 	switch (getRace()) {
 		case RACE_VENOM:
 			splash = Item::CreateItem(ITEM_FULLSPLASH, FLUID_GREEN);
@@ -817,11 +828,11 @@ void Creature::dropCorpse(DeathList deathList)
 	}
 
 	if (splash) {
-		g_game.internalAddItem(NULL, tile, splash, INDEX_WHEREEVER, FLAG_NOLIMIT);
+		g_game.internalAddItem(nullptr, tile, splash, INDEX_WHEREEVER, FLAG_NOLIMIT);
 		g_game.startDecay(splash);
 	}
 
-	g_game.internalAddItem(NULL, tile, corpse, INDEX_WHEREEVER, FLAG_NOLIMIT);
+	g_game.internalAddItem(nullptr, tile, corpse, INDEX_WHEREEVER, FLAG_NOLIMIT);
 	dropLoot(corpse->getContainer());
 	g_game.startDecay(corpse);
 }
@@ -831,7 +842,7 @@ DeathList Creature::getKillers()
 	DeathList list;
 	CountMap::const_iterator it;
 
-	Creature* lhc = NULL;
+	Creature* lhc = nullptr;
 	if ((lhc = g_game.getCreatureByID(lastHitCreature))) {
 		int32_t damage = 0;
 		if ((it = damageMap.find(lastHitCreature)) != damageMap.end()) {
@@ -1055,7 +1066,7 @@ bool Creature::setAttackedCreature(Creature* creature)
 	if (creature) {
 		const Position& creaturePos = creature->getPosition();
 		if (creaturePos.z != getPosition().z || !canSee(creaturePos)) {
-			attackedCreature = NULL;
+			attackedCreature = nullptr;
 			return false;
 		}
 	}
@@ -1116,7 +1127,7 @@ bool Creature::setFollowCreature(Creature* creature, bool /*fullPathSearch = fal
 
 		const Position& creaturePos = creature->getPosition();
 		if (creaturePos.z != getPosition().z || !canSee(creaturePos)) {
-			followCreature = NULL;
+			followCreature = nullptr;
 			return false;
 		}
 
@@ -1130,7 +1141,7 @@ bool Creature::setFollowCreature(Creature* creature, bool /*fullPathSearch = fal
 		isUpdatingPath = true;
 	} else {
 		isUpdatingPath = false;
-		followCreature = NULL;
+		followCreature = nullptr;
 	}
 
 	// g_game.updateCreatureWalk(id);
@@ -1421,7 +1432,7 @@ void Creature::onGainExperience(double& gainExp, Creature* target, bool multipli
 		sss = TransformExpToString((double&)gainExp);
 	}
 
-	MessageDetails* details = NULL;
+	MessageDetails* details = nullptr;
 	if (!g_config.getBool(ConfigManager::USEEXP_IN_K)) {
 		details = new MessageDetails((uint32_t)gainExp, (Color_t)color);
 		g_game.addStatsMessage(textList, MSG_EXPERIENCE_OTHERS, ss.str(), targetPos, details);
@@ -1480,7 +1491,7 @@ void Creature::onGainSharedExperience(double& gainExp, Creature* target, bool mu
 		sss = TransformExpToString((double&)gainExp);
 	}
 
-	MessageDetails* details = NULL;
+	MessageDetails* details = nullptr;
 	if (!g_config.getBool(ConfigManager::USEEXP_IN_K)) {
 		details = new MessageDetails((uint32_t)gainExp, (Color_t)color);
 		g_game.addStatsMessage(textList, MSG_EXPERIENCE_OTHERS, ss.str(), targetPos, details);
@@ -1517,7 +1528,7 @@ void Creature::removeSummon(const Creature* creature)
 		return;
 	}
 
-	(*it)->setMaster(NULL);
+	(*it)->setMaster(nullptr);
 	(*it)->unRef();
 	summons.erase(it);
 }
@@ -1525,10 +1536,10 @@ void Creature::removeSummon(const Creature* creature)
 void Creature::destroySummons()
 {
 	for (std::list<Creature*>::iterator it = summons.begin(); it != summons.end(); ++it) {
-		(*it)->setAttackedCreature(NULL);
+		(*it)->setAttackedCreature(nullptr);
 		(*it)->changeHealth(-(*it)->getHealth());
 
-		(*it)->setMaster(NULL);
+		(*it)->setMaster(nullptr);
 		(*it)->unRef();
 	}
 
@@ -1653,7 +1664,7 @@ Condition* Creature::getCondition(ConditionType_t type, ConditionId_t conditionI
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void Creature::executeConditions(uint32_t interval)
@@ -1679,7 +1690,7 @@ bool Creature::hasCondition(ConditionType_t type, int32_t subId /* = 0*/, bool c
 		return false;
 	}
 
-	Condition* condition = NULL;
+	Condition* condition = nullptr;
 	for (ConditionList::const_iterator it = conditions.begin(); it != conditions.end(); ++it) {
 		if (!(condition = *it) || condition->getType() != type || (subId != -1 && condition->getSubId() != (uint32_t)subId)) {
 			continue;

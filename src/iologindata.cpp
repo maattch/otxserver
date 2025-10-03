@@ -301,7 +301,7 @@ uint64_t IOLoginData::createAccount(std::string name, const std::string& passwor
 void IOLoginData::removePremium(Account& account)
 {
 	bool save = false;
-	uint64_t timeNow = time(NULL);
+	uint64_t timeNow = time(nullptr);
 	if (account.premiumDays != 0 && account.premiumDays != (uint16_t)GRATIS_PREMIUM) {
 		if (account.lastDay == 0) {
 			account.lastDay = timeNow;
@@ -337,7 +337,7 @@ const Group* IOLoginData::getPlayerGroupByAccount(uint32_t accountId)
 
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
-		return NULL;
+		return nullptr;
 	}
 
 	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
@@ -720,7 +720,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	query << "SELECT `pk`.`player_id`, `pd`.`date` FROM `player_killers` pk LEFT JOIN `killers` k"
 		  << " ON `pk`.`kill_id` = `k`.`id` LEFT JOIN `player_deaths` pd ON `k`.`death_id` = `pd`.`id`"
 		  << " WHERE `pd`.`player_id` = " << player->getGUID() << " AND `k`.`unjustified` = 1 AND "
-		  << "`pd`.`date` >= " << (time(NULL) - (7 * 86400)) << " AND `k`.`war` = 0"; // TODO: configurable
+		  << "`pd`.`date` >= " << (time(nullptr) - (7 * 86400)) << " AND `k`.`war` = 0"; // TODO: configurable
 
 	std::map<uint32_t, time_t> deaths;
 	if ((result = g_database.storeQuery(query.str()))) {
@@ -736,7 +736,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		query << "SELECT `pd`.`player_id`, `pd`.`date` FROM `player_killers` pk LEFT JOIN `killers` k"
 			  << " ON `pk`.`kill_id` = `k`.`id` LEFT JOIN `player_deaths` pd ON `k`.`death_id` = `pd`.`id`"
 			  << " WHERE `pk`.`player_id` = " << player->getGUID() << " AND `k`.`unjustified` = 0 AND "
-			  << "`pd`.`date` >= " << (time(NULL) - (7 * 86400)) << " AND `k`.`war` = 0";
+			  << "`pd`.`date` >= " << (time(nullptr) - (7 * 86400)) << " AND `k`.`war` = 0";
 	}
 
 	player->updateInventoryWeight();
@@ -1240,7 +1240,7 @@ bool IOLoginData::saveItems(const Player* player, const ItemBlockList& itemList,
 	typedef std::pair<Container*, uint32_t> Stack;
 	std::list<Stack> stackList;
 
-	Item* item = NULL;
+	Item* item = nullptr;
 	int32_t runningId = 101;
 	for (ItemBlockList::const_iterator it = itemList.begin(); it != itemList.end(); ++it, ++runningId) {
 		item = it->second;
@@ -1314,7 +1314,7 @@ bool IOLoginData::playerStatement(Player* _player, uint16_t channelId, const std
 	std::ostringstream query;
 
 	query << "INSERT INTO `player_statements` (`player_id`, `channel_id`, `text`, `date`) VALUES (" << _player->getGUID()
-		  << ", " << channelId << ", " << g_database.escapeString(text) << ", " << time(NULL) << ")";
+		  << ", " << channelId << ", " << g_database.escapeString(text) << ", " << time(nullptr) << ")";
 	if (!g_database.executeQuery(query.str())) {
 		return false;
 	}
@@ -1333,7 +1333,7 @@ bool IOLoginData::playerDeath(Player* _player, const DeathList& dl)
 	}
 
 	query << "INSERT INTO `player_deaths` (`player_id`, `date`, `level`) VALUES (" << _player->getGUID()
-		  << ", " << time(NULL) << ", " << _player->getLevel() << ")";
+		  << ", " << time(nullptr) << ", " << _player->getLevel() << ")";
 	if (!g_database.executeQuery(query.str())) {
 		return false;
 	}
@@ -1413,7 +1413,7 @@ bool IOLoginData::playerMail(Creature* actor, std::string name, uint32_t townId,
 
 	Depot* depot = player->getDepot(townId, true);
 	if (g_game.internalMoveItem(actor, item->getParent(), depot, INDEX_WHEREEVER,
-			item, item->getItemCount(), NULL, FLAG_NOLIMIT)
+			item, item->getItemCount(), nullptr, FLAG_NOLIMIT)
 		!= RET_NOERROR) {
 		if (player->isVirtual()) {
 			delete player;
@@ -1425,7 +1425,7 @@ bool IOLoginData::playerMail(Creature* actor, std::string name, uint32_t townId,
 	g_game.transformItem(item, item->getID() == ITEM_PARCEL ? ITEM_PARCEL_STAMPED : ITEM_LETTER_STAMPED);
 	bool result = true, opened = player->getContainerID(depot) != -1;
 
-	Player* tmp = NULL;
+	Player* tmp = nullptr;
 	if (actor) {
 		tmp = actor->getPlayer();
 	}
@@ -1697,7 +1697,7 @@ bool IOLoginData::changeName(uint32_t guid, std::string newName, std::string old
 	std::ostringstream query;
 
 	query << "INSERT INTO `player_namelocks` (`player_id`, `name`, `new_name`, `date`) VALUES (" << guid << ", "
-		  << g_database.escapeString(oldName) << ", " << g_database.escapeString(newName) << ", " << time(NULL) << ")";
+		  << g_database.escapeString(oldName) << ", " << g_database.escapeString(newName) << ", " << time(nullptr) << ")";
 	if (!g_database.executeQuery(query.str())) {
 		return false;
 	}
@@ -1784,7 +1784,7 @@ DeleteCharacter_t IOLoginData::deleteCharacter(uint32_t accountId, const std::st
 	}
 
 	query.str("");
-	query << "UPDATE `players` SET `deleted` = " << time(NULL) << " WHERE `id` = " << id << " LIMIT 1;";
+	query << "UPDATE `players` SET `deleted` = " << time(nullptr) << " WHERE `id` = " << id << " LIMIT 1;";
 	if (!g_database.executeQuery(query.str())) {
 		return DELETE_INTERNAL;
 	}
@@ -1919,7 +1919,7 @@ bool IOLoginData::updatePremiumDays()
 	}
 
 	DBResultPtr result;
-	query << "SELECT `id` FROM `accounts` WHERE `lastday` <= " << time(NULL) - 86400;
+	query << "SELECT `id` FROM `accounts` WHERE `lastday` <= " << time(nullptr) - 86400;
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
 	}

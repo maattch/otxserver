@@ -180,8 +180,8 @@ class PropStream
 public:
 	PropStream()
 	{
-		end = NULL;
-		p = NULL;
+		end = nullptr;
+		p = nullptr;
 	}
 	virtual ~PropStream() {}
 
@@ -208,7 +208,7 @@ public:
 	inline bool getStruct(T*& ret)
 	{
 		if (size() < (int32_t)sizeof(T)) {
-			ret = NULL;
+			ret = nullptr;
 			return false;
 		}
 

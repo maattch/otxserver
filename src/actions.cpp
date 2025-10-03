@@ -39,7 +39,7 @@ Actions::Actions() :
 	m_interface("Action Interface")
 {
 	m_interface.initState();
-	defaultAction = NULL;
+	defaultAction = nullptr;
 }
 
 Actions::~Actions()
@@ -64,7 +64,7 @@ void Actions::clear()
 
 	m_interface.reInitState();
 	delete defaultAction;
-	defaultAction = NULL;
+	defaultAction = nullptr;
 }
 
 Event* Actions::getEvent(const std::string& nodeName)
@@ -73,7 +73,7 @@ Event* Actions::getEvent(const std::string& nodeName)
 		return new Action(&m_interface);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
@@ -313,7 +313,7 @@ ReturnValue Actions::canUse(const Player* player, const Position& pos)
 
 ReturnValue Actions::canUseEx(const Player* player, const Position& pos, const Item* item)
 {
-	Action* action = NULL;
+	Action* action = nullptr;
 	if ((action = getAction(item, ACTION_UNIQUEID))) {
 		return action->canExecuteAction(player, pos);
 	}
@@ -392,7 +392,7 @@ Action* Actions::getAction(const Item* item, ActionType_t type) const
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool Actions::executeUse(Action* action, Player* player, Item* item,
@@ -415,7 +415,7 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 	}
 
 	PositionEx posEx(pos, tmp);
-	Action* action = NULL;
+	Action* action = nullptr;
 	if ((action = getAction(item, ACTION_UNIQUEID))) {
 		if (executeUse(action, player, item, posEx, creatureId)) {
 			return RET_NOERROR;
@@ -461,7 +461,7 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 			return RET_YOUARENOTTHEOWNER;
 		}
 
-		Container* tmpContainer = NULL;
+		Container* tmpContainer = nullptr;
 		if (Depot* depot = container->getDepot()) {
 			if (player->hasFlag(PlayerFlag_CannotPickupItem)) {
 				return RET_CANNOTUSETHISOBJECT;
@@ -495,7 +495,7 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 			player->setWriteItem(item, item->getMaxWriteLength());
 			player->sendTextWindow(item, item->getMaxWriteLength(), true);
 		} else {
-			player->setWriteItem(NULL);
+			player->setWriteItem(nullptr);
 			player->sendTextWindow(item, 0, false);
 		}
 
@@ -515,7 +515,7 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 		player->sendTextMessage(MSG_INFO_DESCR, ss.str());
 
 		player->addPremiumDays(it.premiumDays);
-		g_game.internalRemoveItem(NULL, item, 1);
+		g_game.internalRemoveItem(nullptr, item, 1);
 		return RET_NOERROR;
 	}
 
@@ -531,7 +531,7 @@ bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* 
 	if (player->hasCondition(CONDITION_EXHAUST, EXHAUST_USEITEM)) {
 		return false;
 	}
-	player->setNextActionTask(NULL);
+	player->setNextActionTask(nullptr);
 	player->stopWalk();
 
 	// player->setNextAction(OTSYS_TIME() + g_config.getNumber(ConfigManager::ACTIONS_DELAY_INTERVAL) - 10);
@@ -559,7 +559,7 @@ bool Actions::executeUseEx(Action* action, Player* player, Item* item, const Pos
 ReturnValue Actions::internalUseItemEx(Player* player, const PositionEx& fromPosEx, const PositionEx& toPosEx,
 	Item* item, bool isHotkey, uint32_t creatureId)
 {
-	Action* action = NULL;
+	Action* action = nullptr;
 	if ((action = getAction(item, ACTION_UNIQUEID))) {
 		ReturnValue ret = action->canExecuteAction(player, toPosEx);
 		if (ret != RET_NOERROR) {
@@ -645,7 +645,7 @@ bool Actions::useItemEx(Player* player, const Position& fromPos, const Position&
 		return false;
 	}
 
-	player->setNextActionTask(NULL);
+	player->setNextActionTask(nullptr);
 	player->stopWalk();
 
 	// const std::vector<uint16_t> allItems = {7588, 7589, 7590, 7591, 8472, 8473, 7618, 7620, 8704, 2420, 2293};
@@ -753,7 +753,7 @@ bool Action::executeUse(Player* player, Item* item, const PositionEx& fromPos, c
 				env->streamThing(scriptstream, "itemEx", thing, env->addThing(thing));
 				env->streamPosition(scriptstream, "toPosition", toPos, toPos.stackpos);
 			} else {
-				env->streamThing(scriptstream, "itemEx", NULL, 0);
+				env->streamThing(scriptstream, "itemEx", nullptr, 0);
 				env->streamPosition(scriptstream, "toPosition", PositionEx());
 			}
 
@@ -791,7 +791,7 @@ bool Action::executeUse(Player* player, Item* item, const PositionEx& fromPos, c
 				LuaInterface::pushThing(L, thing, env->addThing(thing));
 				LuaInterface::pushPosition(L, toPos, toPos.stackpos);
 			} else {
-				LuaInterface::pushThing(L, NULL, 0);
+				LuaInterface::pushThing(L, nullptr, 0);
 				LuaInterface::pushPosition(L, PositionEx());
 			}
 

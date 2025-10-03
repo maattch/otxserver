@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
 	sigh.sa_flags = 0;
 
 	sigemptyset(&sigh.sa_mask);
-	sigaction(SIGPIPE, &sigh, NULL);
+	sigaction(SIGPIPE, &sigh, nullptr);
 
 	// register signals
 	signal(SIGHUP, signalHandler); // save
@@ -380,7 +380,7 @@ void otserv(ServiceManager* services)
 	std::ostringstream mutexName;
 	mutexName << "otxserver_" << g_config.getNumber(ConfigManager::WORLD_ID);
 
-	CreateMutexA(NULL, FALSE, mutexName.str().c_str());
+	CreateMutexA(nullptr, FALSE, mutexName.str().c_str());
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
 		startupErrorMessage("Another instance of The OTX Server is already running with the same worldId.\nIf you want to run multiple servers, please change the worldId in configuration file.");
 	}

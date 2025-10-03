@@ -118,7 +118,7 @@ public:
 	ConditionId_t getId() const { return id; }
 	uint32_t getSubId() const { return subId; }
 
-	virtual Condition* clone() const { return NULL; }
+	virtual Condition* clone() const { return nullptr; }
 
 	ConditionType_t getType() const { return conditionType; }
 	int64_t getEndTime() const { return ticks == -1 ? 0 : endTime; }

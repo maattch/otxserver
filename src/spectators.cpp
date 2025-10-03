@@ -130,7 +130,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 			}
 
 			s << ".";
-			client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, s.str(), NULL, 0);
+			client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, s.str(), nullptr, 0);
 		} else if (t[0] == "name") {
 			if (t.size() > 1) {
 				if (t[1].length() > 2) {
@@ -147,7 +147,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 						}
 
 						if (!found) {
-							client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Your name has been set to " + t[1] + ".", NULL, 0);
+							client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Your name has been set to " + t[1] + ".", nullptr, 0);
 							if (!auth && channel) {
 								sendChannelMessage("", sit->second.first + " is now known as " + t[1] + ".", MSG_GAMEMASTER_CHANNEL, channel->getId());
 							}
@@ -160,23 +160,23 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 							sit->second.first = t[1];
 							sit->second.second = false;
 						} else {
-							client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Specified name is already taken.", NULL, 0);
+							client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Specified name is already taken.", nullptr, 0);
 						}
 					} else {
-						client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Specified name is too long.", NULL, 0);
+						client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Specified name is too long.", nullptr, 0);
 					}
 				} else {
-					client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Specified name is too short.", NULL, 0);
+					client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Specified name is too short.", nullptr, 0);
 				}
 			} else {
-				client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Not enough param(s) given.", NULL, 0);
+				client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Not enough param(s) given.", nullptr, 0);
 			}
 		} else if (t[0] == "auth") {
-			if ((time(NULL) - client->lastCastMsg) < 5) {
-				client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "You need to wait a bit before trying to authenticate again.", NULL, 0);
+			if ((time(nullptr) - client->lastCastMsg) < 5) {
+				client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "You need to wait a bit before trying to authenticate again.", nullptr, 0);
 				return;
 			}
-			client->lastCastMsg = time(NULL);
+			client->lastCastMsg = time(nullptr);
 			if (t.size() > 1) {
 				StringVec _t = explodeString(t[1], " ", true, 1);
 				if (_t.size() > 1) {
@@ -194,7 +194,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 							if ((result = g_database.storeQuery(query.str()))) {
 								std::string nickname = result->getString("name");
 
-								client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "You have authenticated as " + nickname + ".", NULL, 0);
+								client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "You have authenticated as " + nickname + ".", nullptr, 0);
 								if (channel) {
 									sendChannelMessage("", sit->second.first + " authenticated as " + nickname + ".", MSG_GAMEMASTER_CHANNEL, channel->getId());
 								}
@@ -207,22 +207,22 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 								sit->second.first = nickname;
 								sit->second.second = true;
 							} else {
-								client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Your account has no characters yet.", NULL, 0);
+								client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Your account has no characters yet.", nullptr, 0);
 							}
 						} else {
-							client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Invalid password.", NULL, 0);
+							client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Invalid password.", nullptr, 0);
 						}
 					} else {
-						client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Invalid account name.", NULL, 0);
+						client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Invalid account name.", nullptr, 0);
 					}
 				} else {
-					client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Not enough param(s) given.", NULL, 0);
+					client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Not enough param(s) given.", nullptr, 0);
 				}
 			} else {
-				client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Not enough param(s) given.", NULL, 0);
+				client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Not enough param(s) given.", nullptr, 0);
 			}
 		} else {
-			client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Command not found.", NULL, 0);
+			client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Command not found.", nullptr, 0);
 		}
 
 		return;
@@ -236,12 +236,12 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 				if (exhaust <= 2) { // prevents exhaust < 2s
 					exhaust = 2;
 				}
-				if ((time(NULL) - client->lastCastMsg) < exhaust) {
-					uint16_t timeToSpeak = (client->lastCastMsg - time(NULL) + exhaust);
-					client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, ("You are exhausted, wait " + std::to_string(timeToSpeak) + " second" + (timeToSpeak > 1 ? "s" : "") + " to talk again!"), NULL, 0);
+				if ((time(nullptr) - client->lastCastMsg) < exhaust) {
+					uint16_t timeToSpeak = (client->lastCastMsg - time(nullptr) + exhaust);
+					client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, ("You are exhausted, wait " + std::to_string(timeToSpeak) + " second" + (timeToSpeak > 1 ? "s" : "") + " to talk again!"), nullptr, 0);
 					return;
 				}
-				client->lastCastMsg = time(NULL);
+				client->lastCastMsg = time(nullptr);
 				std::string _text = asLowerCaseString(text);
 				StringVec prohibitedWords;
 				prohibitedWords = explodeString(g_config.getString(ConfigManager::ADVERTISING_BLOCK), ";");
@@ -259,10 +259,10 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 				channel->talk(sit->second.first, MSG_CHANNEL_HIGHLIGHT, text, fakeChat, client->getIP());
 			}
 		} else {
-			client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "You are muted.", NULL, 0);
+			client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "You are muted.", nullptr, 0);
 		}
 	} else {
-		client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "This chat is protected, you have to authenticate first.", NULL, 0);
+		client->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "This chat is protected, you have to authenticate first.", nullptr, 0);
 	}
 }
 
@@ -275,7 +275,7 @@ void Spectators::chat(uint16_t channelId)
 	for (auto& spectator : spectators) {
 		spectator.first->sendClosePrivate(channelId);
 		if (channelId == 100) { // idk why cast channelId is 100
-			spectator.first->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Chat has been disabled.", NULL, 0);
+			spectator.first->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Chat has been disabled.", nullptr, 0);
 		}
 	}
 }
@@ -341,7 +341,7 @@ void Spectators::addSpectator(ProtocolGame* client, std::string name, bool spy)
 			std::string comment = result->getString("castDescription");
 
 			if (comment != "") {
-				client->sendCreatureSay(owner->getPlayer(), MSG_STATUS_WARNING, comment, NULL, 0);
+				client->sendCreatureSay(owner->getPlayer(), MSG_STATUS_WARNING, comment, nullptr, 0);
 			}
 		}
 	}
@@ -441,7 +441,7 @@ void Spectators::sendClosePrivate(uint16_t channelId)
 
 	for (const auto& spectator : spectators) {
 		spectator.first->sendClosePrivate(channelId);
-		spectator.first->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Chat has been disabled.", NULL, 0);
+		spectator.first->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Chat has been disabled.", nullptr, 0);
 	}
 }
 
@@ -459,6 +459,6 @@ void Spectators::sendCreatePrivateChannel(uint16_t channelId, const std::string&
 
 	for (const auto& spectator : spectators) {
 		spectator.first->sendCreatePrivateChannel(channelId, channelName);
-		spectator.first->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Chat has been enabled.", NULL, 0);
+		spectator.first->sendCreatureSay(owner->getPlayer(), MSG_PRIVATE, "Chat has been enabled.", nullptr, 0);
 	}
 }

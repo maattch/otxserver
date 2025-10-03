@@ -78,7 +78,7 @@ void ProtocolGame::release()
 void ProtocolGame::spectate(const std::string& name, const std::string& password)
 {
 	PlayerVector players = g_game.getPlayersByName(name);
-	Player* _player = NULL;
+	Player* _player = nullptr;
 	if (!players.empty()) {
 		_player = players[random_range(0, (players.size() - 1))];
 	}
@@ -224,7 +224,7 @@ void ProtocolGame::castNavigation(uint16_t direction)
 	naviexhaust = OTSYS_TIME() + 1000;
 
 	if (limit) {
-		sendCreatureSay(player, MSG_PRIVATE, str, NULL, 0);
+		sendCreatureSay(player, MSG_PRIVATE, str, nullptr, 0);
 		return;
 	}
 
@@ -257,7 +257,7 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 {
 	// dispatcher thread
 	PlayerVector players = g_game.getPlayersByName(name);
-	Player* foundPlayer = NULL;
+	Player* foundPlayer = nullptr;
 	if (!players.empty()) {
 		foundPlayer = players[random_range(0, (players.size() - 1))];
 	}
@@ -441,7 +441,7 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 
 		player->lastIP = player->getIP();
 		player->lastLoad = OTSYS_TIME();
-		player->lastLogin = std::max(time(NULL), player->lastLogin + 1);
+		player->lastLogin = std::max(time(nullptr), player->lastLogin + 1);
 
 		acceptPackets = true;
 	} else {
@@ -747,7 +747,7 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		return;
 	}
 
-	uint32_t now = time(NULL);
+	uint32_t now = time(nullptr);
 	if (m_packetTime != now) {
 		m_packetTime = now;
 		m_packetCount = 0;
@@ -1118,7 +1118,7 @@ void ProtocolGame::GetMapDescription(int32_t x, int32_t y, int32_t z,
 void ProtocolGame::GetFloorDescription(OutputMessage_ptr msg, int32_t x, int32_t y, int32_t z,
 	int32_t width, int32_t height, int32_t offset, int32_t& skip)
 {
-	Tile* tile = NULL;
+	Tile* tile = nullptr;
 	for (int32_t nx = 0; nx < width; ++nx) {
 		for (int32_t ny = 0; ny < height; ++ny) {
 			if ((tile = g_game.getTile(Position(x + nx + offset, y + ny + offset, z)))) {
@@ -1376,52 +1376,39 @@ void ProtocolGame::parseReceivePing(NetworkMessage&)
 
 void ProtocolGame::parseAutoWalk(NetworkMessage& msg)
 {
-	uint8_t dirCount = msg.get<char>();
-	if (dirCount > 128) // client limit
-	{
-		for (uint8_t i = 0; i < dirCount; ++i) {
-			msg.get<char>();
-		}
-
-		std::ostringstream s;
-		s << "Attempt to auto walk for " << (uint16_t)dirCount << " steps - client is limited to 128 steps.";
-		Logger::getInstance()->eFile("bots/" + player->getName() + ".log", s.str(), true);
+	// client limit
+	const uint8_t dirCount = msg.get<char>();
+	if (dirCount == 0) {
 		return;
 	}
 
-	std::list<Direction> path;
-	for (uint8_t i = 0; i < dirCount; ++i) {
-		Direction dir = SOUTH;
-		switch (msg.get<char>()) {
-			case 1:
-				dir = EAST;
-				break;
-			case 2:
-				dir = NORTHEAST;
-				break;
-			case 3:
-				dir = NORTH;
-				break;
-			case 4:
-				dir = NORTHWEST;
-				break;
-			case 5:
-				dir = WEST;
-				break;
-			case 6:
-				dir = SOUTHWEST;
-				break;
-			case 7:
-				dir = SOUTH;
-				break;
-			case 8:
-				dir = SOUTHEAST;
-				break;
-			default:
-				continue;
-		}
+	msg.skipBytes(dirCount);
+	if (dirCount > 128) {
+		return;
+	}
 
-		path.push_back(dir);
+	std::vector<Direction> path;
+	path.reserve(dirCount);
+
+	for (uint8_t i = 0; i < dirCount; ++i) {
+		const uint8_t rawdir = msg.getPreviousByte();
+		switch (rawdir) {
+			case 1: path.push_back(EAST); break;
+			case 2: path.push_back(NORTHEAST); break;
+			case 3: path.push_back(NORTH); break;
+			case 4: path.push_back(NORTHWEST); break;
+			case 5: path.push_back(WEST); break;
+			case 6: path.push_back(SOUTHWEST); break;
+			case 7: path.push_back(SOUTH); break;
+			case 8: path.push_back(SOUTHEAST); break;
+
+			default:
+				break;
+		}
+	}
+
+	if (path.empty()) {
+		return;
 	}
 
 	addDispatcherTask(([playerID = player->getID(), path = std::move(path)]() {
@@ -2273,7 +2260,7 @@ void ProtocolGame::sendRuleViolationsChannel(uint16_t channelId)
 		for (RuleViolationsMap::const_iterator it = g_game.getRuleViolations().begin(); it != g_game.getRuleViolations().end(); ++it) {
 			RuleViolation& rvr = *it->second;
 			if (rvr.isOpen && rvr.reporter) {
-				AddCreatureSpeak(msg, rvr.reporter, MSG_RVR_CHANNEL, rvr.text, channelId, NULL, rvr.time);
+				AddCreatureSpeak(msg, rvr.reporter, MSG_RVR_CHANNEL, rvr.text, channelId, nullptr, rvr.time);
 			}
 		}
 	}
@@ -2390,11 +2377,11 @@ void ProtocolGame::sendCreatureChannelSay(const Creature* creature, MessageClass
 		return;
 	}
 
-	AddCreatureSpeak(msg, creature, type, text, channelId, NULL, statementId);
+	AddCreatureSpeak(msg, creature, type, text, channelId, nullptr, statementId);
 }
 
 void ProtocolGame::sendStatsMessage(MessageClasses type, const std::string& message,
-	Position pos, MessageDetails* details /* = NULL*/)
+	Position pos, MessageDetails* details /* = nullptr*/)
 {
 	AddTextMessage(type, message, &pos, details);
 }
@@ -3139,7 +3126,7 @@ void ProtocolGame::AddMapDescription(OutputMessage_ptr msg, const Position& pos)
 }
 
 void ProtocolGame::AddTextMessage(MessageClasses mClass, const std::string& message,
-	Position* pos /* = NULL*/, MessageDetails* details /* = NULL*/)
+	Position* pos /* = nullptr*/, MessageDetails* details /* = nullptr*/)
 {
 	if (mClass >= MSG_STATUS_CONSOLE_RED) {
 		if (mClass <= MSG_STATUS_CONSOLE_BLUE) {

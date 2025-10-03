@@ -72,7 +72,7 @@ void HouseTile::updateHouse(Item* item)
 	}
 }
 
-ReturnValue HouseTile::__queryAdd(int32_t index, const Thing* thing, uint32_t count, uint32_t flags, Creature* actor /* = NULL*/) const
+ReturnValue HouseTile::__queryAdd(int32_t index, const Thing* thing, uint32_t count, uint32_t flags, Creature* actor /* = nullptr*/) const
 {
 	if (const Creature* creature = thing->getCreature()) {
 		if (const Player* player = creature->getPlayer()) {
@@ -107,7 +107,7 @@ ReturnValue HouseTile::__queryAdd(int32_t index, const Thing* thing, uint32_t co
 	return Tile::__queryAdd(index, thing, count, flags, actor);
 }
 
-ReturnValue HouseTile::__queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor /* = NULL*/) const
+ReturnValue HouseTile::__queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor /* = nullptr*/) const
 {
 	if (thing->getItem() && actor && g_config.getBool(ConfigManager::HOUSE_PROTECTION)) {
 		if (const Player* player = actor->getPlayer()) {
@@ -143,7 +143,7 @@ Cylinder* HouseTile::__queryDestination(int32_t& index, const Thing* thing, Item
 				}
 
 				index = -1;
-				*destItem = NULL;
+				*destItem = nullptr;
 				return destTile;
 			}
 		}

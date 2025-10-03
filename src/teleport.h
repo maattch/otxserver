@@ -45,15 +45,15 @@ public:
 	virtual const Tile* getTile() const { return Item::getTile(); }
 	virtual Item* getItem() { return this; }
 	virtual const Item* getItem() const { return this; }
-	virtual Creature* getCreature() { return NULL; }
-	virtual const Creature* getCreature() const { return NULL; }
+	virtual Creature* getCreature() { return nullptr; }
+	virtual const Creature* getCreature() const { return nullptr; }
 
 	virtual ReturnValue __queryAdd(int32_t, const Thing*, uint32_t,
-		uint32_t, Creature* = NULL) const { return RET_NOTPOSSIBLE; }
+		uint32_t, Creature* = nullptr) const { return RET_NOTPOSSIBLE; }
 	virtual ReturnValue __queryMaxCount(int32_t, const Thing*, uint32_t,
 		uint32_t&, uint32_t) const { return RET_NOTPOSSIBLE; }
 	virtual ReturnValue __queryRemove(const Thing*, uint32_t,
-		uint32_t, Creature* = NULL) const { return RET_NOERROR; }
+		uint32_t, Creature* = nullptr) const { return RET_NOERROR; }
 	virtual Cylinder* __queryDestination(int32_t&, const Thing*, Item**,
 		uint32_t&) { return this; }
 

@@ -250,9 +250,9 @@ public:
 		}
 	}
 
-	bool loadBuffer(const std::string& text, Npc* npc = NULL);
-	bool loadFile(const std::string& file, Npc* npc = NULL);
-	bool loadDirectory(std::string dir, bool recursively, bool loadSystems, Npc* npc = NULL);
+	bool loadBuffer(const std::string& text, Npc* npc = nullptr);
+	bool loadFile(const std::string& file, Npc* npc = nullptr);
+	bool loadDirectory(std::string dir, bool recursively, bool loadSystems, Npc* npc = nullptr);
 
 	std::string getName() const { return m_interfaceName; };
 	std::string getScript(int32_t scriptId);
@@ -270,7 +270,7 @@ public:
 	bool callFunction(uint32_t params);
 	static int32_t handleFunction(lua_State* L);
 
-	void dumpStack(lua_State* L = NULL);
+	void dumpStack(lua_State* L = nullptr);
 
 	// push/pop common structures
 	static void pushThing(lua_State* L, Thing* thing, uint32_t id = 0, Recursive_t recursive = RECURSE_FIRST);
@@ -854,6 +854,6 @@ public:
 	LuaInterface* getTestInterface();
 
 private:
-	LuaInterface* testInterface = NULL;
+	LuaInterface* testInterface = nullptr;
 	friend class LuaInterface;
 };

@@ -138,7 +138,7 @@ public:
 	bool isBed() const { return (type == ITEM_TYPE_BED); }
 
 	bool hasSubType() const { return (isFluidContainer() || isSplash() || stackable || charges); }
-	bool hasAbilities() const { return abilities != NULL; }
+	bool hasAbilities() const { return abilities != nullptr; }
 
 	bool loaded, stopTime, showCount, stackable, showDuration, showCharges, showAttributes, dualWield,
 		allowDistRead, canReadText, canWriteText, forceSerialize, isVertical, isHorizontal, isHangable,

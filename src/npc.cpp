@@ -41,7 +41,7 @@ AutoList<Npc> Npc::autoList;
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 uint32_t Npc::npcCount = 0;
 #endif
-NpcScript* Npc::m_interface = NULL;
+NpcScript* Npc::m_interface = nullptr;
 
 Npcs::~Npcs()
 {
@@ -92,7 +92,7 @@ bool Npcs::parseNpcNode(xmlNodePtr node, FileType_t path, bool reloading /* = fa
 	}
 
 	bool new_nType = false;
-	NpcType* nType = NULL;
+	NpcType* nType = nullptr;
 	if (!(nType = getType(name))) {
 		new_nType = true;
 	} else if (reloading) {
@@ -166,7 +166,7 @@ void Npcs::reload()
 	}
 
 	delete Npc::m_interface;
-	Npc::m_interface = NULL;
+	Npc::m_interface = nullptr;
 
 	if (fileExists(getFilePath(FILE_TYPE_OTHER, "npc/npcs.xml").c_str())) {
 		DataMap tmp = data;
@@ -186,7 +186,7 @@ NpcType* Npcs::getType(const std::string& name) const
 {
 	DataMap::const_iterator it = data.find(asLowerCaseString(name));
 	if (it == data.end()) {
-		return NULL;
+		return nullptr;
 	}
 
 	return it->second;
@@ -208,7 +208,7 @@ Npc* Npc::createNpc(NpcType* nType)
 {
 	Npc* npc = new Npc(nType);
 	if (!npc) {
-		return NULL;
+		return nullptr;
 	}
 
 	if (npc->load()) {
@@ -216,12 +216,12 @@ Npc* Npc::createNpc(NpcType* nType)
 	}
 
 	delete npc;
-	return NULL;
+	return nullptr;
 }
 
 Npc* Npc::createNpc(const std::string& name)
 {
-	NpcType* nType = NULL;
+	NpcType* nType = nullptr;
 	if (!(nType = g_npcs.getType(name))) {
 		nType = new NpcType();
 		nType->file = getFilePath(FILE_TYPE_OTHER, "npc/" + name + ".xml");
@@ -229,7 +229,7 @@ Npc* Npc::createNpc(const std::string& name)
 			nType->file = getFilePath(FILE_TYPE_MOD, "npc/" + name + ".xml");
 			if (!fileExists(nType->file.c_str())) {
 				std::clog << "[Warning - Npc::createNpc] Cannot find npc with name: " << name << "." << std::endl;
-				return NULL;
+				return nullptr;
 			}
 		}
 
@@ -242,14 +242,14 @@ Npc* Npc::createNpc(const std::string& name)
 
 Npc::Npc(NpcType* _nType) :
 	Creature(),
-	m_npcEventHandler(NULL)
+	m_npcEventHandler(nullptr)
 {
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 	++npcCount;
 #endif
 	nType = _nType;
 
-	m_npcEventHandler = NULL;
+	m_npcEventHandler = nullptr;
 	reset();
 }
 
@@ -282,7 +282,7 @@ void Npc::reset()
 		delete m_npcEventHandler;
 	}
 
-	m_npcEventHandler = NULL;
+	m_npcEventHandler = nullptr;
 	for (ResponseList::iterator it = responseList.begin(); it != responseList.end(); ++it) {
 		delete *it;
 	}
@@ -461,7 +461,7 @@ bool Npc::loadFromXml()
 				nType->outfit.lookTypeEx = intValue;
 			}
 		} else if (!xmlStrcmp(p->name, (const xmlChar*)"voices")) {
-			for (xmlNodePtr q = p->children; q != NULL; q = q->next) {
+			for (xmlNodePtr q = p->children; q != nullptr; q = q->next) {
 				if (!xmlStrcmp(q->name, (const xmlChar*)"voice")) {
 					if (!readXMLString(q, "text", strValue)) {
 						continue;
@@ -498,7 +498,7 @@ bool Npc::loadFromXml()
 				}
 			}
 		} else if (!xmlStrcmp(p->name, (const xmlChar*)"parameters")) {
-			for (xmlNodePtr q = p->children; q != NULL; q = q->next) {
+			for (xmlNodePtr q = p->children; q != nullptr; q = q->next) {
 				if (!xmlStrcmp(q->name, (const xmlChar*)"parameter")) {
 					std::string paramKey, paramValue;
 					if (!readXMLString(q, "key", paramKey)) {
@@ -938,7 +938,7 @@ ResponseList Npc::parseInteractionNode(xmlNodePtr node)
 										action.actionType = ACTION_SETSTORAGE;
 										std::ostringstream s;
 
-										s << time(NULL) + atoi(strValue.c_str());
+										s << time(nullptr) + atoi(strValue.c_str());
 										action.strValue = s.str();
 									} else if (readXMLString(subNode, "value", strValue)) {
 										action.actionType = ACTION_SETSTORAGE;
@@ -1081,7 +1081,7 @@ NpcState* Npc::getState(const Player* player, bool makeNew /* = true*/)
 	}
 
 	if (!makeNew) {
-		return NULL;
+		return nullptr;
 	}
 
 	NpcState* state = new NpcState;
@@ -1098,7 +1098,7 @@ NpcState* Npc::getState(const Player* player, bool makeNew /* = true*/)
 	state->isQueued = false;
 	state->respondToText = "";
 	state->respondToCreature = 0;
-	state->lastResponse = NULL;
+	state->lastResponse = nullptr;
 	state->prevRespondToText = "";
 
 	stateList.push_back(state);
@@ -1198,7 +1198,7 @@ void Npc::onCreatureMove(const Creature* creature, const Tile* newTile, const Po
 	}
 }
 
-void Npc::onCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* pos /* = NULL*/)
+void Npc::onCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* pos /* = nullptr*/)
 {
 	if (m_npcEventHandler) {
 		m_npcEventHandler->onCreatureSay(creature, type, text, pos);
@@ -1262,7 +1262,7 @@ void Npc::onThink(uint32_t interval)
 	}
 
 	std::vector<Player*> list;
-	Player* tmpPlayer = NULL;
+	Player* tmpPlayer = nullptr;
 
 	SpectatorVec tmpList;
 	g_game.getSpectators(tmpList, getPosition(), true, true);
@@ -1288,7 +1288,7 @@ void Npc::onThink(uint32_t interval)
 				continue;
 			}
 
-			tmpPlayer = NULL;
+			tmpPlayer = nullptr;
 			if (it->randomSpectator) {
 				size_t random = random_range(0, (int32_t)list.size());
 				if (random < list.size()) { // 1 slot chance to make it public
@@ -1314,7 +1314,7 @@ void Npc::onThink(uint32_t interval)
 	isIdle = true;
 	for (StateList::iterator it = stateList.begin(); it != stateList.end();) {
 		NpcState* npcState = *it;
-		const NpcResponse* response = NULL;
+		const NpcResponse* response = nullptr;
 		bool closeConversation = false, idleTimeout = false;
 
 		Player* player = g_game.getPlayerByID(npcState->respondToCreature);
@@ -1342,7 +1342,7 @@ void Npc::onThink(uint32_t interval)
 					onPlayerLeave(player, npcState);
 				}
 			} else {
-				Player* tmpPlayer = NULL;
+				Player* tmpPlayer = nullptr;
 				while (!queueList.empty()) {
 					if ((tmpPlayer = g_game.getPlayerByID(*queueList.begin()))) {
 						if (NpcState* tmpPlayerState = getState(tmpPlayer, false)) {
@@ -1401,7 +1401,7 @@ void Npc::onThink(uint32_t interval)
 	}
 
 	if (isIdle && !hasScriptedFocus) {
-		setCreatureFocus(NULL);
+		setCreatureFocus(nullptr);
 	}
 }
 
@@ -1763,7 +1763,7 @@ void Npc::executeResponse(Player* player, NpcState* npcState, const NpcResponse*
 				if (!response->publicize()) {
 					doSay(responseString, MSG_NPC_FROM, player);
 				} else {
-					doSay(responseString, MSG_SPEAK_SAY, NULL);
+					doSay(responseString, MSG_SPEAK_SAY, nullptr);
 				}
 			}
 		} else {
@@ -1951,7 +1951,7 @@ bool Npc::canWalkTo(const Position& fromPos, Direction dir)
 	}
 
 	Tile* tile = g_game.getTile(toPos);
-	if (!tile || g_game.isSwimmingPool(NULL, getTile(), false) != g_game.isSwimmingPool(NULL, tile, false) || (!floorChange && (tile->floorChange() || tile->positionChange()))) {
+	if (!tile || g_game.isSwimmingPool(nullptr, getTile(), false) != g_game.isSwimmingPool(nullptr, tile, false) || (!floorChange && (tile->floorChange() || tile->positionChange()))) {
 		return false;
 	}
 
@@ -2017,7 +2017,7 @@ const NpcResponse* Npc::getResponse(const ResponseList& list, const Player* play
 	StringVec wordList = explodeString(textString, " ");
 	int32_t bestMatchCount = 0, totalMatchCount = 0;
 
-	NpcResponse* response = NULL;
+	NpcResponse* response = nullptr;
 	for (ResponseList::const_iterator it = list.begin(); it != list.end(); ++it) {
 		int32_t matchCount = 0;
 		if ((*it)->getParams() != RESPOND_DEFAULT) {
@@ -2197,7 +2197,7 @@ const NpcResponse* Npc::getResponse(const ResponseList& list, const Player* play
 			player->getStorage((*it)->getStorageId(), value);
 			if (asLowerCaseString(storageValue) == "_time") {
 				std::ostringstream s;
-				s << time(NULL);
+				s << time(nullptr);
 				storageValue = s.str();
 			}
 
@@ -2290,7 +2290,7 @@ const NpcResponse* Npc::getResponse(const ResponseList& list, const Player* play
 	}
 
 	if (totalMatchCount > 1) {
-		return NULL;
+		return nullptr;
 	}
 
 	return response;
@@ -2364,7 +2364,7 @@ const NpcResponse* Npc::getResponse(const Player*, NpcEvent_t eventType)
 {
 	std::string eventName = getEventResponseName(eventType);
 	if (eventName.empty()) {
-		return NULL;
+		return nullptr;
 	}
 
 	std::vector<NpcResponse*> result;
@@ -2379,7 +2379,7 @@ const NpcResponse* Npc::getResponse(const Player*, NpcEvent_t eventType)
 	}
 
 	if (result.empty()) {
-		return NULL;
+		return nullptr;
 	}
 
 	return result[random_range(0, result.size() - 1)];
@@ -2389,7 +2389,7 @@ const NpcResponse* Npc::getResponse(const Player* player, NpcState* npcState, Np
 {
 	std::string eventName = getEventResponseName(eventType);
 	if (eventName.empty()) {
-		return NULL;
+		return nullptr;
 	}
 
 	return getResponse(responseList, player, npcState, eventName, true);
@@ -2967,7 +2967,7 @@ void NpcEvents::onCreatureMove(const Creature* creature, const Position& oldPos,
 	}
 }
 
-void NpcEvents::onCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* /*pos = NULL*/)
+void NpcEvents::onCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* /*pos = nullptr*/)
 {
 	if (m_onCreatureSay == -1) {
 		return;

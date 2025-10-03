@@ -99,7 +99,7 @@ ReturnValue Spells::onPlayerSay(Player* player, const std::string& words)
 		}
 
 		return g_game.internalCreatureSay(player, type, reWords, player->isGhost(),
-				   NULL, NULL, 0, true)
+				   nullptr, nullptr, 0, true)
 			? RET_NOERROR
 			: RET_NOTPOSSIBLE;
 	}
@@ -120,7 +120,7 @@ ReturnValue Spells::onPlayerSay(Player* player, const std::string& words)
 	}
 
 	return g_game.internalCreatureSay(player, type, ret, player->isGhost(),
-			   NULL, &pos, 0, true)
+			   nullptr, &pos, 0, true)
 		? RET_NOERROR
 		: RET_NOTPOSSIBLE;
 }
@@ -158,7 +158,7 @@ Event* Spells::getEvent(const std::string& nodeName)
 		return new ConjureSpell(&m_interface);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool Spells::registerEvent(Event* event, xmlNodePtr, bool override)
@@ -215,7 +215,7 @@ Spell* Spells::getSpellByName(const std::string& name)
 		return spell;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 RuneSpell* Spells::getRuneSpell(uint32_t id)
@@ -225,7 +225,7 @@ RuneSpell* Spells::getRuneSpell(uint32_t id)
 		return it->second;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 RuneSpell* Spells::getRuneSpellByName(const std::string& name)
@@ -236,12 +236,12 @@ RuneSpell* Spells::getRuneSpellByName(const std::string& name)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 InstantSpell* Spells::getInstantSpell(const std::string& words)
 {
-	InstantSpell* result = NULL;
+	InstantSpell* result = nullptr;
 	std::string lower = words;
 	toLowerCaseString(lower);
 
@@ -252,7 +252,7 @@ InstantSpell* Spells::getInstantSpell(const std::string& words)
 	}
 
 	// If we didn't find anything, we search on the param-spells
-	if (result == NULL) {
+	if (result == nullptr) {
 		for (InstantsMap::iterator it = instantsWithParam.begin(); it != instantsWithParam.end(); ++it) {
 			InstantSpell* instantSpell = it->second;
 			const std::string& instantSpellWords = instantSpell->getWords();
@@ -269,7 +269,7 @@ InstantSpell* Spells::getInstantSpell(const std::string& words)
 	if (result && words.length() > result->getWords().length()) {
 		std::string param = words.substr(result->getWords().length(), words.length());
 		if (param[0] != ' ' || (param.length() > 1 && (!result->getHasParam() || param.find(' ', 1) != std::string::npos) && param[1] != '"')) {
-			return NULL;
+			return nullptr;
 		}
 	}
 
@@ -304,7 +304,7 @@ InstantSpell* Spells::getInstantSpellByIndex(const Player* player, uint32_t inde
 		++count;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 InstantSpell* Spells::getInstantSpellByName(const std::string& name)
@@ -316,7 +316,7 @@ InstantSpell* Spells::getInstantSpellByName(const std::string& name)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Position Spells::getCasterPosition(Creature* creature, Direction dir)
@@ -381,7 +381,7 @@ bool CombatSpell::loadScriptCombat()
 		m_interface->releaseEnv();
 	}
 
-	return combat != NULL;
+	return combat != nullptr;
 }
 
 bool CombatSpell::castSpell(Creature* creature)
@@ -1209,7 +1209,7 @@ InstantSpell::InstantSpell(LuaInterface* _interface) :
 	checkLineOfSight = true;
 	casterTargetOrDirection = false;
 	limitRange = 0;
-	function = NULL;
+	function = nullptr;
 }
 
 bool InstantSpell::configureEvent(xmlNodePtr p)
@@ -1280,14 +1280,14 @@ bool InstantSpell::castInstant(Player* player, const std::string& param)
 			return false;
 		}
 	} else if (needTarget || casterTargetOrDirection) {
-		Creature* target = NULL;
+		Creature* target = nullptr;
 		if (hasParam) {
-			Player* targetPlayer = NULL;
+			Player* targetPlayer = nullptr;
 			ReturnValue ret = g_game.getPlayerByNameWildcard(param, targetPlayer);
 
 			target = targetPlayer;
 			if (limitRange && target && !Position::areInRange(Position(limitRange, limitRange, 0), target->getPosition(), player->getPosition())) {
-				target = NULL;
+				target = nullptr;
 			}
 
 			if ((!target || target->getHealth() <= 0) && !casterTargetOrDirection) {
@@ -1300,7 +1300,7 @@ bool InstantSpell::castInstant(Player* player, const std::string& param)
 		} else {
 			target = player->getAttackedCreature();
 			if (limitRange && target && !Position::areInRange(Position(limitRange, limitRange, 0), target->getPosition(), player->getPosition())) {
-				target = NULL;
+				target = nullptr;
 			}
 
 			if ((!target || target->getHealth() <= 0) && !casterTargetOrDirection) {
@@ -1488,7 +1488,7 @@ bool InstantSpell::SearchPlayer(const InstantSpell*, Creature* creature, const s
 		return false;
 	}
 
-	Player* targetPlayer = NULL;
+	Player* targetPlayer = nullptr;
 	ReturnValue ret = g_game.getPlayerByNameWildcard(param, targetPlayer);
 	if (ret != RET_NOERROR || !targetPlayer || targetPlayer->isRemoved()) {
 		player->sendCancelMessage(ret);
@@ -1603,7 +1603,7 @@ bool InstantSpell::Levitate(const InstantSpell*, Creature* creature, const std::
 	if (ret == RET_NOERROR) {
 		ret = RET_NOTPOSSIBLE;
 		if (position.z != floor) {
-			Tile* tmpTile = NULL;
+			Tile* tmpTile = nullptr;
 			if (floor != 7) {
 				tmpTile = g_game.getTile(position.x, position.y, position.z - 1);
 				destination.z--;
@@ -1617,7 +1617,7 @@ bool InstantSpell::Levitate(const InstantSpell*, Creature* creature, const std::
 				tmpTile = g_game.getTile(destination);
 				if (tile && tmpTile && tmpTile->ground && !tmpTile->hasProperty(IMMOVABLEBLOCKSOLID) && !tmpTile->floorChange() && tile->hasFlag(TILESTATE_HOUSE) == tmpTile->hasFlag(TILESTATE_HOUSE)
 					&& tile->hasFlag(TILESTATE_PROTECTIONZONE) == tmpTile->hasFlag(TILESTATE_PROTECTIONZONE)) {
-					ret = g_game.internalMoveCreature(NULL, player, tile, tmpTile, FLAG_IGNOREBLOCKITEM | FLAG_IGNOREBLOCKCREATURE);
+					ret = g_game.internalMoveCreature(nullptr, player, tile, tmpTile, FLAG_IGNOREBLOCKITEM | FLAG_IGNOREBLOCKCREATURE);
 				}
 			}
 		}
@@ -1740,7 +1740,7 @@ ReturnValue ConjureSpell::internalConjureItem(Player* player, uint32_t conjureId
 	}
 
 	std::list<Container*> containers;
-	Item *item = NULL, *fromItem = NULL;
+	Item *item = nullptr, *fromItem = nullptr;
 	for (int32_t i = SLOT_FIRST; i < SLOT_LAST; ++i) {
 		if (!(item = player->getInventoryItem((slots_t)i))) {
 			continue;
@@ -1774,7 +1774,7 @@ ReturnValue ConjureSpell::internalConjureItem(Player* player, uint32_t conjureId
 
 	if ((fromItem->isStackable() || fromItem->hasCharges()) && fromItem->getSubType() > 1) {
 		item = Item::CreateItem(conjureId, conjureCount);
-		ReturnValue ret = g_game.internalPlayerAddItem(NULL, player, item, false);
+		ReturnValue ret = g_game.internalPlayerAddItem(nullptr, player, item, false);
 		if (ret != RET_NOERROR) {
 			return ret;
 		}
@@ -1843,7 +1843,7 @@ RuneSpell::RuneSpell(LuaInterface* _interface) :
 	Action(_interface)
 {
 	runeId = 0;
-	function = NULL;
+	function = nullptr;
 	hasCharges = allowFarUse = true;
 }
 

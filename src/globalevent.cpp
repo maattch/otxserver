@@ -58,7 +58,7 @@ Event* GlobalEvents::getEvent(const std::string& nodeName)
 		return new GlobalEvent(&m_interface);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool GlobalEvents::registerEvent(Event* event, xmlNodePtr, bool override)
@@ -100,7 +100,7 @@ void GlobalEvents::startup()
 
 void GlobalEvents::timer()
 {
-	time_t now = time(NULL);
+	time_t now = time(nullptr);
 	tm* ts = localtime(&now);
 	for (GlobalEventMap::iterator it = timerMap.begin(); it != timerMap.end(); ++it) {
 		int32_t tmp = it->second->getInterval(), h = tmp >> 16, m = (tmp >> 8) & 0xFF, s = tmp & 0xFF;

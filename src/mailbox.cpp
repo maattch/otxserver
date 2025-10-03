@@ -59,7 +59,7 @@ ReturnValue Mailbox::canSend(const Item* item, Creature* actor) const
 }
 
 ReturnValue Mailbox::__queryAdd(int32_t, const Thing* thing, uint32_t,
-	uint32_t, Creature* actor /* = NULL*/) const
+	uint32_t, Creature* actor /* = nullptr*/) const
 {
 	if (const Item* item = thing->getItem()) {
 		return canSend(item, actor);

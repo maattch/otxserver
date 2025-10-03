@@ -39,13 +39,13 @@
 #include "vocation.h"
 #include "weapons.h"
 
-Actions* g_actions = NULL;
-CreatureEvents* g_creatureEvents = NULL;
-Spells* g_spells = NULL;
-TalkActions* g_talkActions = NULL;
-MoveEvents* g_moveEvents = NULL;
-Weapons* g_weapons = NULL;
-GlobalEvents* g_globalEvents = NULL;
+Actions* g_actions = nullptr;
+CreatureEvents* g_creatureEvents = nullptr;
+Spells* g_spells = nullptr;
+TalkActions* g_talkActions = nullptr;
+MoveEvents* g_moveEvents = nullptr;
+Weapons* g_weapons = nullptr;
+GlobalEvents* g_globalEvents = nullptr;
 
 extern Chat g_chat;
 extern ConfigManager g_config;

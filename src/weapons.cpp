@@ -36,7 +36,7 @@ Weapons::Weapons() :
 const Weapon* Weapons::getWeapon(const Item* item) const
 {
 	if (!item) {
-		return NULL;
+		return nullptr;
 	}
 
 	WeaponMap::const_iterator it = weapons.find(item->getID());
@@ -44,7 +44,7 @@ const Weapon* Weapons::getWeapon(const Item* item) const
 		return it->second;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void Weapons::clear()
@@ -117,7 +117,7 @@ Event* Weapons::getEvent(const std::string& nodeName)
 		return new WeaponWand(&m_interface);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool Weapons::registerEvent(Event* event, xmlNodePtr, bool override)
@@ -490,7 +490,7 @@ void Weapon::onUsedAmmo(Player* player, Item* item, Tile* destTile) const
 			break;
 
 		case AMMOACTION_MOVE:
-			g_game.internalMoveItem(player, item->getParent(), destTile, INDEX_WHEREEVER, item, 1, NULL, FLAG_NOLIMIT);
+			g_game.internalMoveItem(player, item->getParent(), destTile, INDEX_WHEREEVER, item, 1, nullptr, FLAG_NOLIMIT);
 			break;
 
 		case AMMOACTION_MOVEBACK:
@@ -847,7 +847,7 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
 			std::shuffle(destList.begin(), destList.end(), getRandomGenerator());
 			Position destPos = target->getPosition();
 
-			Tile* tmpTile = NULL;
+			Tile* tmpTile = nullptr;
 			for (std::vector<std::pair<int32_t, int32_t>>::iterator it = destList.begin(); it != destList.end(); ++it) {
 				if (!(tmpTile = g_game.getTile(destPos.x + it->first, destPos.y + it->second, destPos.z))
 					|| tmpTile->hasProperty(IMMOVABLEBLOCKSOLID) || !tmpTile->ground) {

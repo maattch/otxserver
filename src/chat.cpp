@@ -105,8 +105,8 @@ void PrivateChatChannel::closeChannel()
 }
 
 ChatChannel::ChatChannel(uint16_t id, const std::string& name, uint16_t flags, uint32_t access /* = 0*/,
-	uint32_t level /* = 1*/, Condition* condition /* = NULL*/, int32_t conditionId /* = -1*/,
-	const std::string& conditionMessage /* = ""*/, VocationMap* vocationMap /* = NULL*/) :
+	uint32_t level /* = 1*/, Condition* condition /* = nullptr*/, int32_t conditionId /* = -1*/,
+	const std::string& conditionMessage /* = ""*/, VocationMap* vocationMap /* = nullptr*/) :
 	m_id(id),
 	m_flags(flags),
 	m_conditionId(conditionId),
@@ -351,7 +351,7 @@ bool Chat::parseChannelNode(xmlNodePtr p)
 	int32_t conditionId = -1;
 	std::string conditionMessage = "You are muted.";
 
-	Condition* condition = NULL;
+	Condition* condition = nullptr;
 	if (readXMLInteger(p, "muted", intValue)) {
 		conditionId = 3;
 		int32_t tmp = intValue * 1000;
@@ -381,7 +381,7 @@ bool Chat::parseChannelNode(xmlNodePtr p)
 		}
 	}
 
-	VocationMap* vocationMap = NULL;
+	VocationMap* vocationMap = nullptr;
 	if (!vocMap.empty()) {
 		vocationMap = new VocationMap(vocMap);
 	}
@@ -421,12 +421,12 @@ bool Chat::parseChannelNode(xmlNodePtr p)
 ChatChannel* Chat::createChannel(Player* player, uint16_t channelId)
 {
 	if (!player || player->isRemoved() || getChannel(player, channelId)) {
-		return NULL;
+		return nullptr;
 	}
 
 	switch (channelId) {
 		case CHANNEL_GUILD: {
-			ChatChannel* newChannel = NULL;
+			ChatChannel* newChannel = nullptr;
 			if ((newChannel = new ChatChannel(channelId, player->getGuildName(), ChatChannel::staticFlags))) {
 				m_guildChannels[player->getGuildId()] = newChannel;
 			}
@@ -435,7 +435,7 @@ ChatChannel* Chat::createChannel(Player* player, uint16_t channelId)
 		}
 
 		case CHANNEL_PARTY: {
-			ChatChannel* newChannel = NULL;
+			ChatChannel* newChannel = nullptr;
 			if (player->getParty() && (newChannel = new ChatChannel(channelId, partyName, ChatChannel::staticFlags))) {
 				m_partyChannels[player->getParty()] = newChannel;
 			}
@@ -444,7 +444,7 @@ ChatChannel* Chat::createChannel(Player* player, uint16_t channelId)
 		}
 
 		case CHANNEL_LOOT: {
-			ChatChannel* newChannel = NULL;
+			ChatChannel* newChannel = nullptr;
 			if ((newChannel = new ChatChannel(channelId, lootName, ChatChannel::staticFlags))) {
 				m_lootChannels[player->getGUID()] = newChannel;
 			}
@@ -455,7 +455,7 @@ ChatChannel* Chat::createChannel(Player* player, uint16_t channelId)
 		case CHANNEL_PRIVATE: {
 			// only 1 private channel for each premium player
 			if (getPrivateChannel(player)) {
-				return NULL;
+				return nullptr;
 			}
 
 			// find a free private channel slot
@@ -469,7 +469,7 @@ ChatChannel* Chat::createChannel(Player* player, uint16_t channelId)
 					flags = dummyPrivate->getFlags();
 				}
 
-				PrivateChatChannel* newChannel = NULL;
+				PrivateChatChannel* newChannel = nullptr;
 				if ((newChannel = new PrivateChatChannel(i, player->getName() + "'s Channel", flags))) {
 					newChannel->setOwner(player->getGUID());
 					m_privateChannels[i] = newChannel;
@@ -483,7 +483,7 @@ ChatChannel* Chat::createChannel(Player* player, uint16_t channelId)
 			break;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool Chat::deleteChannel(Player* player, uint16_t channelId)
@@ -546,7 +546,7 @@ ChatChannel* Chat::addUserToChannel(Player* player, uint16_t channelId)
 		return channel;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void Chat::reOpenChannels(Player* player)
@@ -716,7 +716,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 				std::string param = text.substr(8);
 				trimString(param);
 
-				Player* paramPlayer = NULL;
+				Player* paramPlayer = nullptr;
 				if (g_game.getPlayerByNameWildcard(param, paramPlayer) == RET_NOERROR) {
 					if (paramPlayer->getGuildId() == 0) {
 						if (!paramPlayer->isGuildInvited(player->getGuildId())) {
@@ -777,7 +777,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 				std::string param = text.substr(8);
 				trimString(param);
 
-				Player* paramPlayer = NULL;
+				Player* paramPlayer = nullptr;
 				if (g_game.getPlayerByNameWildcard(param, paramPlayer) == RET_NOERROR) {
 					if (paramPlayer->getGuildId() == 0) {
 						InvitationsList::iterator it = std::find(paramPlayer->invitationsList.begin(), paramPlayer->invitationsList.end(), player->getGuildId());
@@ -841,7 +841,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 			param = text.substr(length);
 			trimString(param);
 
-			Player* paramPlayer = NULL;
+			Player* paramPlayer = nullptr;
 			if (g_game.getPlayerByNameWildcard(param, paramPlayer) == RET_NOERROR) {
 				if (paramPlayer->getGuildId()) {
 					if (IOGuild::getInstance()->guildExists(paramPlayer->getGuildId())) {
@@ -960,7 +960,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 			trimString(param1);
 			trimString(param2);
 
-			Player* paramPlayer = NULL;
+			Player* paramPlayer = nullptr;
 			if (g_game.getPlayerByNameWildcard(param1, paramPlayer) == RET_NOERROR) {
 				if (paramPlayer->getGuildId()) {
 					if (param2.length() > 2) {
@@ -1131,7 +1131,7 @@ ChannelsList Chat::getChannelList(Player* player)
 		return list;
 	}
 
-	ChatChannel* channel = NULL;
+	ChatChannel* channel = nullptr;
 	if (player->getParty() && ((channel = getChannel(player, CHANNEL_PARTY)) || (channel = createChannel(player, CHANNEL_PARTY)))) {
 		list.push_back(std::make_pair(channel->getId(), channel->getName()));
 	}
@@ -1151,7 +1151,7 @@ ChannelsList Chat::getChannelList(Player* player)
 	}
 
 	bool hasPrivate = false;
-	PrivateChatChannel* privateChannel = NULL;
+	PrivateChatChannel* privateChannel = nullptr;
 	for (PrivateChannelMap::iterator pit = m_privateChannels.begin(); pit != m_privateChannels.end(); ++pit) {
 		if (!(privateChannel = pit->second)) {
 			continue;
@@ -1179,7 +1179,7 @@ ChatChannel* Chat::getChannel(Player* player, uint16_t channelId)
 	std::clog << "Chat::getChannel - getChannel id " << channelId << std::endl;
 #endif
 	if (!player || player->isRemoved()) {
-		return NULL;
+		return nullptr;
 	}
 
 	if (channelId == CHANNEL_GUILD) {
@@ -1188,7 +1188,7 @@ ChatChannel* Chat::getChannel(Player* player, uint16_t channelId)
 			return git->second;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	if (channelId == CHANNEL_PARTY) {
@@ -1199,7 +1199,7 @@ ChatChannel* Chat::getChannel(Player* player, uint16_t channelId)
 			}
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	if (channelId == CHANNEL_LOOT) {
@@ -1208,7 +1208,7 @@ ChatChannel* Chat::getChannel(Player* player, uint16_t channelId)
 			return it->second;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	NormalChannelMap::iterator nit = m_normalChannels.find(channelId);
@@ -1222,11 +1222,11 @@ ChatChannel* Chat::getChannel(Player* player, uint16_t channelId)
 #ifdef __DEBUG_CHAT__
 			std::clog << "Chat::getChannel - cannot access normal channel" << std::endl;
 #endif
-			return NULL;
+			return nullptr;
 		}
 
 		if (channelId == CHANNEL_RVR && !player->hasFlag(PlayerFlag_CanAnswerRuleViolations)) {
-			return NULL;
+			return nullptr;
 		}
 
 #ifdef __DEBUG_CHAT__
@@ -1240,7 +1240,7 @@ ChatChannel* Chat::getChannel(Player* player, uint16_t channelId)
 		return pit->second;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 ChatChannel* Chat::getChannelById(uint16_t channelId)
@@ -1250,23 +1250,23 @@ ChatChannel* Chat::getChannelById(uint16_t channelId)
 		return it->second;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 PrivateChatChannel* Chat::getPrivateChannel(Player* player)
 {
 	if (!player || player->isRemoved()) {
-		return NULL;
+		return nullptr;
 	}
 
-	PrivateChatChannel* channel = NULL;
+	PrivateChatChannel* channel = nullptr;
 	for (PrivateChannelMap::iterator it = m_privateChannels.begin(); it != m_privateChannels.end(); ++it) {
 		if ((channel = it->second) && channel->getOwner() == player->getGUID()) {
 			return channel;
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 ChannelList Chat::getPublicChannels() const

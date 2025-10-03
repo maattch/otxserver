@@ -36,22 +36,10 @@ public:
 	static const MsgSize_t INITIAL_BUFFER_POSITION = 8;
 	enum
 	{
-		HEADER_LENGTH = 2
-	};
-	enum
-	{
-		CHECKSUM_LENGTH = 4
-	};
-	enum
-	{
-		XTEA_MULTIPLE = 8
-	};
-	enum
-	{
-		MAX_BODY_LENGTH = NETWORKMESSAGE_MAXSIZE - HEADER_LENGTH - CHECKSUM_LENGTH - XTEA_MULTIPLE
-	};
-	enum
-	{
+		HEADER_LENGTH = 2,
+		CHECKSUM_LENGTH = 4,
+		XTEA_MULTIPLE = 8,
+		MAX_BODY_LENGTH = NETWORKMESSAGE_MAXSIZE - HEADER_LENGTH - CHECKSUM_LENGTH - XTEA_MULTIPLE,
 		MAX_PROTOCOL_BODY_LENGTH = MAX_BODY_LENGTH - 10
 	};
 
@@ -141,52 +129,29 @@ public:
 	void addItemId(uint16_t itemId, Player* player);
 
 	// replace mw sprite
-	uint16_t getReplaceMW(uint16_t spriteId = 0, Player* player = NULL);
+	uint16_t getReplaceMW(uint16_t spriteId = 0, Player* player = nullptr);
 
-	MsgSize_t getLength() const
-	{
-		return length;
-	}
+	MsgSize_t getLength() const { return length; }
+	void setLength(MsgSize_t newLength) { length = newLength; }
 
-	void setLength(MsgSize_t newLength)
-	{
-		length = newLength;
-	}
+	MsgSize_t getBufferPosition() const { return position; }
 
-	MsgSize_t getBufferPosition() const
-	{
-		return position;
-	}
-
-	uint16_t getLengthHeader() const
-	{
+	uint16_t getLengthHeader() const {
 		return static_cast<uint16_t>(buffer[0] | buffer[1] << 8);
 	}
 
-	bool isOverrun() const
-	{
-		return overrun;
-	}
+	bool isOverrun() const { return overrun; }
 
-	uint8_t* getBuffer()
-	{
-		return buffer;
-	}
+	uint8_t* getBuffer() { return buffer; }
+	const uint8_t* getBuffer() const { return buffer; }
 
-	const uint8_t* getBuffer() const
-	{
-		return buffer;
-	}
-
-	uint8_t* getBodyBuffer()
-	{
+	uint8_t* getBodyBuffer() {
 		position = 2;
 		return buffer + HEADER_LENGTH;
 	}
 
 protected:
-	inline bool canAdd(size_t size) const
-	{
+	inline bool canAdd(size_t size) const {
 		return (size + position) < MAX_BODY_LENGTH;
 	}
 

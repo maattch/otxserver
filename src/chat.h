@@ -39,8 +39,8 @@ class ChatChannel
 {
 public:
 	ChatChannel(uint16_t id, const std::string& name, uint16_t flags, uint32_t access = 0,
-		uint32_t level = 1, Condition* condition = NULL, int32_t conditionId = -1,
-		const std::string& conditionMessage = "", VocationMap* vocationMap = NULL);
+		uint32_t level = 1, Condition* condition = nullptr, int32_t conditionId = -1,
+		const std::string& conditionMessage = "", VocationMap* vocationMap = nullptr);
 	virtual ~ChatChannel();
 
 	static uint16_t staticFlags;
@@ -118,7 +118,7 @@ class Chat
 public:
 	Chat() :
 		statement(0),
-		dummyPrivate(NULL),
+		dummyPrivate(nullptr),
 		partyName("Party"),
 		lootName("Loot") {}
 	virtual ~Chat();

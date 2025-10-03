@@ -30,7 +30,7 @@
 extern Game g_game;
 extern MoveEvents* g_moveEvents;
 
-MoveEvent* MoveEventScript::event = NULL;
+MoveEvent* MoveEventScript::event = nullptr;
 
 void MoveEventScript::registerFunctions()
 {
@@ -111,7 +111,7 @@ int32_t MoveEventScript::luaCallFunction(lua_State* L)
 }
 
 MoveEvents::MoveEvents() :
-	m_lastCacheTile(NULL)
+	m_lastCacheTile(nullptr)
 {
 	m_interface.initState();
 }
@@ -152,7 +152,7 @@ void MoveEvents::clear()
 	m_positionMap.clear();
 	m_interface.reInitState();
 
-	m_lastCacheTile = NULL;
+	m_lastCacheTile = nullptr;
 	m_lastCacheItemVector.clear();
 }
 
@@ -163,7 +163,7 @@ Event* MoveEvents::getEvent(const std::string& nodeName)
 		return new MoveEvent(&m_interface);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
@@ -395,7 +395,7 @@ MoveEvent* MoveEvents::getEvent(Item* item, uint16_t uniqueId, uint16_t actionId
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 MoveEvent* MoveEvents::getEvent(Item* item, MoveEvent_t eventType, slots_t slot)
@@ -438,7 +438,7 @@ MoveEvent* MoveEvents::getEvent(Item* item, MoveEvent_t eventType, slots_t slot)
 
 	MoveListMap::iterator it = m_itemIdMap.find(item->getID());
 	if (it == m_itemIdMap.end()) {
-		return NULL;
+		return nullptr;
 	}
 
 	EventList& moveEventList = it->second.moveEvent[eventType];
@@ -448,7 +448,7 @@ MoveEvent* MoveEvents::getEvent(Item* item, MoveEvent_t eventType, slots_t slot)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void MoveEvents::addEvent(MoveEvent* moveEvent, Position pos, MovePosListMap& map, bool override)
@@ -479,7 +479,7 @@ MoveEvent* MoveEvents::getEvent(const Tile* tile, MoveEvent_t eventType)
 {
 	MovePosListMap::iterator it = m_positionMap.find(tile->getPosition());
 	if (it == m_positionMap.end()) {
-		return NULL;
+		return nullptr;
 	}
 
 	EventList& moveEventList = it->second.moveEvent[eventType];
@@ -487,12 +487,12 @@ MoveEvent* MoveEvents::getEvent(const Tile* tile, MoveEvent_t eventType)
 		return *moveEventList.begin();
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool MoveEvents::hasEquipEvent(Item* item)
 {
-	MoveEvent* event = NULL;
+	MoveEvent* event = nullptr;
 	uint16_t uniqueId = item->getUniqueId();
 	uint16_t actionId = item->getUniqueId();
 	return (event = getEvent(item, uniqueId, actionId, MOVE_EVENT_EQUIP)) && !event->isScripted()
@@ -526,16 +526,16 @@ uint32_t MoveEvents::onCreatureMove(Creature* actor, Creature* creature, const T
 	}
 
 	uint32_t ret = 1;
-	MoveEvent* moveEvent = NULL;
+	MoveEvent* moveEvent = nullptr;
 	if ((moveEvent = getEvent(tile, eventType))) {
-		ret &= moveEvent->fireStepEvent(actor, creature, NULL, Position(), fromPos, toPos);
+		ret &= moveEvent->fireStepEvent(actor, creature, nullptr, Position(), fromPos, toPos);
 	}
 
 	if (!tile) {
 		return ret;
 	}
 
-	Item* tileItem = NULL;
+	Item* tileItem = nullptr;
 	if (m_lastCacheTile == tile) {
 		if (m_lastCacheItemVector.empty()) {
 			return ret;
@@ -555,7 +555,7 @@ uint32_t MoveEvents::onCreatureMove(Creature* actor, Creature* creature, const T
 	m_lastCacheItemVector.clear();
 
 	// We cannot use iterators here since the scripts can invalidate the iterator
-	Thing* thing = NULL;
+	Thing* thing = nullptr;
 	for (int32_t i = tile->__getFirstIndex(), j = tile->__getLastIndex(); i < j; ++i) // already checked the ground
 	{
 		if (!(thing = tile->__getThing(i)) || !(tileItem = thing->getItem())) {
@@ -602,19 +602,19 @@ uint32_t MoveEvents::onItemMove(Creature* actor, Item* item, Tile* tile, bool is
 	uint32_t ret = 1;
 	MoveEvent* moveEvent = getEvent(tile, eventType);
 	if (moveEvent) {
-		ret &= moveEvent->fireAddRemItem(actor, item, NULL, tile->getPosition());
+		ret &= moveEvent->fireAddRemItem(actor, item, nullptr, tile->getPosition());
 	}
 
 	moveEvent = getEvent(item, item->getUniqueId(), item->getActionId(), eventType);
 	if (moveEvent) {
-		ret &= moveEvent->fireAddRemItem(actor, item, NULL, tile->getPosition());
+		ret &= moveEvent->fireAddRemItem(actor, item, nullptr, tile->getPosition());
 	}
 
 	if (!tile) {
 		return ret;
 	}
 
-	Item* tileItem = NULL;
+	Item* tileItem = nullptr;
 	if (m_lastCacheTile == tile) {
 		if (m_lastCacheItemVector.empty()) {
 			return ret;
@@ -635,7 +635,7 @@ uint32_t MoveEvents::onItemMove(Creature* actor, Item* item, Tile* tile, bool is
 	m_lastCacheItemVector.clear();
 
 	// we cannot use iterators here since the scripts can invalidate the iterator
-	Thing* thing = NULL;
+	Thing* thing = nullptr;
 	for (int32_t i = tile->__getFirstIndex(), j = tile->__getLastIndex(); i < j; ++i) // already checked the ground
 	{
 		if (!(thing = tile->__getThing(i)) || !(tileItem = thing->getItem()) || tileItem == item) {
@@ -676,7 +676,7 @@ void MoveEvents::onRemoveTileItem(const Tile* tile, Item* item)
 			continue;
 		}
 
-		m_lastCacheItemVector[i] = NULL;
+		m_lastCacheItemVector[i] = nullptr;
 		break;
 	}
 }
@@ -684,9 +684,9 @@ void MoveEvents::onRemoveTileItem(const Tile* tile, Item* item)
 MoveEvent::MoveEvent(LuaInterface* _interface) :
 	Event(_interface)
 {
-	stepFunction = NULL;
-	moveFunction = NULL;
-	equipFunction = NULL;
+	stepFunction = nullptr;
+	moveFunction = nullptr;
+	equipFunction = nullptr;
 	slot = SLOTP_WHEREEVER;
 
 	m_eventType = MOVE_EVENT_NONE;

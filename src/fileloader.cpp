@@ -21,8 +21,8 @@
 
 FileLoader::FileLoader()
 {
-	m_file = NULL;
-	m_root = NULL;
+	m_file = nullptr;
+	m_root = nullptr;
 	m_buffer = new uint8_t[1024];
 	m_buffer_size = 1024;
 	m_lastError = ERROR_NONE;
@@ -38,7 +38,7 @@ FileLoader::~FileLoader()
 {
 	if (m_file) {
 		fclose(m_file);
-		m_file = NULL;
+		m_file = nullptr;
 	}
 
 	NodeStruct::clearNet(m_root);
@@ -71,7 +71,7 @@ bool FileLoader::openFile(const char* name, const char* accept_identifier, bool 
 	char identifier[4];
 	if (fread(identifier, 1, 4, m_file) < 4) {
 		fclose(m_file);
-		m_file = NULL;
+		m_file = nullptr;
 		m_lastError = ERROR_EOF;
 		return false;
 	}
@@ -79,7 +79,7 @@ bool FileLoader::openFile(const char* name, const char* accept_identifier, bool 
 	// The first four bytes must either match the accept identifier or be 0x00000000 (wildcard)
 	if (memcmp(identifier, accept_identifier, 4) != 0 && memcmp(identifier, "\0\0\0\0", 4) != 0) {
 		fclose(m_file);
-		m_file = NULL;
+		m_file = nullptr;
 		m_lastError = ERROR_INVALID_FILE_VERSION;
 		return false;
 	}
@@ -211,7 +211,7 @@ bool FileLoader::parseNode(NODE node)
 const uint8_t* FileLoader::getProps(const NODE node, uint32_t& size)
 {
 	if (!node) {
-		return NULL;
+		return nullptr;
 	}
 
 	if (node->propsSize >= m_buffer_size) {
@@ -225,7 +225,7 @@ const uint8_t* FileLoader::getProps(const NODE node, uint32_t& size)
 
 	// get buffer
 	if (!readBytes(m_buffer, node->propsSize, node->start + 2)) {
-		return NULL;
+		return nullptr;
 	}
 
 	// unscape buffer
@@ -255,7 +255,7 @@ bool FileLoader::getProps(const NODE node, PropStream& props)
 		return true;
 	}
 
-	props.init(NULL, 0);
+	props.init(nullptr, 0);
 	return false;
 }
 
@@ -491,7 +491,7 @@ int32_t FileLoader::loadCacheBlock(uint32_t pos)
 		}
 	}
 
-	if (m_cached_data[loading_cache].data == NULL) {
+	if (m_cached_data[loading_cache].data == nullptr) {
 		m_cached_data[loading_cache].data = new uint8_t[m_cache_size];
 	}
 

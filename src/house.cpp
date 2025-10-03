@@ -80,7 +80,7 @@ Door* House::getDoorByNumber(uint8_t doorId) const
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Door* House::getDoorByPosition(const Position& pos)
@@ -91,7 +91,7 @@ Door* House::getDoorByPosition(const Position& pos)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void House::setOwner(uint32_t guid)
@@ -132,7 +132,7 @@ bool House::setOwnerEx(uint32_t guid, bool transfer)
 	}
 
 	setOwner(guid);
-	lastWarning = guid ? time(NULL) : 0;
+	lastWarning = guid ? time(nullptr) : 0;
 
 	DBTransaction trans;
 	if (!trans.begin()) {
@@ -161,7 +161,7 @@ bool House::isBidded() const
 	return true;
 }
 
-void House::updateDoorDescription(std::string _name /* = ""*/, Door* door /* = NULL*/)
+void House::updateDoorDescription(std::string _name /* = ""*/, Door* door /* = nullptr*/)
 {
 	std::string tmp = "house";
 	if (isGuild()) {
@@ -214,7 +214,7 @@ void House::removePlayers(bool ignoreInvites)
 			continue;
 		}
 
-		Player* player = NULL;
+		Player* player = nullptr;
 		for (CreatureVector::iterator cit = creatures->begin(); cit != creatures->end(); ++cit) {
 			if ((player = (*cit)->getPlayer()) && !player->isRemoved()
 				&& (ignoreInvites || !isInvited(player))) {
@@ -270,7 +270,7 @@ bool House::transferToDepot()
 		return false;
 	}
 
-	Player* player = NULL;
+	Player* player = nullptr;
 	if (owner) {
 		uint32_t tmp = owner;
 		if (isGuild() && !IOGuild::getInstance()->swapGuildIdToOwner(tmp)) {
@@ -282,8 +282,8 @@ bool House::transferToDepot()
 		}
 	}
 
-	Container* tmpContainer = NULL;
-	TileItemVector* items = NULL;
+	Container* tmpContainer = nullptr;
+	TileItemVector* items = nullptr;
 
 	ItemList moveList;
 	for (HouseTileList::iterator it = houseTiles.begin(); it != houseTiles.end(); ++it) {
@@ -305,7 +305,7 @@ bool House::transferToDepot()
 	if (player) {
 		Depot* depot = player->getDepot(townId, true);
 		for (ItemList::iterator it = moveList.begin(); it != moveList.end(); ++it) {
-			g_game.internalMoveItem(NULL, (*it)->getParent(), depot, INDEX_WHEREEVER, (*it), (*it)->getItemCount(), NULL, FLAG_NOLIMIT);
+			g_game.internalMoveItem(nullptr, (*it)->getParent(), depot, INDEX_WHEREEVER, (*it), (*it)->getItemCount(), nullptr, FLAG_NOLIMIT);
 		}
 
 		if (player->isVirtual()) {
@@ -314,7 +314,7 @@ bool House::transferToDepot()
 		}
 	} else {
 		for (ItemList::iterator it = moveList.begin(); it != moveList.end(); ++it) {
-			g_game.internalRemoveItem(NULL, (*it), (*it)->getItemCount(), false, FLAG_NOLIMIT);
+			g_game.internalRemoveItem(nullptr, (*it), (*it)->getItemCount(), false, FLAG_NOLIMIT);
 		}
 	}
 
@@ -403,7 +403,7 @@ bool House::getAccessList(uint32_t listId, std::string& list) const
 	}
 
 #ifdef __DEBUG_HOUSES__
-	std::clog << "[Failure - House::getAccessList] door == NULL, listId = " << listId << std::endl;
+	std::clog << "[Failure - House::getAccessList] door == nullptr, listId = " << listId << std::endl;
 #endif
 	return false;
 }
@@ -420,7 +420,7 @@ void House::setAccessList(uint32_t listId, const std::string& textlist, bool tel
 		}
 #ifdef __DEBUG_HOUSES__
 		else {
-			std::clog << "[Failure - House::setAccessList] door == NULL, listId = " << listId << std::endl;
+			std::clog << "[Failure - House::setAccessList] door == nullptr, listId = " << listId << std::endl;
 		}
 #endif
 
@@ -454,13 +454,13 @@ bool TransferItem::onTradeEvent(TradeEvents_t event, Player* owner, Player* sell
 				house->setOwnerEx(owner->getGUID(), true);
 			}
 
-			g_game.internalRemoveItem(NULL, this, getItemCount());
-			seller->transferContainer.setParent(NULL);
+			g_game.internalRemoveItem(nullptr, this, getItemCount());
+			seller->transferContainer.setParent(nullptr);
 			break;
 		}
 
 		case ON_TRADE_CANCEL: {
-			owner->transferContainer.setParent(NULL);
+			owner->transferContainer.setParent(nullptr);
 			owner->transferContainer.__removeThing(this, getItemCount());
 			g_game.freeThing(this);
 			break;
@@ -784,7 +784,7 @@ void Houses::check()
 	uint64_t start = OTSYS_TIME();
 	std::clog << "> Checking houses..." << std::endl;
 
-	time_t currentTime = time(NULL);
+	time_t currentTime = time(nullptr);
 	for (HouseMap::iterator it = houseMap.begin(); it != houseMap.end(); ++it) {
 		payHouse(it->second, currentTime, 0);
 	}
@@ -817,7 +817,7 @@ bool Houses::payRent(Player* player, House* house, uint32_t bid, time_t _time /*
 	}
 
 	if (!_time) {
-		_time = time(NULL);
+		_time = time(nullptr);
 	}
 
 	uint32_t paidUntil = _time;
@@ -928,9 +928,9 @@ bool Houses::payHouse(House* house, time_t _time, uint32_t bid)
 
 	if (Depot* depot = player->getDepot(town->getID(), true)) {
 		if (Item* letter = Item::CreateItem(ITEM_LETTER_STAMPED)) {
-			if (g_game.internalAddItem(NULL, depot, letter, INDEX_WHEREEVER, FLAG_NOLIMIT) == RET_NOERROR) {
+			if (g_game.internalAddItem(nullptr, depot, letter, INDEX_WHEREEVER, FLAG_NOLIMIT) == RET_NOERROR) {
 				letter->setWriter(g_config.getString(ConfigManager::SERVER_NAME));
-				letter->setDate(std::time(NULL));
+				letter->setDate(std::time(nullptr));
 				std::ostringstream s;
 
 				s << "Warning!\nThe ";
@@ -985,7 +985,7 @@ House* Houses::getHouse(uint32_t houseId, bool add /*= false*/)
 	}
 
 	if (!add) {
-		return NULL;
+		return nullptr;
 	}
 
 	houseMap[houseId] = new House(houseId);
@@ -995,19 +995,19 @@ House* Houses::getHouse(uint32_t houseId, bool add /*= false*/)
 House* Houses::getHouseByPlayer(Player* player)
 {
 	if (!player || player->isRemoved()) {
-		return NULL;
+		return nullptr;
 	}
 
 	HouseTile* houseTile = player->getTile()->getHouseTile();
 	if (!houseTile) {
-		return NULL;
+		return nullptr;
 	}
 
 	if (House* house = houseTile->getHouse()) {
 		return house;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 House* Houses::getHouseByPlayerId(uint32_t playerId)
@@ -1018,7 +1018,7 @@ House* Houses::getHouseByPlayerId(uint32_t playerId)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 House* Houses::getHouseByGuildId(uint32_t guildId)
@@ -1029,7 +1029,7 @@ House* Houses::getHouseByGuildId(uint32_t guildId)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 uint32_t Houses::getHousesCount(uint32_t accId)

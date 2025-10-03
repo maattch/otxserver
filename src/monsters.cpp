@@ -62,7 +62,7 @@ void MonsterType::reset()
 		}
 
 		delete it->spell;
-		it->spell = NULL;
+		it->spell = nullptr;
 	}
 
 	spellAttackList.clear();
@@ -72,7 +72,7 @@ void MonsterType::reset()
 		}
 
 		delete it->spell;
-		it->spell = NULL;
+		it->spell = nullptr;
 	}
 
 	spellDefenseList.clear();
@@ -96,7 +96,7 @@ ItemList MonsterType::createLoot(const LootBlock& lootBlock)
 		count = random % lootBlock.count + 1;
 	}
 
-	Item* tmpItem = NULL;
+	Item* tmpItem = nullptr;
 	while (count > 0) {
 		uint16_t n = 0;
 		if (Item::items[item].stackable) {
@@ -197,7 +197,7 @@ bool MonsterType::createChildLoot(Container* parent, const LootBlock& lootBlock,
 					if (player->isMoneyAutoLoot(tmpItem, money)) {
 						continue;
 					}
-					g_game.internalPlayerAddItem(NULL, player, tmpItem);
+					g_game.internalPlayerAddItem(nullptr, player, tmpItem);
 					str << " " << tmpItem->getNameDescription() << ",";
 					continue;
 				}
@@ -305,7 +305,7 @@ void MonsterType::dropLoot(Container* corpse)
 							if (tmpPlayer->isMoneyAutoLoot(tmpItem, money)) {
 								continue;
 							}
-							g_game.internalPlayerAddItem(NULL, tmpPlayer, tmpItem, false);
+							g_game.internalPlayerAddItem(nullptr, tmpPlayer, tmpItem, false);
 							str << " " << tmpItem->getNameDescription() << ",";
 							continue;
 						}
@@ -416,7 +416,7 @@ ConditionDamage* Monsters::getDamageCondition(ConditionType_t conditionType,
 		return condition;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool Monsters::deserializeSpell(xmlNodePtr node, spellBlock_t& sb, const std::string& description)
@@ -477,7 +477,7 @@ bool Monsters::deserializeSpell(xmlNodePtr node, spellBlock_t& sb, const std::st
 		return true;
 	}
 
-	CombatSpell* combatSpell = NULL;
+	CombatSpell* combatSpell = nullptr;
 	bool needTarget = false, needDirection = false;
 	if (isScripted) {
 		if (readXMLString(node, "direction", strValue)) {
@@ -488,7 +488,7 @@ bool Monsters::deserializeSpell(xmlNodePtr node, spellBlock_t& sb, const std::st
 			needTarget = booleanString(strValue);
 		}
 
-		combatSpell = new CombatSpell(NULL, needTarget, needDirection);
+		combatSpell = new CombatSpell(nullptr, needTarget, needDirection);
 		if (!combatSpell->loadScript(getFilePath(FILE_TYPE_OTHER, g_spells->getScriptBaseName() + "/scripts/" + scriptName), true)) {
 			delete combatSpell;
 			return false;
@@ -1010,12 +1010,12 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 	}
 
 	bool monsterLoad, new_mType = true;
-	MonsterType* mType = NULL;
+	MonsterType* mType = nullptr;
 	if (reloading) {
 		uint32_t id = getIdByName(monsterName);
 		if (id != 0) {
 			mType = getMonsterType(id);
-			if (mType != NULL) {
+			if (mType != nullptr) {
 				new_mType = false;
 				mType->reset();
 			}
@@ -1667,7 +1667,7 @@ MonsterType* Monsters::getMonsterType(const std::string& name)
 		return getMonsterType(mid);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 MonsterType* Monsters::getMonsterType(uint32_t mid)
@@ -1677,7 +1677,7 @@ MonsterType* Monsters::getMonsterType(uint32_t mid)
 		return it->second;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 uint32_t Monsters::getIdByName(const std::string& name)

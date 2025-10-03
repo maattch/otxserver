@@ -60,7 +60,7 @@ Event* CreatureEvents::getEvent(const std::string& nodeName)
 		return new CreatureEvent(&m_interface);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool CreatureEvents::registerEvent(Event* event, xmlNodePtr, bool override)
@@ -99,7 +99,7 @@ CreatureEvent* CreatureEvents::getEventByName(const std::string& name)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool CreatureEvents::playerLogin(Player* player)
@@ -451,7 +451,7 @@ void CreatureEvent::copyEvent(CreatureEvent* creatureEvent)
 void CreatureEvent::clearEvent()
 {
 	m_scriptId = 0;
-	m_interface = NULL;
+	m_interface = nullptr;
 	m_scripted = EVENT_SCRIPT_FALSE;
 	m_loaded = false;
 }
@@ -1249,7 +1249,7 @@ uint32_t CreatureEvent::executeCombat(Creature* creature, Creature* target, bool
 	}
 }
 
-uint32_t CreatureEvent::executeCast(Creature* creature, Creature* target /* = NULL*/)
+uint32_t CreatureEvent::executeCast(Creature* creature, Creature* target /* = nullptr*/)
 {
 	// onCast(cid[, target])
 	if (m_interface->reserveEnv()) {

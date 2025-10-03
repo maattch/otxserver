@@ -40,7 +40,7 @@ Attr_ReadValue Depot::readAttr(AttrTypes_t attr, PropStream& propStream)
 }
 
 ReturnValue Depot::__queryAdd(int32_t index, const Thing* thing, uint32_t count,
-	uint32_t flags, Creature* actor /* = NULL*/) const
+	uint32_t flags, Creature* actor /* = nullptr*/) const
 {
 	const Item* item = thing->getItem();
 	if (!item) {

@@ -286,7 +286,7 @@ bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 							mission->newState(i, description);
 						}
 					} else {
-						std::clog << "Invalid mission state id '" << strValue << "' for mission '" << mission->getName(NULL) << "'" << std::endl;
+						std::clog << "Invalid mission state id '" << strValue << "' for mission '" << mission->getName(nullptr) << "'" << std::endl;
 					}
 
 					continue;
@@ -366,5 +366,5 @@ Quest* Quests::getQuestById(uint16_t id) const
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }

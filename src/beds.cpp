@@ -84,7 +84,7 @@ BedItem* BedItem::getNextBedItem()
 		return tile->getBedItem();
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool BedItem::canUse(Player* player)
@@ -130,7 +130,7 @@ void BedItem::sleep(Player* player)
 			nextBedItem->updateAppearance(player);
 		}
 
-		player->getTile()->moveCreature(NULL, player, getTile());
+		player->getTile()->moveCreature(nullptr, player, getTile());
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_SLEEP);
 		addSchedulerTask(SCHEDULER_MINTICKS, [playerID = player->getID()]() { g_game.kickPlayer(playerID, false); });
 	} else if (Item::items[getID()].transformUseTo) {
@@ -159,7 +159,7 @@ void BedItem::wakeUp()
 		}
 	}
 
-	Beds::getInstance()->setBedSleeper(NULL, sleeper);
+	Beds::getInstance()->setBedSleeper(nullptr, sleeper);
 	internalRemoveSleeper();
 
 	BedItem* nextBedItem = getNextBedItem();
@@ -167,9 +167,9 @@ void BedItem::wakeUp()
 		nextBedItem->internalRemoveSleeper();
 	}
 
-	updateAppearance(NULL);
+	updateAppearance(nullptr);
 	if (nextBedItem) {
-		nextBedItem->updateAppearance(NULL);
+		nextBedItem->updateAppearance(nullptr);
 	}
 }
 
@@ -177,7 +177,7 @@ void BedItem::regeneratePlayer(Player* player) const
 {
 	bool ok;
 	int32_t sleepStart = getIntegerAttribute("sleepstart", ok);
-	int32_t sleptTime = (int32_t)time(NULL) - sleepStart;
+	int32_t sleptTime = (int32_t)time(nullptr) - sleepStart;
 	if (Condition* condition = player->getCondition(CONDITION_REGENERATION, CONDITIONID_DEFAULT)) {
 		int32_t amount = sleptTime / 30;
 		if (condition->getTicks() != -1) {
@@ -220,7 +220,7 @@ void BedItem::updateAppearance(const Player* player)
 void BedItem::internalSetSleeper(const Player* player)
 {
 	sleeper = player->getGUID();
-	setAttribute("sleepstart", (int32_t)time(NULL));
+	setAttribute("sleepstart", (int32_t)time(nullptr));
 	setSpecialDescription(player->getName() + " is sleeping there.");
 }
 
@@ -238,5 +238,5 @@ BedItem* Beds::getBedBySleeper(uint32_t guid)
 		return it->second;
 	}
 
-	return NULL;
+	return nullptr;
 }

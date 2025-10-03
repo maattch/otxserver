@@ -69,7 +69,7 @@ public:
 	 * \returns ReturnValue holds the return value
 	 */
 	virtual ReturnValue __queryAdd(int32_t index, const Thing* Item, uint32_t count,
-		uint32_t flags, Creature* actor = NULL) const
+		uint32_t flags, Creature* actor = nullptr) const
 		= 0;
 
 	/**
@@ -93,7 +93,7 @@ public:
 	 * \param flags optional flags to modifiy the default behaviour
 	 * \returns ReturnValue holds the return value
 	 */
-	virtual ReturnValue __queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor = NULL) const = 0;
+	virtual ReturnValue __queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor = nullptr) const = 0;
 
 	/**
 	 * Query the destination cylinder
@@ -111,14 +111,14 @@ public:
 
 	/**
 	 * Add the object to the cylinder
-	 * \param actor is creature adding the object (can be NULL)
+	 * \param actor is creature adding the object (can be nullptr)
 	 * \param item is the object to add
 	 */
 	virtual void __addThing(Creature* actor, Thing* thing) = 0;
 
 	/**
 	 * Add the object to the cylinder
-	 * \param actor is creature adding the object (can be NULL)
+	 * \param actor is creature adding the object (can be nullptr)
 	 * \param index points to the destination index (inventory slot/container position)
 	 * \param item is the object to add
 	 */
@@ -148,7 +148,7 @@ public:
 
 	/**
 	 * Is sent after an operation (move/add) to update internal values
-	 * \param actor is the creature that is responsible (can be NULL)
+	 * \param actor is the creature that is responsible (can be nullptr)
 	 * \param thing is the object that has been added
 	 * \param index is the objects new index value
 	 * \param link holds the relation the object has to the cylinder
@@ -159,7 +159,7 @@ public:
 
 	/**
 	 * Is sent after an operation (move/remove) to update internal values
-	 * \param actor is the creature that is responsible (can be NULL)
+	 * \param actor is the creature that is responsible (can be nullptr)
 	 * \param thing is the object that has been removed
 	 * \param index is the previous index of the removed object
 	 * \param isCompleteRemoval indicates if the item was completely removed or just partially (stackables)
@@ -190,9 +190,9 @@ public:
 
 	/**
 	 * Gets the object based on index
-	 * \returns the object, returns NULL if not found
+	 * \returns the object, returns nullptr if not found
 	 */
-	virtual Thing* __getThing(uint32_t) const { return NULL; }
+	virtual Thing* __getThing(uint32_t) const { return nullptr; }
 
 	/**
 	 * Get the amount of items of a certain type
@@ -234,25 +234,25 @@ public:
 	static VirtualCylinder* virtualCylinder;
 	virtual ~VirtualCylinder() {}
 
-	virtual Cylinder* getParent() { return NULL; }
-	virtual const Cylinder* getParent() const { return NULL; }
+	virtual Cylinder* getParent() { return nullptr; }
+	virtual const Cylinder* getParent() const { return nullptr; }
 	virtual bool isRemoved() const { return false; }
 	virtual Position getPosition() const { return Position(); }
-	virtual Tile* getTile() { return NULL; }
-	virtual const Tile* getTile() const { return NULL; }
-	virtual Item* getItem() { return NULL; }
-	virtual const Item* getItem() const { return NULL; }
-	virtual Creature* getCreature() { return NULL; }
-	virtual const Creature* getCreature() const { return NULL; }
+	virtual Tile* getTile() { return nullptr; }
+	virtual const Tile* getTile() const { return nullptr; }
+	virtual Item* getItem() { return nullptr; }
+	virtual const Item* getItem() const { return nullptr; }
+	virtual Creature* getCreature() { return nullptr; }
+	virtual const Creature* getCreature() const { return nullptr; }
 
 	virtual ReturnValue __queryAdd(int32_t, const Thing*, uint32_t,
-		uint32_t, Creature* = NULL) const { return RET_NOTPOSSIBLE; }
+		uint32_t, Creature* = nullptr) const { return RET_NOTPOSSIBLE; }
 	virtual ReturnValue __queryMaxCount(int32_t, const Thing*, uint32_t,
 		uint32_t&, uint32_t) const { return RET_NOTPOSSIBLE; }
 	virtual ReturnValue __queryRemove(const Thing* thing, uint32_t,
-		uint32_t, Creature* = NULL) const { return (thing->getParent() == this ? RET_NOERROR : RET_NOTPOSSIBLE); }
+		uint32_t, Creature* = nullptr) const { return (thing->getParent() == this ? RET_NOERROR : RET_NOTPOSSIBLE); }
 	virtual Cylinder* __queryDestination(int32_t&, const Thing*, Item**,
-		uint32_t&) { return NULL; }
+		uint32_t&) { return nullptr; }
 
 	virtual void __addThing(Creature*, Thing*) {}
 	virtual void __addThing(Creature*, int32_t, Thing*) {}

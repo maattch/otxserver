@@ -67,7 +67,7 @@ public:
 			}
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	Town* getTown(uint32_t townId)
@@ -77,7 +77,7 @@ public:
 			return it->second;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	TownMap::const_iterator getFirstTown() const { return townMap.begin(); }

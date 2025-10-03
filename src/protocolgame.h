@@ -71,7 +71,7 @@ public:
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 		protocolGameCount++;
 #endif
-		player = NULL;
+		player = nullptr;
 		eventConnect = m_packetCount = m_packetTime = naviexhaust = 0;
 		m_debugAssertSent = acceptPackets = m_spectator = false;
 	}
@@ -249,7 +249,7 @@ private:
 	void sendStats();
 	void sendTextMessage(MessageClasses mclass, const std::string& message);
 	void sendStatsMessage(MessageClasses mclass, const std::string& message,
-		Position pos, MessageDetails* details = NULL);
+		Position pos, MessageDetails* details = nullptr);
 	void sendReLoginWindow();
 
 	void sendTutorial(uint8_t tutorialId);
@@ -325,7 +325,7 @@ private:
 
 	void AddMapDescription(OutputMessage_ptr msg, const Position& pos);
 	void AddTextMessage(MessageClasses mclass, const std::string& message,
-		Position* pos = NULL, MessageDetails* details = NULL);
+		Position* pos = nullptr, MessageDetails* details = nullptr);
 	void AddAnimatedText(OutputMessage_ptr msg, const Position& pos,
 		uint8_t color, const std::string& text);
 

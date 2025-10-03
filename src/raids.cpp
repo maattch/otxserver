@@ -30,7 +30,7 @@ LuaInterface ScriptEvent::m_interface("Raid Interface");
 
 Raids::Raids()
 {
-	running = NULL;
+	running = nullptr;
 	loaded = started = false;
 	lastRaidEnd = checkRaidsEvent = 0;
 }
@@ -176,7 +176,7 @@ void Raids::clear()
 	checkRaidsEvent = lastRaidEnd = 0;
 	loaded = started = false;
 
-	running = NULL;
+	running = nullptr;
 	for (RaidList::iterator it = raidList.begin(); it != raidList.end(); ++it) {
 		delete (*it);
 	}
@@ -200,7 +200,7 @@ Raid* Raids::getRaidByName(const std::string& name)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Raid::Raid(const std::string& _name, uint32_t _interval, uint64_t _margin,
@@ -249,7 +249,7 @@ bool Raid::loadFromXml(const std::string& _filename)
 
 	std::string strValue;
 	for (xmlNodePtr eventNode = root->children; eventNode; eventNode = eventNode->next) {
-		RaidEvent* event = NULL;
+		RaidEvent* event = nullptr;
 		if (!xmlStrcmp(eventNode->name, (const xmlChar*)"announce")) {
 			event = new AnnounceEvent(this, ref);
 		} else if (!xmlStrcmp(eventNode->name, (const xmlChar*)"effect")) {
@@ -331,7 +331,7 @@ bool Raid::resetRaid(bool checkExecution)
 	}
 
 	if (Raids::getInstance()->getRunning() == this) {
-		Raids::getInstance()->setRunning(NULL);
+		Raids::getInstance()->setRunning(nullptr);
 		Raids::getInstance()->setLastRaidEnd(OTSYS_TIME());
 	}
 
@@ -354,7 +354,7 @@ RaidEvent* Raid::getNextRaidEvent()
 		return raidEvents[eventCount++];
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool RaidEvent::configureRaidEvent(xmlNodePtr eventNode)
@@ -560,7 +560,7 @@ bool ItemSpawnEvent::executeEvent(const std::string&) const
 				return false;
 			}
 
-			ReturnValue ret = g_game.internalAddItem(NULL, tile, newItem, INDEX_WHEREEVER, FLAG_NOLIMIT);
+			ReturnValue ret = g_game.internalAddItem(nullptr, tile, newItem, INDEX_WHEREEVER, FLAG_NOLIMIT);
 			if (ret != RET_NOERROR) {
 				std::clog << "[Error - ItemSpawnEvent::executeEvent] Cannot spawn item with id " << m_itemId << std::endl;
 				return false;
@@ -578,7 +578,7 @@ bool ItemSpawnEvent::executeEvent(const std::string&) const
 			return false;
 		}
 
-		ReturnValue ret = g_game.internalAddItem(NULL, tile, newItem, INDEX_WHEREEVER, FLAG_NOLIMIT);
+		ReturnValue ret = g_game.internalAddItem(nullptr, tile, newItem, INDEX_WHEREEVER, FLAG_NOLIMIT);
 		if (ret != RET_NOERROR) {
 			std::clog << "[Error - ItemSpawnEvent::executeEvent] Cannot spawn item with id " << m_itemId << std::endl;
 			return false;
@@ -829,7 +829,7 @@ void AreaSpawnEvent::addMonster(const std::string& name, uint32_t min, uint32_t 
 
 bool AreaSpawnEvent::executeEvent(const std::string&) const
 {
-	MonsterSpawn* spawn = NULL;
+	MonsterSpawn* spawn = nullptr;
 	for (MonsterSpawnList::const_iterator it = m_spawnList.begin(); it != m_spawnList.end(); ++it) {
 		if (!(spawn = *it)) {
 			continue;

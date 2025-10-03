@@ -68,7 +68,7 @@ class ItemAttributes
 {
 public:
 	ItemAttributes() :
-		attributes(NULL) {}
+		attributes(nullptr) {}
 	ItemAttributes(const ItemAttributes& i);
 	virtual ~ItemAttributes() { delete attributes; }
 

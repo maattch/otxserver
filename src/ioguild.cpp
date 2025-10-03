@@ -181,7 +181,7 @@ bool IOGuild::createGuild(Player* player)
 	DBResultPtr result;
 
 	std::ostringstream query;
-	query << "INSERT INTO `guilds` (`id`, `world_id`, `name`, `ownerid`, `creationdata`, `motd`, `checkdata`) VALUES (NULL, " << g_config.getNumber(ConfigManager::WORLD_ID) << ", " << g_database.escapeString(player->getGuildName()) << ", " << player->getGUID() << ", " << time(NULL) << ", 'Your guild has been successfully created, to view all available commands type: !commands. If you would like to remove this message use !cleanmotd and to set new motd use !setmotd text.', 0)";
+	query << "INSERT INTO `guilds` (`id`, `world_id`, `name`, `ownerid`, `creationdata`, `motd`, `checkdata`) VALUES (NULL, " << g_config.getNumber(ConfigManager::WORLD_ID) << ", " << g_database.escapeString(player->getGuildName()) << ", " << player->getGUID() << ", " << time(nullptr) << ", 'Your guild has been successfully created, to view all available commands type: !commands. If you would like to remove this message use !cleanmotd and to set new motd use !setmotd text.', 0)";
 	if (!g_database.executeQuery(query.str())) {
 		return false;
 	}
@@ -535,7 +535,7 @@ void IOGuild::checkEndingWars()
 
 	std::ostringstream query;
 
-	query << "SELECT `id`, `guild_id`, `enemy_id` FROM `guild_wars` WHERE `status` IN (1,4) AND `end` > 0 AND `end` < " << time(NULL);
+	query << "SELECT `id`, `guild_id`, `enemy_id` FROM `guild_wars` WHERE `status` IN (1,4) AND `end` > 0 AND `end` < " << time(nullptr);
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return;
 	}
@@ -600,7 +600,7 @@ void IOGuild::finishWar(War_t war, bool finished)
 		query << "`guild_kills` = " << war.frags[WAR_GUILD] << ", `enemy_kills` = " << war.frags[WAR_ENEMY] << ",";
 	}
 
-	query << "`end` = " << time(NULL) << ", `status` = 5 WHERE `id` = " << war.war;
+	query << "`end` = " << time(nullptr) << ", `status` = 5 WHERE `id` = " << war.war;
 	if (!g_database.executeQuery(query.str())) {
 		return;
 	}
@@ -669,7 +669,7 @@ void IOGuild::frag(Player* player, uint64_t deathId, const DeathList& list, bool
 	std::string killers = s.str();
 	s.str("");
 
-	ChatChannel* channel = NULL;
+	ChatChannel* channel = nullptr;
 	if ((channel = g_chat.getChannel(player, CHANNEL_GUILD))) {
 		s << "Guild member " << player->getName() << " was killed by " << killers << ".";
 		if (score) {

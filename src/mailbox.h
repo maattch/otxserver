@@ -40,11 +40,11 @@ public:
 	virtual const Tile* getTile() const { return Item::getTile(); }
 	virtual Item* getItem() { return this; }
 	virtual const Item* getItem() const { return this; }
-	virtual Creature* getCreature() { return NULL; }
-	virtual const Creature* getCreature() const { return NULL; }
+	virtual Creature* getCreature() { return nullptr; }
+	virtual const Creature* getCreature() const { return nullptr; }
 
 	virtual ReturnValue __queryAdd(int32_t index, const Thing* thing, uint32_t count,
-		uint32_t flags, Creature* actor = NULL) const;
+		uint32_t flags, Creature* actor = nullptr) const;
 	virtual ReturnValue __queryMaxCount(int32_t index, const Thing* thing, uint32_t count,
 		uint32_t& maxQueryCount, uint32_t flags) const;
 	virtual ReturnValue __queryRemove(const Thing*, uint32_t, uint32_t, Creature*) const { return RET_NOTPOSSIBLE; }

@@ -424,7 +424,7 @@ private:
 		}
 	}
 	void sendStatsMessage(MessageClasses mclass, const std::string& message,
-		Position pos, MessageDetails* details = NULL)
+		Position pos, MessageDetails* details = nullptr)
 	{
 		if (!owner) {
 			return;

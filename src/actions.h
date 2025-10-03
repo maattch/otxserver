@@ -46,7 +46,7 @@ public:
 	ReturnValue canUse(const Player* player, const Position& pos);
 	ReturnValue canUseEx(const Player* player, const Position& pos, const Item* item);
 	ReturnValue canUseFar(const Creature* creature, const Position& toPos, bool checkLineOfSight);
-	bool hasAction(const Item* item) const { return getAction(item, ACTION_ANY) != NULL; }
+	bool hasAction(const Item* item) const { return getAction(item, ACTION_ANY) != nullptr; }
 
 protected:
 	Action* defaultAction;

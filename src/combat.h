@@ -78,9 +78,9 @@ struct CombatParams
 		combatType = COMBAT_NONE;
 		itemId = 0;
 
-		targetCallback = NULL;
-		valueCallback = NULL;
-		tileCallback = NULL;
+		targetCallback = nullptr;
+		valueCallback = nullptr;
+		tileCallback = nullptr;
 	}
 
 	bool blockedByArmor, blockedByShield, targetCasterOrTopMost, targetPlayersOrSummons, differentAreaDamage, useCharges, isAggressive;
@@ -268,7 +268,7 @@ protected:
 			return it->second;
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
 	CombatAreas areas;
@@ -329,7 +329,7 @@ public:
 
 		area = _area;
 	}
-	bool hasArea() const { return area != NULL; }
+	bool hasArea() const { return area != nullptr; }
 
 	bool setParam(CombatParam_t param, uint32_t value);
 	void setCondition(const Condition* _condition) { params.conditionList.push_back(_condition); }

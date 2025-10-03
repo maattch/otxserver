@@ -160,33 +160,33 @@ public:
 	virtual Item* getItem() { return this; }
 	virtual const Item* getItem() const { return this; }
 
-	virtual Container* getContainer() { return NULL; }
-	virtual const Container* getContainer() const { return NULL; }
+	virtual Container* getContainer() { return nullptr; }
+	virtual const Container* getContainer() const { return nullptr; }
 
-	virtual Teleport* getTeleport() { return NULL; }
-	virtual const Teleport* getTeleport() const { return NULL; }
+	virtual Teleport* getTeleport() { return nullptr; }
+	virtual const Teleport* getTeleport() const { return nullptr; }
 
-	virtual TrashHolder* getTrashHolder() { return NULL; }
-	virtual const TrashHolder* getTrashHolder() const { return NULL; }
+	virtual TrashHolder* getTrashHolder() { return nullptr; }
+	virtual const TrashHolder* getTrashHolder() const { return nullptr; }
 
-	virtual Mailbox* getMailbox() { return NULL; }
-	virtual const Mailbox* getMailbox() const { return NULL; }
+	virtual Mailbox* getMailbox() { return nullptr; }
+	virtual const Mailbox* getMailbox() const { return nullptr; }
 
-	virtual Door* getDoor() { return NULL; }
-	virtual const Door* getDoor() const { return NULL; }
+	virtual Door* getDoor() { return nullptr; }
+	virtual const Door* getDoor() const { return nullptr; }
 
-	virtual MagicField* getMagicField() { return NULL; }
-	virtual const MagicField* getMagicField() const { return NULL; }
+	virtual MagicField* getMagicField() { return nullptr; }
+	virtual const MagicField* getMagicField() const { return nullptr; }
 
-	virtual BedItem* getBed() { return NULL; }
-	virtual const BedItem* getBed() const { return NULL; }
+	virtual BedItem* getBed() { return nullptr; }
+	virtual const BedItem* getBed() const { return nullptr; }
 
 	uint16_t getID() const { return id; }
 	void setID(uint16_t newid);
 	uint16_t getClientID() const { return items[id].clientId; }
 
-	static std::string getDescription(const ItemType& it, int32_t lookDistance, const Item* item = NULL, int32_t subType = -1, bool addArticle = true);
-	static std::string getNameDescription(const ItemType& it, const Item* item = NULL, int32_t subType = -1, bool addArticle = true);
+	static std::string getDescription(const ItemType& it, int32_t lookDistance, const Item* item = nullptr, int32_t subType = -1, bool addArticle = true);
+	static std::string getNameDescription(const ItemType& it, const Item* item = nullptr, int32_t subType = -1, bool addArticle = true);
 	static std::string getWeightDescription(double weight, bool stackable, uint32_t count = 1);
 	void generateSerial();
 

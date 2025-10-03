@@ -71,7 +71,7 @@ bool IOMapSerialize::updateAuctions()
 {
 	std::ostringstream query;
 
-	time_t now = time(NULL);
+	time_t now = time(nullptr);
 	query << "SELECT `house_id`, `player_id`, `bid` FROM `house_auctions` WHERE `endtime` < " << now;
 
 	DBResultPtr result;
@@ -80,7 +80,7 @@ bool IOMapSerialize::updateAuctions()
 	}
 
 	bool success = true;
-	House* house = NULL;
+	House* house = nullptr;
 	do {
 		query.str("");
 		query << "DELETE FROM `house_auctions` WHERE `house_id` = " << result->getNumber<int32_t>("house_id");
@@ -107,7 +107,7 @@ bool IOMapSerialize::loadHouses()
 		return false;
 	}
 
-	House* house = NULL;
+	House* house = nullptr;
 	do {
 		if (!(house = Houses::getInstance()->getHouse(result->getNumber<int32_t>("id")))) {
 			continue;
@@ -158,7 +158,7 @@ bool IOMapSerialize::updateHouses()
 {
 	std::ostringstream query;
 
-	House* house = NULL;
+	House* house = nullptr;
 	for (HouseMap::iterator it = Houses::getInstance()->getHouseBegin(); it != Houses::getInstance()->getHouseEnd(); ++it) {
 		if (!(house = it->second)) {
 			continue;
@@ -352,7 +352,7 @@ bool IOMapSerialize::loadMapRelational(Map* map)
 {
 	std::ostringstream query; // lock mutex!
 
-	House* house = NULL;
+	House* house = nullptr;
 	for (HouseMap::iterator it = Houses::getInstance()->getHouseBegin(); it != Houses::getInstance()->getHouseEnd(); ++it) {
 		if (!(house = it->second)) {
 			continue;
@@ -459,7 +459,7 @@ bool IOMapSerialize::loadMapBinary(Map* map)
 		return false;
 	}
 
-	House* house = NULL;
+	House* house = nullptr;
 	do {
 		int32_t houseId = result->getNumber<int32_t>("house_id");
 		house = Houses::getInstance()->getHouse(houseId);
@@ -546,7 +546,7 @@ bool IOMapSerialize::loadMapBinaryTileBased(Map* map)
 		return false;
 	}
 
-	House* house = NULL;
+	House* house = nullptr;
 	do {
 		int32_t houseId = result->getNumber<int32_t>("house_id");
 		house = Houses::getInstance()->getHouse(houseId);
@@ -681,12 +681,12 @@ bool IOMapSerialize::saveHouseBinaryTileBased(DBInsert& stmt, House* house)
 bool IOMapSerialize::loadItems(DBResultPtr result, Cylinder* parent, bool depotTransfer /* = false*/)
 {
 	ItemMap itemMap;
-	Tile* tile = NULL;
+	Tile* tile = nullptr;
 	if (!parent->getItem()) {
 		tile = parent->getTile();
 	}
 
-	Item* item = NULL;
+	Item* item = nullptr;
 	int32_t sid, pid, id, count;
 	do {
 		sid = result->getNumber<int32_t>("sid");
@@ -694,7 +694,7 @@ bool IOMapSerialize::loadItems(DBResultPtr result, Cylinder* parent, bool depotT
 		id = result->getNumber<int32_t>("itemtype");
 		count = result->getNumber<int32_t>("count");
 
-		item = NULL;
+		item = nullptr;
 		unsigned long attrSize = 0;
 		const char* attr = result->getStream("attributes", attrSize);
 
@@ -752,7 +752,7 @@ bool IOMapSerialize::loadItems(DBResultPtr result, Cylinder* parent, bool depotT
 		} else if ((item = Item::CreateItem(id))) {
 			item->unserializeAttr(propStream);
 			if (!depotTransfer) {
-				std::clog << "[Warning - IOMapSerialize::loadItems] NULL item at "
+				std::clog << "[Warning - IOMapSerialize::loadItems] nullptr item at "
 						  << tile->getPosition() << " (type = " << id << ", sid = "
 						  << sid << ", pid = " << pid << ")" << std::endl;
 			} else {
@@ -760,7 +760,7 @@ bool IOMapSerialize::loadItems(DBResultPtr result, Cylinder* parent, bool depotT
 			}
 
 			delete item;
-			item = NULL;
+			item = nullptr;
 		}
 	} while (result->next());
 
@@ -792,7 +792,7 @@ bool IOMapSerialize::saveItems(uint32_t& tileId, uint32_t houseId, const Tile* t
 		return true;
 	}
 
-	Item* item = NULL;
+	Item* item = nullptr;
 	int32_t runningId = 0, parentId = 0;
 	ContainerStackList containerStackList;
 
@@ -846,7 +846,7 @@ bool IOMapSerialize::saveItems(uint32_t& tileId, uint32_t houseId, const Tile* t
 		}
 	}
 
-	Container* container = NULL;
+	Container* container = nullptr;
 	for (ContainerStackList::iterator cit = containerStackList.begin(); cit != containerStackList.end(); ++cit) {
 		container = cit->first;
 		parentId = cit->second;
@@ -904,14 +904,14 @@ bool IOMapSerialize::loadContainer(PropStream& propStream, Container* container)
 
 bool IOMapSerialize::loadItem(PropStream& propStream, Cylinder* parent, bool depotTransfer /* = false*/)
 {
-	Tile* tile = NULL;
+	Tile* tile = nullptr;
 	if (!parent->getItem()) {
 		tile = parent->getTile();
 	}
 
 	uint16_t id = 0;
 	propStream.getShort(id);
-	Item* item = NULL;
+	Item* item = nullptr;
 
 	const ItemType& iType = Item::items[id];
 	if (iType.movable || iType.forceSerialize || (!depotTransfer && !tile)) {
@@ -995,7 +995,7 @@ bool IOMapSerialize::loadItem(PropStream& propStream, Cylinder* parent, bool dep
 
 		if (depotTransfer) {
 			for (ItemList::const_iterator it = container->getItems(); it != container->getEnd(); ++it) {
-				parent->__addThing(NULL, (*it));
+				parent->__addThing(nullptr, (*it));
 			}
 
 			container->itemlist.clear();
@@ -1014,7 +1014,7 @@ bool IOMapSerialize::saveTile(PropWriteStream& stream, const Tile* tile)
 	}
 
 	std::vector<Item*> items;
-	Item* item = NULL;
+	Item* item = nullptr;
 	for (; tileCount > 0; --tileCount) {
 		if ((item = tile->__getThing(tileCount - 1)->getItem()) && // CHECKME: wouldn't it be better to use TileItemVector in here?
 			(item->isMovable() || item->forceSerialize())) {

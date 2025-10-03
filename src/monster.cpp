@@ -48,7 +48,7 @@ Monster* Monster::createMonster(const std::string& name)
 {
 	MonsterType* mType = g_monsters.getMonsterType(name);
 	if (!mType) {
-		return NULL;
+		return nullptr;
 	}
 
 	return createMonster(mType);
@@ -66,8 +66,8 @@ Monster::Monster(MonsterType* _mType) :
 	isMasterInRange = false;
 	teleportToMaster = false;
 
-	spawn = NULL;
-	raid = NULL;
+	spawn = nullptr;
+	raid = nullptr;
 	defaultOutfit = mType->outfit;
 	currentOutfit = mType->outfit;
 
@@ -118,7 +118,7 @@ Monster::~Monster()
 #endif
 	if (raid) {
 		raid->unRef();
-		raid = NULL;
+		raid = nullptr;
 	}
 }
 
@@ -305,7 +305,7 @@ bool Monster::isFriend(const Creature* creature)
 		return creature->getMonster() && !creature->isSummon();
 	}
 
-	const Player* tmpPlayer = NULL;
+	const Player* tmpPlayer = nullptr;
 	if (creature->getPlayer()) {
 		tmpPlayer = creature->getPlayer();
 	} else if (creature->getPlayerMaster()) {
@@ -394,7 +394,7 @@ bool Monster::searchTarget(TargetSearchType_t searchType /*= TARGETSEARCH_DEFAUL
 
 	switch (searchType) {
 		case TARGETSEARCH_NEAREST: {
-			Creature* target = NULL;
+			Creature* target = nullptr;
 			int32_t range = -1;
 			for (CreatureList::iterator it = resultList.begin(); it != resultList.end(); ++it) {
 				int32_t tmp = std::max(std::abs(myPos.x - (*it)->getPosition().x),
@@ -601,7 +601,7 @@ void Monster::onThink(uint32_t interval)
 				setFollowCreature(master);
 			}
 		} else if (attackedCreature == this) {
-			setFollowCreature(NULL);
+			setFollowCreature(nullptr);
 		} else if (followCreature != attackedCreature) { // This happens just after a master orders an attack, so lets follow it aswell.
 			setFollowCreature(attackedCreature);
 		}
@@ -910,7 +910,7 @@ bool Monster::pushItem(Item* item, int32_t radius)
 			tryPos.y = tryPos.y + dy;
 
 			Tile* tile = g_game.getTile(tryPos);
-			if (tile && g_game.canThrowObjectTo(centerPos, tryPos) && g_game.internalMoveItem(this, item->getParent(), tile, INDEX_WHEREEVER, item, item->getItemCount(), NULL) == RET_NOERROR) {
+			if (tile && g_game.canThrowObjectTo(centerPos, tryPos) && g_game.internalMoveItem(this, item->getParent(), tile, INDEX_WHEREEVER, item, item->getItemCount(), nullptr) == RET_NOERROR) {
 				return true;
 			}
 		}
@@ -930,7 +930,7 @@ void Monster::pushItems(Tile* tile)
 	// which will invalidate the iterator.
 	// start from the end to minimize the amount of traffic
 	int32_t moveCount = 0, removeCount = 0, downItemsSize = items->getDownItemCount();
-	Item* item = NULL;
+	Item* item = nullptr;
 	for (int32_t i = downItemsSize - 1; i >= 0; --i) {
 		assert(i >= 0 && i < downItemsSize);
 		if ((item = items->at(i)) && item->hasProperty(MOVABLE) && (item->hasProperty(BLOCKPATH) || item->hasProperty(BLOCKSOLID))) {
@@ -958,7 +958,7 @@ bool Monster::pushCreature(Creature* creature)
 	std::shuffle(dirVector.begin(), dirVector.end(), getRandomGenerator());
 	Position monsterPos = creature->getPosition();
 
-	Tile* tile = NULL;
+	Tile* tile = nullptr;
 	for (DirVector::iterator it = dirVector.begin(); it != dirVector.end(); ++it) {
 		if ((tile = g_game.getTile(Spells::getCasterPosition(creature, (*it)))) && !tile->hasProperty(BLOCKPATH) && g_game.internalMoveCreature(creature, (*it)) == RET_NOERROR) {
 			return true;
@@ -1068,7 +1068,7 @@ bool Monster::getDanceStep(const Position& creaturePos, Direction& dir,
 {
 	bool canDoAttackNow = canUseAttack(creaturePos, attackedCreature);
 
-	assert(attackedCreature != NULL);
+	assert(attackedCreature != nullptr);
 	const Position& centerPos = attackedCreature->getPosition();
 	uint32_t centerToDist = std::max(std::abs(creaturePos.x - centerPos.x), std::abs(creaturePos.y - centerPos.y));
 	uint32_t tmpDist;
@@ -1169,12 +1169,12 @@ bool Monster::canWalkTo(Position pos, Direction dir)
 	}
 
 	Tile* tile = g_game.getTile(pos);
-	if (!tile || g_game.isSwimmingPool(NULL, getTile(), false) != g_game.isSwimmingPool(NULL, tile, false)) { // prevent monsters entering/exiting to swimming pool
+	if (!tile || g_game.isSwimmingPool(nullptr, getTile(), false) != g_game.isSwimmingPool(nullptr, tile, false)) { // prevent monsters entering/exiting to swimming pool
 		return false;
 	}
 
 	// If we don't follow, or attack, and we can't handle the damage, then we can't move on this field
-	MagicField* field = NULL;
+	MagicField* field = nullptr;
 	if (!followCreature && !attackedCreature && (field = tile->getFieldItem()) && !isImmune(field->getCombatType())) {
 		return false;
 	}
@@ -1192,11 +1192,11 @@ bool Monster::onDeath()
 	clearTargetList();
 	clearFriendList();
 
-	setAttackedCreature(NULL);
+	setAttackedCreature(nullptr);
 	onIdleStatus();
 	if (raid) {
 		raid->unRef();
-		raid = NULL;
+		raid = nullptr;
 	}
 
 	g_game.removeCreature(this, false);
@@ -1207,7 +1207,7 @@ Item* Monster::createCorpse(DeathList deathList)
 {
 	Item* corpse = Creature::createCorpse(deathList);
 	if (!corpse) {
-		return NULL;
+		return nullptr;
 	}
 
 	if (master) {
@@ -1236,7 +1236,7 @@ Item* Monster::createCorpse(DeathList deathList)
 		return corpse;
 	}
 
-	Player* owner = NULL;
+	Player* owner = nullptr;
 	if (_owner->getPlayer()) {
 		owner = _owner->getPlayer();
 	} else if (_owner->isPlayerSummon()) {
@@ -1497,8 +1497,8 @@ bool Monster::convinceCreature(Creature* creature)
 		master->removeSummon(this);
 	}
 
-	setFollowCreature(NULL);
-	setAttackedCreature(NULL);
+	setFollowCreature(nullptr);
+	setAttackedCreature(nullptr);
 	destroySummons();
 
 	creature->addSummon(this);
@@ -1517,13 +1517,13 @@ bool Monster::convinceCreature(Creature* creature)
 
 	if (spawn) {
 		spawn->removeMonster(this);
-		spawn = NULL;
+		spawn = nullptr;
 		masterRadius = -1;
 	}
 
 	if (raid) {
 		raid->unRef();
-		raid = NULL;
+		raid = nullptr;
 	}
 
 	return true;

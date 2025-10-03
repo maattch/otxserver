@@ -181,12 +181,12 @@ public:
 
 	virtual Creature* getCreature() { return this; }
 	virtual const Creature* getCreature() const { return this; }
-	virtual Player* getPlayer() { return NULL; }
-	virtual const Player* getPlayer() const { return NULL; }
-	virtual Npc* getNpc() { return NULL; }
-	virtual const Npc* getNpc() const { return NULL; }
-	virtual Monster* getMonster() { return NULL; }
-	virtual const Monster* getMonster() const { return NULL; }
+	virtual Player* getPlayer() { return nullptr; }
+	virtual const Player* getPlayer() const { return nullptr; }
+	virtual Npc* getNpc() { return nullptr; }
+	virtual const Npc* getNpc() const { return nullptr; }
+	virtual Monster* getMonster() { return nullptr; }
+	virtual const Monster* getMonster() const { return nullptr; }
 	virtual CreatureType_t getType() const = 0;
 
 	virtual const std::string& getName() const = 0;
@@ -273,7 +273,9 @@ public:
 	ZoneType_t getZone() const { return getTile()->getZone(); }
 
 	// walk functions
-	bool startAutoWalk(const std::list<Direction>& listDir);
+	void startAutoWalk();
+	void startAutoWalk(Direction dir);
+	void startAutoWalk(const std::vector<Direction>& listDir);
 	void stopWalk() { cancelNextWalk = true; }
 	void addEventWalk(bool firstStep = false);
 	void stopEventWalk();
@@ -301,8 +303,8 @@ public:
 	void setMaster(Creature* creature) { master = creature; }
 	Creature* getMaster() { return master; }
 	const Creature* getMaster() const { return master; }
-	Player* getPlayerMaster() const { return isPlayerSummon() ? master->getPlayer() : NULL; }
-	bool isSummon() const { return master != NULL; }
+	Player* getPlayerMaster() const { return isPlayerSummon() ? master->getPlayer() : nullptr; }
+	bool isSummon() const { return master != nullptr; }
 	bool isPlayerSummon() const { return master && master->getPlayer(); }
 
 	virtual void addSummon(Creature* creature);
@@ -414,7 +416,7 @@ public:
 
 	virtual void onCreatureTurn(const Creature*) {}
 	virtual void onCreatureSay(const Creature*, MessageClasses, const std::string&,
-		Position* = NULL) {}
+		Position* = nullptr) {}
 
 	virtual void onCreatureChangeOutfit(const Creature*, const Outfit_t&) {}
 	virtual void onCreatureConvinced(const Creature*, const Creature*) {}
@@ -521,7 +523,7 @@ protected:
 	Creature* followCreature;
 	uint32_t eventWalk;
 	bool cancelNextWalk;
-	std::list<Direction> listWalkDir;
+	std::vector<Direction> listWalkDir;
 	uint32_t walkUpdateTicks;
 	bool hasFollowPath;
 	bool forceUpdateFollowPath;

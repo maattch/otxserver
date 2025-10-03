@@ -60,7 +60,7 @@ public:
 		m_interface(_interface),
 		m_scripted(EVENT_SCRIPT_FALSE),
 		m_scriptId(0),
-		m_scriptData(NULL) {}
+		m_scriptData(nullptr) {}
 	Event(const Event* copy);
 	virtual ~Event();
 

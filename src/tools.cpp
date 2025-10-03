@@ -744,7 +744,7 @@ std::string parseParams(tokenizer::iterator& it, tokenizer::iterator end)
 std::string formatDate(time_t _time /* = 0*/)
 {
 	if (!_time) {
-		_time = time(NULL);
+		_time = time(nullptr);
 	}
 
 	const tm* tms = localtime(&_time);
@@ -761,7 +761,7 @@ std::string formatDate(time_t _time /* = 0*/)
 std::string formatDateEx(time_t _time /* = 0*/, std::string format /* = "%d %b %Y, %H:%M:%S"*/)
 {
 	if (!_time) {
-		_time = time(NULL);
+		_time = time(nullptr);
 	}
 
 	const tm* tms = localtime(&_time);

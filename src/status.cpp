@@ -94,13 +94,13 @@ void ProtocolStatus::sendStatusString()
 	setRawMessages(true);
 
 	xmlDocPtr doc = xmlNewDoc((const xmlChar*)"1.0");
-	doc->children = xmlNewDocNode(doc, NULL, (const xmlChar*)"tsqp", NULL);
+	doc->children = xmlNewDocNode(doc, nullptr, (const xmlChar*)"tsqp", nullptr);
 	xmlNodePtr root = doc->children;
 
 	char buffer[90];
 	xmlSetProp(root, (const xmlChar*)"version", (const xmlChar*)"1.0");
 
-	xmlNodePtr p = xmlNewNode(NULL, (const xmlChar*)"serverinfo");
+	xmlNodePtr p = xmlNewNode(nullptr, (const xmlChar*)"serverinfo");
 	sprintf(buffer, "%u", (uint32_t)((OTSYS_TIME() - ProtocolStatus::start) / 1000));
 	xmlSetProp(p, (const xmlChar*)"uptime", (const xmlChar*)buffer);
 	xmlSetProp(p, (const xmlChar*)"ip", (const xmlChar*)g_config.getString(ConfigManager::IP).c_str());
@@ -114,12 +114,12 @@ void ProtocolStatus::sendStatusString()
 	xmlSetProp(p, (const xmlChar*)"client", (const xmlChar*)CLIENT_VERSION_STRING);
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL, (const xmlChar*)"owner");
+	p = xmlNewNode(nullptr, (const xmlChar*)"owner");
 	xmlSetProp(p, (const xmlChar*)"name", (const xmlChar*)g_config.getString(ConfigManager::OWNER_NAME).c_str());
 	xmlSetProp(p, (const xmlChar*)"email", (const xmlChar*)g_config.getString(ConfigManager::OWNER_EMAIL).c_str());
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL, (const xmlChar*)"players");
+	p = xmlNewNode(nullptr, (const xmlChar*)"players");
 	// this get function in game.cpp with limit = 4 to otservlist. Xinn can check here https://github.com/FeTads/otxserver/blob/a9bef7ac0fe7584a924a7426aae0f44ec372fe12/sources/game.cpp#L7081
 	// sprintf(buffer, "%d", g_game.getPlayersWithMcLimit());
 
@@ -163,17 +163,17 @@ void ProtocolStatus::sendStatusString()
 
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL, (const xmlChar*)"monsters");
+	p = xmlNewNode(nullptr, (const xmlChar*)"monsters");
 	sprintf(buffer, "%d", g_game.getMonstersOnline());
 	xmlSetProp(p, (const xmlChar*)"total", (const xmlChar*)buffer);
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL, (const xmlChar*)"npcs");
+	p = xmlNewNode(nullptr, (const xmlChar*)"npcs");
 	sprintf(buffer, "%d", g_game.getNpcsOnline());
 	xmlSetProp(p, (const xmlChar*)"total", (const xmlChar*)buffer);
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL, (const xmlChar*)"map");
+	p = xmlNewNode(nullptr, (const xmlChar*)"map");
 	xmlSetProp(p, (const xmlChar*)"name", (const xmlChar*)g_config.getString(ConfigManager::MAP_NAME).c_str());
 	xmlSetProp(p, (const xmlChar*)"author", (const xmlChar*)g_config.getString(ConfigManager::MAP_AUTHOR).c_str());
 
@@ -186,9 +186,9 @@ void ProtocolStatus::sendStatusString()
 	xmlSetProp(p, (const xmlChar*)"height", (const xmlChar*)buffer);
 	xmlAddChild(root, p);
 
-	xmlNewTextChild(root, NULL, (const xmlChar*)"motd", (const xmlChar*)g_config.getString(ConfigManager::MOTD).c_str());
+	xmlNewTextChild(root, nullptr, (const xmlChar*)"motd", (const xmlChar*)g_config.getString(ConfigManager::MOTD).c_str());
 
-	xmlChar* s = NULL;
+	xmlChar* s = nullptr;
 	int32_t len = 0;
 	xmlDocDumpMemory(doc, (xmlChar**)&s, &len);
 
@@ -271,7 +271,7 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 	if (requestedInfo & REQUEST_PLAYER_STATUS_INFO) {
 		output->addByte(0x22);
 
-		Player* p = NULL;
+		Player* p = nullptr;
 		if (g_game.getPlayerByNameWildcard(characterName, p) == RET_NOERROR && !p->isGhost()) {
 			output->addByte(0x01);
 		} else {

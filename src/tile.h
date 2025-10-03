@@ -154,10 +154,10 @@ public:
 	const CreatureVector* getCreatures() const;
 	CreatureVector* makeCreatures();
 
-	virtual HouseTile* getHouseTile() { return NULL; }
-	virtual const HouseTile* getHouseTile() const { return NULL; }
-	virtual House* getHouse() { return NULL; }
-	virtual const House* getHouse() const { return NULL; }
+	virtual HouseTile* getHouseTile() { return nullptr; }
+	virtual const HouseTile* getHouseTile() const { return nullptr; }
+	virtual House* getHouse() { return nullptr; }
+	virtual const House* getHouse() const { return nullptr; }
 
 	MagicField* getFieldItem() const;
 	Teleport* getTeleportItem() const;
@@ -248,22 +248,22 @@ public:
 	int32_t getClientIndexOfThing(const Player* player, const Thing* thing) const;
 
 	// cylinder implementations
-	virtual Cylinder* getParent() { return NULL; }
-	virtual const Cylinder* getParent() const { return NULL; }
+	virtual Cylinder* getParent() { return nullptr; }
+	virtual const Cylinder* getParent() const { return nullptr; }
 	virtual bool isRemoved() const { return false; }
 	virtual Position getPosition() const { return pos; }
 	virtual Tile* getTile() { return this; }
 	virtual const Tile* getTile() const { return this; }
-	virtual Item* getItem() { return NULL; }
-	virtual const Item* getItem() const { return NULL; }
-	virtual Creature* getCreature() { return NULL; }
-	virtual const Creature* getCreature() const { return NULL; }
+	virtual Item* getItem() { return nullptr; }
+	virtual const Item* getItem() const { return nullptr; }
+	virtual Creature* getCreature() { return nullptr; }
+	virtual const Creature* getCreature() const { return nullptr; }
 
 	virtual ReturnValue __queryAdd(int32_t index, const Thing* thing, uint32_t count,
-		uint32_t flags, Creature* actor = NULL) const;
+		uint32_t flags, Creature* actor = nullptr) const;
 	virtual ReturnValue __queryMaxCount(int32_t index, const Thing* thing, uint32_t count,
 		uint32_t& maxQueryCount, uint32_t flags) const;
-	virtual ReturnValue __queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor = NULL) const;
+	virtual ReturnValue __queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor = nullptr) const;
 	virtual Cylinder* __queryDestination(int32_t& index, const Thing* thing, Item** destItem,
 		uint32_t& flags);
 
@@ -352,8 +352,8 @@ public:
 };
 
 inline Tile::Tile(uint16_t x, uint16_t y, uint16_t z) :
-	qt_node(NULL),
-	ground(NULL),
+	qt_node(nullptr),
+	ground(nullptr),
 	pos(x, y, z),
 	m_flags(0),
 	thingCount(0)
@@ -418,8 +418,8 @@ inline TileItemVector* Tile::makeItemList()
 
 inline StaticTile::StaticTile(uint16_t x, uint16_t y, uint16_t z) :
 	Tile(x, y, z),
-	items(NULL),
-	creatures(NULL)
+	items(nullptr),
+	creatures(nullptr)
 {}
 
 inline StaticTile::~StaticTile()

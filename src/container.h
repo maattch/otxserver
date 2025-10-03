@@ -60,8 +60,8 @@ public:
 	virtual Container* getContainer() { return this; }
 	virtual const Container* getContainer() const { return this; }
 
-	virtual Depot* getDepot() { return NULL; }
-	virtual const Depot* getDepot() const { return NULL; }
+	virtual Depot* getDepot() { return nullptr; }
+	virtual const Depot* getDepot() const { return nullptr; }
 
 	Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream);
 	bool unserializeItemNode(FileLoader& f, NODE node, PropStream& propStream);
@@ -109,14 +109,14 @@ public:
 	virtual const Tile* getTile() const { return Thing::getTile(); }
 	virtual Item* getItem() { return this; }
 	virtual const Item* getItem() const { return this; }
-	virtual Creature* getCreature() { return NULL; }
-	virtual const Creature* getCreature() const { return NULL; }
+	virtual Creature* getCreature() { return nullptr; }
+	virtual const Creature* getCreature() const { return nullptr; }
 
 	virtual ReturnValue __queryAdd(int32_t index, const Thing* thing, uint32_t count,
-		uint32_t flags, Creature* actor = NULL) const;
+		uint32_t flags, Creature* actor = nullptr) const;
 	virtual ReturnValue __queryMaxCount(int32_t index, const Thing* thing, uint32_t count, uint32_t& maxQueryCount,
 		uint32_t flags) const;
-	virtual ReturnValue __queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor = NULL) const;
+	virtual ReturnValue __queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor = nullptr) const;
 	virtual Cylinder* __queryDestination(int32_t& index, const Thing* thing, Item** destItem,
 		uint32_t& flags);
 

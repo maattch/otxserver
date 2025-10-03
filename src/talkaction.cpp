@@ -48,7 +48,7 @@ TalkActions::TalkActions() :
 	m_interface("TalkAction Interface")
 {
 	m_interface.initState();
-	defaultTalkAction = NULL;
+	defaultTalkAction = nullptr;
 }
 
 TalkActions::~TalkActions()
@@ -66,7 +66,7 @@ void TalkActions::clear()
 	m_interface.reInitState();
 
 	delete defaultTalkAction;
-	defaultTalkAction = NULL;
+	defaultTalkAction = nullptr;
 }
 
 Event* TalkActions::getEvent(const std::string& nodeName)
@@ -75,7 +75,7 @@ Event* TalkActions::getEvent(const std::string& nodeName)
 		return new TalkAction(&m_interface);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool TalkActions::registerEvent(Event* event, xmlNodePtr p, bool override)
@@ -149,7 +149,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 		}
 	}
 
-	TalkAction* talkAction = NULL;
+	TalkAction* talkAction = nullptr;
 	for (TalkActionsMap::iterator it = talksMap.begin(); it != talksMap.end(); ++it) {
 		if (it->first == cmd[it->second->getFilter()] || (!it->second->isSensitive() && caseInsensitiveEqual(it->first, cmd[it->second->getFilter()]))) {
 			talkAction = it->second;
@@ -222,7 +222,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 TalkAction::TalkAction(LuaInterface* _interface) :
 	Event(_interface)
 {
-	m_function = NULL;
+	m_function = nullptr;
 	m_filter = TALKFILTER_WORD;
 	m_access = 0;
 	m_channel = -1;
@@ -493,7 +493,7 @@ bool TalkAction::houseBuy(Creature* creature, const std::string&, const std::str
 
 	house->setOwnerEx(player->getGUID(), true);
 	if (g_config.getBool(ConfigManager::HOUSE_SKIP_INIT_RENT)) {
-		uint32_t paidUntil = time(NULL);
+		uint32_t paidUntil = time(nullptr);
 		switch (Houses::getInstance()->getRentPeriod()) {
 			case RENTPERIOD_DAILY:
 				paidUntil += 86400;
@@ -567,7 +567,7 @@ bool TalkAction::houseSell(Creature* creature, const std::string&, const std::st
 		return false;
 	}
 
-	Player* tradePartner = NULL;
+	Player* tradePartner = nullptr;
 	ReturnValue ret = g_game.getPlayerByNameWildcard(param, tradePartner);
 	if (ret != RET_NOERROR) {
 		player->sendCancelMessage(ret);
@@ -640,11 +640,11 @@ bool TalkAction::houseSell(Creature* creature, const std::string&, const std::st
 	}
 
 	Item* transferItem = TransferItem::createTransferItem(house);
-	player->transferContainer.__addThing(NULL, transferItem);
+	player->transferContainer.__addThing(nullptr, transferItem);
 
 	player->transferContainer.setParent(player);
 	if (!g_game.internalStartTrade(player, tradePartner, transferItem)) {
-		transferItem->onTradeEvent(ON_TRADE_CANCEL, player, NULL);
+		transferItem->onTradeEvent(ON_TRADE_CANCEL, player, nullptr);
 	}
 
 	// CUSTOM: Protect House
@@ -660,7 +660,7 @@ bool TalkAction::houseKick(Creature* creature, const std::string&, const std::st
 		return false;
 	}
 
-	Player* targetPlayer = NULL;
+	Player* targetPlayer = nullptr;
 	if (g_game.getPlayerByNameWildcard(param, targetPlayer) != RET_NOERROR) {
 		targetPlayer = player;
 	}
@@ -1009,7 +1009,7 @@ bool TalkAction::thingProporties(Creature* creature, const std::string&, const s
 		const SpectatorVec& list = g_game.getSpectators(pos);
 		SpectatorVec::const_iterator it;
 
-		Player* tmpPlayer = NULL;
+		Player* tmpPlayer = nullptr;
 		for (it = list.begin(); it != list.end(); ++it) {
 			if ((tmpPlayer = (*it)->getPlayer())) {
 				tmpPlayer->sendUpdateTile(tile, pos);
@@ -1364,9 +1364,9 @@ bool TalkAction::ghost(Creature* creature, const std::string&, const std::string
 
 	SpectatorVec::iterator it;
 	SpectatorVec list = g_game.getSpectators(player->getPosition());
-	Player* tmpPlayer = NULL;
+	Player* tmpPlayer = nullptr;
 
-	Condition* condition = NULL;
+	Condition* condition = nullptr;
 	if ((condition = player->getCondition(CONDITION_GAMEMASTER, CONDITIONID_DEFAULT, GAMEMASTER_INVISIBLE))) {
 		player->sendTextMessage(MSG_INFO_DESCR, "You are visible again.");
 		IOLoginData::getInstance()->updateOnlineStatus(player->getGUID(), true);

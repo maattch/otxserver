@@ -34,10 +34,10 @@ extern ConfigManager g_config;
 
 Combat::Combat()
 {
-	params.valueCallback = NULL;
-	params.tileCallback = NULL;
-	params.targetCallback = NULL;
-	area = NULL;
+	params.valueCallback = nullptr;
+	params.tileCallback = nullptr;
+	params.targetCallback = nullptr;
+	area = nullptr;
 
 	formulaType = FORMULA_UNDEFINED;
 	mina = minb = maxa = maxb = minl = maxl = minm = maxm = minc = maxc = 0;
@@ -314,7 +314,7 @@ ReturnValue Combat::canDoCombat(const Creature* attacker, const Creature* target
 			return RET_YOUMAYNOTATTACKTHISPLAYER;
 		}
 
-		const Player* attackerPlayer = NULL;
+		const Player* attackerPlayer = nullptr;
 		if ((attackerPlayer = attacker->getPlayer()) || (attackerPlayer = attacker->getPlayerMaster())) {
 			checkZones = true;
 			if ((g_game.getWorldType(attackerPlayer, targetPlayer) == WORLDTYPE_OPTIONAL && !Combat::isInPvpZone(attacker, target)
@@ -332,7 +332,7 @@ ReturnValue Combat::canDoCombat(const Creature* attacker, const Creature* target
 			return RET_YOUMAYNOTATTACKTHISCREATURE;
 		}
 
-		const Player* attackerPlayer = NULL;
+		const Player* attackerPlayer = nullptr;
 		if ((attackerPlayer = attacker->getPlayer()) || (attackerPlayer = attacker->getPlayerMaster())) {
 			if (attackerPlayer->hasFlag(PlayerFlag_CannotAttackMonster)) {
 				return RET_YOUMAYNOTATTACKTHISCREATURE;
@@ -580,7 +580,7 @@ CallBack* Combat::getCallback(CallBackParam_t key)
 			break;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool Combat::CombatHealthFunc(Creature* caster, Creature* target, const CombatParams& params, void* data)
@@ -622,8 +622,8 @@ bool Combat::CombatHealthFunc(Creature* caster, Creature* target, const CombatPa
 		return false;
 	}
 
-	CombatConditionFunc(caster, target, params, NULL);
-	CombatDispelFunc(caster, target, params, NULL);
+	CombatConditionFunc(caster, target, params, nullptr);
+	CombatDispelFunc(caster, target, params, nullptr);
 	return true;
 }
 
@@ -655,8 +655,8 @@ bool Combat::CombatManaFunc(Creature* caster, Creature* target, const CombatPara
 		return false;
 	}
 
-	CombatConditionFunc(caster, target, params, NULL);
-	CombatDispelFunc(caster, target, params, NULL);
+	CombatConditionFunc(caster, target, params, nullptr);
+	CombatDispelFunc(caster, target, params, nullptr);
 	return true;
 }
 
@@ -699,14 +699,14 @@ bool Combat::CombatDispelFunc(Creature* caster, Creature* target, const CombatPa
 
 	if (params.dispelType == CONDITION_INVISIBLE) {
 		if (Player* player = target->getPlayer()) {
-			Player* casterPlayer = NULL;
+			Player* casterPlayer = nullptr;
 			if (caster) {
 				casterPlayer = caster->getPlayer();
 			}
 
 			Item* item = player->getEquippedItem(SLOT_RING);
 			if (item && item->getID() == ITEM_STEALTH_RING && (g_game.getWorldType(casterPlayer, player) == WORLDTYPE_HARDCORE || player->getTile()->hasFlag(TILESTATE_HARDCOREZONE)) && random_range(1, 100) <= 10) {
-				g_game.internalRemoveItem(NULL, item);
+				g_game.internalRemoveItem(nullptr, item);
 			}
 		}
 	}
@@ -717,8 +717,8 @@ bool Combat::CombatDispelFunc(Creature* caster, Creature* target, const CombatPa
 
 bool Combat::CombatNullFunc(Creature* caster, Creature* target, const CombatParams& params, void*)
 {
-	CombatConditionFunc(caster, target, params, NULL);
-	CombatDispelFunc(caster, target, params, NULL);
+	CombatConditionFunc(caster, target, params, nullptr);
+	CombatDispelFunc(caster, target, params, nullptr);
 	return true;
 }
 
@@ -729,7 +729,7 @@ void Combat::combatTileEffects(const SpectatorVec& list, Creature* caster, Tile*
 	}
 
 	if (params.itemId) {
-		Player* player = NULL;
+		Player* player = nullptr;
 		if (caster) {
 			if (caster->getPlayer()) {
 				player = caster->getPlayer();
@@ -863,7 +863,7 @@ void Combat::CombatFunc(Creature* caster, const Position& pos, const CombatArea*
 	g_game.getSpectators(list, pos, true, true, maxX + Map::maxViewportX, maxX + Map::maxViewportX,
 		maxY + Map::maxViewportY, maxY + Map::maxViewportY);
 
-	Tile* tile = NULL;
+	Tile* tile = nullptr;
 	for (std::list<Tile*>::iterator it = tileList.begin(); it != tileList.end(); ++it) {
 		if (!(tile = (*it)) || canDoCombat(caster, (*it), params.isAggressive, params.itemId != 0) != RET_NOERROR) {
 			continue;
@@ -934,14 +934,14 @@ void Combat::doCombat(Creature* caster, const Position& pos) const
 		int32_t minChange = 0, maxChange = 0;
 		CombatParams _params = params;
 
-		getMinMaxValues(caster, NULL, _params, minChange, maxChange);
+		getMinMaxValues(caster, nullptr, _params, minChange, maxChange);
 		if (params.combatType != COMBAT_MANADRAIN) {
 			doCombatHealth(caster, pos, area, minChange, maxChange, _params);
 		} else {
 			doCombatMana(caster, pos, area, minChange, maxChange, _params);
 		}
 	} else {
-		CombatFunc(caster, pos, area, params, CombatNullFunc, NULL);
+		CombatFunc(caster, pos, area, params, CombatNullFunc, nullptr);
 	}
 }
 
@@ -1014,7 +1014,7 @@ void Combat::doCombatMana(Creature* caster, const Position& pos, const CombatAre
 void Combat::doCombatCondition(Creature* caster, const Position& pos, const CombatArea* area,
 	const CombatParams& params)
 {
-	CombatFunc(caster, pos, area, params, CombatConditionFunc, NULL);
+	CombatFunc(caster, pos, area, params, CombatConditionFunc, nullptr);
 }
 
 void Combat::doCombatCondition(Creature* caster, Creature* target, const CombatParams& params, bool check /* = true*/)
@@ -1023,7 +1023,7 @@ void Combat::doCombatCondition(Creature* caster, Creature* target, const CombatP
 		return;
 	}
 
-	CombatConditionFunc(caster, target, params, NULL);
+	CombatConditionFunc(caster, target, params, nullptr);
 	if (params.targetCallback) {
 		params.targetCallback->onTargetCombat(caster, target);
 	}
@@ -1040,7 +1040,7 @@ void Combat::doCombatCondition(Creature* caster, Creature* target, const CombatP
 void Combat::doCombatDispel(Creature* caster, const Position& pos, const CombatArea* area,
 	const CombatParams& params)
 {
-	CombatFunc(caster, pos, area, params, CombatDispelFunc, NULL);
+	CombatFunc(caster, pos, area, params, CombatDispelFunc, nullptr);
 }
 
 void Combat::doCombatDispel(Creature* caster, Creature* target, const CombatParams& params, bool check /* = true*/)
@@ -1049,7 +1049,7 @@ void Combat::doCombatDispel(Creature* caster, Creature* target, const CombatPara
 		return;
 	}
 
-	CombatDispelFunc(caster, target, params, NULL);
+	CombatDispelFunc(caster, target, params, nullptr);
 	if (params.targetCallback) {
 		params.targetCallback->onTargetCombat(caster, target);
 	}
@@ -1072,7 +1072,7 @@ void Combat::doCombatDefault(Creature* caster, Creature* target, const CombatPar
 	SpectatorVec list;
 	g_game.getSpectators(list, target->getPosition(), true, true);
 
-	CombatNullFunc(caster, target, params, NULL);
+	CombatNullFunc(caster, target, params, nullptr);
 
 	combatTileEffects(list, caster, target->getTile(), params);
 	if (params.targetCallback) {
@@ -1174,7 +1174,7 @@ void ValueCallback::getMinMaxValues(Player* player, CombatParams& params, int32_
 		min = LuaInterface::popNumber(L);
 		player->increaseCombatValues(min, max, params.useCharges, type != FORMULA_SKILL);
 	} else {
-		LuaInterface::error(NULL, std::string(LuaInterface::popString(L)));
+		LuaInterface::error(nullptr, std::string(LuaInterface::popString(L)));
 	}
 
 	if ((lua_gettop(L) + parameters + 1) != args) {
@@ -1234,7 +1234,7 @@ void TargetCallback::onTargetCombat(Creature* creature, Creature* target) const
 
 		int32_t size = lua_gettop(L);
 		if (lua_pcall(L, 2, 0 /*nReturnValues*/, 0) != 0) {
-			LuaInterface::error(NULL, std::string(LuaInterface::popString(L)));
+			LuaInterface::error(nullptr, std::string(LuaInterface::popString(L)));
 		}
 
 		if ((lua_gettop(L) + 2 /*nParams*/ + 1) != size) {

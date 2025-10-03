@@ -156,7 +156,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 	char motd[1300];
 	if (account.name == "10" && account.name != "0") {
-		srand(time(NULL));
+		srand(time(nullptr));
 		int random_number = std::rand();
 		sprintf(motd, "%d\nWelcome to cast system!\n\n Do you know you can use CTRL + ARROWS\n to switch casts?\n\nVoc� sabia que pode usar CTRL + SETAS\n para alternar casts?", random_number);
 		output->addString(motd);

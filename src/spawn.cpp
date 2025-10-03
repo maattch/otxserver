@@ -259,13 +259,13 @@ Spawn::Spawn(const Position& _pos, int32_t _radius)
 Spawn::~Spawn()
 {
 	stopEvent();
-	Monster* monster = NULL;
+	Monster* monster = nullptr;
 	for (SpawnedMap::iterator it = spawnedMap.begin(); it != spawnedMap.end(); ++it) {
 		if (!(monster = it->second)) {
 			continue;
 		}
 
-		monster->setSpawn(NULL);
+		monster->setSpawn(nullptr);
 		if (!monster->isRemoved()) {
 			g_game.freeThing(monster);
 		}
@@ -391,7 +391,7 @@ void Spawn::checkSpawn()
 bool Spawn::addMonster(const std::string& _name, const Position& _pos, Direction _dir, uint32_t _interval)
 {
 	if (!g_game.getTile(_pos)) {
-		std::clog << "[Spawn::addMonster] NULL tile at spawn position (" << _pos << ")" << std::endl;
+		std::clog << "[Spawn::addMonster] nullptr tile at spawn position (" << _pos << ")" << std::endl;
 		return false;
 	}
 

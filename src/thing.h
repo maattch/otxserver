@@ -100,7 +100,7 @@ class Thing
 {
 protected:
 	Thing() :
-		parent(NULL),
+		parent(nullptr),
 		refCount(0) {}
 
 public:
@@ -132,10 +132,10 @@ public:
 	virtual int32_t getThrowRange() const = 0;
 	virtual bool isPushable() const = 0;
 
-	virtual Item* getItem() { return NULL; }
-	virtual const Item* getItem() const { return NULL; }
-	virtual Creature* getCreature() { return NULL; }
-	virtual const Creature* getCreature() const { return NULL; }
+	virtual Item* getItem() { return nullptr; }
+	virtual const Item* getItem() const { return nullptr; }
+	virtual Creature* getCreature() { return nullptr; }
+	virtual const Creature* getCreature() const { return nullptr; }
 
 	virtual bool isRemoved() const;
 

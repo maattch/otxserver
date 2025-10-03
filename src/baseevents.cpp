@@ -205,12 +205,12 @@ Event::~Event()
 bool Event::loadBuffer(const std::string& buffer)
 {
 	if (!m_interface) {
-		std::clog << "[Error - Event::loadBuffer] m_interface = NULL" << std::endl;
+		std::clog << "[Error - Event::loadBuffer] m_interface = nullptr" << std::endl;
 		return false;
 	}
 
 	if (m_scriptData) {
-		std::clog << "[Error - Event::loadBuffer] m_scriptData != NULL" << std::endl;
+		std::clog << "[Error - Event::loadBuffer] m_scriptData != nullptr" << std::endl;
 		return false;
 	}
 
@@ -230,7 +230,7 @@ bool Event::checkBuffer(const std::string& base, const std::string& script) cons
 	}
 
 	if (m_scriptData) {
-		std::clog << "[Error - Event::checkBuffer] m_scriptData != NULL" << std::endl;
+		std::clog << "[Error - Event::checkBuffer] m_scriptData != nullptr" << std::endl;
 		return false;
 	}
 
@@ -257,7 +257,7 @@ bool Event::checkBuffer(const std::string& base, const std::string& script) cons
 bool Event::loadScript(const std::string& script, bool file)
 {
 	if (!m_interface) {
-		std::clog << "[Error - Event::loadScript] m_interface = NULL" << std::endl;
+		std::clog << "[Error - Event::loadScript] m_interface = nullptr" << std::endl;
 		return false;
 	}
 
@@ -351,14 +351,14 @@ bool Event::checkScript(const std::string& base, const std::string& script, bool
 CallBack::CallBack()
 {
 	m_scriptId = 0;
-	m_interface = NULL;
+	m_interface = nullptr;
 	m_loaded = false;
 }
 
 bool CallBack::loadCallBack(LuaInterface* _interface, std::string name)
 {
 	if (!_interface) {
-		std::clog << "[Error - CallBack::loadCallBack] m_interface = NULL" << std::endl;
+		std::clog << "[Error - CallBack::loadCallBack] m_interface = nullptr" << std::endl;
 		return false;
 	}
 

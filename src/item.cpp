@@ -44,14 +44,14 @@ Item* Item::CreateItem(const uint16_t type, uint16_t amount /* = 0*/)
 #ifdef __DEBUG__
 		std::clog << "[Error - Item::CreateItem] Item " << it.id << " has been declared as deprecated" << std::endl;
 #endif
-		return NULL;
+		return nullptr;
 	}
 
 	if (!it.id) {
-		return NULL;
+		return nullptr;
 	}
 
-	Item* newItem = NULL;
+	Item* newItem = nullptr;
 	if (it.isDepot()) {
 		newItem = new Depot(type);
 	} else if (it.isContainer()) {
@@ -90,7 +90,7 @@ Item* Item::CreateItem(PropStream& propStream)
 {
 	uint16_t type;
 	if (!propStream.getShort(type)) {
-		return NULL;
+		return nullptr;
 	}
 
 	return Item::CreateItem(items.getRandomizedItem(type), 0);
@@ -105,7 +105,7 @@ bool Item::loadItem(xmlNodePtr node, Container* parent)
 	int32_t intValue;
 	std::string strValue;
 
-	Item* item = NULL;
+	Item* item = nullptr;
 	if (readXMLInteger(node, "id", intValue)) {
 		item = Item::CreateItem(intValue);
 	}
@@ -180,7 +180,7 @@ Item::Item(const uint16_t type, uint16_t amount /* = 0*/) :
 	id(type)
 {
 	duration = 0;
-	raid = NULL;
+	raid = nullptr;
 	loadedFromMap = false;
 
 	setItemCount(1);
@@ -235,7 +235,7 @@ Item* Item::clone() const
 {
 	Item* tmp = Item::CreateItem(id, count);
 	if (!tmp) {
-		return NULL;
+		return nullptr;
 	}
 
 	if (!attributes || attributes->empty()) {
@@ -275,7 +275,7 @@ void Item::onRemoved()
 {
 	if (raid) {
 		raid->unRef();
-		raid = NULL;
+		raid = nullptr;
 	}
 
 	ScriptEnviroment::removeTempItem(this);
@@ -335,7 +335,7 @@ Player* Item::getHoldingPlayer()
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 const Player* Item::getHoldingPlayer() const
@@ -870,7 +870,7 @@ double Item::getWeight() const
 	return items[id].weight;
 }
 
-std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const Item* item /* = NULL*/,
+std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const Item* item /* = nullptr*/,
 	int32_t subType /* = -1*/, bool addArticle /* = true*/)
 {
 	std::ostringstream s;
@@ -1646,7 +1646,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 	}
 
 	if (str.find("|TIME|") != std::string::npos || str.find("|DATE|") != std::string::npos || str.find("|DAY|") != std::string::npos || str.find("|MONTH|") != std::string::npos || str.find("|YEAR|") != std::string::npos || str.find("|HOUR|") != std::string::npos || str.find("|MINUTES|") != std::string::npos || str.find("|SECONDS|") != std::string::npos || str.find("|WEEKDAY|") != std::string::npos || str.find("|YEARDAY|") != std::string::npos) {
-		time_t now = time(NULL);
+		time_t now = time(nullptr);
 		tm* ts = localtime(&now);
 
 		std::ostringstream ss;
@@ -1692,7 +1692,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 	return str;
 }
 
-std::string Item::getNameDescription(const ItemType& it, const Item* item /* = NULL*/, int32_t subType /* = -1*/, bool addArticle /* = true*/)
+std::string Item::getNameDescription(const ItemType& it, const Item* item /* = nullptr*/, int32_t subType /* = -1*/, bool addArticle /* = true*/)
 {
 	if (item) {
 		subType = item->getSubType();
@@ -1740,7 +1740,7 @@ std::string Item::getWeightDescription(double weight, bool stackable, uint32_t c
 
 void Item::setActionId(int32_t aid, bool callEvent /* = true*/)
 {
-	Tile* tile = NULL;
+	Tile* tile = nullptr;
 	if (callEvent) {
 		tile = getTile();
 	}
@@ -1761,7 +1761,7 @@ void Item::resetActionId(bool callEvent /* = true*/)
 		return;
 	}
 
-	Tile* tile = NULL;
+	Tile* tile = nullptr;
 	if (callEvent) {
 		tile = getTile();
 	}

@@ -36,7 +36,7 @@ uint32_t Items::dwBuildNumber = 0;
 
 ItemType::ItemType()
 {
-	abilities = NULL;
+	abilities = nullptr;
 	group = ITEM_GROUP_NONE;
 	type = ITEM_TYPE_NONE;
 	stackable = usable = alwaysOnTop = lookThrough = pickupable = rotable = hasHeight = forceSerialize = false;
@@ -92,7 +92,7 @@ ItemType::ItemType()
 	hitChance = maxHitChance = breakChance = -1;
 	shootRange = 1;
 
-	condition = NULL;
+	condition = nullptr;
 	combatType = COMBAT_NONE;
 
 	replacable = true;
@@ -1491,7 +1491,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 			it.type = ITEM_TYPE_MAGICFIELD;
 
 			CombatType_t combatType = COMBAT_NONE;
-			ConditionDamage* conditionDamage = NULL;
+			ConditionDamage* conditionDamage = nullptr;
 			if (readXMLString(itemAttributesNode, "value", strValue)) {
 				tmpStrValue = asLowerCaseString(strValue);
 				if (tmpStrValue == "fire") {
@@ -1777,7 +1777,7 @@ int32_t Items::getItemIdByName(const std::string& name)
 	}
 
 	uint32_t i = 100;
-	ItemType* iType = NULL;
+	ItemType* iType = nullptr;
 	do {
 		if ((iType = items.getElement(i)) && caseInsensitiveEqual(name, iType->name)) {
 			return i;

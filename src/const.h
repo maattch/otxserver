@@ -769,7 +769,7 @@ struct MessageDetails
 	MessageDetails(int32_t value = 0, Color_t color = COLOR_WHITE) :
 		value(value),
 		color(color),
-		sub(NULL) {}
+		sub(nullptr) {}
 };
 
 // Reserved player storage key ranges

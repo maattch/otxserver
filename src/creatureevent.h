@@ -147,7 +147,7 @@ public:
 	uint32_t executeThrow(Player* player, Item* item, const Position& fromPosition, const Position& toPosition);
 	uint32_t executeCombat(Creature* creature, Creature* target, bool aggressive);
 	uint32_t executeAction(Creature* creature, Creature* target);
-	uint32_t executeCast(Creature* creature, Creature* target = NULL);
+	uint32_t executeCast(Creature* creature, Creature* target = nullptr);
 	uint32_t executeKill(Creature* creature, Creature* target, const DeathEntry& entry);
 	uint32_t executeDeath(Creature* creature, Item* corpse, DeathList deathList);
 	uint32_t executePrepareDeath(Creature* creature, DeathList deathList);

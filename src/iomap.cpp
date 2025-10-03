@@ -61,9 +61,9 @@ typedef uint32_t flags_t;
 
 Tile* IOMap::createTile(Item*& ground, Item* item, uint16_t px, uint16_t py, uint16_t pz)
 {
-	Tile* tile = NULL;
+	Tile* tile = nullptr;
 	if (ground) {
-		if ((item && item->isBlocking(NULL)) || ground->isBlocking(NULL)) { // tile is blocking with possibly some decoration, should be static
+		if ((item && item->isBlocking(nullptr)) || ground->isBlocking(nullptr)) { // tile is blocking with possibly some decoration, should be static
 			tile = new StaticTile(px, py, pz);
 		} else { // tile is not blocking with possibly multiple items, use dynamic
 			tile = new DynamicTile(px, py, pz);
@@ -75,7 +75,7 @@ Tile* IOMap::createTile(Item*& ground, Item* item, uint16_t px, uint16_t py, uin
 			ground->setLoadedFromMap(true);
 		}
 
-		ground = NULL;
+		ground = nullptr;
 	} else { // no ground on this tile, so it will always block
 		tile = new StaticTile(px, py, pz);
 	}
@@ -94,7 +94,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 	}
 
 	uint32_t type = 0;
-	NODE root = f.getChildNode((NODE)NULL, type);
+	NODE root = f.getChildNode((NODE)nullptr, type);
 
 	PropStream propStream;
 	if (!f.getProps(root, propStream)) {
@@ -247,12 +247,12 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 						return false;
 					}
 
-					Tile* tile = NULL;
-					Item* ground = NULL;
+					Tile* tile = nullptr;
+					Item* ground = nullptr;
 					uint32_t flags = 0;
 
 					uint16_t px = baseX + tileCoord->_x, py = baseY + tileCoord->_y, pz = baseZ;
-					House* house = NULL;
+					House* house = nullptr;
 					if (type == OTBM_HOUSETILE) {
 						uint32_t houseId;
 						if (!propStream.getLong(houseId)) {
@@ -333,7 +333,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 											  << pz << std::endl;
 
 									delete item;
-									item = NULL;
+									item = nullptr;
 								} else if (tile) {
 									tile->__internalAddThing(item);
 									if (item->getDecaying() != DECAYING_TRUE) {
@@ -421,7 +421,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 											  << ", pos " << px << "/" << py << "/" << pz << std::endl;
 
 									delete item;
-									item = NULL;
+									item = nullptr;
 								} else if (tile) {
 									tile->__internalAddThing(item);
 									if (item->getDecaying() != DECAYING_TRUE) {
@@ -475,7 +475,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 								setLastErrorString(ss.str());
 
 								delete item;
-								item = NULL;
+								item = nullptr;
 								return false;
 							}
 						} else {
@@ -488,7 +488,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 					}
 
 					if (!tile) {
-						tile = createTile(ground, NULL, px, py, pz);
+						tile = createTile(ground, nullptr, px, py, pz);
 					}
 
 					tile->setFlag((tileflags_t)flags);
@@ -582,7 +582,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 
 #ifdef __GROUND_CACHE__
 	for (CacheMap::iterator it = groundCache.begin(); it != groundCache.end(); ++it) {
-		// it->second.first->setParent(NULL);
+		// it->second.first->setParent(nullptr);
 		g_game.grounds[it->second.first] = it->second.second;
 	}
 

@@ -245,8 +245,8 @@ public:
 	 * \returns returns true if a path was found
 	 */
 	bool getPathTo(const Creature* creature, const Position& destPos,
-		std::list<Direction>& listDir, int32_t maxDist = -1);
-	bool getPathMatching(const Creature* creature, std::list<Direction>& dirList,
+		std::vector<Direction>& listDir, int32_t maxDist = -1);
+	bool getPathMatching(const Creature* creature, std::vector<Direction>& dirList,
 		const FrozenPathingConditionCall& pathCondition, const FindPathParams& fpp);
 
 	QTreeLeafNode* getLeaf(uint16_t x, uint16_t y) { return root.getLeaf(x, y); }
