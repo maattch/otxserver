@@ -93,7 +93,7 @@ Item* Item::CreateItem(PropStream& propStream)
 		return nullptr;
 	}
 
-	return Item::CreateItem(items.getRandomizedItem(type), 0);
+	return Item::CreateItem(type, 0);
 }
 
 bool Item::loadItem(xmlNodePtr node, Container* parent)

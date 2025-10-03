@@ -115,7 +115,6 @@ ItemType::~ItemType()
 void Items::clear()
 {
 	moneyMap.clear();
-	randomizationMap.clear();
 
 	reverseItemMap.clear();
 	if (items.size()) {
@@ -413,7 +412,7 @@ bool Items::loadFromXml()
 	std::string strValue, endValue;
 	StringVec strVector;
 
-	int32_t intValue, id = 0, endId = 0, fromId = 0, toId = 0;
+	int32_t id = 0, endId = 0, fromId = 0, toId = 0;
 	for (xmlNodePtr node = root->children; node; node = node->next) {
 		if (xmlStrcmp(node->name, (const xmlChar*)"item")) {
 			continue;
@@ -460,70 +459,6 @@ bool Items::loadFromXml()
 		// check bed items
 		if ((it->transformBed[PLAYERSEX_FEMALE] || it->transformBed[PLAYERSEX_MALE]) && it->type != ITEM_TYPE_BED) {
 			std::clog << "[Warning - Items::loadFromXml] Item " << it->id << " is not set as a bed-type." << std::endl;
-		}
-	}
-
-	xmlFreeDoc(doc);
-	if (!(doc = xmlParseFile(getFilePath(FILE_TYPE_OTHER, "items/randomization.xml").c_str()))) {
-		std::clog << "[Warning - Items::loadFromXml] Cannot load randomization file."
-				  << std::endl
-				  << getLastXMLError() << std::endl;
-		return false;
-	}
-
-	root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"randomization")) {
-		xmlFreeDoc(doc);
-		std::clog << "[Warning - Items::loadFromXml] Malformed randomization file." << std::endl;
-		return false;
-	}
-
-	for (xmlNodePtr node = root->children; node; node = node->next) {
-		if (!xmlStrcmp(node->name, (const xmlChar*)"config")) {
-			if (readXMLInteger(node, "chance", intValue) || readXMLInteger(node, "defaultChance", intValue)) {
-				if (intValue > 100) {
-					intValue = 100;
-					std::clog << "[Warning - Items::loadFromXml] Randomize chance cannot be higher than 100." << std::endl;
-				}
-
-				m_randomizationChance = intValue;
-			}
-		} else if (!xmlStrcmp(node->name, (const xmlChar*)"palette")) {
-			if (!readXMLString(node, "randomize", strValue)) {
-				continue;
-			}
-
-			IntegerVec itemList = vectorAtoi(explodeString(strValue, ";"));
-			if (itemList.size() < 2) {
-				itemList = vectorAtoi(explodeString(strValue, "-"));
-			}
-
-			if (itemList.size() > 1) {
-				if (itemList[0] < itemList[1]) {
-					fromId = itemList[0];
-					toId = itemList[1];
-				} else {
-					std::clog << "[Warning - Items::loadFromXml] Randomize min cannot be higher than max." << std::endl;
-				}
-			}
-
-			int32_t chance = getRandomizationChance();
-			if (readXMLInteger(node, "chance", intValue)) {
-				if (intValue > 100) {
-					intValue = 100;
-					std::clog << "[Warning: Items::loadRandomization] Randomize chance cannot be higher than 100." << std::endl;
-				}
-
-				chance = intValue;
-			}
-
-			if (readXMLInteger(node, "itemid", id)) {
-				parseRandomizationBlock(id, fromId, toId, chance);
-			} else if (readXMLInteger(node, "fromid", id) && readXMLInteger(node, "toid", endId)) {
-				while (id <= endId) {
-					parseRandomizationBlock(id++, fromId, toId, chance);
-				}
-			}
 		}
 	}
 
@@ -1703,36 +1638,6 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 			it.getAbilities()->reflect[REFLECT_CHANCE][COMBAT_ALL] = 0;
 		}
 	}
-}
-
-void Items::parseRandomizationBlock(int32_t id, int32_t fromId, int32_t toId, int32_t chance)
-{
-	RandomizationMap::iterator it = randomizationMap.find(id);
-	if (it != randomizationMap.end()) {
-		std::clog << "[Warning - Items::parseRandomizationBlock] Duplicated item with id: " << id << std::endl;
-		return;
-	}
-
-	RandomizationBlock rand;
-	rand.fromRange = fromId;
-	rand.toRange = toId;
-
-	rand.chance = chance;
-	randomizationMap[id] = rand;
-}
-
-uint16_t Items::getRandomizedItem(uint16_t id)
-{
-	if (!g_config.getBool(ConfigManager::RANDOMIZE_TILES)) {
-		return id;
-	}
-
-	RandomizationBlock randomize = getRandomization(id);
-	if (randomize.chance >= random_range(1, 100)) {
-		id = random_range(randomize.fromRange, randomize.toRange);
-	}
-
-	return id;
 }
 
 ItemType& Items::getItemType(int32_t id)

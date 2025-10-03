@@ -24,7 +24,6 @@
 
 #define ITEMS_SIZE 12660
 #define ITEMS_INCREMENT 500
-#define ITEMS_RANDOMIZATION 50
 
 #define SLOTP_WHEREEVER 0xFFFFFFFF
 #define SLOTP_HEAD (1 << 0)
@@ -254,20 +253,12 @@ void Array<A>::addElement(A a, uint32_t pos)
 	m_data[pos] = a;
 }
 
-struct RandomizationBlock
-{
-	int32_t fromRange, toRange, chance;
-};
-
-typedef std::map<int16_t, RandomizationBlock> RandomizationMap;
 typedef std::map<int32_t, int32_t> IntegerMap;
 
 class Items
 {
 public:
-	Items() :
-		m_randomizationChance(ITEMS_RANDOMIZATION),
-		items(ITEMS_SIZE) {}
+	Items() : items(ITEMS_SIZE) {}
 	virtual ~Items() { clear(); }
 
 	bool reload();
@@ -275,17 +266,12 @@ public:
 	bool loadFromXml();
 	void parseItemNode(xmlNodePtr itemNode, uint32_t id);
 
-	void addItemType(ItemType* iType);
 	ItemType& getItemType(int32_t id);
 	const ItemType& getItemType(int32_t id) const;
 	const ItemType& operator[](int32_t id) const { return getItemType(id); }
 
 	int32_t getItemIdByName(const std::string& name);
 	const ItemType& getItemIdByClientId(int32_t spriteId) const;
-
-	uint16_t getRandomizedItem(uint16_t id);
-	uint8_t getRandomizationChance() const { return m_randomizationChance; }
-	const RandomizationBlock getRandomization(int16_t id) { return randomizationMap[id]; }
 
 	uint32_t size() { return items.size(); }
 	const IntegerMap getMoneyMap() const { return moneyMap; }
@@ -296,13 +282,9 @@ public:
 	static uint32_t dwBuildNumber;
 
 private:
-	uint8_t m_randomizationChance;
 	void clear();
 
-	void parseRandomizationBlock(int32_t id, int32_t fromId, int32_t toId, int32_t chance);
-
 	Array<ItemType*> items;
-	RandomizationMap randomizationMap;
 
 	IntegerMap moneyMap;
 	IntegerMap reverseItemMap;
