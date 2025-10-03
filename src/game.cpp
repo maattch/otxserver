@@ -729,7 +729,7 @@ Creature* Game::getCreatureByID(const uint32_t id)
 
 Player* Game::getPlayerByID(const uint32_t id)
 {
-	if (!id) {
+	if (id == 0) {
 		return nullptr;
 	}
 
@@ -6957,70 +6957,47 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 	bool done = false;
 	switch (reload) {
 		case RELOAD_ACTIONS: {
-			if (g_actions->reload()) {
-				done = true;
-			} else {
+			done = g_actions->reload();
+			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload actions." << std::endl;
 			}
-
 			break;
 		}
-
 		case RELOAD_CHAT: {
-			if (g_chat.reload()) {
-				done = true;
-			} else {
+			done = g_chat.reload();
+			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload chat." << std::endl;
 			}
-
 			break;
 		}
-
 		case RELOAD_CONFIG: {
-			if (g_config.reload()) {
-				done = true;
-			} else {
+			done = g_config.reload();
+			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload config." << std::endl;
 			}
-
 			break;
 		}
-
 		case RELOAD_CREATUREEVENTS: {
-			if (g_creatureEvents->reload()) {
-				done = true;
-			} else {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload creature events." << std::endl;
+			done = g_creatureEvents->reload();
+			if (!done) {
+				std::clog << "[Error - Game::reloadInfo] Failed to reload creatureevents." << std::endl;
 			}
-
 			break;
 		}
-
 		case RELOAD_GLOBALEVENTS: {
-			if (g_globalEvents->reload()) {
-				done = true;
-			} else {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload global events." << std::endl;
+			done = g_globalEvents->reload();
+			if (!done) {
+				std::clog << "[Error - Game::reloadInfo] Failed to reload globalevents." << std::endl;
 			}
-
 			break;
 		}
-
 		case RELOAD_HIGHSCORES: {
-			if (reloadHighscores()) {
-				done = true;
-			} else {
+			done = reloadHighscores();
+			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload highscores." << std::endl;
 			}
-
 			break;
 		}
-
-		case RELOAD_GROUPS: {
-			break;
-		}
-
-		case RELOAD_GAMESERVERS:
 		case RELOAD_ITEMS: {
 			done = Item::items.reload();
 			if (!done) {
@@ -7028,17 +7005,6 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 			}
 			break;
 		}
-
-		case RELOAD_MODS: {
-			if (ScriptManager::getInstance()->reloadMods()) {
-				done = true;
-			} else {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload mods." << std::endl;
-			}
-
-			break;
-		}
-
 		case RELOAD_MONSTERS: {
 			if (g_monsters.reload()) {
 				loadNamesFromXml(); // reload monster and reload names from XML
@@ -7046,42 +7012,27 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 			} else {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload monsters." << std::endl;
 			}
-
 			break;
 		}
-
 		case RELOAD_MOVEEVENTS: {
-			if (g_moveEvents->reload()) {
-				done = true;
-			} else {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload move events." << std::endl;
+			done = g_moveEvents->reload();
+			if (!done) {
+				std::clog << "[Error - Game::reloadInfo] Failed to reload moveevents." << std::endl;
 			}
-
 			break;
 		}
-
 		case RELOAD_NPCS: {
 			g_npcs.reload();
 			done = true;
 			break;
 		}
-
-		case RELOAD_OUTFITS: {
-			std::clog << "[Notice - Game::reloadInfo] Reload type does not work." << std::endl;
-			done = true;
-			break;
-		}
-
 		case RELOAD_QUESTS: {
-			if (Quests::getInstance()->reload()) {
-				done = true;
-			} else {
+			done = Quests::getInstance()->reload();
+			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload quests." << std::endl;
 			}
-
 			break;
 		}
-
 		case RELOAD_RAIDS: {
 			if (!Raids::getInstance()->reload()) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload raids." << std::endl;
@@ -7090,10 +7041,8 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 			} else {
 				done = true;
 			}
-
 			break;
 		}
-
 		case RELOAD_SPELLS: {
 			if (!g_spells->reload()) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload spells." << std::endl;
@@ -7102,52 +7051,55 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 			} else {
 				done = true;
 			}
-
 			break;
 		}
-
 		case RELOAD_STAGES: {
-			if (loadExperienceStages()) {
-				done = true;
-			} else {
+			done = loadExperienceStages();
+			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload stages." << std::endl;
 			}
-
 			break;
 		}
-
 		case RELOAD_TALKACTIONS: {
-			if (g_talkActions->reload()) {
-				done = true;
-			} else {
+			done = g_talkActions->reload();
+			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload talk actions." << std::endl;
 			}
-
 			break;
 		}
-
-		case RELOAD_VOCATIONS: {
-			break;
-		}
-
 		case RELOAD_WEAPONS: {
-			std::clog << "[Notice - Game::reloadInfo] Reload type does not work." << std::endl;
+			if (g_weapons->reload()) {
+				g_weapons->loadDefaults();
+				done = true;
+			} else {
+				std::cout << "[Error - Game::reloadInfo] Failed to reload weapons." << std::endl;
+			}
+			break;
+		}
+		case RELOAD_MODS: {
+			done = ScriptManager::getInstance()->reloadMods();
+			if (!done) {
+				std::clog << "[Error - Game::reloadInfo] Failed to reload mods." << std::endl;
+			}
+			break;
+		}
+
+		case RELOAD_GAMESERVERS:
+		case RELOAD_GROUPS:
+		case RELOAD_OUTFITS:
+		case RELOAD_VOCATIONS: {
 			done = true;
+			std::clog << "[Notice - Game::reloadInfo] Reload type does not work." << std::endl;
 			break;
 		}
 
 		case RELOAD_ALL: {
 			done = true;
-			for (int32_t i = RELOAD_FIRST; i <= RELOAD_LAST; ++i) {
-				if (!reloadInfo((ReloadInfo_t)i, 0, true) && done) {
+			for (uint8_t i = RELOAD_FIRST; i <= RELOAD_LAST; ++i) {
+				if (!reloadInfo(static_cast<ReloadInfo_t>(i), 0, true)) {
 					done = false;
 				}
 			}
-
-			if (!ScriptManager::getInstance()->reloadMods() && done) {
-				done = false;
-			}
-
 			break;
 		}
 
@@ -7159,10 +7111,6 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 
 	if (reload != RELOAD_CONFIG && reload != RELOAD_MODS && !completeReload && !ScriptManager::getInstance()->reloadMods()) {
 		std::clog << "[Error - Game::reloadInfo] Failed to reload mods." << std::endl;
-	}
-
-	if (!playerId) {
-		return done;
 	}
 
 	Player* player = getPlayerByID(playerId);
@@ -7180,7 +7128,6 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 	} else {
 		player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, "Failed to reload.");
 	}
-
 	return false;
 }
 
