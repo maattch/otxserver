@@ -22,6 +22,8 @@
 #include "configmanager.h"
 #include "tools.h"
 
+#include "otx/util.hpp"
+
 extern ConfigManager g_config;
 
 Group Groups::defGroup = Group();
@@ -83,7 +85,7 @@ bool Groups::parseGroupNode(xmlNodePtr p)
 	Group* group = new Group(intValue);
 	if (readXMLString(p, "name", strValue)) {
 		group->setFullName(strValue);
-		group->setName(asLowerCaseString(strValue));
+		group->setName(otx::util::as_lower_string(strValue));
 	}
 
 	if (readXMLInteger64(p, "flags", int64Value)) {

@@ -28,6 +28,8 @@
 #include "tools.h"
 #include "weapons.h"
 
+#include "otx/util.hpp"
+
 extern Game g_game;
 extern Spells* g_spells;
 extern Monsters g_monsters;
@@ -391,7 +393,7 @@ bool Monsters::deserializeSpell(xmlNodePtr node, spellBlock_t& sb, const std::st
 			combat->setArea(area);
 		}
 
-		std::string tmpName = asLowerCaseString(name);
+		std::string tmpName = otx::util::as_lower_string(name);
 		if (tmpName == "melee" || tmpName == "distance") {
 			int32_t attack = 0, skill = 0;
 			if (readXMLInteger(node, "attack", attack) && readXMLInteger(node, "skill", skill)) {
@@ -827,7 +829,7 @@ bool Monsters::deserializeSpell(xmlNodePtr node, spellBlock_t& sb, const std::st
 		for (xmlNodePtr attributeNode = node->children; attributeNode; attributeNode = attributeNode->next) {
 			if (!xmlStrcmp(attributeNode->name, (const xmlChar*)"attribute")) {
 				if (readXMLString(attributeNode, "key", strValue)) {
-					std::string tmpStrValue = asLowerCaseString(strValue);
+					std::string tmpStrValue = otx::util::as_lower_string(strValue);
 					if (tmpStrValue == "shooteffect") {
 						if (readXMLString(attributeNode, "value", strValue)) {
 							ShootEffect_t shoot = getShootType(strValue);
@@ -913,11 +915,11 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 		mType->nameDescription = strValue;
 	} else {
 		mType->nameDescription = "a " + mType->name;
-		toLowerCaseString(mType->nameDescription);
+		otx::util::to_lower_string(mType->nameDescription);
 	}
 
 	if (readXMLString(root, "race", strValue)) {
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		std::string tmpStrValue = otx::util::as_lower_string(strValue);
 		if (tmpStrValue == "venom") {
 			mType->race = RACE_VENOM;
 		} else if (tmpStrValue == "blood") {
@@ -1202,7 +1204,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 			for (xmlNodePtr tmpNode = p->children; tmpNode; tmpNode = tmpNode->next) {
 				if (!xmlStrcmp(tmpNode->name, (const xmlChar*)"immunity")) {
 					if (readXMLString(tmpNode, "name", strValue)) {
-						std::string tmpStrValue = asLowerCaseString(strValue);
+						std::string tmpStrValue = otx::util::as_lower_string(strValue);
 						if (tmpStrValue == "physical") {
 							mType->damageImmunities |= COMBAT_PHYSICALDAMAGE;
 							mType->conditionImmunities |= CONDITION_BLEEDING;
@@ -1420,7 +1422,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 
 	static uint32_t id = 0;
 	if (new_mType) {
-		monsterNames[asLowerCaseString(monsterName)] = ++id;
+		monsterNames[otx::util::as_lower_string(monsterName)] = ++id;
 		monsters[id] = mType;
 	}
 
@@ -1440,8 +1442,8 @@ bool Monsters::loadLoot(xmlNodePtr node, LootBlock& lootBlock)
 			}
 		}
 	} else if (readXMLString(node, "name", strValue) || readXMLString(node, "names", strValue)) {
-		StringVec names = explodeString(strValue, ";");
-		for (StringVec::iterator it = names.begin(); it != names.end(); ++it) {
+		auto names = explodeString(strValue, ";");
+		for (auto it = names.begin(); it != names.end(); ++it) {
 			uint16_t tmp = Item::items.getItemIdByName(strValue);
 			if (!tmp) {
 				continue;
@@ -1542,7 +1544,7 @@ MonsterType* Monsters::getMonsterType(uint32_t mid)
 uint32_t Monsters::getIdByName(const std::string& name)
 {
 	std::string tmp = name;
-	MonsterNameMap::iterator it = monsterNames.find(asLowerCaseString(tmp));
+	MonsterNameMap::iterator it = monsterNames.find(otx::util::as_lower_string(tmp));
 	if (it != monsterNames.end()) {
 		return it->second;
 	}

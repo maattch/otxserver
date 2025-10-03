@@ -23,6 +23,8 @@
 #include "game.h"
 #include "player.h"
 
+#include "otx/util.hpp"
+
 extern ConfigManager g_config;
 extern Game g_game;
 
@@ -69,7 +71,7 @@ bool WaitingList::login(const Player* player)
 	if (it != waitList.end()) {
 		if ((online + slot) > max) {
 			// let them wait a bit longer
-			(*it)->timeout = OTSYS_TIME() + getTimeout(slot) * 1000;
+			(*it)->timeout = otx::util::mstime() + getTimeout(slot) * 1000;
 			return false;
 		}
 
@@ -102,7 +104,7 @@ bool WaitingList::login(const Player* player)
 	wait->ip = player->getIP();
 	wait->premium = player->isPremium();
 
-	wait->timeout = OTSYS_TIME() + getTimeout(slot) * 1000;
+	wait->timeout = otx::util::mstime() + getTimeout(slot) * 1000;
 	return false;
 }
 
@@ -120,7 +122,7 @@ int32_t WaitingList::getSlot(const Player* player)
 void WaitingList::cleanup()
 {
 	for (WaitList::iterator it = waitList.begin(); it != waitList.end();) {
-		if (((*it)->timeout - OTSYS_TIME()) <= 0) {
+		if (((*it)->timeout - otx::util::mstime()) <= 0) {
 			delete *it;
 			it = waitList.erase(it);
 		} else {

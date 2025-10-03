@@ -25,8 +25,9 @@
 #include "game.h"
 #include "player.h"
 #include "tile.h"
-#include "tools.h"
 #include "weapons.h"
+
+#include "otx/util.hpp"
 
 extern Game g_game;
 extern Weapons* g_weapons;
@@ -1533,6 +1534,12 @@ void CombatArea::setupExtArea(const std::list<uint32_t>& list, uint32_t rows)
 }
 
 //**********************************************************
+MagicField::MagicField(uint16_t _type) :
+	Item(_type),
+	createTime(otx::util::mstime())
+{
+	//
+}
 
 bool MagicField::isBlocking(const Creature* creature) const
 {
@@ -1596,7 +1603,7 @@ void MagicField::onStepInField(Creature* creature)
 				}
 			}
 
-			if (!harmful || (OTSYS_TIME() - createTime) <= (uint32_t)g_config.getNumber(ConfigManager::FIELD_OWNERSHIP) || creature->hasBeenAttacked(ownerId)) {
+			if (!harmful || (otx::util::mstime() - createTime) <= (uint32_t)g_config.getNumber(ConfigManager::FIELD_OWNERSHIP) || creature->hasBeenAttacked(ownerId)) {
 				condition->setParam(CONDITIONPARAM_OWNER, ownerId);
 			}
 		}

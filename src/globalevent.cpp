@@ -20,7 +20,8 @@
 #include "globalevent.h"
 
 #include "player.h"
-#include "tools.h"
+
+#include "otx/util.hpp"
 
 GlobalEvents::GlobalEvents() :
 	m_interface("GlobalEvent Interface")
@@ -54,10 +55,9 @@ void GlobalEvents::clear()
 
 Event* GlobalEvents::getEvent(const std::string& nodeName)
 {
-	if (asLowerCaseString(nodeName) == "globalevent") {
+	if (otx::util::as_lower_string(nodeName) == "globalevent") {
 		return new GlobalEvent(&m_interface);
 	}
-
 	return nullptr;
 }
 
@@ -119,7 +119,7 @@ void GlobalEvents::timer()
 
 void GlobalEvents::think()
 {
-	int64_t now = OTSYS_TIME();
+	int64_t now = otx::util::mstime();
 	for (GlobalEventMap::iterator it = thinkMap.begin(); it != thinkMap.end(); ++it) {
 		if ((it->second->getLastExecution() + it->second->getInterval()) > now) {
 			continue;
@@ -177,7 +177,7 @@ GlobalEventMap GlobalEvents::getEventMap(GlobalEvent_t type)
 GlobalEvent::GlobalEvent(LuaInterface* _interface) :
 	Event(_interface)
 {
-	m_lastExecution = OTSYS_TIME();
+	m_lastExecution = otx::util::mstime();
 	m_interval = 0;
 }
 
@@ -192,7 +192,7 @@ bool GlobalEvent::configureEvent(xmlNodePtr p)
 	m_name = strValue;
 	m_eventType = GLOBALEVENT_NONE;
 	if (readXMLString(p, "type", strValue)) {
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		std::string tmpStrValue = otx::util::as_lower_string(strValue);
 		if (tmpStrValue == "startup" || tmpStrValue == "start" || tmpStrValue == "load") {
 			m_eventType = GLOBALEVENT_STARTUP;
 		} else if (tmpStrValue == "shutdown" || tmpStrValue == "quit" || tmpStrValue == "exit") {

@@ -26,6 +26,8 @@
 #include "scheduler.h"
 #include "tools.h"
 
+#include "otx/util.hpp"
+
 extern ConfigManager g_config;
 extern Monsters g_monsters;
 extern Game g_game;
@@ -315,7 +317,7 @@ bool Spawn::spawnMonster(uint32_t spawnId, MonsterType* mType, const Position& p
 
 	monster->addRef();
 	spawnedMap.insert(SpawnedPair(spawnId, monster));
-	spawnMap[spawnId].lastSpawn = OTSYS_TIME();
+	spawnMap[spawnId].lastSpawn = otx::util::mstime();
 	return true;
 }
 
@@ -337,7 +339,7 @@ void Spawn::checkSpawn()
 	for (SpawnedMap::iterator it = spawnedMap.begin(); it != spawnedMap.end();) {
 		if (it->second->isRemoved()) {
 			if (it->first) {
-				spawnMap[it->first].lastSpawn = OTSYS_TIME();
+				spawnMap[it->first].lastSpawn = otx::util::mstime();
 			}
 
 			if (it->second) {
@@ -360,13 +362,13 @@ void Spawn::checkSpawn()
 			continue;
 		}
 
-		if (OTSYS_TIME() < sb.lastSpawn + (sb.interval / interval)) {
+		if (otx::util::mstime() < sb.lastSpawn + (sb.interval / interval)) {
 			continue;
 		}
 
 		bool block = g_config.getBool(ConfigManager::ALLOW_BLOCK_SPAWN);
 		if (findPlayer(sb.pos, block)) {
-			sb.lastSpawn = OTSYS_TIME();
+			sb.lastSpawn = otx::util::mstime();
 			continue;
 		}
 

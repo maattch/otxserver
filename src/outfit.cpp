@@ -22,7 +22,8 @@
 #include "condition.h"
 #include "game.h"
 #include "player.h"
-#include "tools.h"
+
+#include "otx/util.hpp"
 
 extern Game g_game;
 
@@ -125,7 +126,7 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 		}
 
 		if (readXMLString(listNode, "requirement", strValue)) {
-			std::string tmpStrValue = asLowerCaseString(strValue);
+			std::string tmpStrValue = otx::util::as_lower_string(strValue);
 			if (tmpStrValue == "none") {
 				outfit.requirement = REQUIREMENT_NONE;
 			} else if (tmpStrValue == "first") {

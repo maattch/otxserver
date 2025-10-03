@@ -24,12 +24,14 @@
 #include "game.h"
 #include "player.h"
 
+#include "otx/util.hpp"
+
 extern Game g_game;
 extern Chat g_chat;
 extern ConfigManager g_config;
 
 Party::CountBlock_t::CountBlock_t(int32_t heal, int32_t damage) :
-	ticks(OTSYS_TIME()),
+	ticks(otx::util::mstime()),
 	totalHeal(heal),
 	totalDamage(damage)
 {
@@ -444,7 +446,7 @@ bool Party::canUseSharedExperience(const Player* player, uint32_t highestLevel /
 	}
 
 	CountMap::const_iterator it = pointMap.find(player->getID());
-	return it != pointMap.end() && (OTSYS_TIME() - it->second.ticks) <= g_config.getNumber(ConfigManager::EXPERIENCE_SHARE_ACTIVITY);
+	return it != pointMap.end() && (otx::util::mstime() - it->second.ticks) <= g_config.getNumber(ConfigManager::EXPERIENCE_SHARE_ACTIVITY);
 }
 
 bool Party::canEnableSharedExperience()
@@ -474,7 +476,7 @@ void Party::addPlayerHealedMember(Player* player, uint32_t points)
 	CountMap::iterator it = pointMap.find(player->getID());
 	if (it != pointMap.end()) {
 		it->second.totalHeal += points;
-		it->second.ticks = OTSYS_TIME();
+		it->second.ticks = otx::util::mstime();
 	} else {
 		pointMap[player->getID()] = CountBlock_t(points, 0);
 	}
@@ -487,7 +489,7 @@ void Party::addPlayerDamageMonster(Player* player, uint32_t points)
 	CountMap::iterator it = pointMap.find(player->getID());
 	if (it != pointMap.end()) {
 		it->second.totalDamage += points;
-		it->second.ticks = OTSYS_TIME();
+		it->second.ticks = otx::util::mstime();
 	} else {
 		pointMap[player->getID()] = CountBlock_t(0, points);
 	}

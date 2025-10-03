@@ -19,7 +19,7 @@
 
 #include "quests.h"
 
-#include "tools.h"
+#include "otx/util.hpp"
 
 bool Mission::isStarted(Player* player)
 {
@@ -58,8 +58,8 @@ std::string Mission::parseStorages(std::string state, std::string value, Player*
 		state.replace(start, (end - start + 1), value);
 	}
 
-	replaceString(state, "|STATE|", value);
-	replaceString(state, "\\n", "\n");
+	otx::util::replace_all(state, "|STATE|", value);
+	otx::util::replace_all(state, "\\n", "\n");
 	return state;
 }
 

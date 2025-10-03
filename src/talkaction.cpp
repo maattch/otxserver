@@ -32,6 +32,8 @@
 #include "tools.h"
 #include "town.h"
 
+#include "otx/util.hpp"
+
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 #include "outputmessage.h"
 #include "connection.h"
@@ -71,7 +73,7 @@ void TalkActions::clear()
 
 Event* TalkActions::getEvent(const std::string& nodeName)
 {
-	if (asLowerCaseString(nodeName) == "talkaction") {
+	if (otx::util::as_lower_string(nodeName) == "talkaction") {
 		return new TalkAction(&m_interface);
 	}
 
@@ -105,7 +107,7 @@ bool TalkActions::registerEvent(Event* event, xmlNodePtr p, bool override)
 
 	StringVec strVector = explodeString(talkAction->getWords(), strValue);
 	for (StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it) {
-		trimString(*it);
+		otx::util::trim_string(*it);
 		talkAction->setWords(*it);
 		if (talksMap.find(*it) != talksMap.end()) {
 			if (!override) {
@@ -134,7 +136,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 	if (loc != std::string::npos) {
 		cmd[TALKFILTER_QUOTATION] = std::string(words, 0, loc);
 		param[TALKFILTER_QUOTATION] = std::string(words, (loc + 1), (words.size() - (loc - 1)));
-		trimString(cmd[TALKFILTER_QUOTATION]);
+		otx::util::trim_string(cmd[TALKFILTER_QUOTATION]);
 	}
 
 	loc = words.find(" ", 0);
@@ -179,7 +181,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 		}
 
 		StringVec exceptions = talkAction->getExceptions();
-		if ((!ignoreAccess && std::find(exceptions.begin(), exceptions.end(), asLowerCaseString(player->getName())) == exceptions.end() && (talkAction->getAccess() > player->getAccess() || (talkAction->hasGroups() && !talkAction->hasGroup(player->getGroupId()))))
+		if ((!ignoreAccess && std::find(exceptions.begin(), exceptions.end(), otx::util::as_lower_string(player->getName())) == exceptions.end() && (talkAction->getAccess() > player->getAccess() || (talkAction->hasGroups() && !talkAction->hasGroup(player->getGroupId()))))
 			|| player->isAccountManager()) {
 			if (player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges)) {
 				player->sendTextMessage(MSG_STATUS_SMALL, "You cannot execute this talkaction.");
@@ -190,7 +192,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 		}
 
 		if (!player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges)) {
-			player->setNextExAction(OTSYS_TIME() + g_config.getNumber(ConfigManager::CUSTOM_ACTIONS_DELAY_INTERVAL) - 10);
+			player->setNextExAction(otx::util::mstime() + g_config.getNumber(ConfigManager::CUSTOM_ACTIONS_DELAY_INTERVAL) - 10);
 		}
 	}
 
@@ -256,7 +258,7 @@ bool TalkAction::configureEvent(xmlNodePtr p)
 	}
 
 	if (readXMLString(p, "filter", strValue)) {
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		std::string tmpStrValue = otx::util::as_lower_string(strValue);
 		if (tmpStrValue == "quotation") {
 			m_filter = TALKFILTER_QUOTATION;
 		} else if (tmpStrValue == "word") {
@@ -297,7 +299,7 @@ bool TalkAction::configureEvent(xmlNodePtr p)
 	}
 
 	if (readXMLString(p, "exception", strValue)) {
-		m_exceptions = explodeString(asLowerCaseString(strValue), ";");
+		m_exceptions = explodeString(otx::util::as_lower_string(strValue), ";");
 	}
 
 	return true;
@@ -305,7 +307,7 @@ bool TalkAction::configureEvent(xmlNodePtr p)
 
 bool TalkAction::loadFunction(const std::string& functionName)
 {
-	m_functionName = asLowerCaseString(functionName);
+	m_functionName = otx::util::as_lower_string(functionName);
 	if (m_functionName == "housebuy") {
 		m_function = houseBuy;
 	} else if (m_functionName == "housesell") {
@@ -345,7 +347,7 @@ int32_t TalkAction::executeSay(Creature* creature, const std::string& words, std
 {
 	// onSay(cid, words, param, channel)
 	if (m_interface->reserveEnv()) {
-		trimString(param);
+		otx::util::trim_string(param);
 		ScriptEnviroment* env = m_interface->getEnv();
 		if (m_scripted == EVENT_SCRIPT_BUFFER) {
 			env->setRealPos(creature->getPosition());
@@ -747,7 +749,7 @@ bool TalkAction::guildJoin(Creature* creature, const std::string&, const std::st
 	}
 
 	std::string param_ = param;
-	trimString(param_);
+	otx::util::trim_string(param_);
 	if (!player->getGuildId()) {
 		uint32_t guildId;
 		if (IOGuild::getInstance()->getGuildId(guildId, param_)) {
@@ -786,7 +788,7 @@ bool TalkAction::guildCreate(Creature* creature, const std::string&, const std::
 	}
 
 	std::string param_ = param;
-	trimString(param_);
+	otx::util::trim_string(param_);
 	if (!isValidName(param_)) {
 		player->sendCancel("That guild name contains illegal characters, please choose another name.");
 		return true;
@@ -863,7 +865,7 @@ bool TalkAction::thingProporties(Creature* creature, const std::string&, const s
 	std::string invalid;
 	for (tokenizer::iterator it = tokens.begin(); it != tokens.end();) {
 		std::string action = parseParams(it, tokens.end());
-		toLowerCaseString(action);
+		otx::util::to_lower_string(action);
 		if (Item* item = thing->getItem()) {
 			if (action == "set" || action == "add" || action == "new") {
 				std::string type = parseParams(it, tokens.end()), key = parseParams(it, tokens.end()), value = parseParams(it, tokens.end());
@@ -1033,12 +1035,12 @@ bool TalkAction::banishmentInfo(Creature* creature, const std::string&, const st
 
 	StringVec params = explodeString(param, ",");
 	std::string what = "Account";
-	trimString(params[0]);
+	otx::util::trim_string(params[0]);
 
 	Ban ban;
 	ban.type = BAN_ACCOUNT;
 	if (params.size() > 1) {
-		trimString(params[1]);
+		otx::util::trim_string(params[1]);
 		if (params[0].substr(0, 1) == "p") {
 			what = "Character";
 			ban.type = BAN_PLAYER;
@@ -1071,7 +1073,7 @@ bool TalkAction::banishmentInfo(Creature* creature, const std::string&, const st
 	}
 
 	if (!ban.value) {
-		toLowerCaseString(what);
+		otx::util::to_lower_string(what);
 		player->sendCancel("Invalid " + what + (std::string) " name or id.");
 		return true;
 	}

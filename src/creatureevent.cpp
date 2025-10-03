@@ -22,7 +22,8 @@
 #include "configmanager.h"
 #include "monster.h"
 #include "player.h"
-#include "tools.h"
+
+#include "otx/util.hpp"
 
 extern ConfigManager g_config;
 extern CreatureEvents* g_creatureEvents;
@@ -55,11 +56,10 @@ void CreatureEvents::clear()
 
 Event* CreatureEvents::getEvent(const std::string& nodeName)
 {
-	std::string tmpNodeName = asLowerCaseString(nodeName);
+	std::string tmpNodeName = otx::util::as_lower_string(nodeName);
 	if (tmpNodeName == "event" || tmpNodeName == "creaturevent" || tmpNodeName == "creatureevent" || tmpNodeName == "creaturescript") {
 		return new CreatureEvent(&m_interface);
 	}
-
 	return nullptr;
 }
 
@@ -269,7 +269,7 @@ bool CreatureEvent::configureEvent(xmlNodePtr p)
 		return false;
 	}
 
-	m_type = g_creatureEvents->getType(asLowerCaseString(strValue));
+	m_type = g_creatureEvents->getType(otx::util::as_lower_string(strValue));
 	if (m_type == CREATURE_EVENT_NONE) {
 		std::clog << "[Error - CreatureEvent::configureEvent] No valid type for creature event: " << strValue << "." << std::endl;
 		return false;

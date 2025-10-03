@@ -35,8 +35,9 @@
 #include "server.h"
 #include "status.h"
 #include "textlogger.h"
-#include "tools.h"
 #include "vocation.h"
+
+#include "otx/util.hpp"
 
 RSA g_RSA;
 ConfigManager g_config;
@@ -198,7 +199,7 @@ void otserv(ServiceManager* services);
 
 int main(int argc, char* argv[])
 {
-	std::srand((uint32_t)OTSYS_TIME());
+	std::srand((uint32_t)otx::util::mstime());
 	StringVec args = StringVec(argv, argv + argc);
 	if (argc > 1 && !argumentsHandler(args)) {
 		return 0;
@@ -254,7 +255,7 @@ int main(int argc, char* argv[])
 
 void otserv(ServiceManager* services)
 {
-	std::srand((uint32_t)OTSYS_TIME());
+	std::srand((uint32_t)otx::util::mstime());
 #ifdef _WIN32
 	SetConsoleTitleA(SOFTWARE_NAME);
 #endif
@@ -378,7 +379,7 @@ void otserv(ServiceManager* services)
 		startupErrorMessage("Another instance is already running.");
 	}
 
-	std::string defaultPriority = asLowerCaseString(g_config.getString(ConfigManager::DEFAULT_PRIORITY));
+	std::string defaultPriority = otx::util::as_lower_string(g_config.getString(ConfigManager::DEFAULT_PRIORITY));
 	if (defaultPriority == "realtime" || defaultPriority == "real") {
 		SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 	} else if (defaultPriority == "high" || defaultPriority == "regular") {
@@ -607,7 +608,7 @@ void otserv(ServiceManager* services)
 	}
 
 	std::clog << ">> Checking world type... ";
-	std::string worldType = asLowerCaseString(g_config.getString(ConfigManager::WORLD_TYPE));
+	std::string worldType = otx::util::as_lower_string(g_config.getString(ConfigManager::WORLD_TYPE));
 	if (worldType == "open" || worldType == "2" || worldType == "openpvp") {
 		g_game.setWorldType(WORLDTYPE_OPEN);
 		std::clog << "Open PvP" << std::endl;

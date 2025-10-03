@@ -84,7 +84,7 @@ public:
 	virtual bool isWalkable() const;
 	virtual bool canSeeInvisibility() const { return Creature::isImmune(CONDITION_INVISIBLE); }
 	uint32_t getManaCost() const { return mType->manaCost; }
-	bool hasRecentBattle() const { return lastDamage && (uint64_t)OTSYS_TIME() < (lastDamage + 30000); }
+	bool hasRecentBattle() const;
 
 	void setSpawn(Spawn* _spawn) { spawn = _spawn; }
 	void setRaid(Raid* _raid) { raid = _raid; }

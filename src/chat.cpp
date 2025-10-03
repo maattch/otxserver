@@ -25,6 +25,8 @@
 #include "iologindata.h"
 #include "player.h"
 
+#include "otx/util.hpp"
+
 #include <fstream>
 
 extern ConfigManager g_config;
@@ -371,7 +373,7 @@ bool Chat::parseChannelNode(xmlNodePtr p)
 		}
 	}
 
-	StringVec vocStringVec;
+	std::vector<std::string> vocStringVec;
 	VocationMap vocMap;
 
 	std::string error;
@@ -714,7 +716,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 		if (player->getGuildLevel() > GUILDLEVEL_MEMBER) {
 			if (text.length() > 7) {
 				std::string param = text.substr(8);
-				trimString(param);
+				otx::util::trim_string(param);
 
 				Player* paramPlayer = nullptr;
 				if (g_game.getPlayerByNameWildcard(param, paramPlayer) == RET_NOERROR) {
@@ -775,7 +777,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 		if (player->getGuildLevel() > GUILDLEVEL_MEMBER) {
 			if (text.length() > 7) {
 				std::string param = text.substr(8);
-				trimString(param);
+				otx::util::trim_string(param);
 
 				Player* paramPlayer = nullptr;
 				if (g_game.getPlayerByNameWildcard(param, paramPlayer) == RET_NOERROR) {
@@ -839,7 +841,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 			}
 
 			param = text.substr(length);
-			trimString(param);
+			otx::util::trim_string(param);
 
 			Player* paramPlayer = nullptr;
 			if (g_game.getPlayerByNameWildcard(param, paramPlayer) == RET_NOERROR) {
@@ -954,11 +956,11 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 			player->sendCancel("You are not the leader of your guild.");
 		}
 	} else if (text.substr(1, 4) == "nick" && text.length() > 5) {
-		StringVec params = explodeString(text.substr(6), ",");
+		auto params = explodeString(text.substr(6), ",");
 		if (params.size() >= 2) {
 			std::string param1 = params[0], param2 = params[1];
-			trimString(param1);
-			trimString(param2);
+			otx::util::trim_string(param1);
+			otx::util::trim_string(param2);
 
 			Player* paramPlayer = nullptr;
 			if (g_game.getPlayerByNameWildcard(param1, paramPlayer) == RET_NOERROR) {
@@ -1039,11 +1041,11 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 			player->sendCancel("Invalid guildcommand parameters.");
 		}
 	} else if (text.substr(1, 11) == "setrankname" && text.length() > 12) {
-		StringVec params = explodeString(text.substr(13), ",");
+		auto params = explodeString(text.substr(13), ",");
 		if (params.size() >= 2) {
 			std::string param1 = params[0], param2 = params[1];
-			trimString(param1);
-			trimString(param2);
+			otx::util::trim_string(param1);
+			otx::util::trim_string(param2);
 
 			if (player->getGuildLevel() == GUILDLEVEL_LEADER) {
 				if (param2.length() > 2) {
@@ -1079,7 +1081,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 		if (player->getGuildLevel() == GUILDLEVEL_LEADER) {
 			if (text.length() > 8) {
 				std::string param = text.substr(9);
-				trimString(param);
+				otx::util::trim_string(param);
 				if (param.length() > 2) {
 					if (param.length() < 225) {
 						IOGuild::getInstance()->setMotd(player->getGuildId(), param);

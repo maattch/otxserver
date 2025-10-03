@@ -46,9 +46,10 @@
 #include "status.h"
 #include "talkaction.h"
 #include "teleport.h"
-#include "tools.h"
 #include "town.h"
 #include "vocation.h"
+
+#include "otx/util.hpp"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -5231,9 +5232,9 @@ int32_t LuaInterface::luaGetPlayerSpectators(lua_State* L)
 		setFieldBool(L, "auth", player->client->isAuth());
 
 		createTable(L, "names");
-		StringVec t = player->client->list();
+		auto t = player->client->list();
 
-		StringVec::const_iterator it = t.begin();
+		auto it = t.begin();
 		for (uint32_t i = 1; it != t.end(); ++it, ++i) {
 			lua_pushnumber(L, i);
 			lua_pushstring(L, (*it).c_str());
@@ -5279,13 +5280,13 @@ int32_t LuaInterface::luaDoPlayerSetSpectators(lua_State* L)
 	bool broadcast = getFieldBool(L, "broadcast"),
 		 auth = getFieldBool(L, "auth");
 
-	StringVec m, b, k;
+	std::vector<std::string> m, b, k;
 	lua_pushstring(L, "mutes");
 	lua_gettable(L, -2);
 
 	lua_pushnil(L);
 	while (lua_next(L, -2)) {
-		m.push_back(asLowerCaseString(lua_tostring(L, -1)));
+		m.push_back(otx::util::as_lower_string(lua_tostring(L, -1)));
 		lua_pop(L, 1);
 	}
 
@@ -5295,7 +5296,7 @@ int32_t LuaInterface::luaDoPlayerSetSpectators(lua_State* L)
 
 	lua_pushnil(L);
 	while (lua_next(L, -2)) {
-		b.push_back(asLowerCaseString(lua_tostring(L, -1)));
+		b.push_back(otx::util::as_lower_string(lua_tostring(L, -1)));
 		lua_pop(L, 1);
 	}
 
@@ -5305,7 +5306,7 @@ int32_t LuaInterface::luaDoPlayerSetSpectators(lua_State* L)
 
 	lua_pushnil(L);
 	while (lua_next(L, -2)) {
-		k.push_back(asLowerCaseString(lua_tostring(L, -1)));
+		k.push_back(otx::util::as_lower_string(lua_tostring(L, -1)));
 		lua_pop(L, 1);
 	}
 
@@ -5891,7 +5892,7 @@ int32_t LuaInterface::luaGetWorldCreatures(lua_State* L)
 int32_t LuaInterface::luaGetWorldUpTime(lua_State* L)
 {
 	// getWorldUpTime()
-	lua_pushnumber(L, (OTSYS_TIME() - ProtocolStatus::start) / 1000);
+	lua_pushnumber(L, (otx::util::mstime() - ProtocolStatus::start) / 1000);
 	return 1;
 }
 
@@ -11107,10 +11108,10 @@ int32_t LuaInterface::luaGetModList(lua_State* L)
 int32_t LuaInterface::luaL_loadmodlib(lua_State* L)
 {
 	// loadmodlib(lib)
-	std::string name = asLowerCaseString(popString(L));
+	std::string name = otx::util::as_lower_string(popString(L));
 	for (LibMap::iterator it = ScriptManager::getInstance()->getFirstLib();
 		it != ScriptManager::getInstance()->getLastLib(); ++it) {
-		if (asLowerCaseString(it->first) != name) {
+		if (otx::util::as_lower_string(it->first) != name) {
 			continue;
 		}
 
@@ -11125,10 +11126,10 @@ int32_t LuaInterface::luaL_loadmodlib(lua_State* L)
 int32_t LuaInterface::luaL_domodlib(lua_State* L)
 {
 	// domodlib(lib)
-	std::string name = asLowerCaseString(popString(L));
+	std::string name = otx::util::as_lower_string(popString(L));
 	for (LibMap::iterator it = ScriptManager::getInstance()->getFirstLib();
 		it != ScriptManager::getInstance()->getLastLib(); ++it) {
-		if (asLowerCaseString(it->first) != name) {
+		if (otx::util::as_lower_string(it->first) != name) {
 			continue;
 		}
 
@@ -11229,7 +11230,7 @@ int32_t LuaInterface::luaStdCheckName(lua_State* L)
 int32_t LuaInterface::luaSystemTime(lua_State* L)
 {
 	// os.mtime()
-	lua_pushnumber(L, OTSYS_TIME());
+	lua_pushnumber(L, otx::util::mstime());
 	return 1;
 }
 

@@ -28,6 +28,7 @@ typedef std::vector<int32_t> IntegerVec;
 
 typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
 typedef std::map<int32_t, bool> VocationMap;
+
 enum FileType_t
 {
 	FILE_TYPE_XML,
@@ -44,36 +45,20 @@ enum DistributionType_t
 	DISTRO_NORMAL
 };
 
-int64_t OTSYS_TIME();
-
 std::mt19937& getRandomGenerator();
 
 bool caseInsensitiveEqual(std::string_view str1, std::string_view str2);
 
-void trim_right(std::string& source, const std::string& t);
-void trim_left(std::string& source, const std::string& t);
-std::string trimString(std::string& str);
-
-void toLowerCaseString(std::string& source);
-void toUpperCaseString(std::string& source);
-
-std::string asLowerCaseString(const std::string& source);
-std::string asUpperCaseString(const std::string& source);
-
-bool replaceString(std::string& text, const std::string& key, const std::string& value);
-bool booleanString(std::string source);
+bool booleanString(const std::string& input);
 
 char upchar(char character);
 std::string ucfirst(std::string source);
 std::string ucwords(std::string source);
 
 bool isNumber(char character);
-bool isNumbers(std::string text);
 
 bool isLowercaseLetter(char character);
 bool isUppercaseLetter(char character);
-
-bool isPasswordCharacter(char character);
 
 bool isValidAccountName(std::string text);
 bool isValidPassword(std::string text);
@@ -85,7 +70,6 @@ StringVec explodeString(const std::string& string, const std::string& separator,
 IntegerVec vectorAtoi(StringVec stringVector);
 std::string parseParams(tokenizer::iterator& it, tokenizer::iterator end); // TODO: replace by StringVec...
 
-bool checkText(std::string text, std::string str);
 std::string convertIPAddress(uint32_t ip);
 std::string generateRecoveryKey(int32_t fieldCount, int32_t fieldLength, bool mixCase = false);
 
@@ -125,7 +109,6 @@ GuildEmblems_t getEmblems(std::string strValue);
 
 Direction getDirection(std::string string);
 Direction getDirectionTo(Position pos1, Position pos2, bool extended = true);
-Direction getReverseDirection(Direction dir);
 Position getNextPosition(Direction direction, Position pos);
 
 MagicEffect_t getMagicEffect(const std::string& strValue);

@@ -22,6 +22,8 @@
 #include "configmanager.h"
 #include "tools.h"
 
+#include "otx/util.hpp"
+
 extern LuaEnvironment g_luaEnvironment;
 extern ConfigManager g_config;
 
@@ -80,7 +82,7 @@ bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool over
 	std::string strValue, tmpStrValue;
 	if (readXMLString(p, "event", strValue)) {
 		skip = true;
-		tmpStrValue = asLowerCaseString(strValue);
+		tmpStrValue = otx::util::as_lower_string(strValue);
 		if (tmpStrValue == "script") {
 			bool file = readXMLString(p, "value", strValue);
 			if (!file) {
@@ -113,7 +115,7 @@ bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool over
 
 	if (!skip) {
 		if (readXMLString(p, "script", strValue)) {
-			bool file = asLowerCaseString(strValue) != "cdata";
+			bool file = otx::util::as_lower_string(strValue) != "cdata";
 			if (!file) {
 				success = parseXMLContentString(p->children, strValue);
 			} else {
@@ -124,7 +126,7 @@ bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool over
 				success = event->checkScript(getScriptBaseName(), strValue, file) && event->loadScript(strValue, file);
 			}
 		} else if (readXMLString(p, "buffer", strValue)) {
-			if (asLowerCaseString(strValue) == "cdata") {
+			if (otx::util::as_lower_string(strValue) == "cdata") {
 				success = parseXMLContentString(p->children, strValue);
 			}
 
@@ -222,7 +224,7 @@ bool Event::checkBuffer(const std::string& base, const std::string& script) cons
 
 	// TODO: is it really the way we should do it?...
 	std::string buffer = script;
-	trimString(buffer);
+	otx::util::trim_string(buffer);
 
 	std::ostringstream scriptstream;
 	scriptstream << "function " << getScriptEventName() << "(" << getScriptEventParams() << ")" << std::endl
@@ -255,7 +257,7 @@ bool Event::loadScript(const std::string& script, bool file)
 	bool result = false;
 	if (!file) {
 		std::string buffer = script, function = "function " + getScriptEventName();
-		trimString(buffer);
+		otx::util::trim_string(buffer);
 		if (buffer.find(function) == std::string::npos) {
 			std::ostringstream scriptstream;
 			scriptstream << function << "(" << getScriptEventParams() << ")" << std::endl
@@ -305,7 +307,7 @@ bool Event::checkScript(const std::string& base, const std::string& script, bool
 	bool result = false;
 	if (!file) {
 		std::string buffer = script, function = "function " + getScriptEventName();
-		trimString(buffer);
+		otx::util::trim_string(buffer);
 		if (buffer.find(function) == std::string::npos) {
 			std::ostringstream scriptstream;
 			scriptstream << function << "(" << getScriptEventParams() << ")" << std::endl

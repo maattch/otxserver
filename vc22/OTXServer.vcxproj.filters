@@ -71,6 +71,9 @@
     <ClCompile Include="..\src\waitlist.cpp" />
     <ClCompile Include="..\src\weapons.cpp" />
     <ClCompile Include="..\src\wildcardtree.cpp" />
+    <ClCompile Include="..\src\otx\util.cpp">
+      <Filter>otx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\actions.h" />
@@ -153,6 +156,9 @@
     </ClInclude>
     <ClInclude Include="..\src\thread_holder_base.h" />
     <ClInclude Include="..\src\wildcardtree.h" />
+    <ClInclude Include="..\src\otx\util.hpp">
+      <Filter>otx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OTXServer.rc" />

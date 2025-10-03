@@ -26,6 +26,9 @@
 #include "monsters.h"
 #include "spawn.h"
 #include "spells.h"
+#include "tools.h"
+
+#include "otx/util.hpp"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -100,7 +103,7 @@ Monster::Monster(MonsterType* _mType) :
 	extraMeleeAttack = false;
 
 	// register creature events
-	for (StringVec::iterator it = mType->scriptList.begin(); it != mType->scriptList.end(); ++it) {
+	for (auto it = mType->scriptList.begin(); it != mType->scriptList.end(); ++it) {
 		if (!registerCreatureEvent(*it)) {
 			std::clog << "[Warning - Monster::Monster] Unknown event name - " << *it << std::endl;
 		}
@@ -691,9 +694,9 @@ void Monster::doAttacking(uint32_t interval)
 				}
 #ifdef __DEBUG__
 
-				static uint64_t prevTicks = OTSYS_TIME();
-				std::clog << "doAttacking ticks: " << OTSYS_TIME() - prevTicks << std::endl;
-				prevTicks = OTSYS_TIME();
+				static uint64_t prevTicks = otx::util::mstime();
+				std::clog << "doAttacking ticks: " << otx::util::mstime() - prevTicks << std::endl;
+				prevTicks = otx::util::mstime();
 #endif
 			}
 		}
@@ -1430,6 +1433,11 @@ bool Monster::isWalkable() const
 	return booleanString(value);
 }
 
+bool Monster::hasRecentBattle() const
+{
+	return lastDamage && (uint64_t)otx::util::mstime() < (lastDamage + 30000);
+}
+
 bool Monster::isFleeing() const
 {
 	std::string value;
@@ -1473,7 +1481,7 @@ void Monster::changeHealth(int32_t healthChange)
 	// In case a player with ignore flag set attacks the monster
 	setIdle(false);
 	if (!hasRecentBattle()) {
-		lastDamage = OTSYS_TIME();
+		lastDamage = otx::util::mstime();
 		updateMapCache();
 	}
 

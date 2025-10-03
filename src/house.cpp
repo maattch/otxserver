@@ -26,8 +26,9 @@
 #include "ioguild.h"
 #include "iologindata.h"
 #include "iomapserialize.h"
-#include "tools.h"
 #include "town.h"
+
+#include "otx/util.hpp"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -491,13 +492,9 @@ bool AccessList::parseList(const std::string& _list)
 	std::stringstream listStream(_list);
 	std::string line;
 	while (getline(listStream, line)) {
-		trimString(line);
-		trim_left(line, "\t");
-
-		trim_right(line, "\t");
-		trimString(line);
-
-		toLowerCaseString(line);
+		otx::util::trim_string(line, ' ');
+		otx::util::trim_string(line, '\t');
+		otx::util::to_lower_string(line);
 		if (line.substr(0, 1) == "#" || line.length() > 100) {
 			continue;
 		}
@@ -658,7 +655,7 @@ void Door::setAccessList(const std::string& textlist)
 Houses::Houses()
 {
 	rentPeriod = RENTPERIOD_NEVER;
-	std::string strValue = asLowerCaseString(g_config.getString(ConfigManager::HOUSE_RENT_PERIOD));
+	std::string strValue = otx::util::as_lower_string(g_config.getString(ConfigManager::HOUSE_RENT_PERIOD));
 	if (strValue == "yearly") {
 		rentPeriod = RENTPERIOD_YEARLY;
 	} else if (strValue == "monthly") {
@@ -781,7 +778,7 @@ bool Houses::loadFromXml(std::string filename)
 
 void Houses::check()
 {
-	uint64_t start = OTSYS_TIME();
+	uint64_t start = otx::util::mstime();
 	std::clog << "> Checking houses..." << std::endl;
 
 	time_t currentTime = time(nullptr);
@@ -789,7 +786,7 @@ void Houses::check()
 		payHouse(it->second, currentTime, 0);
 	}
 
-	std::clog << "Houses checked in " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
+	std::clog << "Houses checked in " << (otx::util::mstime() - start) / (1000.) << " seconds." << std::endl;
 }
 
 bool Houses::payRent(Player* player, House* house, uint32_t bid, time_t _time /* = 0*/)

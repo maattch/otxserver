@@ -25,7 +25,8 @@
 #include "player.h"
 #include "tile.h"
 #include "tools.h"
-#include "vocation.h"
+
+#include "otx/util.hpp"
 
 extern Game g_game;
 extern MoveEvents* g_moveEvents;
@@ -158,11 +159,10 @@ void MoveEvents::clear()
 
 Event* MoveEvents::getEvent(const std::string& nodeName)
 {
-	std::string tmpNodeName = asLowerCaseString(nodeName);
+	std::string tmpNodeName = otx::util::as_lower_string(nodeName);
 	if (tmpNodeName == "movevent" || tmpNodeName == "moveevent" || tmpNodeName == "movement") {
 		return new MoveEvent(&m_interface);
 	}
-
 	return nullptr;
 }
 
@@ -772,7 +772,7 @@ bool MoveEvent::configureEvent(xmlNodePtr p)
 	std::string strValue;
 	int32_t intValue;
 	if (readXMLString(p, "type", strValue) || readXMLString(p, "event", strValue)) {
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		std::string tmpStrValue = otx::util::as_lower_string(strValue);
 		if (tmpStrValue == "stepin") {
 			m_eventType = MOVE_EVENT_STEP_IN;
 		} else if (tmpStrValue == "stepout") {
@@ -797,7 +797,7 @@ bool MoveEvent::configureEvent(xmlNodePtr p)
 
 		if (m_eventType == MOVE_EVENT_EQUIP || m_eventType == MOVE_EVENT_DE_EQUIP) {
 			if (readXMLString(p, "slot", strValue)) {
-				std::string tmpStrValue = asLowerCaseString(strValue);
+				std::string tmpStrValue = otx::util::as_lower_string(strValue);
 				if (tmpStrValue == "head") {
 					slot = SLOTP_HEAD;
 				} else if (tmpStrValue == "necklace") {
@@ -877,7 +877,7 @@ bool MoveEvent::configureEvent(xmlNodePtr p)
 
 bool MoveEvent::loadFunction(const std::string& functionName)
 {
-	std::string tmpFunctionName = asLowerCaseString(functionName);
+	std::string tmpFunctionName = otx::util::as_lower_string(functionName);
 	if (tmpFunctionName == "onstepinfield") {
 		stepFunction = StepInField;
 	} else if (tmpFunctionName == "onaddfield") {

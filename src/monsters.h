@@ -114,7 +114,7 @@ public:
 	SpellList spellAttackList;
 	SpellList spellDefenseList;
 	VoiceVector voiceVector;
-	StringVec scriptList;
+	std::vector<std::string> scriptList;
 };
 
 class Monsters

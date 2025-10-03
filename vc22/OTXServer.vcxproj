@@ -190,6 +190,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\src\otserv.cpp" />
+    <ClCompile Include="..\src\otx\util.cpp" />
     <ClCompile Include="..\src\outfit.cpp" />
     <ClCompile Include="..\src\outputmessage.cpp" />
     <ClCompile Include="..\src\party.cpp" />
@@ -267,6 +268,7 @@
     <ClInclude Include="..\src\npc.h" />
     <ClInclude Include="..\src\otpch.h" />
     <ClInclude Include="..\src\otx\cast.hpp" />
+    <ClInclude Include="..\src\otx\util.hpp" />
     <ClInclude Include="..\src\outfit.h" />
     <ClInclude Include="..\src\outputmessage.h" />
     <ClInclude Include="..\src\party.h" />

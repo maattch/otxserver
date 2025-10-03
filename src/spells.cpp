@@ -24,7 +24,8 @@
 #include "const.h"
 #include "game.h"
 #include "monsters.h"
-#include "tools.h"
+
+#include "otx/util.hpp"
 
 extern Game g_game;
 extern Spells* g_spells;
@@ -55,7 +56,7 @@ std::map<std::string, Exhaust_t> spellGroupMap = {
 ReturnValue Spells::onPlayerSay(Player* player, const std::string& words)
 {
 	std::string reWords = words;
-	trimString(reWords);
+	otx::util::trim_string(reWords);
 
 	InstantSpell* instantSpell = getInstantSpell(reWords);
 	if (!instantSpell) {
@@ -77,7 +78,7 @@ ReturnValue Spells::onPlayerSay(Player* player, const std::string& words)
 			reParam = param.substr(1, param.length());
 		}
 
-		trimString(reParam);
+		otx::util::trim_string(reParam);
 	}
 
 	Position pos = player->getPosition();
@@ -106,7 +107,7 @@ ReturnValue Spells::onPlayerSay(Player* player, const std::string& words)
 
 	std::string ret = instantSpell->getName();
 	if (param.length()) {
-		trimString(param);
+		otx::util::trim_string(param);
 		size_t tmp = 0, rtmp = param.length();
 		if (param[0] == '"') {
 			tmp = 1;
@@ -145,7 +146,7 @@ void Spells::clear()
 
 Event* Spells::getEvent(const std::string& nodeName)
 {
-	std::string tmpNodeName = asLowerCaseString(nodeName);
+	std::string tmpNodeName = otx::util::as_lower_string(nodeName);
 	if (tmpNodeName == "rune") {
 		return new RuneSpell(&m_interface);
 	}
@@ -164,7 +165,7 @@ Event* Spells::getEvent(const std::string& nodeName)
 bool Spells::registerEvent(Event* event, xmlNodePtr, bool override)
 {
 	if (InstantSpell* instant = dynamic_cast<InstantSpell*>(event)) {
-		std::string lowerWords = asLowerCaseString(instant->getWords());
+		std::string lowerWords = otx::util::as_lower_string(instant->getWords());
 		InstantsMap::iterator it = instants.find(lowerWords);
 		instant->setId(spellId++);
 		if (it == instants.end()) {
@@ -243,7 +244,7 @@ InstantSpell* Spells::getInstantSpell(const std::string& words)
 {
 	InstantSpell* result = nullptr;
 	std::string lower = words;
-	toLowerCaseString(lower);
+	otx::util::to_lower_string(lower);
 
 	// First let's search on all nom-param spells
 	auto search2 = instants.find(lower);
@@ -615,7 +616,7 @@ bool Spell::configureSpell(xmlNodePtr p)
 	}
 
 	if (readXMLString(p, "blocktype", strValue)) {
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		std::string tmpStrValue = otx::util::as_lower_string(strValue);
 		if (tmpStrValue == "all") {
 			blockingCreature = blockingSolid = true;
 		} else if (tmpStrValue == "solid") {
@@ -1249,7 +1250,7 @@ bool InstantSpell::configureEvent(xmlNodePtr p)
 
 bool InstantSpell::loadFunction(const std::string& functionName)
 {
-	std::string tmpFunctionName = asLowerCaseString(functionName);
+	std::string tmpFunctionName = otx::util::as_lower_string(functionName);
 	if (tmpFunctionName == "summonmonster") {
 		function = SummonMonster;
 	} else if (tmpFunctionName == "searchplayer") {
@@ -1593,7 +1594,7 @@ bool InstantSpell::Levitate(const InstantSpell*, Creature* creature, const std::
 	const Position& position = creature->getPosition();
 	Position destination = Spells::getCasterPosition(creature, creature->getDirection());
 
-	std::string tmpParam = asLowerCaseString(param);
+	std::string tmpParam = otx::util::as_lower_string(param);
 	if (tmpParam == "up") {
 		floor = 8;
 	} else if (tmpParam != "down") {
@@ -1705,7 +1706,7 @@ bool ConjureSpell::configureEvent(xmlNodePtr p)
 
 bool ConjureSpell::loadFunction(const std::string& functionName)
 {
-	std::string tmpFunctionName = asLowerCaseString(functionName);
+	std::string tmpFunctionName = otx::util::as_lower_string(functionName);
 	if (tmpFunctionName == "conjureitem" || tmpFunctionName == "conjurerune") {
 		function = ConjureItem;
 	} else {
@@ -1887,7 +1888,7 @@ bool RuneSpell::configureEvent(xmlNodePtr p)
 
 bool RuneSpell::loadFunction(const std::string& functionName)
 {
-	std::string tmpFunctionName = asLowerCaseString(functionName);
+	std::string tmpFunctionName = otx::util::as_lower_string(functionName);
 	if (tmpFunctionName == "chameleon") {
 		function = Illusion;
 	} else if (tmpFunctionName == "convince") {

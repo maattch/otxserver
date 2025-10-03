@@ -46,8 +46,11 @@
 #include "teleport.h"
 #include "textlogger.h"
 #include "tile.h"
+#include "tools.h"
 #include "trashholder.h"
 #include "weapons.h"
+
+#include "otx/util.hpp"
 
 extern ConfigManager g_config;
 extern Actions* g_actions;
@@ -253,7 +256,7 @@ void Game::setGameState(GameState_t newState)
 void Game::saveGameState(uint8_t flags)
 {
 	std::clog << "> Saving server..." << std::endl;
-	uint64_t start = OTSYS_TIME();
+	const int64_t start = otx::util::mstime();
 	if (gameState == GAMESTATE_NORMAL) {
 		setGameState(GAMESTATE_MAINTAIN);
 	}
@@ -278,8 +281,8 @@ void Game::saveGameState(uint8_t flags)
 		setGameState(GAMESTATE_NORMAL);
 	}
 
-	std::clog << "> SAVE: Complete in " << (OTSYS_TIME() - start) / (1000.) << " seconds using "
-			  << asLowerCaseString(g_config.getString(ConfigManager::HOUSE_STORAGE))
+	std::clog << "> SAVE: Complete in " << (otx::util::mstime() - start) / (1000.) << " seconds using "
+			  << otx::util::as_lower_string(g_config.getString(ConfigManager::HOUSE_STORAGE))
 			  << " house storage." << std::endl;
 }
 
@@ -299,7 +302,7 @@ int32_t Game::loadMap(std::string filename)
 
 void Game::cleanMapEx(uint32_t& count)
 {
-	uint64_t start = OTSYS_TIME();
+	uint64_t start = otx::util::mstime();
 	uint32_t tiles = 0;
 	count = 0;
 
@@ -434,7 +437,7 @@ void Game::cleanMapEx(uint32_t& count)
 		std::clog << " (" << marked << " were marked)";
 	}
 
-	std::clog << " in " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
+	std::clog << " in " << (otx::util::mstime() - start) / (1000.) << " seconds." << std::endl;
 }
 
 void Game::cleanMap()
@@ -678,7 +681,7 @@ void Game::loadNamesFromXml()
 			if (nameAttr) {
 				std::string nameAttrStr = reinterpret_cast<const char*>(nameAttr);
 				xmlFree(nameAttr);
-				std::string nameLow = asLowerCaseString(nameAttrStr);
+				std::string nameLow = otx::util::as_lower_string(nameAttrStr);
 				monsterNames[nameLow] = true;
 			}
 		}
@@ -697,12 +700,12 @@ bool Game::existMonsterByName(const std::string& name)
 	}
 
 	std::string forbiddenNames = g_config.getString(ConfigManager::FORBIDDEN_NAMES);
-	StringVec forbiddenNamesVec = explodeString(forbiddenNames, ";");
-	if (std::find(forbiddenNamesVec.begin(), forbiddenNamesVec.end(), asLowerCaseString(name)) != forbiddenNamesVec.end()) {
+	auto forbiddenNamesVec = explodeString(forbiddenNames, ";");
+	if (std::find(forbiddenNamesVec.begin(), forbiddenNamesVec.end(), otx::util::as_lower_string(name)) != forbiddenNamesVec.end()) {
 		return true;
 	}
 
-	auto it = monsterNamesMap_.find(asLowerCaseString(name));
+	auto it = monsterNamesMap_.find(otx::util::as_lower_string(name));
 	return it != monsterNamesMap_.end();
 }
 
@@ -776,7 +779,7 @@ Creature* Game::getCreatureByName(const std::string& s, CreatureType_t type)
 		return nullptr;
 	}
 
-	const std::string lowerCaseName = asLowerCaseString(s);
+	const std::string lowerCaseName = otx::util::as_lower_string(s);
 	if (type == CREATURE_TYPE_UNDEFINED || type == CREATURE_TYPE_PLAYER) {
 		auto it = mappedPlayerNames.find(lowerCaseName);
 		if (it != mappedPlayerNames.end()) {
@@ -813,7 +816,7 @@ Player* Game::getPlayerByName(const std::string& s)
 		return nullptr;
 	}
 
-	auto it = mappedPlayerNames.find(asLowerCaseString(s));
+	auto it = mappedPlayerNames.find(otx::util::as_lower_string(s));
 	if (it == mappedPlayerNames.end()) {
 		return nullptr;
 	}
@@ -876,7 +879,7 @@ ReturnValue Game::getPlayerByNameWildcard(const std::string& s, Player*& player)
 	}
 
 	if (s.back() == '~') {
-		const std::string query = asLowerCaseString(s.substr(0, strlen - 1));
+		const std::string query = otx::util::as_lower_string(s.substr(0, strlen - 1));
 		std::string result;
 		ReturnValue ret = wildcardTree.findOne(query, result);
 		if (ret != RET_NOERROR) {
@@ -1249,7 +1252,7 @@ bool Game::playerMoveCreature(const uint32_t playerId, const uint32_t movingCrea
 
 		internalTeleport(movingCreature, toTile->getPosition(), false);
 	} else if (Player* movingPlayer = movingCreature->getPlayer()) {
-		uint64_t delay = OTSYS_TIME() + movingPlayer->getStepDuration();
+		uint64_t delay = otx::util::mstime() + movingPlayer->getStepDuration();
 		if (delay > movingPlayer->getNextActionTime(false)) {
 			movingPlayer->setNextAction(delay);
 		}
@@ -1520,7 +1523,7 @@ bool Game::playerMoveItem(const uint32_t playerId, const Position& fromPos,
 		return false;
 	}
 
-	player->setNextAction(OTSYS_TIME() + g_config.getNumber(ConfigManager::ACTIONS_DELAY_INTERVAL) - 10);
+	player->setNextAction(otx::util::mstime() + g_config.getNumber(ConfigManager::ACTIONS_DELAY_INTERVAL) - 10);
 	return true;
 }
 
@@ -4179,7 +4182,7 @@ bool Game::playerSetFightModes(const uint32_t playerId, const fightMode_t& fight
 	player->setChaseMode(chaseMode);
 	player->setSecureMode(secureMode);
 
-	player->setLastAttack(OTSYS_TIME());
+	player->setLastAttack(otx::util::mstime());
 	return true;
 }
 
@@ -4194,7 +4197,7 @@ bool Game::playerRequestAddVip(const uint32_t playerId, const std::string& vipNa
 	bool specialVip;
 	std::string name = vipName;
 
-	player->setNextExAction(OTSYS_TIME() + g_config.getNumber(ConfigManager::CUSTOM_ACTIONS_DELAY_INTERVAL) - 10);
+	player->setNextExAction(otx::util::mstime() + g_config.getNumber(ConfigManager::CUSTOM_ACTIONS_DELAY_INTERVAL) - 10);
 	if (!IOLoginData::getInstance()->getGuidByNameEx(guid, specialVip, name)) {
 		player->sendTextMessage(MSG_STATUS_SMALL, "A player with that name does not exist.");
 		return false;
@@ -4356,9 +4359,8 @@ bool Game::playerSay(const uint32_t playerId, const uint16_t channelId, const Me
 		return false;
 	}
 
-	std::string _text = asLowerCaseString(text);
-	StringVec prohibitedWords;
-	prohibitedWords = explodeString(g_config.getString(ConfigManager::ADVERTISING_BLOCK), ";");
+	std::string _text = otx::util::as_lower_string(text);
+	auto prohibitedWords = explodeString(g_config.getString(ConfigManager::ADVERTISING_BLOCK), ";");
 	bool fakeChat = false;
 
 	std::string concatenatedText = removeNonAlphabetic(_text);
@@ -4469,7 +4471,7 @@ bool Game::playerYell(Player* player, const std::string& text, const uint32_t st
 		}
 	}
 
-	internalCreatureSay(player, MSG_SPEAK_YELL, asUpperCaseString(text), false, nullptr, nullptr, statementId, false, fakeChat);
+	internalCreatureSay(player, MSG_SPEAK_YELL, otx::util::as_upper_string(text), false, nullptr, nullptr, statementId, false, fakeChat);
 	return true;
 }
 
@@ -6086,9 +6088,9 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 		}
 
 		time_t banTime = time(nullptr);
-		StringVec vec = explodeString(";", data);
-		for (StringVec::iterator it = vec.begin(); it != vec.end(); ++it) {
-			StringVec tmp = explodeString(",", *it);
+		auto vec = explodeString(";", data);
+		for (auto it = vec.begin(); it != vec.end(); ++it) {
+			auto tmp = explodeString(",", *it);
 			uint32_t count = 1;
 			if (tmp.size() > 1) {
 				count = atoi(tmp[1].c_str());
@@ -6142,7 +6144,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 		return false;
 	}
 
-	toLowerCaseString(name);
+	otx::util::to_lower_string(name);
 	Player* target = getPlayerByNameEx(name);
 	if (!target || name == "account manager") {
 		player->sendCancel("A player with this name does not exist.");
@@ -7225,7 +7227,7 @@ uint32_t Game::spawnDivider(MonsterType* mType)
 
 void Game::addPlayer(Player* player)
 {
-	const std::string lowercase_name = asLowerCaseString(player->getName());
+	const std::string lowercase_name = otx::util::as_lower_string(player->getName());
 	mappedPlayerNames[lowercase_name] = player;
 	mappedPlayerGuids[player->getGUID()] = player;
 	wildcardTree.insert(lowercase_name);
@@ -7234,7 +7236,7 @@ void Game::addPlayer(Player* player)
 
 void Game::removePlayer(Player* player)
 {
-	const std::string lowercase_name = asLowerCaseString(player->getName());
+	const std::string lowercase_name = otx::util::as_lower_string(player->getName());
 	mappedPlayerNames.erase(lowercase_name);
 	mappedPlayerGuids.erase(player->getGUID());
 	wildcardTree.remove(lowercase_name);

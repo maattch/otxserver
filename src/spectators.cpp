@@ -26,9 +26,19 @@
 #include "player.h"
 #include "tools.h"
 
+#include "otx/util.hpp"
+
 extern Game g_game;
 extern ConfigManager g_config;
 extern Chat g_chat;
+
+Spectators::Spectators(ProtocolGame_ptr client) : owner(client)
+{
+	id = 0;
+	broadcast = false;
+	auth = false;
+	broadcast_time = otx::util::mstime();
+}
 
 bool Spectators::check(const std::string& _password)
 {
@@ -37,7 +47,8 @@ bool Spectators::check(const std::string& _password)
 	}
 
 	std::string t = _password;
-	return trimString(t) == password;
+	otx::util::trim_string(t);
+	return t == password;
 }
 
 void Spectators::sendLook(ProtocolGame* client, const Position& pos, uint16_t spriteId, int16_t stackpos)
@@ -115,7 +126,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 	PrivateChatChannel* channel = g_chat.getPrivateChannel(owner->getPlayer());
 	if (text[0] == '/') {
 		StringVec t = explodeString(text.substr(1, text.length()), " ", true, 1);
-		toLowerCaseString(t[0]);
+		otx::util::to_lower_string(t[0]);
 		if (t[0] == "show") {
 			std::ostringstream s;
 			s << spectators.size() << " spectators. ";
@@ -138,7 +149,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 						t[1] += " [G]";
 						bool found = false;
 						for (SpectatorList::iterator iit = spectators.begin(); iit != spectators.end(); ++iit) {
-							if (asLowerCaseString(iit->second.first) != asLowerCaseString(t[1])) {
+							if (otx::util::as_lower_string(iit->second.first) != otx::util::as_lower_string(t[1])) {
 								continue;
 							}
 
@@ -152,9 +163,9 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 								sendChannelMessage("", sit->second.first + " is now known as " + t[1] + ".", MSG_GAMEMASTER_CHANNEL, channel->getId());
 							}
 
-							StringVec::iterator mit = std::find(mutes.begin(), mutes.end(), asLowerCaseString(sit->second.first));
+							StringVec::iterator mit = std::find(mutes.begin(), mutes.end(), otx::util::as_lower_string(sit->second.first));
 							if (mit != mutes.end()) {
-								(*mit) = asLowerCaseString(t[1]);
+								(*mit) = otx::util::as_lower_string(t[1]);
 							}
 
 							sit->second.first = t[1];
@@ -199,9 +210,9 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 									sendChannelMessage("", sit->second.first + " authenticated as " + nickname + ".", MSG_GAMEMASTER_CHANNEL, channel->getId());
 								}
 
-								StringVec::iterator mit = std::find(mutes.begin(), mutes.end(), asLowerCaseString(sit->second.first));
+								StringVec::iterator mit = std::find(mutes.begin(), mutes.end(), otx::util::as_lower_string(sit->second.first));
 								if (mit != mutes.end()) {
-									(*mit) = asLowerCaseString(nickname);
+									(*mit) = otx::util::as_lower_string(nickname);
 								}
 
 								sit->second.first = nickname;
@@ -229,7 +240,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 	}
 
 	if (!auth || sit->second.second) {
-		StringVec::const_iterator mit = std::find(mutes.begin(), mutes.end(), asLowerCaseString(sit->second.first));
+		StringVec::const_iterator mit = std::find(mutes.begin(), mutes.end(), otx::util::as_lower_string(sit->second.first));
 		if (mit == mutes.end()) {
 			if (channel && channel->getId() == channelId) {
 				uint16_t exhaust = g_config.getNumber(ConfigManager::EXHAUST_SPECTATOR_SAY);
@@ -242,7 +253,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 					return;
 				}
 				client->lastCastMsg = time(nullptr);
-				std::string _text = asLowerCaseString(text);
+				std::string _text = otx::util::as_lower_string(text);
 				StringVec prohibitedWords;
 				prohibitedWords = explodeString(g_config.getString(ConfigManager::ADVERTISING_BLOCK), ";");
 				bool fakeChat = false;
@@ -284,7 +295,7 @@ void Spectators::kick(StringVec list)
 {
 	for (const auto& name : list) {
 		for (auto it = spectators.begin(); it != spectators.end(); ++it) {
-			if (!it->first->spy && asLowerCaseString(it->second.first) == name) {
+			if (!it->first->spy && otx::util::as_lower_string(it->second.first) == name) {
 				it->first->disconnect();
 			}
 		}
@@ -304,7 +315,7 @@ void Spectators::ban(StringVec _bans)
 
 	for (const auto& ban : _bans) {
 		for (const auto& spectator : spectators) {
-			if (asLowerCaseString(spectator.second.first) == ban) {
+			if (otx::util::as_lower_string(spectator.second.first) == ban) {
 				bans[ban] = spectator.first->getIP();
 				spectator.first->disconnect();
 			}
@@ -360,6 +371,11 @@ void Spectators::removeSpectator(ProtocolGame* client, bool spy)
 		sendTextMessage(MSG_STATUS_CONSOLE_RED, it->second.first + " has left the cast.");
 	}
 	spectators.erase(it);
+}
+
+int64_t Spectators::getBroadcastTime() const
+{
+	return otx::util::mstime() - broadcast_time;
 }
 
 void Spectators::sendChannelMessage(std::string author, std::string text, MessageClasses type, uint16_t channel, bool fakeChat, uint32_t ip)

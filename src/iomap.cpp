@@ -199,7 +199,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 	}
 
 	std::clog << ">>> Map descriptions:";
-	for (StringVec::iterator it = map->descriptions.begin(); it != map->descriptions.end(); ++it) {
+	for (auto it = map->descriptions.begin(); it != map->descriptions.end(); ++it) {
 		std::clog << " - \"" << (*it) << "\"";
 	}
 

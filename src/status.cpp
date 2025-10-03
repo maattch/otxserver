@@ -23,13 +23,14 @@
 #include "game.h"
 #include "networkmessage.h"
 #include "outputmessage.h"
-#include "tools.h"
+
+#include "otx/util.hpp"
 
 extern ConfigManager g_config;
 extern Game g_game;
 
 std::map<uint32_t, int64_t> ProtocolStatus::ipConnectMap;
-const uint64_t ProtocolStatus::start = OTSYS_TIME();
+const uint64_t ProtocolStatus::start = otx::util::mstime();
 
 enum RequestedInfo_t : uint16_t
 {
@@ -48,13 +49,13 @@ void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
 	uint32_t ip = getIP();
 	if (ip != 0x0100007F) {
 		std::map<uint32_t, int64_t>::const_iterator it = ipConnectMap.find(ip);
-		if (it != ipConnectMap.end() && (OTSYS_TIME() < (it->second + g_config.getNumber(ConfigManager::STATUSQUERY_TIMEOUT)))) {
+		if (it != ipConnectMap.end() && (otx::util::mstime() < (it->second + g_config.getNumber(ConfigManager::STATUSQUERY_TIMEOUT)))) {
 			disconnect();
 			return;
 		}
 	}
 
-	ipConnectMap[ip] = OTSYS_TIME();
+	ipConnectMap[ip] = otx::util::mstime();
 
 	uint8_t type = msg.get<char>();
 	switch (type) {
@@ -101,7 +102,7 @@ void ProtocolStatus::sendStatusString()
 	xmlSetProp(root, (const xmlChar*)"version", (const xmlChar*)"1.0");
 
 	xmlNodePtr p = xmlNewNode(nullptr, (const xmlChar*)"serverinfo");
-	sprintf(buffer, "%u", (uint32_t)((OTSYS_TIME() - ProtocolStatus::start) / 1000));
+	sprintf(buffer, "%u", (uint32_t)((otx::util::mstime() - ProtocolStatus::start) / 1000));
 	xmlSetProp(p, (const xmlChar*)"uptime", (const xmlChar*)buffer);
 	xmlSetProp(p, (const xmlChar*)"ip", (const xmlChar*)g_config.getString(ConfigManager::IP).c_str());
 	xmlSetProp(p, (const xmlChar*)"servername", (const xmlChar*)g_config.getString(ConfigManager::SERVER_NAME).c_str());
@@ -223,7 +224,7 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 		output->addString(g_config.getString(ConfigManager::LOCATION).c_str());
 		output->addString(g_config.getString(ConfigManager::URL).c_str());
 
-		output->add<uint64_t>((OTSYS_TIME() - ProtocolStatus::start) / 1000);
+		output->add<uint64_t>((otx::util::mstime() - ProtocolStatus::start) / 1000);
 	}
 
 	if (requestedInfo & REQUEST_PLAYERS_INFO) {

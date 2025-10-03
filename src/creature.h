@@ -507,18 +507,14 @@ protected:
 
 	// combat variables
 	Creature* attackedCreature;
+
 	struct CountBlock_t
 	{
-		uint32_t total;
-		int64_t start, ticks;
-
-		CountBlock_t(uint32_t points)
-		{
-			total = points;
-			start = ticks = OTSYS_TIME();
-		}
-
-		CountBlock_t() { total = start = ticks = 0; }
+		CountBlock_t() = default;
+		CountBlock_t(uint32_t points);
+		int64_t start = 0;
+		int64_t ticks = 0;
+		uint32_t total = 0;
 	};
 
 	typedef std::map<uint32_t, CountBlock_t> CountMap;

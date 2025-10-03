@@ -19,8 +19,6 @@
 
 #include "baseevents.h"
 #include "luascript.h"
-#include "player.h"
-#include "tools.h"
 
 enum TalkActionFilter
 {
@@ -79,7 +77,7 @@ public:
 	uint32_t getAccess() const { return m_access; }
 	int32_t getChannel() const { return m_channel; }
 
-	StringVec getExceptions() { return m_exceptions; }
+	const auto& getExceptions() { return m_exceptions; }
 	TalkFunction* getFunction() { return m_function; }
 
 	bool isLogged() const { return m_logged; }
@@ -89,8 +87,8 @@ public:
 	bool hasGroups() const { return !m_groups.empty(); }
 	bool hasGroup(int32_t value) const { return std::find(m_groups.begin(), m_groups.end(), value) != m_groups.end(); }
 
-	IntegerVec::const_iterator getGroupsBegin() const { return m_groups.begin(); }
-	IntegerVec::const_iterator getGroupsEnd() const { return m_groups.end(); }
+	auto getGroupsBegin() const { return m_groups.begin(); }
+	auto getGroupsEnd() const { return m_groups.end(); }
 
 protected:
 	virtual std::string getScriptEventName() const { return "onSay"; }
@@ -116,6 +114,6 @@ protected:
 	uint32_t m_access;
 	int32_t m_channel;
 	bool m_logged, m_hidden, m_sensitive;
-	StringVec m_exceptions;
-	IntegerVec m_groups;
+	std::vector<std::string> m_exceptions;
+	std::vector<int32_t> m_groups;
 };

@@ -22,6 +22,9 @@
 #include "configmanager.h"
 #include "game.h"
 #include "scheduler.h"
+#include "tools.h"
+
+#include "otx/util.hpp"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -73,7 +76,7 @@ bool Raids::parseRaidNode(xmlNodePtr raidNode, bool checkDuplicate, FileType_t p
 
 	RefType_t refType = REF_NONE;
 	if (readXMLString(raidNode, "reftype", strValue) || readXMLString(raidNode, "refType", strValue)) {
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		std::string tmpStrValue = otx::util::as_lower_string(strValue);
 		if (tmpStrValue == "single") {
 			refType = REF_SINGLE;
 		} else if (tmpStrValue == "block") {
@@ -148,7 +151,7 @@ bool Raids::startup()
 		return false;
 	}
 
-	setLastRaidEnd(OTSYS_TIME());
+	setLastRaidEnd(otx::util::mstime());
 	checkRaidsEvent = addSchedulerTask(CHECK_RAIDS_INTERVAL * 1000, [this]() { checkRaids(); });
 
 	started = true;
@@ -162,7 +165,7 @@ void Raids::checkRaids()
 		return;
 	}
 
-	uint64_t now = OTSYS_TIME();
+	uint64_t now = otx::util::mstime();
 	for (RaidList::iterator it = raidList.begin(); it != raidList.end(); ++it) {
 		if ((*it)->isEnabled() && !(*it)->hasRef() && now > (lastRaidEnd + (*it)->getMargin()) && (MAX_RAND_RANGE * CHECK_RAIDS_INTERVAL / (*it)->getInterval()) >= (uint32_t)random_range(0, MAX_RAND_RANGE) && (*it)->startRaid()) {
 			break;
@@ -332,7 +335,7 @@ bool Raid::resetRaid(bool checkExecution)
 
 	if (Raids::getInstance()->getRunning() == this) {
 		Raids::getInstance()->setRunning(nullptr);
-		Raids::getInstance()->setLastRaidEnd(OTSYS_TIME());
+		Raids::getInstance()->setLastRaidEnd(otx::util::mstime());
 	}
 
 	return true;
@@ -386,7 +389,7 @@ bool AnnounceEvent::configureRaidEvent(xmlNodePtr eventNode)
 
 	m_message = strValue;
 	if (readXMLString(eventNode, "type", strValue)) {
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		std::string tmpStrValue = otx::util::as_lower_string(strValue);
 		if (tmpStrValue == "warning") {
 			m_messageType = MSG_STATUS_WARNING;
 		} else if (tmpStrValue == "event") {

@@ -34,6 +34,8 @@
 #include "spectators.h"
 #include "weapons.h"
 
+#include "otx/util.hpp"
+
 extern ConfigManager g_config;
 extern Game g_game;
 extern Chat g_chat;
@@ -47,6 +49,16 @@ uint32_t Player::playerAutoID = 0x10000000;
 uint32_t Player::playerCount = 0;
 #endif
 MuteCountMap Player::muteCountMap;
+
+namespace
+{
+	bool checkText(std::string text, std::string_view str)
+	{
+		otx::util::trim_string(text);
+		return caseInsensitiveEqual(text, str);
+	}
+
+} // namespace
 
 Player::Player(const std::string& _name, ProtocolGame_ptr p) :
 	Creature(),
@@ -86,7 +98,7 @@ Player::Player(const std::string& _name, ProtocolGame_ptr p) :
 	soulMax = 100;
 	capacity = 400.00;
 	stamina = STAMINA_MAX;
-	lastLoad = lastPing = lastPong = lastAttack = lastMail = OTSYS_TIME();
+	lastLoad = lastPing = lastPong = lastAttack = lastMail = otx::util::mstime();
 
 	writeItem = nullptr;
 	group = nullptr;
@@ -532,7 +544,7 @@ float Player::getDefenseFactor() const
 			return 1.2f;
 
 		case FIGHTMODE_DEFENSE: {
-			if ((OTSYS_TIME() - lastAttack) < getAttackSpeed()) { // attacking will cause us to get into normal defense
+			if ((otx::util::mstime() - lastAttack) < getAttackSpeed()) { // attacking will cause us to get into normal defense
 				return 1.0f;
 			}
 
@@ -1791,7 +1803,7 @@ void Player::onWalk(Direction& dir)
 {
 	Creature::onWalk(dir);
 	setNextActionTask(nullptr);
-	setNextAction(OTSYS_TIME() + getStepDuration(dir));
+	setNextAction(otx::util::mstime() + getStepDuration(dir));
 }
 
 void Player::onCreatureMove(const Creature* creature, const Tile* newTile, const Position& newPos,
@@ -1981,19 +1993,34 @@ void Player::setNextActionTask(SchedulerTaskPtr task)
 	}
 }
 
+bool Player::canDoAction() const
+{
+	return nextAction <= otx::util::mstime();
+}
+
 uint32_t Player::getNextActionTime(bool scheduler /* = true*/) const
 {
 	if (!scheduler) {
-		return (uint32_t)std::max((int64_t)0, ((int64_t)nextAction - OTSYS_TIME()));
+		return (uint32_t)std::max((int64_t)0, ((int64_t)nextAction - otx::util::mstime()));
 	}
 
-	return (uint32_t)std::max((int64_t)SCHEDULER_MINTICKS, ((int64_t)nextAction - OTSYS_TIME()));
+	return (uint32_t)std::max((int64_t)SCHEDULER_MINTICKS, ((int64_t)nextAction - otx::util::mstime()));
+}
+
+bool Player::canDoExAction() const
+{
+	return nextExAction <= otx::util::mstime();
+}
+
+void Player::receivePing()
+{
+	lastPong = otx::util::mstime();
 }
 
 void Player::onThink(uint32_t interval)
 {
 	Creature::onThink(interval);
-	int64_t timeNow = OTSYS_TIME();
+	int64_t timeNow = otx::util::mstime();
 	if (timeNow - lastPing >= 5000) {
 		lastPing = timeNow;
 		if (hasClient()) {
@@ -2022,7 +2049,7 @@ void Player::onThink(uint32_t interval)
 		addMessageBuffer();
 	}
 
-	if (lastMail && lastMail < (uint64_t)(OTSYS_TIME() + g_config.getNumber(ConfigManager::MAIL_ATTEMPTS_FADE))) {
+	if (lastMail && lastMail < (uint64_t)(otx::util::mstime() + g_config.getNumber(ConfigManager::MAIL_ATTEMPTS_FADE))) {
 		mailAttempts = lastMail = 0;
 	}
 
@@ -2504,7 +2531,7 @@ bool Player::onDeath()
 
 	uint32_t totalDamage = 0, pvpDamage = 0, opponents = 0;
 	for (CountMap::iterator it = damageMap.begin(); it != damageMap.end(); ++it) {
-		if (((OTSYS_TIME() - it->second.ticks) / 1000) > g_config.getNumber(
+		if (((otx::util::mstime() - it->second.ticks) / 1000) > g_config.getNumber(
 				ConfigManager::FAIRFIGHT_TIMERANGE)) {
 			continue;
 		}
@@ -2695,7 +2722,7 @@ Item* Player::createCorpse(DeathList deathList)
 					ss << " summoned by " << deathList[1].getKillerCreature()->getMaster()->getNameDescription();
 				}
 			}
-		} else if (asLowerCaseString(deathList[0].getKillerName()) != asLowerCaseString(deathList[1].getKillerName())) {
+		} else if (otx::util::as_lower_string(deathList[0].getKillerName()) != otx::util::as_lower_string(deathList[1].getKillerName())) {
 			ss << " and by " << deathList[1].getKillerName();
 		}
 	}
@@ -3077,7 +3104,7 @@ ReturnValue Player::__queryAdd(int32_t index, const Thing* thing, uint32_t count
 
 	if (index == SLOT_LEFT || index == SLOT_RIGHT) {
 		if (ret == RET_NOERROR && item->getWeaponType() != WEAPON_NONE) {
-			self->setLastAttack(OTSYS_TIME());
+			self->setLastAttack(otx::util::mstime());
 		}
 
 		Item* tmpItem = inventory[(slots_t)index];
@@ -3766,13 +3793,13 @@ void Player::doAttacking(uint32_t)
 {
 	uint32_t attackSpeed = getAttackSpeed();
 	if (attackSpeed == 0 || (hasCondition(CONDITION_PACIFIED) && !hasCustomFlag(PlayerCustomFlag_IgnorePacification))) {
-		lastAttack = OTSYS_TIME();
+		lastAttack = otx::util::mstime();
 		return;
 	}
 
 	if (!lastAttack) {
-		lastAttack = OTSYS_TIME() - attackSpeed - 1;
-	} else if ((OTSYS_TIME() - lastAttack) < attackSpeed) {
+		lastAttack = otx::util::mstime() - attackSpeed - 1;
+	} else if ((otx::util::mstime() - lastAttack) < attackSpeed) {
 		return;
 	}
 
@@ -3782,14 +3809,19 @@ void Player::doAttacking(uint32_t)
 				createSchedulerTask(getNextActionTime(), [playerID = getID()]() { g_game.checkCreatureAttack(playerID); }));
 		} else {
 			if ((!_weapon->hasExhaustion() || !hasCondition(CONDITION_EXHAUST)) && _weapon->useWeapon(this, weapon, attackedCreature)) {
-				lastAttack = OTSYS_TIME();
+				lastAttack = otx::util::mstime();
 			}
 
 			updateWeapon();
 		}
 	} else if (Weapon::useFist(this, attackedCreature)) {
-		lastAttack = OTSYS_TIME();
+		lastAttack = otx::util::mstime();
 	}
+}
+
+bool Player::hasExtraSwing()
+{
+	return lastAttack > 0 && ((otx::util::mstime() - lastAttack) >= getAttackSpeed());
 }
 
 double Player::getGainedExperience(Creature* attacker) const
@@ -4096,7 +4128,7 @@ void Player::onAttacked()
 
 bool Player::checkLoginDelay() const
 {
-	return (!hasCustomFlag(PlayerCustomFlag_IgnoreLoginDelay) && OTSYS_TIME() <= (lastLoad + g_config.getNumber(ConfigManager::LOGIN_PROTECTION)));
+	return (!hasCustomFlag(PlayerCustomFlag_IgnoreLoginDelay) && otx::util::mstime() <= (lastLoad + g_config.getNumber(ConfigManager::LOGIN_PROTECTION)));
 }
 
 void Player::onIdleStatus()
@@ -4841,7 +4873,7 @@ void Player::manageAccount(const std::string& text)
 		case MANAGER_NAMELOCK: {
 			if (!talkState[1]) {
 				managerString = text;
-				trimString(managerString);
+				otx::util::trim_string(managerString);
 				if (managerString.length() < 3) {
 					msg << "The name is too short, please select a longer one.";
 				} else if (managerString.length() > 20) {
@@ -4851,7 +4883,7 @@ void Player::manageAccount(const std::string& text)
 				} else if (IOLoginData::getInstance()->playerExists(managerString, true)) {
 					msg << "Player with that name already exists, please choose another one.";
 				} else {
-					std::string tmp = asLowerCaseString(managerString);
+					std::string tmp = otx::util::as_lower_string(managerString);
 					if (tmp.substr(0, 4) != "god " && tmp.substr(0, 3) != "cm " && tmp.substr(0, 3) != "gm ") {
 						talkState[1] = talkState[2] = true;
 						msg << "{" << managerString << "}, are you sure? {yes} or {no}?";
@@ -4902,7 +4934,7 @@ void Player::manageAccount(const std::string& text)
 				msg << "Which character would you like to delete?";
 			} else if (talkState[2]) {
 				std::string tmp = text;
-				trimString(tmp);
+				otx::util::trim_string(tmp);
 				if (!isValidName(tmp, false)) {
 					msg << "That name to contain invalid symbols, please try again.";
 				} else {
@@ -4948,7 +4980,7 @@ void Player::manageAccount(const std::string& text)
 				msg << "What would you like your password to be?";
 			} else if (talkState[4]) {
 				std::string tmp = text;
-				trimString(tmp);
+				otx::util::trim_string(tmp);
 				if (tmp.length() < 6) {
 					msg << "That password is too short, please select a longer one.";
 				} else if (!isValidPassword(tmp)) {
@@ -4989,7 +5021,7 @@ void Player::manageAccount(const std::string& text)
 				}
 			} else if (talkState[6]) {
 				managerString = text;
-				trimString(managerString);
+				otx::util::trim_string(managerString);
 				if (managerString.length() < 3) {
 					msg << "That name is too short, please select a longer one.";
 				} else if (managerString.length() > 20) {
@@ -4999,7 +5031,7 @@ void Player::manageAccount(const std::string& text)
 				} else if (IOLoginData::getInstance()->playerExists(managerString, true)) {
 					msg << "Player with that name already exists, please choose another one.";
 				} else {
-					std::string tmp = asLowerCaseString(managerString);
+					std::string tmp = otx::util::as_lower_string(managerString);
 					if (tmp.substr(0, 4) != "god " && tmp.substr(0, 3) != "cm " && tmp.substr(0, 3) != "gm ") {
 						talkState[6] = false;
 						talkState[7] = true;
@@ -5038,7 +5070,7 @@ void Player::manageAccount(const std::string& text)
 					std::vector<std::string> vocations;
 					for (VocationsMap::iterator it = Vocations::getInstance()->getFirstVocation(); it != Vocations::getInstance()->getLastVocation(); ++it) {
 						if (it->first == it->second->getFromVocation() && it->first != 0) {
-							vocations.push_back(asLowerCaseString(it->second->getName()));
+							vocations.push_back(otx::util::as_lower_string(it->second->getName()));
 						}
 					}
 
@@ -5070,7 +5102,7 @@ void Player::manageAccount(const std::string& text)
 				}
 			} else if (talkState[11]) {
 				for (VocationsMap::iterator it = Vocations::getInstance()->getFirstVocation(); it != Vocations::getInstance()->getLastVocation(); ++it) {
-					if (checkText(text, asLowerCaseString(it->second->getName())) && it->first == it->second->getFromVocation() && it->first != 0) {
+					if (checkText(text, otx::util::as_lower_string(it->second->getName())) && it->first == it->second->getFromVocation() && it->first != 0) {
 						msg << "So you would like to be " << it->second->getDescription() << ", {yes} or {no}?";
 						managerNumber2 = it->first;
 						talkState[11] = false;
@@ -5134,7 +5166,7 @@ void Player::manageAccount(const std::string& text)
 				talkState[2] = true;
 			} else if (talkState[2]) {
 				std::string tmp = text;
-				trimString(tmp);
+				otx::util::trim_string(tmp);
 				if (tmp.length() < 6) {
 					msg << "That password is too short, please select a longer one.";
 				} else if (!isValidPassword(tmp)) {
@@ -5177,14 +5209,14 @@ void Player::manageAccount(const std::string& text)
 				msg << "What would you like your password to be then?";
 			} else if (talkState[4]) {
 				std::string tmp = text;
-				trimString(tmp);
+				otx::util::trim_string(tmp);
 				if (tmp.length() < 3) {
 					msg << "That account name is too short, please select a longer one.";
 				} else if (tmp.length() > 32) {
 					msg << "That account name is too long, please select a shorter one.";
 				} else if (!isValidAccountName(tmp)) {
 					msg << "Your account name seems to contain invalid symbols, please choose another one.";
-				} else if (asLowerCaseString(tmp) == asLowerCaseString(managerString)) {
+				} else if (otx::util::as_lower_string(tmp) == otx::util::as_lower_string(managerString)) {
 					msg << "Your account name cannot be same as password, please choose another one.";
 				} else {
 					sprintf(managerChar, "%s", tmp.c_str());

@@ -39,6 +39,8 @@
 #include "vocation.h"
 #include "weapons.h"
 
+#include "otx/util.hpp"
+
 Actions* g_actions = nullptr;
 CreatureEvents* g_creatureEvents = nullptr;
 Spells* g_spells = nullptr;
@@ -237,7 +239,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 		for (xmlNodePtr versionNode = p->children; versionNode; versionNode = versionNode->next) {
 			std::string id = SOFTWARE_VERSION;
 			if (readXMLString(versionNode, "id", strValue)) {
-				id = asLowerCaseString(strValue);
+				id = otx::util::as_lower_string(strValue);
 			}
 
 			IntegerVec protocol;
@@ -246,7 +248,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 				protocol = vectorAtoi(explodeString(strValue, "-"));
 			}
 
-			if (id == asLowerCaseString(SOFTWARE_VERSION) && protocol[0] >= CLIENT_VERSION_MIN && (protocol.size() < 2 || protocol[1] <= CLIENT_VERSION_MAX)) {
+			if (id == otx::util::as_lower_string(SOFTWARE_VERSION) && protocol[0] >= CLIENT_VERSION_MIN && (protocol.size() < 2 || protocol[1] <= CLIENT_VERSION_MAX)) {
 				supported = true;
 				break;
 			}
@@ -290,7 +292,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 			}
 			if (!xmlStrcmp(p->name, (const xmlChar*)"description") || !xmlStrcmp(p->name, (const xmlChar*)"info")) {
 				if (parseXMLContentString(p->children, strValue)) {
-					replaceString(strValue, "\t", "");
+					otx::util::replace_all(strValue, "\t", "");
 					mod.description = strValue;
 				}
 			} else if (!xmlStrcmp(p->name, (const xmlChar*)"lib") || !xmlStrcmp(p->name, (const xmlChar*)"config")) {
@@ -301,7 +303,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 						strValue = mod.name + "-config";
 					}
 				} else {
-					toLowerCaseString(strValue);
+					otx::util::to_lower_string(strValue);
 				}
 
 				std::string strLib;

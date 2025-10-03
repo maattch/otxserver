@@ -19,7 +19,6 @@
 
 #include "position.h"
 #include "tile.h"
-#include "tools.h"
 #include "waypoints.h"
 
 class Creature;
@@ -258,7 +257,7 @@ protected:
 
 	uint32_t mapWidth, mapHeight;
 	std::string spawnfile, housefile;
-	StringVec descriptions;
+	std::vector<std::string> descriptions;
 
 	SpectatorCache spectatorCache;
 	SpectatorCache playersSpectatorCache;

@@ -24,7 +24,6 @@
 #include "house.h"
 #include "ioguild.h"
 #include "item.h"
-#include "tools.h"
 #include "town.h"
 #include "vocation.h"
 

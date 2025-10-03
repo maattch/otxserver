@@ -24,12 +24,14 @@
 #include "house.h"
 #include "iologindata.h"
 
+#include "otx/util.hpp"
+
 extern ConfigManager g_config;
 extern Game g_game;
 
 bool IOMapSerialize::loadMap(Map* map)
 {
-	std::string config = asLowerCaseString(g_config.getString(ConfigManager::HOUSE_STORAGE));
+	std::string config = otx::util::as_lower_string(g_config.getString(ConfigManager::HOUSE_STORAGE));
 	bool result = false;
 	if (config == "binary-tilebased") {
 		result = loadMapBinaryTileBased(map);
@@ -57,7 +59,7 @@ bool IOMapSerialize::loadMap(Map* map)
 
 bool IOMapSerialize::saveMap(Map* map)
 {
-	std::string config = asLowerCaseString(g_config.getString(ConfigManager::HOUSE_STORAGE));
+	std::string config = otx::util::as_lower_string(g_config.getString(ConfigManager::HOUSE_STORAGE));
 	if (config == "binary-tilebased") {
 		return saveMapBinaryTileBased(map);
 	} else if (config == "binary") {
@@ -280,7 +282,7 @@ bool IOMapSerialize::saveHouse(House* house)
 
 bool IOMapSerialize::saveHouseItems(House* house)
 {
-	std::string config = asLowerCaseString(g_config.getString(ConfigManager::HOUSE_STORAGE));
+	std::string config = otx::util::as_lower_string(g_config.getString(ConfigManager::HOUSE_STORAGE));
 	if (config == "binary-tilebased") {
 		std::ostringstream query;
 		query << "DELETE FROM `tile_store` WHERE `house_id` = " << house->getId();

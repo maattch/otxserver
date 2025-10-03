@@ -25,8 +25,9 @@
 #include "position.h"
 #include "spawn.h"
 #include "spells.h"
-#include "tools.h"
 #include "vocation.h"
+
+#include "otx/util.hpp"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -109,7 +110,7 @@ bool Npcs::parseNpcNode(xmlNodePtr node, FileType_t path, bool reloading /* = fa
 	}
 
 	nType->name = name;
-	toLowerCaseString(name);
+	otx::util::to_lower_string(name);
 
 	nType->file = getFilePath(path, "npc/" + strValue);
 	if (readXMLString(node, "nameDescription", strValue) || readXMLString(node, "namedescription", strValue)) {
@@ -182,17 +183,16 @@ void Npcs::reload()
 
 NpcType* Npcs::getType(const std::string& name) const
 {
-	DataMap::const_iterator it = data.find(asLowerCaseString(name));
+	DataMap::const_iterator it = data.find(otx::util::as_lower_string(name));
 	if (it == data.end()) {
 		return nullptr;
 	}
-
 	return it->second;
 }
 
 bool Npcs::setType(std::string name, NpcType* nType)
 {
-	toLowerCaseString(name);
+	otx::util::to_lower_string(name);
 	DataMap::const_iterator it = data.find(name);
 	if (it != data.end()) {
 		return false;
@@ -273,7 +273,7 @@ void Npc::reset()
 	talkRadius = 2;
 	idleTime = 0;
 	idleInterval = 5 * 60;
-	lastVoice = OTSYS_TIME();
+	lastVoice = otx::util::mstime();
 	defaultPublic = true;
 	baseDirection = SOUTH;
 	if (m_npcEventHandler) {
@@ -375,7 +375,7 @@ bool Npc::loadFromXml()
 	}
 
 	if (!nType->nameDescription.empty()) {
-		replaceString(nType->nameDescription, "|NAME|", nType->name);
+		otx::util::replace_all(nType->nameDescription, "|NAME|", nType->name);
 	} else {
 		nType->nameDescription = nType->name;
 	}
@@ -547,8 +547,8 @@ bool Npc::loadFromXml()
 	}
 
 	if (nType->script.find("/") != std::string::npos) {
-		replaceString(nType->script, "|DATA|", getFilePath(FILE_TYPE_OTHER, "npc/scripts"));
-		replaceString(nType->script, "|MODS|", getFilePath(FILE_TYPE_MOD, "scripts"));
+		otx::util::replace_all(nType->script, "|DATA|", getFilePath(FILE_TYPE_OTHER, "npc/scripts"));
+		otx::util::replace_all(nType->script, "|MODS|", getFilePath(FILE_TYPE_MOD, "scripts"));
 	} else {
 		nType->script = getFilePath(FILE_TYPE_OTHER, "npc/scripts/" + nType->script);
 	}
@@ -564,7 +564,7 @@ uint32_t Npc::parseParamsNode(xmlNodePtr node)
 	if (readXMLString(node, "param", strValue)) {
 		StringVec paramList = explodeString(strValue, ";");
 		for (StringVec::iterator it = paramList.begin(); it != paramList.end(); ++it) {
-			std::string tmpParam = asLowerCaseString(*it);
+			std::string tmpParam = otx::util::as_lower_string(*it);
 			if (tmpParam == "male") {
 				params |= RESPOND_MALE;
 			} else if (tmpParam == "female") {
@@ -692,9 +692,9 @@ ResponseList Npc::parseInteractionNode(xmlNodePtr node)
 			NpcResponse::ResponseProperties prop;
 			prop.publicize = defaultPublic;
 			if (readXMLString(node, "keywords", strValue)) {
-				prop.inputList.push_back(asLowerCaseString(strValue));
+				prop.inputList.push_back(otx::util::as_lower_string(strValue));
 			} else if (readXMLString(node, "event", strValue)) {
-				strValue = asLowerCaseString(strValue);
+				strValue = otx::util::as_lower_string(strValue);
 				if (strValue == "onbusy") {
 					hasBusyReply = true;
 				}
@@ -721,7 +721,7 @@ ResponseList Npc::parseInteractionNode(xmlNodePtr node)
 
 			uint32_t interactParams = parseParamsNode(node);
 			if (readXMLString(node, "storageComp", strValue)) {
-				std::string tmpStrValue = asLowerCaseString(strValue);
+				std::string tmpStrValue = otx::util::as_lower_string(strValue);
 				if (tmpStrValue == "equal") {
 					prop.storageComp = STORAGE_EQUAL;
 				}
@@ -750,7 +750,7 @@ ResponseList Npc::parseInteractionNode(xmlNodePtr node)
 					while (altKeyNode) {
 						if (!xmlStrcmp(altKeyNode->name, (const xmlChar*)"text")) {
 							if (readXMLContentString(altKeyNode, strValue)) {
-								prop.inputList.push_back(asLowerCaseString(strValue));
+								prop.inputList.push_back(otx::util::as_lower_string(strValue));
 							}
 						}
 						altKeyNode = altKeyNode->next;
@@ -815,7 +815,7 @@ ResponseList Npc::parseInteractionNode(xmlNodePtr node)
 						if (!xmlStrcmp(subNode->name, (const xmlChar*)"action")) {
 							ResponseAction action;
 							if (readXMLString(subNode, "name", strValue)) {
-								std::string tmpStrValue = asLowerCaseString(strValue);
+								std::string tmpStrValue = otx::util::as_lower_string(strValue);
 								if (tmpStrValue == "topic") {
 									if (readXMLInteger(subNode, "value", intValue)) {
 										action.actionType = ACTION_SETTOPIC;
@@ -1012,7 +1012,7 @@ ResponseList Npc::parseInteractionNode(xmlNodePtr node)
 								}
 
 								// Replace |LIST| with the keyword in the list
-								replaceString(input, "|list|", it->keywords);
+								otx::util::replace_all(input, "|list|", it->keywords);
 								ResponseAction action;
 
 								action.actionType = ACTION_SETITEM;
@@ -1286,7 +1286,7 @@ void Npc::onThink(uint32_t interval)
 
 	if (list.size()) // loop only if there's at least one player
 	{
-		int64_t now = OTSYS_TIME();
+		int64_t now = otx::util::mstime();
 		for (VoiceList::iterator it = voiceList.begin(); it != voiceList.end(); ++it) {
 			if (now < (lastVoice + it->margin)) {
 				continue;
@@ -1328,12 +1328,12 @@ void Npc::onThink(uint32_t interval)
 		Player* player = g_game.getPlayerByID(npcState->respondToCreature);
 		if (!npcState->isQueued) {
 			if (!npcState->prevInteraction) {
-				npcState->prevInteraction = OTSYS_TIME();
+				npcState->prevInteraction = otx::util::mstime();
 			}
 
 			if (!queueList.empty() && npcState->isIdle && npcState->respondToText.empty()) {
 				closeConversation = true;
-			} else if (idleTime > 0 && (OTSYS_TIME() - npcState->prevInteraction) > (uint64_t)(idleTime * 1000)) {
+			} else if (idleTime > 0 && (otx::util::mstime() - npcState->prevInteraction) > (uint64_t)(idleTime * 1000)) {
 				idleTimeout = closeConversation = true;
 			}
 		}
@@ -1834,7 +1834,7 @@ void Npc::executeResponse(Player* player, NpcState* npcState, const NpcResponse*
 			npcState->topic = -1;
 		}
 
-		npcState->prevInteraction = OTSYS_TIME();
+		npcState->prevInteraction = otx::util::mstime();
 	}
 }
 
@@ -1842,8 +1842,8 @@ void Npc::doSay(const std::string& text, MessageClasses type, Player* player)
 {
 	if (!player) {
 		std::string tmp = text;
-		replaceString(tmp, "{", "");
-		replaceString(tmp, "}", "");
+		otx::util::replace_all(tmp, "{", "");
+		otx::util::replace_all(tmp, "}", "");
 		g_game.internalCreatureSay(this, type, tmp, player && player->isGhost());
 	} else {
 		player->sendCreatureSay(this, type, text);
@@ -2021,7 +2021,7 @@ void Npc::setCreatureFocus(Creature* creature)
 const NpcResponse* Npc::getResponse(const ResponseList& list, const Player* player,
 	NpcState* npcState, const std::string& text, bool exactMatch /*= false*/)
 {
-	std::string textString = asLowerCaseString(text);
+	std::string textString = otx::util::as_lower_string(text);
 	StringVec wordList = explodeString(textString, " ");
 	int32_t bestMatchCount = 0, totalMatchCount = 0;
 
@@ -2203,7 +2203,7 @@ const NpcResponse* Npc::getResponse(const ResponseList& list, const Player* play
 		if (!(*it)->getStorageId().empty()) {
 			std::string value, storageValue = (*it)->getStorage();
 			player->getStorage((*it)->getStorageId(), value);
-			if (asLowerCaseString(storageValue) == "_time") {
+			if (otx::util::as_lower_string(storageValue) == "_time") {
 				std::ostringstream s;
 				s << time(nullptr);
 				storageValue = s.str();
@@ -2269,7 +2269,7 @@ const NpcResponse* Npc::getResponse(const ResponseList& list, const Player* play
 		}
 
 		if ((*it)->getInteractType() == INTERACT_EVENT) {
-			if ((*it)->getInputText() == asLowerCaseString(text)) {
+			if ((*it)->getInputText() == otx::util::as_lower_string(text)) {
 				++matchCount;
 			} else {
 				matchCount = 0;
@@ -2316,7 +2316,7 @@ uint32_t Npc::getMatchCount(NpcResponse* response, StringVec wordList,
 		int32_t matchCount = 0;
 		StringVec keywordList = explodeString(keywords, ";");
 		for (StringVec::iterator kit = keywordList.begin(); kit != keywordList.end(); ++kit) {
-			tmpKit = asLowerCaseString(*kit);
+			tmpKit = otx::util::as_lower_string(*kit);
 			if (!exactMatch && (*kit) == "|*|") { // Match anything.
 				matchAllCount++;
 			} else if (tmpKit == "|amount|") {
@@ -2381,7 +2381,7 @@ const NpcResponse* Npc::getResponse(const Player*, NpcEvent_t eventType)
 			continue;
 		}
 
-		if ((*it)->getInputText() == asLowerCaseString(eventName)) {
+		if ((*it)->getInputText() == otx::util::as_lower_string(eventName)) {
 			result.push_back(*it);
 		}
 	}
@@ -2439,46 +2439,46 @@ std::string Npc::formatResponse(Creature* creature, const NpcState* npcState, co
 
 	std::ostringstream ss;
 	ss << npcState->price * npcState->amount;
-	replaceString(responseString, "|PRICE|", ss.str());
+	otx::util::replace_all(responseString, "|PRICE|", ss.str());
 
 	ss.str("");
 	ss << npcState->amount;
-	replaceString(responseString, "|AMOUNT|", ss.str());
+	otx::util::replace_all(responseString, "|AMOUNT|", ss.str());
 
 	ss.str("");
 	ss << npcState->level;
-	replaceString(responseString, "|LEVEL|", ss.str());
+	otx::util::replace_all(responseString, "|LEVEL|", ss.str());
 
 	ss.str("");
 	ss << npcState->scriptVars.n1;
-	replaceString(responseString, "|N1|", ss.str());
+	otx::util::replace_all(responseString, "|N1|", ss.str());
 
 	ss.str("");
 	ss << npcState->scriptVars.n2;
-	replaceString(responseString, "|N2|", ss.str());
+	otx::util::replace_all(responseString, "|N2|", ss.str());
 
 	ss.str("");
 	ss << npcState->scriptVars.n3;
-	replaceString(responseString, "|N3|", ss.str());
+	otx::util::replace_all(responseString, "|N3|", ss.str());
 
-	replaceString(responseString, "|S1|", npcState->scriptVars.s1);
-	replaceString(responseString, "|S2|", npcState->scriptVars.s2);
-	replaceString(responseString, "|S3|", npcState->scriptVars.s3);
+	otx::util::replace_all(responseString, "|S1|", npcState->scriptVars.s1);
+	otx::util::replace_all(responseString, "|S2|", npcState->scriptVars.s2);
+	otx::util::replace_all(responseString, "|S3|", npcState->scriptVars.s3);
 
 	ss.str("");
 	if (npcState->itemId != -1) {
 		const ItemType& it = Item::items[npcState->itemId];
 		if (npcState->amount <= 1) {
 			ss << it.article + " " + it.name;
-			replaceString(responseString, "|ITEMNAME|", ss.str());
+			otx::util::replace_all(responseString, "|ITEMNAME|", ss.str());
 		} else {
 			ss << it.pluralName;
-			replaceString(responseString, "|ITEMNAME|", ss.str());
+			otx::util::replace_all(responseString, "|ITEMNAME|", ss.str());
 		}
 	}
 
-	replaceString(responseString, "|NAME|", creature->getName());
-	replaceString(responseString, "|NPCNAME|", nType->name);
+	otx::util::replace_all(responseString, "|NAME|", creature->getName());
+	otx::util::replace_all(responseString, "|NPCNAME|", nType->name);
 	return responseString;
 }
 

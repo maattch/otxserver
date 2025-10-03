@@ -26,7 +26,6 @@
 #include "ioban.h"
 #include "iologindata.h"
 #include "outputmessage.h"
-#include "tools.h"
 
 extern ConfigManager g_config;
 extern Game g_game;

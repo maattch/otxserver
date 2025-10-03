@@ -30,7 +30,10 @@
 #include "mailbox.h"
 #include "movement.h"
 #include "teleport.h"
+#include "tools.h"
 #include "trashholder.h"
+
+#include "otx/util.hpp"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -116,9 +119,9 @@ bool Item::loadItem(xmlNodePtr node, Container* parent)
 	}
 
 	if (readXMLString(node, "attributes", strValue)) {
-		StringVec v, attr = explodeString(strValue, ";");
-		for (StringVec::iterator it = attr.begin(); it != attr.end(); ++it) {
-			v = explodeString((*it), ",");
+		auto attr = explodeString(strValue, ";");
+		for (auto it = attr.begin(); it != attr.end(); ++it) {
+			auto v = explodeString((*it), ",");
 			if (v.size() < 2) {
 				continue;
 			}
@@ -1643,7 +1646,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			}
 		}
 
-		replaceString(str, "|PLAYERNAME|", tmp);
+		otx::util::replace_all(str, "|PLAYERNAME|", tmp);
 	}
 
 	if (str.find("|TIME|") != std::string::npos || str.find("|DATE|") != std::string::npos || str.find("|DAY|") != std::string::npos || str.find("|MONTH|") != std::string::npos || str.find("|YEAR|") != std::string::npos || str.find("|HOUR|") != std::string::npos || str.find("|MINUTES|") != std::string::npos || str.find("|SECONDS|") != std::string::npos || str.find("|WEEKDAY|") != std::string::npos || str.find("|YEARDAY|") != std::string::npos) {
@@ -1652,42 +1655,42 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 
 		std::ostringstream ss;
 		ss << ts->tm_sec;
-		replaceString(str, "|SECONDS|", ss.str());
+		otx::util::replace_all(str, "|SECONDS|", ss.str());
 
 		ss.str("");
 		ss << ts->tm_min;
-		replaceString(str, "|MINUTES|", ss.str());
+		otx::util::replace_all(str, "|MINUTES|", ss.str());
 
 		ss.str("");
 		ss << ts->tm_hour;
-		replaceString(str, "|HOUR|", ss.str());
+		otx::util::replace_all(str, "|HOUR|", ss.str());
 
 		ss.str("");
 		ss << ts->tm_mday;
-		replaceString(str, "|DAY|", ss.str());
+		otx::util::replace_all(str, "|DAY|", ss.str());
 
 		ss.str("");
 		ss << (ts->tm_mon + 1);
-		replaceString(str, "|MONTH|", ss.str());
+		otx::util::replace_all(str, "|MONTH|", ss.str());
 
 		ss.str("");
 		ss << (ts->tm_year + 1900);
-		replaceString(str, "|YEAR|", ss.str());
+		otx::util::replace_all(str, "|YEAR|", ss.str());
 
 		ss.str("");
 		ss << ts->tm_wday;
-		replaceString(str, "|WEEKDAY|", ss.str());
+		otx::util::replace_all(str, "|WEEKDAY|", ss.str());
 
 		ss.str("");
 		ss << ts->tm_yday;
-		replaceString(str, "|YEARDAY|", ss.str());
+		otx::util::replace_all(str, "|YEARDAY|", ss.str());
 
 		ss.str("");
 		ss << ts->tm_hour << ":" << ts->tm_min << ":" << ts->tm_sec;
-		replaceString(str, "|TIME|", ss.str());
+		otx::util::replace_all(str, "|TIME|", ss.str());
 
 		ss.str("");
-		replaceString(str, "|DATE|", formatDateEx(now));
+		otx::util::replace_all(str, "|DATE|", formatDateEx(now));
 	}
 
 	return str;

@@ -488,7 +488,7 @@ public:
 		bool checkDefense = false, bool checkArmor = false, bool reflect = true, bool field = false, bool element = false);
 
 	virtual void doAttacking(uint32_t interval);
-	virtual bool hasExtraSwing() { return lastAttack > 0 && ((OTSYS_TIME() - lastAttack) >= getAttackSpeed()); }
+	virtual bool hasExtraSwing();
 	void setLastAttack(uint64_t time) { lastAttack = time; }
 
 	int32_t getSkill(skills_t skilltype, skillsid_t skillinfo) const;
@@ -1028,7 +1028,7 @@ public:
 	void sendPlayerIcons(Player* player);
 	void sendStats();
 
-	void receivePing() { lastPong = OTSYS_TIME(); }
+	void receivePing();
 	virtual void onThink(uint32_t interval);
 	uint32_t getAttackSpeed() const;
 
@@ -1047,7 +1047,7 @@ public:
 			nextAction = time;
 		}
 	}
-	bool canDoAction() const { return nextAction <= OTSYS_TIME(); }
+	bool canDoAction() const;
 	uint32_t getNextActionTime(bool scheduler = true) const;
 
 	void setNextExAction(int64_t time)
@@ -1056,7 +1056,7 @@ public:
 			nextExAction = time;
 		}
 	}
-	bool canDoExAction() const { return nextExAction <= OTSYS_TIME(); }
+	bool canDoExAction() const;
 
 	Item* getWriteItem(uint32_t& _windowTextId, uint16_t& _maxWriteLen);
 	void setWriteItem(Item* item, uint16_t _maxLen = 0);

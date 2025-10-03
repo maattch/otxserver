@@ -25,6 +25,8 @@
 #include "player.h"
 #include "town.h"
 
+#include "otx/util.hpp"
+
 extern ConfigManager g_config;
 extern Game g_game;
 
@@ -50,7 +52,7 @@ ReturnValue Mailbox::canSend(const Item* item, Creature* actor) const
 				return RET_YOUAREEXHAUSTED;
 			}
 
-			player->setLastMail(OTSYS_TIME());
+			player->setLastMail(otx::util::mstime());
 			player->addMailAttempt();
 		}
 	}
@@ -157,11 +159,11 @@ bool Mailbox::getRecipient(Item* item, std::string& name, uint32_t& depotId)
 		++curLine;
 	}
 
-	trimString(name);
+	otx::util::trim_string(name);
 	if (townString.empty()) {
 		return false;
 	}
 
-	trimString(townString);
+	otx::util::trim_string(townString);
 	return getDepotId(townString, depotId);
 }

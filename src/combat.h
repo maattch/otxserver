@@ -370,8 +370,7 @@ protected:
 class MagicField : public Item
 {
 public:
-	MagicField(uint16_t _type) :
-		Item(_type) { createTime = OTSYS_TIME(); }
+	MagicField(uint16_t _type);
 	virtual ~MagicField() {}
 
 	virtual MagicField* getMagicField() { return this; }

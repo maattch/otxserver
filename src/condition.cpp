@@ -23,7 +23,8 @@
 #include "configmanager.h"
 #include "creature.h"
 #include "game.h"
-#include "tools.h"
+
+#include "otx/util.hpp"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -159,14 +160,14 @@ void Condition::setTicks(int32_t _ticks)
 {
 	ticks = _ticks;
 	if (_ticks > 0) {
-		endTime = OTSYS_TIME() + _ticks;
+		endTime = otx::util::mstime() + _ticks;
 	}
 }
 
 bool Condition::startCondition(Creature*)
 {
 	if (ticks > 0) {
-		endTime = OTSYS_TIME() + ticks;
+		endTime = otx::util::mstime() + ticks;
 	}
 
 	return true;
@@ -184,7 +185,7 @@ bool Condition::executeCondition(Creature* creature, int32_t interval)
 	}
 
 	ticks = std::max((int32_t)0, (ticks - interval));
-	return (endTime >= OTSYS_TIME());
+	return (endTime >= otx::util::mstime());
 }
 
 Condition* Condition::createCondition(ConditionId_t _id, ConditionType_t _type, int32_t _ticks, int32_t param /* = 0*/, bool _buff /* = false*/, uint32_t _subId /* = 0*/)
@@ -295,7 +296,7 @@ Condition* Condition::createCondition(PropStream& propStream)
 bool Condition::updateCondition(const Condition* addCondition)
 {
 	return conditionType == addCondition->getType() && (ticks != -1 || addCondition->getTicks() < 1)
-		&& (addCondition->getTicks() < 0 || endTime <= (OTSYS_TIME() + addCondition->getTicks()));
+		&& (addCondition->getTicks() < 0 || endTime <= (otx::util::mstime() + addCondition->getTicks()));
 }
 
 Icons_t Condition::getIcons() const

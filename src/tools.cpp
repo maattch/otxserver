@@ -21,6 +21,7 @@
 
 #include "vocation.h"
 #include "configmanager.h"
+#include "otx/util.hpp"
 
 #include <iomanip>
 
@@ -92,11 +93,6 @@ namespace
 	}
 
 } // namespace
-
-int64_t OTSYS_TIME()
-{
-	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-}
 
 bool caseInsensitiveEqual(std::string_view str1, std::string_view str2)
 {
@@ -172,59 +168,14 @@ std::string transformToSHA1(const std::string& input)
 	return std::string(hexstring, 40);
 }
 
-bool replaceString(std::string& text, const std::string& key, const std::string& value)
+bool booleanString(const std::string& input)
 {
-	if (text.find(key) == std::string::npos) {
+	if (input.empty()) {
 		return false;
 	}
 
-	std::string::size_type start = 0, pos = 0;
-	while ((start = text.find(key, pos)) != std::string::npos) {
-		text.replace(start, key.size(), value);
-		pos = start + value.size();
-	}
-
-	return true;
-}
-
-void trim_right(std::string& source, const std::string& t)
-{
-	source.erase(source.find_last_not_of(t) + 1);
-}
-
-void trim_left(std::string& source, const std::string& t)
-{
-	source.erase(0, source.find_first_not_of(t));
-}
-
-void toLowerCaseString(std::string& source)
-{
-	std::transform(source.begin(), source.end(), source.begin(), tolower);
-}
-
-void toUpperCaseString(std::string& source)
-{
-	std::transform(source.begin(), source.end(), source.begin(), upchar);
-}
-
-std::string asLowerCaseString(const std::string& source)
-{
-	std::string s = source;
-	toLowerCaseString(s);
-	return s;
-}
-
-std::string asUpperCaseString(const std::string& source)
-{
-	std::string s = source;
-	toUpperCaseString(s);
-	return s;
-}
-
-bool booleanString(std::string source)
-{
-	toLowerCaseString(source);
-	return (source == "yes" || source == "true" || atoi(source.c_str()) > 0);
+	const char c = input.front();
+	return (c == 'y' || c == 'Y' || c == 't' || c == 'T' || c == '1');
 }
 
 std::string ucfirst(std::string source)
@@ -335,9 +286,9 @@ bool parseXMLContentString(xmlNodePtr node, std::string& value)
 			continue;
 		}
 
-		trim_left(compareValue, "\r");
-		trim_left(compareValue, "\n");
-		trim_left(compareValue, " ");
+		otx::util::trim_left_string(compareValue, '\r');
+		otx::util::trim_left_string(compareValue, '\n');
+		otx::util::trim_left_string(compareValue, ' ');
 		if (compareValue.length() > value.length()) {
 			value = compareValue;
 			if (!result) {
@@ -428,7 +379,7 @@ StringVec explodeString(const std::string& string, const std::string& separator,
 	while ((end = string.find(separator, start)) != std::string::npos) {
 		std::string t = string.substr(start, end - start);
 		if (trim) {
-			trimString(t);
+			otx::util::trim_string(t);
 		}
 
 		returnVector.push_back(t);
@@ -565,7 +516,7 @@ bool isPasswordCharacter(char character)
 
 bool isValidAccountName(std::string text)
 {
-	toLowerCaseString(text);
+	otx::util::to_lower_string(text);
 
 	uint32_t textLength = text.length();
 	for (uint32_t size = 0; size < textLength; size++) {
@@ -573,13 +524,12 @@ bool isValidAccountName(std::string text)
 			return false;
 		}
 	}
-
 	return true;
 }
 
 bool isValidPassword(std::string text)
 {
-	toLowerCaseString(text);
+	otx::util::to_lower_string(text);
 
 	uint32_t textLength = text.length();
 	for (uint32_t size = 0; size < textLength; size++) {
@@ -587,7 +537,6 @@ bool isValidPassword(std::string text)
 			return false;
 		}
 	}
-
 	return true;
 }
 
@@ -653,24 +602,6 @@ bool isValidName(std::string text, bool forceUppercaseOnFirstLetter /* = true*/)
 	return true;
 }
 
-bool isNumbers(std::string text)
-{
-	uint32_t textLength = text.length();
-	for (uint32_t size = 0; size < textLength; size++) {
-		if (!isNumber(text[size])) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-bool checkText(std::string text, std::string str)
-{
-	trimString(text);
-	return asLowerCaseString(text) == str;
-}
-
 std::string generateRecoveryKey(int32_t fieldCount, int32_t fieldLenght, bool mixCase /* = false*/)
 {
 	std::ostringstream key;
@@ -710,12 +641,6 @@ std::string generateRecoveryKey(int32_t fieldCount, int32_t fieldLenght, bool mi
 		}
 	} while (++i && i < fieldCount);
 	return key.str();
-}
-
-std::string trimString(std::string& str)
-{
-	str.erase(str.find_last_not_of(" ") + 1);
-	return str.erase(0, str.find_first_not_of(" "));
 }
 
 std::string parseParams(tokenizer::iterator& it, tokenizer::iterator end)
@@ -801,7 +726,7 @@ std::string convertIPAddress(uint32_t ip)
 
 Skulls_t getSkulls(std::string strValue)
 {
-	std::string tmpStrValue = asLowerCaseString(strValue);
+	std::string tmpStrValue = otx::util::as_lower_string(strValue);
 	if (tmpStrValue == "black" || tmpStrValue == "5") {
 		return SKULL_BLACK;
 	}
@@ -827,7 +752,7 @@ Skulls_t getSkulls(std::string strValue)
 
 PartyShields_t getShields(std::string strValue)
 {
-	std::string tmpStrValue = asLowerCaseString(strValue);
+	std::string tmpStrValue = otx::util::as_lower_string(strValue);
 	if (tmpStrValue == "whitenoshareoff" || tmpStrValue == "10") {
 		return SHIELD_YELLOW_NOSHAREDEXP;
 	}
@@ -873,7 +798,7 @@ PartyShields_t getShields(std::string strValue)
 
 GuildEmblems_t getEmblems(std::string strValue)
 {
-	std::string tmpStrValue = asLowerCaseString(strValue);
+	std::string tmpStrValue = otx::util::as_lower_string(strValue);
 	if (tmpStrValue == "blue" || tmpStrValue == "neutral" || tmpStrValue == "3") {
 		return GUILDEMBLEM_NEUTRAL;
 	}
@@ -956,32 +881,6 @@ Direction getDirectionTo(Position pos1, Position pos2, bool extended /* = true*/
 	}
 
 	return direction;
-}
-
-Direction getReverseDirection(Direction dir)
-{
-	switch (dir) {
-		case NORTH:
-			return SOUTH;
-		case SOUTH:
-			return NORTH;
-		case WEST:
-			return EAST;
-		case EAST:
-			return WEST;
-		case SOUTHWEST:
-			return NORTHEAST;
-		case NORTHWEST:
-			return SOUTHEAST;
-		case NORTHEAST:
-			return SOUTHWEST;
-		case SOUTHEAST:
-			return NORTHWEST;
-		default:
-			break;
-	}
-
-	return SOUTH;
 }
 
 Position getNextPosition(Direction direction, Position pos)
@@ -1742,7 +1641,7 @@ bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, String
 	}
 
 	if (vocationId != -1 && (!readXMLString(vocationNode, "showInDescription", tmpStrValue) || booleanString(tmpStrValue))) {
-		vocStringVec.push_back(asLowerCaseString(strValue));
+		vocStringVec.push_back(otx::util::as_lower_string(strValue));
 	}
 
 	return true;

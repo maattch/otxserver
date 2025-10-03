@@ -23,6 +23,8 @@
 #include "game.h"
 #include "tools.h"
 
+#include "otx/util.hpp"
+
 extern Game g_game;
 extern ConfigManager g_config;
 extern Weapons* g_weapons;
@@ -91,7 +93,7 @@ void Weapons::loadDefaults()
 
 Event* Weapons::getEvent(const std::string& nodeName)
 {
-	std::string tmpNodeName = asLowerCaseString(nodeName);
+	std::string tmpNodeName = otx::util::as_lower_string(nodeName);
 	if (tmpNodeName == "melee") {
 		return new WeaponMelee(&m_interface);
 	} else if (tmpNodeName == "distance" || tmpNodeName == "ammunition" || tmpNodeName == "ammo") {
@@ -211,7 +213,7 @@ bool Weapon::configureEvent(xmlNodePtr p)
 	}
 
 	std::string error;
-	StringVec vocStringVec;
+	std::vector<std::string> vocStringVec;
 
 	xmlNodePtr vocationNode = p->children;
 	while (vocationNode) {
@@ -240,7 +242,7 @@ bool Weapon::configureEvent(xmlNodePtr p)
 
 bool Weapon::loadFunction(const std::string& functionName)
 {
-	std::string tmpFunctionName = asLowerCaseString(functionName);
+	std::string tmpFunctionName = otx::util::as_lower_string(functionName);
 	if (tmpFunctionName == "internalloadweapon" || tmpFunctionName == "default") {
 		m_scripted = EVENT_SCRIPT_FALSE;
 		return configureWeapon(Item::items[getID()]);

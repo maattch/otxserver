@@ -33,14 +33,7 @@ typedef std::map<std::string, uint32_t> DataList;
 class Spectators
 {
 public:
-	Spectators(ProtocolGame_ptr client) :
-		owner(client)
-	{
-		id = 0;
-		broadcast = false;
-		auth = false;
-		broadcast_time = OTSYS_TIME();
-	}
+	Spectators(ProtocolGame_ptr client);
 	virtual ~Spectators() {}
 
 	void clear(bool full)
@@ -121,7 +114,7 @@ public:
 	void addSpectator(ProtocolGame* client, std::string name = "", bool spy = false);
 	void removeSpectator(ProtocolGame* client, bool spy = false);
 
-	int64_t getBroadcastTime() const { return OTSYS_TIME() - broadcast_time; }
+	int64_t getBroadcastTime() const;
 
 	// inherited
 	uint32_t getIP() const

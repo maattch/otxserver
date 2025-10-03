@@ -23,7 +23,10 @@
 #include "configmanager.h"
 #include "movement.h"
 #include "spells.h"
+#include "tools.h"
 #include "weapons.h"
+
+#include "otx/util.hpp"
 
 extern Spells* g_spells;
 extern ConfigManager g_config;
@@ -309,9 +312,7 @@ bool Items::loadFromXml()
 		return false;
 	}
 
-	IntegerVec intVector, endVector;
 	std::string strValue, endValue;
-	StringVec strVector;
 
 	int32_t id = 0, endId = 0, fromId = 0, toId = 0;
 	for (xmlNodePtr node = root->children; node; node = node->next) {
@@ -320,9 +321,9 @@ bool Items::loadFromXml()
 		}
 
 		if (readXMLString(node, "id", strValue)) {
-			strVector = explodeString(strValue, ";");
-			for (StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it) {
-				intVector = vectorAtoi(explodeString(*it, "-"));
+			auto strVector = explodeString(strValue, ";");
+			for (auto it = strVector.begin(); it != strVector.end(); ++it) {
+				auto intVector = vectorAtoi(explodeString(*it, "-"));
 				if (intVector.size() > 1) {
 					int32_t i = intVector[0];
 					while (i <= intVector[1]) {
@@ -333,8 +334,8 @@ bool Items::loadFromXml()
 				}
 			}
 		} else if (readXMLString(node, "fromid", strValue) && readXMLString(node, "toid", endValue)) {
-			intVector = vectorAtoi(explodeString(strValue, ";"));
-			endVector = vectorAtoi(explodeString(endValue, ";"));
+			auto intVector = vectorAtoi(explodeString(strValue, ";"));
+			auto endVector = vectorAtoi(explodeString(endValue, ";"));
 			if (intVector[0] && intVector.size() == endVector.size()) {
 				size_t size = intVector.size();
 				for (size_t i = 0; i < size; ++i) {
@@ -398,10 +399,10 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 #ifdef _MSC_VER
 		bool notLoaded = false;
 #endif
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		std::string tmpStrValue = otx::util::as_lower_string(strValue);
 		if (tmpStrValue == "type") {
 			if (readXMLString(itemAttributesNode, "value", strValue)) {
-				tmpStrValue = asLowerCaseString(strValue);
+				tmpStrValue = otx::util::as_lower_string(strValue);
 				if (tmpStrValue == "container") {
 					it.type = ITEM_TYPE_CONTAINER;
 					it.group = ITEM_GROUP_CONTAINER;
@@ -593,7 +594,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 			}
 		} else if (tmpStrValue == "floorchange") {
 			if (readXMLString(itemAttributesNode, "value", strValue)) {
-				tmpStrValue = asLowerCaseString(strValue);
+				tmpStrValue = otx::util::as_lower_string(strValue);
 				if (tmpStrValue == "down") {
 					it.floorChange[CHANGE_DOWN] = true;
 				} else if (tmpStrValue == "north") {
@@ -615,9 +616,9 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 				}
 			}
 		} else if (tmpStrValue == "corpsetype") {
-			tmpStrValue = asLowerCaseString(strValue);
+			tmpStrValue = otx::util::as_lower_string(strValue);
 			if (readXMLString(itemAttributesNode, "value", strValue)) {
-				tmpStrValue = asLowerCaseString(strValue);
+				tmpStrValue = otx::util::as_lower_string(strValue);
 				if (tmpStrValue == "venom") {
 					it.corpseType = RACE_VENOM;
 				} else if (tmpStrValue == "blood") {
@@ -642,7 +643,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 			}
 		} else if (tmpStrValue == "fluidsource") {
 			if (readXMLString(itemAttributesNode, "value", strValue)) {
-				tmpStrValue = asLowerCaseString(strValue);
+				tmpStrValue = otx::util::as_lower_string(strValue);
 				FluidTypes_t fluid = getFluidType(tmpStrValue);
 				if (fluid != FLUID_NONE) {
 					it.fluidSource = fluid;
@@ -710,7 +711,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 			}
 		} else if (tmpStrValue == "weapontype") {
 			if (readXMLString(itemAttributesNode, "value", strValue)) {
-				tmpStrValue = asLowerCaseString(strValue);
+				tmpStrValue = otx::util::as_lower_string(strValue);
 				if (tmpStrValue == "sword") {
 					it.weaponType = WEAPON_SWORD;
 				} else if (tmpStrValue == "club") {
@@ -733,7 +734,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 			}
 		} else if (tmpStrValue == "slottype") {
 			if (readXMLString(itemAttributesNode, "value", strValue)) {
-				tmpStrValue = asLowerCaseString(strValue);
+				tmpStrValue = otx::util::as_lower_string(strValue);
 				if (tmpStrValue == "head") {
 					it.slotPosition |= SLOTP_HEAD;
 					it.wieldPosition = SLOT_HEAD;
@@ -1309,7 +1310,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 			CombatType_t combatType = COMBAT_NONE;
 			std::unique_ptr<ConditionDamage> conditionDamage;
 			if (readXMLString(itemAttributesNode, "value", strValue)) {
-				tmpStrValue = asLowerCaseString(strValue);
+				tmpStrValue = otx::util::as_lower_string(strValue);
 				if (tmpStrValue == "fire") {
 					conditionDamage = std::make_unique<ConditionDamage>(CONDITIONID_COMBAT, CONDITION_FIRE, false, 0);
 					combatType = COMBAT_FIREDAMAGE;
@@ -1346,7 +1347,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 							continue;
 						}
 
-						tmpStrValue = asLowerCaseString(strValue);
+						tmpStrValue = otx::util::as_lower_string(strValue);
 						if (tmpStrValue == "ticks") {
 							if (readXMLInteger(fieldAttributesNode, "value", intValue)) {
 								ticks = std::max(0, intValue);
@@ -1551,7 +1552,7 @@ uint16_t Items::getItemIdByName(const std::string& name)
 		return 0;
 	}
 
-	auto result = nameToItems.find(asLowerCaseString(name));
+	auto result = nameToItems.find(otx::util::as_lower_string(name));
 	if (result == nameToItems.end()) {
 		return 0;
 	}

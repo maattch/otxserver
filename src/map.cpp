@@ -26,6 +26,8 @@
 #include "iomapserialize.h"
 #include "tile.h"
 
+#include "otx/util.hpp"
+
 extern Game g_game;
 
 Map::Map()
@@ -36,7 +38,7 @@ Map::Map()
 
 bool Map::loadMap(const std::string& identifier)
 {
-	int64_t start = OTSYS_TIME();
+	int64_t start = otx::util::mstime();
 	IOMap* loader = new IOMap();
 	if (!loader->loadMap(this, identifier)) {
 		std::clog << "> FATAL: OTBM Loader - " << loader->getLastErrorString() << std::endl;
@@ -44,8 +46,8 @@ bool Map::loadMap(const std::string& identifier)
 	}
 
 	std::clog << std::endl
-			  << ">>> Loading time: " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
-	start = OTSYS_TIME();
+			  << ">>> Loading time: " << (otx::util::mstime() - start) / (1000.) << " seconds." << std::endl;
+	start = otx::util::mstime();
 	if (!loader->loadSpawns(this)) {
 		std::clog << ">>> WARNING: Could not load spawn data." << std::endl;
 	}
@@ -55,18 +57,18 @@ bool Map::loadMap(const std::string& identifier)
 	}
 
 	delete loader;
-	std::clog << ">>> Parsing time: " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
-	start = OTSYS_TIME();
+	std::clog << ">>> Parsing time: " << (otx::util::mstime() - start) / (1000.) << " seconds." << std::endl;
+	start = otx::util::mstime();
 
 	IOMapSerialize::getInstance()->updateHouses();
 	IOMapSerialize::getInstance()->updateAuctions();
-	std::clog << ">>> Synchronization time: " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
+	std::clog << ">>> Synchronization time: " << (otx::util::mstime() - start) / (1000.) << " seconds." << std::endl;
 
-	start = OTSYS_TIME();
+	start = otx::util::mstime();
 	IOMapSerialize::getInstance()->loadHouses();
 	IOMapSerialize::getInstance()->loadMap(this);
 
-	std::clog << ">>> Unserialization time: " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
+	std::clog << ">>> Unserialization time: " << (otx::util::mstime() - start) / (1000.) << " seconds." << std::endl;
 	return true;
 }
 
@@ -176,7 +178,7 @@ void Map::setTile(uint16_t x, uint16_t y, uint16_t z, Tile* newTile)
 			}
 		}
 
-		rb.lastRefresh = OTSYS_TIME();
+		rb.lastRefresh = otx::util::mstime();
 		g_game.addRefreshTile(newTile, rb);
 	}
 }

@@ -28,7 +28,8 @@
 #include "item.h"
 #include "player.h"
 #include "spells.h"
-#include "tools.h"
+
+#include "otx/util.hpp"
 
 extern Game g_game;
 extern Spells* g_spells;
@@ -69,10 +70,9 @@ void Actions::clear()
 
 Event* Actions::getEvent(const std::string& nodeName)
 {
-	if (asLowerCaseString(nodeName) == "action") {
+	if (otx::util::as_lower_string(nodeName) == "action") {
 		return new Action(&m_interface);
 	}
-
 	return nullptr;
 }
 
@@ -526,7 +526,7 @@ bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* 
 	player->setNextActionTask(nullptr);
 	player->stopWalk();
 
-	// player->setNextAction(OTSYS_TIME() + g_config.getNumber(ConfigManager::ACTIONS_DELAY_INTERVAL) - 10);
+	// player->setNextAction(otx::util::mstime() + g_config.getNumber(ConfigManager::ACTIONS_DELAY_INTERVAL) - 10);
 	if (Condition* privCondition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST, g_config.getNumber(ConfigManager::ACTIONS_DELAY_INTERVAL), 0, false, EXHAUST_USEITEM)) {
 		player->addCondition(privCondition);
 	}

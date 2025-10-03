@@ -25,11 +25,21 @@
 #include "game.h"
 #include "player.h"
 
+#include "otx/util.hpp"
+
 #include <iomanip>
 
 extern Game g_game;
 extern ConfigManager g_config;
 extern CreatureEvents* g_creatureEvents;
+
+Creature::CountBlock_t::CountBlock_t(uint32_t points) :
+	start(otx::util::mstime()),
+	ticks(start),
+	total(points)
+{
+	//
+}
 
 Creature::Creature()
 {
@@ -146,7 +156,7 @@ bool Creature::canWalkthrough(const Creature* creature) const
 int64_t Creature::getTimeSinceLastMove() const
 {
 	if (lastStep) {
-		return OTSYS_TIME() - lastStep;
+		return otx::util::mstime() - lastStep;
 	}
 
 	return 0x7FFFFFFFFFFFFFFFLL;
@@ -155,7 +165,7 @@ int64_t Creature::getTimeSinceLastMove() const
 int32_t Creature::getWalkDelay(Direction dir) const
 {
 	if (lastStep) {
-		return getStepDuration(dir) - (OTSYS_TIME() - lastStep);
+		return getStepDuration(dir) - (otx::util::mstime() - lastStep);
 	}
 
 	return 0;
@@ -164,7 +174,7 @@ int32_t Creature::getWalkDelay(Direction dir) const
 int32_t Creature::getWalkDelay() const
 {
 	if (lastStep) {
-		return getStepDuration() - (OTSYS_TIME() - lastStep);
+		return getStepDuration() - (otx::util::mstime() - lastStep);
 	}
 
 	return 0;
@@ -286,7 +296,7 @@ void Creature::onWalk(Direction& dir)
 			}
 
 			int32_t subId = condition->getSubId();
-			if ((!condition->getEndTime() || condition->getEndTime() >= OTSYS_TIME()) && subId > drunk) {
+			if ((!condition->getEndTime() || condition->getEndTime() >= otx::util::mstime()) && subId > drunk) {
 				drunk = subId;
 			}
 		}
@@ -543,7 +553,7 @@ void Creature::onCreatureMove(const Creature* creature, const Tile* newTile, con
 			setLastPosition(oldPos);
 		}
 
-		lastStep = OTSYS_TIME();
+		lastStep = otx::util::mstime();
 		lastStepCost = 1;
 		if (!teleport) {
 			if (oldPos.z != newPos.z) {
@@ -842,7 +852,7 @@ DeathList Creature::getKillers()
 	}
 
 	int32_t requiredTime = g_config.getNumber(ConfigManager::DEATHLIST_REQUIRED_TIME);
-	int64_t now = OTSYS_TIME();
+	int64_t now = otx::util::mstime();
 
 	CountBlock_t cb;
 	for (it = damageMap.begin(); it != damageMap.end(); ++it) {
@@ -888,7 +898,7 @@ bool Creature::hasBeenAttacked(uint32_t attackerId) const
 {
 	CountMap::const_iterator it = damageMap.find(attackerId);
 	if (it != damageMap.end()) {
-		return (OTSYS_TIME() - it->second.ticks) <= g_config.getNumber(ConfigManager::PZ_LOCKED);
+		return (otx::util::mstime() - it->second.ticks) <= g_config.getNumber(ConfigManager::PZ_LOCKED);
 	}
 
 	return false;
@@ -1086,7 +1096,7 @@ void Creature::getPathSearchParams(const Creature*, FindPathParams& fpp) const
 
 void Creature::goToFollowCreature()
 {
-	if (getPlayer() && (OTSYS_TIME() - lastFailedFollow <= g_config.getNumber(ConfigManager::FOLLOW_EXHAUST))) {
+	if (getPlayer() && (otx::util::mstime() - lastFailedFollow <= g_config.getNumber(ConfigManager::FOLLOW_EXHAUST))) {
 		return;
 	}
 
@@ -1098,7 +1108,7 @@ void Creature::goToFollowCreature()
 			startAutoWalk(listWalkDir);
 		} else {
 			hasFollowPath = false;
-			lastFailedFollow = OTSYS_TIME();
+			lastFailedFollow = otx::util::mstime();
 		}
 	}
 
@@ -1167,7 +1177,7 @@ void Creature::addDamagePoints(Creature* attacker, int32_t damagePoints)
 
 	CountMap::iterator it = damageMap.find(attackerId);
 	if (it != damageMap.end()) {
-		it->second.ticks = OTSYS_TIME();
+		it->second.ticks = otx::util::mstime();
 		if (damagePoints > 0) {
 			it->second.total += damagePoints;
 		}
@@ -1193,7 +1203,7 @@ void Creature::addHealPoints(Creature* caster, int32_t healthPoints)
 
 	CountMap::iterator it = healMap.find(casterId);
 	if (it != healMap.end()) {
-		it->second.ticks = OTSYS_TIME();
+		it->second.ticks = otx::util::mstime();
 		it->second.total += healthPoints;
 	} else {
 		healMap[casterId] = CountBlock_t(healthPoints);
@@ -1683,7 +1693,7 @@ bool Creature::hasCondition(ConditionType_t type, int32_t subId /* = 0*/, bool c
 			continue;
 		}
 
-		if (!checkTime || !condition->getEndTime() || condition->getEndTime() >= OTSYS_TIME()) {
+		if (!checkTime || !condition->getEndTime() || condition->getEndTime() >= otx::util::mstime()) {
 			return true;
 		}
 	}

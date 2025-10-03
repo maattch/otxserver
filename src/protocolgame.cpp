@@ -37,6 +37,8 @@
 #include "tile.h"
 #include "waitlist.h"
 
+#include "otx/util.hpp"
+
 extern Game g_game;
 extern ConfigManager g_config;
 extern Actions actions;
@@ -141,7 +143,7 @@ void ProtocolGame::sendSpectatorAppear(Player* p)
 
 void ProtocolGame::castNavigation(uint16_t direction)
 {
-	if (!player || naviexhaust > OTSYS_TIME() || spy) {
+	if (!player || naviexhaust > otx::util::mstime() || spy) {
 		return;
 	}
 
@@ -216,7 +218,7 @@ void ProtocolGame::castNavigation(uint16_t direction)
 		}
 	}
 
-	naviexhaust = OTSYS_TIME() + 1000;
+	naviexhaust = otx::util::mstime() + 1000;
 
 	if (limit) {
 		sendCreatureSay(player, MSG_PRIVATE, str, nullptr, 0);
@@ -429,7 +431,7 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 		}
 
 		player->lastIP = player->getIP();
-		player->lastLoad = OTSYS_TIME();
+		player->lastLoad = otx::util::mstime();
 		player->lastLogin = std::max(time(nullptr), player->lastLogin + 1);
 
 		acceptPackets = true;
@@ -581,7 +583,7 @@ bool ProtocolGame::connect(uint32_t playerId, OperatingSystem_t operatingSystem,
 
 	player->lastIP = player->getIP();
 	if (!replace) {
-		player->lastLoad = OTSYS_TIME();
+		player->lastLoad = otx::util::mstime();
 	}
 	g_chat.reOpenChannels(player);
 	acceptPackets = true;
@@ -3340,7 +3342,7 @@ void ProtocolGame::AddCreatureSpeak(OutputMessage_ptr msg, const Creature* creat
 			break;
 
 		case MSG_RVR_CHANNEL: {
-			msg->add<uint32_t>(uint32_t(OTSYS_TIME() / 1000 & 0xFFFFFFFF) - statementId /*use it as time:)*/);
+			msg->add<uint32_t>(uint32_t(otx::util::mstime() / 1000 & 0xFFFFFFFF) - statementId /*use it as time:)*/);
 			break;
 		}
 
