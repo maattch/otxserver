@@ -17,8 +17,6 @@
 
 #pragma once
 
-#include <unordered_set>
-
 #include "networkmessage.h"
 #include "mutex"
 

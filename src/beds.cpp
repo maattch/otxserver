@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 
 #include "beds.h"
-#include "house.h"
 
-#include "player.h"
-#include "iologindata.h"
-
-#include "game.h"
 #include "configmanager.h"
+#include "game.h"
+#include "house.h"
+#include "iologindata.h"
+#include "player.h"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -132,7 +132,7 @@ void BedItem::sleep(Player* player)
 
 		player->getTile()->moveCreature(NULL, player, getTile());
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_SLEEP);
-		Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS, boost::bind(&Game::kickPlayer, &g_game, player->getID(), false)));
+		addSchedulerTask(SCHEDULER_MINTICKS, [playerID = player->getID()]() { g_game.kickPlayer(playerID, false); });
 	} else if (Item::items[getID()].transformUseTo) {
 		wakeUp();
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);

@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#include "otpch.h"
-#include "chat.h"
 
-#include "player.h"
-#include "iologindata.h"
+#include "otpch.h"
+
+#include "chat.h"
 
 #include "configmanager.h"
 #include "game.h"
+#include "ioguild.h"
+#include "iologindata.h"
+#include "player.h"
+
+#include <fstream>
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -121,6 +125,12 @@ ChatChannel::ChatChannel(uint16_t id, const std::string& name, uint16_t flags, u
 	}
 }
 
+ChatChannel::~ChatChannel()
+{
+	delete m_condition;
+	delete m_vocationMap;
+}
+
 bool ChatChannel::addUser(Player* player)
 {
 	if (!player) {
@@ -166,6 +176,11 @@ bool ChatChannel::removeUser(Player* player, bool /* exclude = false*/)
 	}
 
 	return true;
+}
+
+bool ChatChannel::hasUser(Player* player) const
+{
+	return player && m_users.find(player->getID()) != m_users.end();
 }
 
 bool ChatChannel::talk(Player* player, MessageClasses type, const std::string& text, uint32_t statementId, bool fakeChat /*= false*/)

@@ -14,17 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "party.h"
 
-#include "player.h"
 #include "chat.h"
-#include "game.h"
 #include "configmanager.h"
+#include "game.h"
+#include "player.h"
 
 extern Game g_game;
 extern Chat g_chat;
 extern ConfigManager g_config;
+
+Party::CountBlock_t::CountBlock_t(int32_t heal, int32_t damage) :
+	ticks(OTSYS_TIME()),
+	totalHeal(heal),
+	totalDamage(damage)
+{
+	//
+}
 
 Party::Party(Player* _leader)
 {

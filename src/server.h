@@ -17,9 +17,7 @@
 
 #pragma once
 
-#include <unordered_map>
 #include "connection.h"
-#include <memory>
 
 class Protocol;
 

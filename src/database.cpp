@@ -19,9 +19,6 @@
 
 #include "database.h"
 
-#include "tools.h"
-
-#include <fstream>
 #include <mysql/errmsg.h>
 
 Database g_database;

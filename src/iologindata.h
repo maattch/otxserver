@@ -17,12 +17,11 @@
 
 #pragma once
 
-#include "database.h"
-
-#include "creature.h"
-#include "player.h"
 #include "account.h"
+#include "creature.h"
+#include "database.h"
 #include "group.h"
+#include "player.h"
 
 enum DeleteCharacter_t
 {
@@ -63,10 +62,10 @@ public:
 
 	bool getPassword(uint32_t accountId, std::string& password, std::string& salt, std::string name = "");
 	bool setPassword(uint32_t accountId, std::string newPassword);
-	bool validRecoveryKey(uint32_t accountId, std::string recoveryKey);
-	bool setRecoveryKey(uint32_t accountId, std::string newRecoveryKey);
+	bool validRecoveryKey(uint32_t accountId, const std::string& recoveryKey);
+	bool setRecoveryKey(uint32_t accountId, const std::string& newRecoveryKey);
 
-	uint64_t createAccount(std::string name, std::string password);
+	uint64_t createAccount(std::string name, const std::string& password);
 	void removePremium(Account& account);
 
 	const Group* getPlayerGroupByAccount(uint32_t accountId);

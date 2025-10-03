@@ -14,24 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iostream>
 
 #include "tile.h"
-#include "housetile.h"
-
-#include "player.h"
-#include "creature.h"
-
-#include "teleport.h"
-#include "trashholder.h"
-#include "mailbox.h"
 
 #include "combat.h"
-#include "movement.h"
-
-#include "game.h"
 #include "configmanager.h"
+#include "creature.h"
+#include "game.h"
+#include "mailbox.h"
+#include "movement.h"
+#include "player.h"
+#include "teleport.h"
+#include "trashholder.h"
 
 extern ConfigManager g_config;
 extern Game g_game;

@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "enums.h"
 #include "const.h"
+#include "enums.h"
 #include "tools.h"
 
 enum AddonRequirement_t

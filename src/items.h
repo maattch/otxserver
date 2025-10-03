@@ -17,13 +17,10 @@
 
 #pragma once
 
-#include "itemloader.h"
-
 #include "const.h"
 #include "enums.h"
-
+#include "itemloader.h"
 #include "position.h"
-#include <libxml/parser.h>
 
 #define ITEMS_SIZE 12660
 #define ITEMS_INCREMENT 500

@@ -17,12 +17,11 @@
 
 #pragma once
 
-#include "enums.h"
-#include "player.h"
-#include "luascript.h"
-
-#include "baseevents.h"
 #include "actions.h"
+#include "baseevents.h"
+#include "enums.h"
+#include "luascript.h"
+#include "player.h"
 #include "talkaction.h"
 
 class InstantSpell;

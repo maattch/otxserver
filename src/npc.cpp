@@ -14,24 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#include "otpch.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
-#include <iostream>
-#include <fstream>
+#include "otpch.h"
 
 #include "npc.h"
-#include "tools.h"
-
-#include "luascript.h"
-#include "position.h"
-
-#include "spells.h"
-#include "vocation.h"
 
 #include "configmanager.h"
 #include "game.h"
+#include "luascript.h"
+#include "position.h"
+#include "spawn.h"
+#include "spells.h"
+#include "tools.h"
+#include "vocation.h"
 
 extern ConfigManager g_config;
 extern Game g_game;

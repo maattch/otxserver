@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <bitset>
 #include <chrono>
+#include <filesystem>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -37,6 +38,7 @@
 #include <random>
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 // LibXML2
@@ -45,23 +47,7 @@
 #include <libxml/xmlmemory.h>
 
 // Boost
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/config.hpp>
-#include <boost/foreach.hpp>
-#include <boost/function.hpp>
-#include <boost/regex.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
-#include <boost/utility.hpp>
-#include <boost/version.hpp>
-
-#if BOOST_VERSION < 104400
-	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename()
-#else
-	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename().string()
-#endif
 
 // OTX
 #include "configmanager.h"

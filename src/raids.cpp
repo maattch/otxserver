@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "raids.h"
 
-#include "player.h"
-
-#include "game.h"
 #include "configmanager.h"
+#include "game.h"
+#include "scheduler.h"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -148,8 +149,7 @@ bool Raids::startup()
 	}
 
 	setLastRaidEnd(OTSYS_TIME());
-	checkRaidsEvent = Scheduler::getInstance().addEvent(createSchedulerTask(
-		CHECK_RAIDS_INTERVAL * 1000, boost::bind(&Raids::checkRaids, this)));
+	checkRaidsEvent = addSchedulerTask(CHECK_RAIDS_INTERVAL * 1000, [this]() { checkRaids(); });
 
 	started = true;
 	return true;
@@ -157,8 +157,7 @@ bool Raids::startup()
 
 void Raids::checkRaids()
 {
-	checkRaidsEvent = Scheduler::getInstance().addEvent(createSchedulerTask(
-		CHECK_RAIDS_INTERVAL * 1000, boost::bind(&Raids::checkRaids, this)));
+	checkRaidsEvent = addSchedulerTask(CHECK_RAIDS_INTERVAL * 1000, [this]() { checkRaids(); });
 	if (running) {
 		return;
 	}
@@ -173,7 +172,7 @@ void Raids::checkRaids()
 
 void Raids::clear()
 {
-	Scheduler::getInstance().stopEvent(checkRaidsEvent);
+	g_scheduler.stopEvent(checkRaidsEvent);
 	checkRaidsEvent = lastRaidEnd = 0;
 	loaded = started = false;
 
@@ -196,7 +195,7 @@ Raid* Raids::getRaidByName(const std::string& name)
 {
 	RaidList::iterator it;
 	for (it = raidList.begin(); it != raidList.end(); ++it) {
-		if (boost::algorithm::iequals((*it)->getName(), name)) {
+		if (caseInsensitiveEqual((*it)->getName(), name)) {
 			return *it;
 		}
 	}
@@ -294,8 +293,7 @@ bool Raid::startRaid()
 		return false;
 	}
 
-	nextEvent = Scheduler::getInstance().addEvent(createSchedulerTask(
-		raidEvent->getDelay(), boost::bind(&Raid::executeRaidEvent, this, raidEvent)));
+	nextEvent = addSchedulerTask(raidEvent->getDelay(), ([this, raidEvent]() { executeRaidEvent(raidEvent); }));
 	Raids::getInstance()->setRunning(this);
 	return true;
 }
@@ -311,9 +309,9 @@ bool Raid::executeRaidEvent(RaidEvent* raidEvent)
 		return !resetRaid(false);
 	}
 
-	nextEvent = Scheduler::getInstance().addEvent(createSchedulerTask(
-		std::max(RAID_MINTICKS, (int32_t)(newRaidEvent->getDelay() - raidEvent->getDelay())),
-		boost::bind(&Raid::executeRaidEvent, this, newRaidEvent)));
+	nextEvent = addSchedulerTask(
+		std::max<int32_t>(RAID_MINTICKS, newRaidEvent->getDelay() - raidEvent->getDelay()),
+		([this, newRaidEvent]() { executeRaidEvent(newRaidEvent); }));
 	return true;
 }
 
@@ -346,7 +344,7 @@ void Raid::stopEvents()
 		return;
 	}
 
-	Scheduler::getInstance().stopEvent(nextEvent);
+	g_scheduler.stopEvent(nextEvent);
 	nextEvent = 0;
 }
 

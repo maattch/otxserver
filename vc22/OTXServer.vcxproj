@@ -205,7 +205,6 @@
     <ClCompile Include="..\src\scheduler.cpp" />
     <ClCompile Include="..\src\scriptmanager.cpp" />
     <ClCompile Include="..\src\server.cpp" />
-    <ClCompile Include="..\src\sha1.cpp" />
     <ClCompile Include="..\src\spawn.cpp" />
     <ClCompile Include="..\src\spectators.cpp" />
     <ClCompile Include="..\src\spells.cpp" />
@@ -283,7 +282,6 @@
     <ClInclude Include="..\src\scheduler.h" />
     <ClInclude Include="..\src\scriptmanager.h" />
     <ClInclude Include="..\src\server.h" />
-    <ClInclude Include="..\src\sha1.h" />
     <ClInclude Include="..\src\spawn.h" />
     <ClInclude Include="..\src\spectators.h" />
     <ClInclude Include="..\src\spells.h" />
@@ -293,6 +291,7 @@
     <ClInclude Include="..\src\templates.h" />
     <ClInclude Include="..\src\textlogger.h" />
     <ClInclude Include="..\src\thing.h" />
+    <ClInclude Include="..\src\thread_holder_base.h" />
     <ClInclude Include="..\src\tile.h" />
     <ClInclude Include="..\src\tools.h" />
     <ClInclude Include="..\src\town.h" />

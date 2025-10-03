@@ -18,7 +18,6 @@
 #pragma once
 
 #include "baseevents.h"
-
 #include "luascript.h"
 #include "thing.h"
 

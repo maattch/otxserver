@@ -18,80 +18,58 @@
 #pragma once
 
 #include "dispatcher.h"
+#include "thread_holder_base.h"
 
-#define SCHEDULER_MINTICKS 50
+#define createSchedulerTask(delay, function) std::make_unique<SchedulerTask>(delay, function)
+#define addSchedulerTask(delay, function) g_scheduler.addEvent(createSchedulerTask(delay, function))
 
-class SchedulerTask : public Task
+static constexpr uint32_t SCHEDULER_MINTICKS = 50;
+
+class SchedulerTask;
+using SchedulerTaskPtr = std::unique_ptr<SchedulerTask>;
+
+class SchedulerTask final : public Task
 {
 public:
-	virtual ~SchedulerTask() {}
+	SchedulerTask(uint32_t delay, TaskFunc&& f) :
+		Task(std::move(f)),
+		delay(delay) {}
 
-	void setEventId(uint32_t eventId) { m_eventId = eventId; }
-	uint32_t getEventId() const { return m_eventId; }
+	// non-copyable
+	SchedulerTask(const SchedulerTask&) = delete;
+	SchedulerTask& operator=(const SchedulerTask&) = delete;
 
-	boost::system_time getCycle() const { return m_expiration; }
-	bool operator<(const SchedulerTask& other) const { return getCycle() > other.getCycle(); }
+	void setEventId(uint32_t id) { eventId = id; }
+	uint32_t getEventId() const { return eventId; }
 
-protected:
-	uint32_t m_eventId;
+	uint32_t getDelay() const { return delay; }
 
-	SchedulerTask(uint32_t delay, const boost::function<void(void)>& f) :
-		Task(delay, f),
-		m_eventId(0) {}
-	friend SchedulerTask* createSchedulerTask(uint32_t, const boost::function<void(void)>&);
+private:
+	uint32_t eventId = 0;
+	uint32_t delay = 0;
 };
 
-inline SchedulerTask* createSchedulerTask(uint32_t delay, const boost::function<void(void)>& f)
-{
-	if (delay < SCHEDULER_MINTICKS) {
-		delay = SCHEDULER_MINTICKS;
-	}
-
-	return new SchedulerTask(delay, f);
-}
-
-class lessTask
+class Scheduler final : public ThreadHolder<Scheduler>
 {
 public:
-	bool operator()(SchedulerTask*& t1, SchedulerTask*& t2) { return (*t1) < (*t2); }
-};
-
-typedef std::set<uint32_t> EventIds;
-class Scheduler
-{
-public:
-	virtual ~Scheduler() {}
-	static Scheduler& getInstance()
-	{
-		static Scheduler scheduler;
-		return scheduler;
-	}
-
-	uint32_t addEvent(SchedulerTask* task);
-	bool stopEvent(uint32_t eventId);
-
-	void stop();
-	void shutdown();
-	void exit() { m_thread.join(); }
-
-	void schedulerThread();
-
-protected:
 	Scheduler();
-	enum SchedulerState
-	{
-		STATE_RUNNING,
-		STATE_CLOSING,
-		STATE_TERMINATED
-	};
 
-	uint32_t m_lastEvent;
-	EventIds m_eventIds;
+	// non-copyable
+	Scheduler(const Scheduler&) = delete;
+	void operator=(const Scheduler&) = delete;
 
-	boost::thread m_thread;
-	boost::mutex m_eventLock;
-	boost::condition_variable m_eventSignal;
+	uint32_t addEvent(SchedulerTaskPtr task);
+	void stopEvent(uint32_t eventId);
 
-	std::priority_queue<SchedulerTask*, std::vector<SchedulerTask*>, lessTask> m_eventList;
-	static SchedulerState m_threadState;
+	void shutdown();
+
+	void threadMain() { io_context.run(); }
+
+private:
+	std::atomic<uint32_t> lastEventId{ 0 };
+	std::unordered_map<uint32_t, boost::asio::steady_timer> eventIdTimerMap;
+	boost::asio::io_context io_context;
+	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> work_guard;
 };
+
+extern Scheduler g_scheduler;

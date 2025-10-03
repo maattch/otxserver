@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iostream>
 
 #include "configmanager.h"
+
 #include "house.h"
 #include "tools.h"
 
@@ -27,7 +28,6 @@ ConfigManager::ConfigManager()
 	m_loaded = false;
 	m_startup = true;
 
-	m_confNumber[ENCRYPTION] = ENCRYPTION_SHA1;
 	m_confString[CONFIG_FILE] = getFilePath(FILE_TYPE_CONFIG, "config.lua");
 
 	m_confNumber[LOGIN_PORT] = m_confNumber[ADMIN_PORT] = m_confNumber[MANAGER_PORT] = m_confNumber[STATUS_PORT] = 0;
@@ -119,7 +119,6 @@ bool ConfigManager::load()
 		m_confBool[BIND_ONLY_GLOBAL_ADDRESS] = getGlobalBool("bindOnlyGlobalAddress", false);
 		m_confBool[GUILD_HALLS] = getGlobalBool("guildHalls", false);
 		m_confBool[LOGIN_ONLY_LOGINSERVER] = getGlobalBool("loginOnlyWithLoginServer", false);
-		m_confString[ENCRYPTION_TYPE] = getGlobalString("encryptionType", "sha1");
 	}
 
 	m_confString[AUTOLOOT_BLOCKIDS] = getGlobalString("AutoLoot_BlockIDs", ""); // autoloot by naze#3578

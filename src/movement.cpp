@@ -14,21 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "movement.h"
-#include "tools.h"
-
-#include "creature.h"
-#include "player.h"
-
-#include "tile.h"
-#include "vocation.h"
 
 #include "combat.h"
+#include "creature.h"
 #include "game.h"
+#include "player.h"
+#include "tile.h"
+#include "tools.h"
+#include "vocation.h"
 
 extern Game g_game;
 extern MoveEvents* g_moveEvents;

@@ -14,23 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "monsters.h"
-#include "tools.h"
-#include "monster.h"
 
-#include "luascript.h"
-#include "container.h"
-#include "weapons.h"
-
-#include "spells.h"
 #include "combat.h"
-
 #include "configmanager.h"
+#include "container.h"
 #include "game.h"
+#include "party.h"
+#include "spells.h"
+#include "tools.h"
+#include "weapons.h"
 
 extern Game g_game;
 extern Spells* g_spells;

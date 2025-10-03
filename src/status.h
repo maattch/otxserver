@@ -20,6 +20,9 @@
 #include "networkmessage.h"
 #include "protocol.h"
 
+class ProtocolStatus;
+using ProtocolStatusPtr = std::shared_ptr<ProtocolStatus>;
+
 class ProtocolStatus final : public Protocol
 {
 public:
@@ -48,6 +51,11 @@ public:
 
 	void sendStatusString();
 	void sendInfo(uint16_t requestedInfo, const std::string& characterName);
+
+	ProtocolStatusPtr getThis()
+	{
+		return std::static_pointer_cast<ProtocolStatus>(shared_from_this());
+	}
 
 	static const uint64_t start;
 

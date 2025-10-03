@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "trashholder.h"
 
+#include "const.h"
 #include "game.h"
 #include "spells.h"
-#include "const.h"
 
 extern Game g_game;
 

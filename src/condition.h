@@ -19,10 +19,6 @@
 
 #include "const.h"
 #include "enums.h"
-
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-
 #include "fileloader.h"
 
 class Creature;

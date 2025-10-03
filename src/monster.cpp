@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 
 #include "monster.h"
-#include "spawn.h"
-#include "monsters.h"
 
-#include "spells.h"
 #include "combat.h"
-
 #include "configmanager.h"
-#include "game.h"
 #include "creatureevent.h"
+#include "game.h"
+#include "monsters.h"
+#include "spawn.h"
+#include "spells.h"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -520,10 +520,8 @@ bool Monster::selectTarget(Creature* creature)
 	}
 
 	if ((isHostile() || isSummon()) && setAttackedCreature(creature) && !isSummon()) {
-		Dispatcher::getInstance().addTask(createTask(
-			boost::bind(&Game::checkCreatureAttack, &g_game, getID())));
+		addDispatcherTask([creatureID = getID()]() { g_game.checkCreatureAttack(creatureID); });
 	}
-
 	return setFollowCreature(creature, true);
 }
 

@@ -17,10 +17,10 @@
 
 #include "otpch.h"
 
-#include "outputmessage.h"
 #include "server.h"
-#include "scheduler.h"
+
 #include "configmanager.h"
+#include "scheduler.h"
 
 extern ConfigManager g_config;
 
@@ -58,7 +58,7 @@ void ServiceManager::stop()
 
 	for (auto& servicePortIt : acceptors) {
 		try {
-			io_service.post(std::bind(&ServicePort::onStopServer, servicePortIt.second));
+			io_service.post([servicePort = servicePortIt.second]() { servicePort->onStopServer(); });
 		} catch (boost::system::system_error& e) {
 			std::cout << "[ServiceManager::stop] Network Error: " << e.what() << std::endl;
 		}
@@ -67,7 +67,7 @@ void ServiceManager::stop()
 	acceptors.clear();
 
 	death_timer.expires_from_now(boost::posix_time::seconds(3));
-	death_timer.async_wait(std::bind(&ServiceManager::die, this));
+	death_timer.async_wait([this](const boost::system::error_code&) { die(); });
 }
 
 ServicePort::ServicePort(boost::asio::io_service& io_service) :
@@ -110,7 +110,9 @@ void ServicePort::accept()
 	}
 
 	auto connection = ConnectionManager::getInstance().createConnection(io_service, shared_from_this());
-	acceptor->async_accept(connection->getSocket(), std::bind(&ServicePort::onAccept, shared_from_this(), connection, std::placeholders::_1));
+	acceptor->async_accept(connection->getSocket(), ([self = shared_from_this(), connection](const boost::system::error_code& error) {
+		self->onAccept(connection, error);
+	}));
 }
 
 void ServicePort::onAccept(Connection_ptr connection, const boost::system::error_code& error)
@@ -137,8 +139,9 @@ void ServicePort::onAccept(Connection_ptr connection, const boost::system::error
 		if (!pendingStart) {
 			close();
 			pendingStart = true;
-			Scheduler::getInstance().addEvent(createSchedulerTask(15000,
-				std::bind(&ServicePort::openAcceptor, std::weak_ptr<ServicePort>(shared_from_this()), serverPort)));
+			addSchedulerTask(15000, ([service = std::weak_ptr<ServicePort>(shared_from_this()), port = serverPort]() {
+				ServicePort::openAcceptor(service, port);
+			}));
 		}
 	}
 }
@@ -192,8 +195,9 @@ void ServicePort::open(uint16_t port)
 		std::cout << "\033[38;5;208m>> if bind adress already in use, send cmd 'killall -9 theotxserver'.\033[0m" << std::endl;
 
 		pendingStart = true;
-		Scheduler::getInstance().addEvent(createSchedulerTask(15000,
-			std::bind(&ServicePort::openAcceptor, std::weak_ptr<ServicePort>(shared_from_this()), port)));
+		addSchedulerTask(15000, ([service = std::weak_ptr<ServicePort>(shared_from_this()), port]() {
+			ServicePort::openAcceptor(service, port);
+		}));
 	}
 }
 

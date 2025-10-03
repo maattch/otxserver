@@ -16,52 +16,27 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "otpch.h"
-#include <signal.h>
 
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-
-#ifndef WINDOWS
-	#include <unistd.h>
-	#include <termios.h>
-#else
-	#include <conio.h>
-#endif
-
-#include <boost/config.hpp>
-
-#include "rsa.h"
-
-#include "server.h"
-#include "networkmessage.h"
-
-#include "game.h"
 #include "chat.h"
-#include "tools.h"
-
-#include "protocollogin.h"
-#include "protocolgame.h"
-#include "protocolold.h"
-
-#include "status.h"
-
 #include "configmanager.h"
-#include "scriptmanager.h"
 #include "databasemanager.h"
-
-#include "iologindata.h"
-#include "ioban.h"
-
-#include "outfit.h"
-#include "vocation.h"
+#include "game.h"
 #include "group.h"
-
+#include "iologindata.h"
+#include "monsters.h"
+#include "outfit.h"
+#include "protocolgame.h"
+#include "protocollogin.h"
+#include "protocolold.h"
 #include "quests.h"
 #include "raids.h"
-
-#include "monsters.h"
+#include "rsa.h"
+#include "scriptmanager.h"
+#include "server.h"
+#include "status.h"
 #include "textlogger.h"
+#include "tools.h"
+#include "vocation.h"
 
 RSA g_RSA;
 ConfigManager g_config;
@@ -71,9 +46,9 @@ Chat g_chat;
 Monsters g_monsters;
 Npcs g_npcs;
 
-boost::mutex g_loaderLock;
-boost::condition_variable g_loaderSignal;
-boost::unique_lock<boost::mutex> g_loaderUniqueLock(g_loaderLock);
+std::mutex g_loaderLock;
+std::condition_variable g_loaderSignal;
+std::unique_lock<std::mutex> g_loaderUniqueLock(g_loaderLock);
 std::list<std::pair<uint32_t, uint32_t>> serverIps;
 
 #ifndef _WIN32
@@ -225,26 +200,11 @@ bool argumentsHandler(StringVec args)
 }
 
 #ifndef WINDOWS
-int32_t OTSYS_getch()
-{
-	struct termios oldt;
-	tcgetattr(STDIN_FILENO, &oldt);
-
-	struct termios newt = oldt;
-	newt.c_lflag &= ~(ICANON | ECHO);
-	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-
-	int32_t ch = getchar();
-	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-	return ch;
-}
-
 void signalHandler(int32_t sig)
 {
 	switch (sig) {
 		case SIGHUP:
-			Dispatcher::getInstance().addTask(createTask(
-				boost::bind(&Game::saveGameState, &g_game, (uint8_t)SAVE_PLAYERS | (uint8_t)SAVE_MAP | (uint8_t)SAVE_STATE)));
+			addDispatcherTask([]() { g_game.saveGameState(SAVE_PLAYERS | SAVE_MAP | SAVE_STATE); });
 			break;
 
 		case SIGTRAP:
@@ -256,8 +216,7 @@ void signalHandler(int32_t sig)
 			break;
 
 		case SIGUSR1:
-			Dispatcher::getInstance().addTask(createTask(
-				boost::bind(&Game::setGameState, &g_game, GAMESTATE_CLOSED)));
+			addDispatcherTask([]() { g_game.setGameState(GAMESTATE_CLOSED); });
 			break;
 
 		case SIGUSR2:
@@ -265,22 +224,19 @@ void signalHandler(int32_t sig)
 			break;
 
 		case SIGCONT:
-			Dispatcher::getInstance().addTask(createTask(
-				boost::bind(&Game::reloadInfo, &g_game, RELOAD_ALL, 0, false)));
+			addDispatcherTask([]() { g_game.reloadInfo(RELOAD_ALL, 0, false); });
 			break;
 
 		case SIGQUIT:
-			Dispatcher::getInstance().addTask(createTask(
-				boost::bind(&Game::setGameState, &g_game, GAMESTATE_SHUTDOWN)));
+			addDispatcherTask([]() { g_game.setGameState(GAMESTATE_SHUTDOWN); });
 			break;
 
-		case SIGTERM:
-			Dispatcher::getInstance().addTask(createTask(
-				boost::bind(&Game::shutdown, &g_game)));
-
-			Dispatcher::getInstance().stop();
-			Scheduler::getInstance().stop();
+		case SIGTERM: {
+			addDispatcherTask([]() { g_game.shutdown(); });
+			g_scheduler.join();
+			g_dispatcher.join();
 			break;
+		}
 
 		default:
 			break;
@@ -292,17 +248,12 @@ void runfileHandler(void)
 	std::ofstream runfile(g_config.getString(ConfigManager::RUNFILE).c_str(), std::ios::trunc | std::ios::out);
 	runfile.close();
 }
-#else
-int32_t OTSYS_getch()
-{
-	return (int32_t)getchar();
-}
 #endif
 
 void allocationHandler()
 {
 	puts("Allocation failed, server out of memory!\nDecrease size of your map or compile in a 64-bit mode.");
-	OTSYS_getch();
+	getchar();
 	std::exit(-1);
 }
 
@@ -314,11 +265,12 @@ void startupErrorMessage(std::string error = "")
 				  << "> ERROR: " << error << std::endl;
 	}
 
-	OTSYS_getch();
+	getchar();
 	std::exit(-1);
 }
 
-void otserv(StringVec args, ServiceManager* services);
+void otserv(ServiceManager* services);
+
 int main(int argc, char* argv[])
 {
 	std::srand((uint32_t)OTSYS_TIME());
@@ -328,6 +280,10 @@ int main(int argc, char* argv[])
 	}
 
 	std::set_new_handler(allocationHandler);
+
+	g_dispatcher.start();
+	g_scheduler.start();
+
 	ServiceManager servicer;
 	g_config.startup();
 
@@ -352,28 +308,26 @@ int main(int argc, char* argv[])
 #endif
 
 	OutputHandler::getInstance();
-	Dispatcher::getInstance().addTask(createTask(boost::bind(otserv, args, &servicer)));
+
+	addDispatcherTask([services = &servicer]() { otserv(services); });
+
 	g_loaderSignal.wait(g_loaderUniqueLock);
 
-	boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 	if (servicer.is_running()) {
-		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " server Online!" << std::endl
-				  << std::endl;
+		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " server Online!" << std::endl << std::endl;
 		servicer.run();
 	} else {
-		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " server Offline! No services available..." << std::endl
-				  << std::endl;
+		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " server Offline! No services available..." << std::endl << std::endl;
+		g_scheduler.shutdown();
+		g_dispatcher.shutdown();
 	}
 
-	Dispatcher::getInstance().exit();
-	Scheduler::getInstance().exit();
-
-	boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-	exit(0);
+	g_scheduler.join();
+	g_dispatcher.join();
 	return 0;
 }
 
-void otserv(StringVec, ServiceManager* services)
+void otserv(ServiceManager* services)
 {
 	std::srand((uint32_t)OTSYS_TIME());
 #if defined(WINDOWS)
@@ -386,7 +340,7 @@ void otserv(StringVec, ServiceManager* services)
 		{
 			std::clog << "> WARNING: " "The " << SOFTWARE_NAME << " has been executed as super user! It is "
 				<< "recommended to run as a normal user." << std::endl << "Continue? (y/N)" << std::endl;
-			char buffer = OTSYS_getch();
+			char buffer = getchar();
 			if(buffer != 121 && buffer != 89)
 				startupErrorMessage("Aborted.");
 		}
@@ -578,20 +532,6 @@ void otserv(StringVec, ServiceManager* services)
 	if (!nice(g_config.getNumber(ConfigManager::NICE_LEVEL))) {}
 #endif
 
-	std::clog << ">> Loading Password encryption:" << std::endl;
-	std::string encryptionType = asLowerCaseString(g_config.getString(ConfigManager::ENCRYPTION_TYPE));
-	if (encryptionType == "sha1") {
-		g_config.setNumber(ConfigManager::ENCRYPTION, ENCRYPTION_SHA1);
-		std::clog << ">>> Using (SHA1) encryption ... (done)." << std::endl;
-	} else {
-		g_config.setNumber(ConfigManager::ENCRYPTION, ENCRYPTION_PLAIN);
-		std::clog << ">>> Using plaintext encryption ... (done)." << std::endl
-				  << std::endl;
-		/*	<< ">>> WARNING: This method is completely unsafe!" << std::endl
-			<< ">>> Please set encryptionType = \"sha1\" (or any other available method) in config.lua" << std::endl;
-		boost::this_thread::sleep(boost::posix_time::seconds(15)); */
-	}
-
 	std::clog << ">> Loading RSA key" << std::endl;
 	const char* p("14299623962416399520070177382898895550795403345466153217470516082934737582776038882967213386204600674145392845853859217990626450972452084065728686565928113");
 	const char* q("7630979195970404721891201847792002125535401292779123937207447574596692788513647179235335529307251350570728407373705564708871762033017096809910315212884101");
@@ -704,7 +644,7 @@ void otserv(StringVec, ServiceManager* services)
 	std::clog << ">> Loading items (XML)" << std::endl;
 	if (!Item::items.loadFromXml()) {
 		std::clog << "Unable to load items (XML)! Continue? (y/N)" << std::endl;
-		char buffer = OTSYS_getch();
+		char buffer = getchar();
 		if (buffer != 121 && buffer != 89) {
 			startupErrorMessage("Unable to load items (XML)!");
 		}
@@ -763,7 +703,7 @@ void otserv(StringVec, ServiceManager* services)
 	std::clog << ">> Loading monsters" << std::endl;
 	if (!g_monsters.loadFromXml()) {
 		std::clog << "Unable to load monsters! Continue? (y/N)" << std::endl;
-		char buffer = OTSYS_getch();
+		char buffer = getchar();
 		if (buffer != 121 && buffer != 89) {
 			startupErrorMessage("Unable to load monsters!");
 		}
@@ -773,7 +713,7 @@ void otserv(StringVec, ServiceManager* services)
 		std::clog << ">> Loading npcs" << std::endl;
 		if (!g_npcs.loadFromXml()) {
 			std::clog << "Unable to load npcs! Continue? (y/N)" << std::endl;
-			char buffer = OTSYS_getch();
+			char buffer = getchar();
 			if (buffer != 121 && buffer != 89) {
 				startupErrorMessage("Unable to load npcs!");
 			}

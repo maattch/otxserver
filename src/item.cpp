@@ -14,28 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iostream>
-#include <iomanip>
 
 #include "item.h"
+
+#include "beds.h"
+#include "combat.h"
+#include "configmanager.h"
 #include "container.h"
 #include "depot.h"
-
+#include "game.h"
+#include "house.h"
+#include "luascript.h"
+#include "mailbox.h"
+#include "movement.h"
 #include "teleport.h"
 #include "trashholder.h"
-#include "mailbox.h"
-
-#include "luascript.h"
-#include "combat.h"
-
-#include "house.h"
-#include "beds.h"
-
-#include "actions.h"
-#include "configmanager.h"
-#include "game.h"
-#include "movement.h"
 
 extern Game g_game;
 extern ConfigManager g_config;

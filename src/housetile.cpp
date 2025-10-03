@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "housetile.h"
 
-#include "house.h"
-#include "game.h"
 #include "configmanager.h"
+#include "game.h"
+#include "house.h"
 
 extern ConfigManager g_config;
 extern Game g_game;

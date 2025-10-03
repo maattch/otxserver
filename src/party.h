@@ -17,13 +17,11 @@
 
 #pragma once
 
-#include "player.h"
-
-typedef std::vector<Player*> PlayerVector;
-
 class Creature;
 class Player;
 class Party;
+
+typedef std::vector<Player*> PlayerVector;
 
 class Party
 {
@@ -33,7 +31,7 @@ public:
 
 	Player* getLeader() const { return leader; }
 	void setLeader(Player* _leader) { leader = _leader; }
-	PlayerVector getMembers() { return memberList; }
+	const PlayerVector& getMembers() { return memberList; }
 
 	bool passLeadership(Player* player);
 	void disband();
@@ -77,18 +75,14 @@ protected:
 
 	struct CountBlock_t
 	{
-		int32_t totalHeal, totalDamage;
+		CountBlock_t() = default;
+		CountBlock_t(int32_t heal, int32_t damage);
+
 		int64_t ticks;
-
-		CountBlock_t(int32_t heal, int32_t damage)
-		{
-			ticks = OTSYS_TIME();
-			totalDamage = damage;
-			totalHeal = heal;
-		}
-
-		CountBlock_t() { ticks = totalHeal = totalDamage = 0; }
+		int32_t totalHeal;
+		int32_t totalDamage;
 	};
+
 	typedef std::map<uint32_t, CountBlock_t> CountMap;
 	CountMap pointMap;
 };

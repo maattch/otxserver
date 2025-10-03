@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "spectators.h"
-#include "configmanager.h"
 
-#include "player.h"
 #include "chat.h"
-
+#include "configmanager.h"
 #include "database.h"
+#include "game.h"
+#include "player.h"
 #include "tools.h"
 
-#include "game.h"
 extern Game g_game;
 extern ConfigManager g_config;
 extern Chat g_chat;
@@ -187,7 +188,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 									hash = result->getString("password");
 						uint32_t id = result->getNumber<int32_t>("id");
 
-						if (encryptTest(password, hash)) {
+						if (transformToSHA1(password) == hash) {
 							query.str("");
 							query << "SELECT `name` FROM `players` WHERE `account_id` = " << id << " ORDER BY `level` DESC LIMIT 1";
 							if ((result = g_database.storeQuery(query.str()))) {

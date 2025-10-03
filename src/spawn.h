@@ -17,11 +17,8 @@
 
 #pragma once
 
-#include "templates.h"
-#include "position.h"
-
-#include "tile.h"
 #include "monster.h"
+#include "position.h"
 
 class Spawn;
 typedef std::list<Spawn*> SpawnList;

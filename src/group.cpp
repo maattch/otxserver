@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#include "otpch.h"
-#include <iostream>
 
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
+#include "otpch.h"
 
 #include "group.h"
-#include "tools.h"
+
 #include "configmanager.h"
+#include "tools.h"
 
 extern ConfigManager g_config;
 
@@ -148,7 +146,7 @@ Group* Groups::getGroup(uint32_t groupId)
 int32_t Groups::getGroupId(const std::string& name)
 {
 	for (GroupsMap::iterator it = groupsMap.begin(); it != groupsMap.end(); ++it) {
-		if (boost::algorithm::iequals(it->second->getName(), name)) {
+		if (caseInsensitiveEqual(it->second->getName(), name)) {
 			return it->first;
 		}
 	}

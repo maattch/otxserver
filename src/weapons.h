@@ -17,14 +17,12 @@
 
 #pragma once
 
-#include "const.h"
-#include "combat.h"
-
 #include "baseevents.h"
-#include "luascript.h"
-
-#include "player.h"
+#include "combat.h"
+#include "const.h"
 #include "item.h"
+#include "luascript.h"
+#include "player.h"
 
 class Weapon;
 class WeaponMelee;

@@ -17,23 +17,14 @@
 
 #include "otpch.h"
 
-#include <iomanip>
-
-#include <boost/config.hpp>
-#include <boost/bind.hpp>
+#include "map.h"
 
 #include "iomap.h"
-#include "map.h"
-#include "tile.h"
-
-#include "creature.h"
-#include "player.h"
 #include "combat.h"
-
-#include "iomapserialize.h"
-#include "items.h"
-
+#include "creature.h"
 #include "game.h"
+#include "iomapserialize.h"
+#include "tile.h"
 
 extern Game g_game;
 

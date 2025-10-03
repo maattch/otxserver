@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "spawn.h"
-#include "tools.h"
-
-#include "player.h"
-#include "npc.h"
 
 #include "configmanager.h"
 #include "game.h"
+#include "npc.h"
+#include "player.h"
+#include "scheduler.h"
+#include "tools.h"
 
 extern ConfigManager g_config;
 extern Monsters g_monsters;
@@ -245,8 +244,7 @@ bool Spawns::isInZone(const Position& centerPos, int32_t radius, const Position&
 void Spawn::startEvent(MonsterType* mType)
 {
 	if (!checkSpawnEvent) {
-		// checkSpawnEvent = Scheduler::getInstance().addEvent(createSchedulerTask(getInterval(), boost::bind(&Spawn::checkSpawn, this)));
-		checkSpawnEvent = Scheduler::getInstance().addEvent(createSchedulerTask(getInterval() / g_game.spawnDivider(mType), boost::bind(&Spawn::checkSpawn, this)));
+		checkSpawnEvent = addSchedulerTask(getInterval() / g_game.spawnDivider(mType), [this]() { checkSpawn(); });
 	}
 }
 
@@ -381,7 +379,7 @@ void Spawn::checkSpawn()
 	}
 
 	if (spawnedMap.size() < spawnMap.size()) {
-		checkSpawnEvent = Scheduler::getInstance().addEvent(createSchedulerTask(getInterval() / interval, boost::bind(&Spawn::checkSpawn, this)));
+		checkSpawnEvent = addSchedulerTask(getInterval() / interval, [this]() { checkSpawn(); });
 	}
 #ifdef __DEBUG_SPAWN__
 	else {
@@ -438,6 +436,6 @@ void Spawn::stopEvent()
 		return;
 	}
 
-	Scheduler::getInstance().stopEvent(checkSpawnEvent);
+	g_scheduler.stopEvent(checkSpawnEvent);
 	checkSpawnEvent = 0;
 }

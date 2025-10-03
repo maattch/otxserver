@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "thing.h"
 
 #include "cylinder.h"
 #include "tile.h"
-
-#include "item.h"
-#include "creature.h"
-#include "player.h"
 
 Cylinder* Thing::getTopParent()
 {

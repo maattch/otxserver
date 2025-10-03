@@ -17,11 +17,13 @@
 
 #pragma once
 
-#include <fstream>
 #include "const.h"
 #include "party.h"
+#include "tools.h"
 
 class Player;
+class Condition;
+
 enum ChannelFlags_t
 {
 	CHANNELFLAG_NONE = 0,
@@ -39,11 +41,8 @@ public:
 	ChatChannel(uint16_t id, const std::string& name, uint16_t flags, uint32_t access = 0,
 		uint32_t level = 1, Condition* condition = NULL, int32_t conditionId = -1,
 		const std::string& conditionMessage = "", VocationMap* vocationMap = NULL);
-	virtual ~ChatChannel()
-	{
-		delete m_condition;
-		delete m_vocationMap;
-	}
+	virtual ~ChatChannel();
+
 	static uint16_t staticFlags;
 
 	uint16_t getId() const { return m_id; }
@@ -66,7 +65,7 @@ public:
 
 	bool addUser(Player* player);
 	bool removeUser(Player* player, bool exclude = false);
-	bool hasUser(Player* player) const { return player && m_users.find(player->getID()) != m_users.end(); }
+	bool hasUser(Player* player) const;
 
 	bool talk(Player* player, MessageClasses type, const std::string& text, uint32_t statementId, bool fakeChat = false);
 	bool talk(std::string nick, MessageClasses type, const std::string& text, bool fakeChat = false, uint32_t ip = 0);
@@ -81,7 +80,7 @@ protected:
 	VocationMap* m_vocationMap;
 
 	UsersMap m_users;
-	boost::shared_ptr<std::ofstream> m_file;
+	std::shared_ptr<std::ofstream> m_file;
 };
 
 class PrivateChatChannel : public ChatChannel

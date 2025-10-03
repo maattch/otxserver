@@ -14,28 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iostream>
-#include <iomanip>
 
 #include "iologindata.h"
-#include "tools.h"
-
-#include "town.h"
-#include "house.h"
-
-#include "item.h"
-#include "vocation.h"
 
 #include "configmanager.h"
 #include "game.h"
-
-#ifdef _WIN32
-	#include <stdint.h>
-	#define LOOTLIST_TYPE uint64_t
-#else
-	#define LOOTLIST_TYPE unsigned long
-#endif
+#include "house.h"
+#include "ioguild.h"
+#include "item.h"
+#include "tools.h"
+#include "town.h"
+#include "vocation.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -43,8 +34,8 @@ extern Game g_game;
 Account IOLoginData::loadAccount(uint32_t accountId, bool preLoad /* = false*/)
 {
 	std::ostringstream query;
-
 	query << "SELECT `name`, `password`, `salt`, `premdays`, `lastday`, `key`, `warnings` FROM `accounts` WHERE `id` = " << accountId << " LIMIT 1";
+
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return Account();
@@ -277,45 +268,29 @@ bool IOLoginData::setPassword(uint32_t accountId, std::string newPassword)
 	}
 
 	std::ostringstream query;
-
-	_encrypt(newPassword, false);
-	query << "UPDATE `accounts` SET `password` = " << g_database.escapeString(newPassword) << ", `salt` = " << g_database.escapeString(salt) << " WHERE `id` = " << accountId << " LIMIT 1;";
+	query << "UPDATE `accounts` SET `password` = " << g_database.escapeString(transformToSHA1(newPassword)) << ", `salt` = " << g_database.escapeString(salt) << " WHERE `id` = " << accountId << " LIMIT 1;";
 	return g_database.executeQuery(query.str());
 }
 
-bool IOLoginData::validRecoveryKey(uint32_t accountId, std::string recoveryKey)
+bool IOLoginData::validRecoveryKey(uint32_t accountId, const std::string& recoveryKey)
 {
-	_encrypt(recoveryKey, false);
-
 	std::ostringstream query;
-	query << "SELECT `id` FROM `accounts` WHERE `id` = " << accountId << " AND `key` = " << g_database.escapeString(recoveryKey) << " LIMIT 1";
-
-	DBResultPtr result;
-	if (!(result = g_database.storeQuery(query.str()))) {
-		return false;
-	}
-
-	return true;
+	query << "SELECT `id` FROM `accounts` WHERE `id` = " << accountId << " AND `key` = " << g_database.escapeString(transformToSHA1(recoveryKey)) << " LIMIT 1";
+	return g_database.storeQuery(query.str()) != nullptr;
 }
 
-bool IOLoginData::setRecoveryKey(uint32_t accountId, std::string newRecoveryKey)
+bool IOLoginData::setRecoveryKey(uint32_t accountId, const std::string& newRecoveryKey)
 {
-	_encrypt(newRecoveryKey, false);
-
 	std::ostringstream query;
-	query << "UPDATE `accounts` SET `key` = " << g_database.escapeString(newRecoveryKey) << " WHERE `id` = " << accountId << " LIMIT 1;";
+	query << "UPDATE `accounts` SET `key` = " << g_database.escapeString(transformToSHA1(newRecoveryKey)) << " WHERE `id` = " << accountId << " LIMIT 1;";
 	return g_database.executeQuery(query.str());
 }
 
-uint64_t IOLoginData::createAccount(std::string name, std::string password)
+uint64_t IOLoginData::createAccount(std::string name, const std::string& password)
 {
-	std::string salt = generateRecoveryKey(2, 19, true);
-	password = salt + password;
-	_encrypt(password, false);
-
+	const std::string salt = generateRecoveryKey(2, 19, true);
 	std::ostringstream query;
-
-	query << "INSERT INTO `accounts` (`id`, `name`, `password`, `salt`) VALUES (NULL, " << g_database.escapeString(name) << ", " << g_database.escapeString(password) << ", " << g_database.escapeString(salt) << ")";
+	query << "INSERT INTO `accounts` (`id`, `name`, `password`, `salt`) VALUES (NULL, " << g_database.escapeString(name) << ", " << g_database.escapeString(transformToSHA1(salt + password)) << ", " << g_database.escapeString(salt) << ")";
 	if (!g_database.executeQuery(query.str())) {
 		return 0;
 	}

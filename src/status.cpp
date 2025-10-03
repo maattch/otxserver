@@ -14,20 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "status.h"
-#include "const.h"
-#include "tools.h"
-
-#include "connection.h"
-#include "networkmessage.h"
-#include "outputmessage.h"
 
 #include "configmanager.h"
 #include "game.h"
+#include "networkmessage.h"
+#include "outputmessage.h"
+#include "tools.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -64,8 +60,7 @@ void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
 	switch (type) {
 		case 0xFF: {
 			if (msg.getString(4) == "info") {
-				Dispatcher::getInstance().addTask(createTask(std::bind(&ProtocolStatus::sendStatusString,
-					std::static_pointer_cast<ProtocolStatus>(shared_from_this()))));
+				addDispatcherTask([self = getThis()]() { self->sendStatusString(); });
 				return;
 			}
 
@@ -79,8 +74,9 @@ void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
 				characterName = msg.getString();
 			}
 
-			Dispatcher::getInstance().addTask(createTask(std::bind(&ProtocolStatus::sendInfo, std::dynamic_pointer_cast<ProtocolStatus>(shared_from_this()),
-				requestedInfo, characterName)));
+			addDispatcherTask(([self = getThis(), requestedInfo, characterName = std::move(characterName)]() {
+				self->sendInfo(requestedInfo, characterName);
+			}));
 			return;
 		}
 

@@ -14,49 +14,41 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "luascript.h"
-#include "scriptmanager.h"
-
-#include <boost/filesystem.hpp>
-#include <boost/any.hpp>
-#include <iostream>
-#include <iomanip>
-
-#include "player.h"
-#include "item.h"
-#include "teleport.h"
-#include "beds.h"
-
-#include "town.h"
-#include "house.h"
-#include "housetile.h"
-
-#include "database.h"
-#include "databasemanager.h"
-#include "iologindata.h"
-#include "ioban.h"
-#include "iomap.h"
-#include "iomapserialize.h"
-
-#include "monsters.h"
-#include "movement.h"
-#include "spells.h"
-#include "talkaction.h"
-#include "creatureevent.h"
-
-#include "combat.h"
-#include "condition.h"
 
 #include "baseevents.h"
-#include "raids.h"
-
-#include "configmanager.h"
-#include "vocation.h"
-#include "status.h"
-#include "game.h"
+#include "beds.h"
 #include "chat.h"
+#include "combat.h"
+#include "condition.h"
+#include "configmanager.h"
+#include "creatureevent.h"
+#include "database.h"
+#include "databasemanager.h"
+#include "game.h"
+#include "house.h"
+#include "housetile.h"
+#include "ioban.h"
+#include "ioguild.h"
+#include "iologindata.h"
+#include "iomap.h"
+#include "iomapserialize.h"
+#include "item.h"
+#include "monsters.h"
+#include "movement.h"
+#include "player.h"
+#include "raids.h"
+#include "scriptmanager.h"
+#include "spells.h"
+#include "status.h"
+#include "talkaction.h"
+#include "teleport.h"
 #include "tools.h"
+#include "town.h"
+#include "vocation.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -716,7 +708,7 @@ LuaInterface::LuaInterface(std::string interfaceName)
 LuaInterface::~LuaInterface()
 {
 	for (LuaTimerEvents::iterator it = m_timerEvents.begin(); it != m_timerEvents.end(); ++it) {
-		Scheduler::getInstance().stopEvent(it->second.eventId);
+		g_scheduler.stopEvent(it->second.eventId);
 	}
 
 	closeState();
@@ -798,29 +790,35 @@ bool LuaInterface::loadFile(const std::string& file, Npc* npc /* = NULL*/)
 
 bool LuaInterface::loadDirectory(std::string dir, bool recursively, bool loadSystems, Npc* npc /* = NULL*/)
 {
-	if (dir[dir.size() - 1] != '/') {
-		dir += '/';
+	if (!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir)) {
+		std::cout << "[Error - LuaInterface::loadDirectory] Cannot load directory " << dir << std::endl;
+		return false;
 	}
 
-	StringVec files;
-	for (boost::filesystem::directory_iterator it(dir), end; it != end; ++it) {
-		std::string s = BOOST_DIR_ITER_FILENAME(it);
-		if (!loadSystems && s[0] == '_') {
+	std::vector<std::filesystem::path> scripts;
+	if (recursively) {
+		for (std::filesystem::recursive_directory_iterator it(dir), end; it != end; ++it) {
+			if (std::filesystem::is_regular_file(it->status()) && it->path().extension() == ".lua") {
+				scripts.push_back(it->path());
+			}
+		}
+	} else {
+		for (std::filesystem::directory_iterator it(dir), end; it != end; ++it) {
+			if (std::filesystem::is_regular_file(it->status()) && it->path().extension() == ".lua") {
+				scripts.push_back(it->path());
+			}
+		}
+	}
+
+	// sort alphabetically
+	std::sort(scripts.begin(), scripts.end());
+
+	for (const auto& script : scripts) {
+		if (!loadSystems && !script.filename().empty() && script.filename().native().front() == '_') {
 			continue;
 		}
 
-		if (boost::filesystem::is_directory(it->status())) {
-			if (recursively && !loadDirectory(dir + s, recursively, loadSystems, npc)) {
-				return false;
-			}
-		} else if ((s.size() > 4 ? s.substr(s.size() - 4) : "") == ".lua") {
-			files.push_back(s);
-		}
-	}
-
-	std::sort(files.begin(), files.end());
-	for (StringVec::iterator it = files.begin(); it != files.end(); ++it) {
-		if (!loadFile(dir + (*it), npc)) {
+		if (!loadFile(script.string(), npc)) {
 			return false;
 		}
 	}
@@ -9021,17 +9019,18 @@ int32_t LuaInterface::luaAddEvent(lua_State* L)
 		params.push_back(luaL_ref(L, LUA_REGISTRYINDEX));
 	}
 
-	LuaTimerEvent event;
-	event.eventId = Scheduler::getInstance().addEvent(createSchedulerTask(std::max((int64_t)SCHEDULER_MINTICKS, popNumber(L)),
-		boost::bind(&LuaInterface::executeTimer, interface, ++interface->m_lastTimer)));
+	const uint32_t eventIndex = ++interface->m_lastTimer;
 
-	event.parameters = params;
+	LuaTimerEvent& event = interface->m_timerEvents[eventIndex];
+	event.eventId = addSchedulerTask(std::max<int64_t>(SCHEDULER_MINTICKS, popNumber(L)),
+		([interface, eventIndex]() { interface->executeTimer(eventIndex); }));
+
+	event.parameters = std::move(params);
 	event.function = luaL_ref(L, LUA_REGISTRYINDEX);
 	event.scriptId = env->getScriptId();
 	event.npc = env->getNpc();
 
-	interface->m_timerEvents[interface->m_lastTimer] = event;
-	lua_pushnumber(L, interface->m_lastTimer);
+	lua_pushnumber(L, eventIndex);
 	return 1;
 }
 
@@ -9050,7 +9049,7 @@ int32_t LuaInterface::luaStopEvent(lua_State* L)
 
 	LuaTimerEvents::iterator it = interface->m_timerEvents.find(eventId);
 	if (it != interface->m_timerEvents.end()) {
-		Scheduler::getInstance().stopEvent(it->second.eventId);
+		g_scheduler.stopEvent(it->second.eventId);
 		for (std::list<int32_t>::iterator lt = it->second.parameters.begin(); lt != it->second.parameters.end(); ++lt) {
 			luaL_unref(interface->m_luaState, LUA_REGISTRYINDEX, *lt);
 		}
@@ -9862,7 +9861,7 @@ int32_t LuaInterface::luaDoPlayerSaveItems(lua_State* L)
 	if (Player* player = env->getPlayerByUID(popNumber(L))) {
 		player->loginPosition = player->getPosition();
 		IOLoginData* p = IOLoginData::getInstance();
-		boost::thread th(&IOLoginData::savePlayerItems, p, player);
+		std::thread th(&IOLoginData::savePlayerItems, p, player);
 		th.detach();
 		lua_pushboolean(L, true);
 	} else {
@@ -10098,13 +10097,11 @@ int32_t LuaInterface::luaDoSetGameState(lua_State* L)
 	// doSetGameState(id)
 	uint32_t id = popNumber(L);
 	if (id >= GAMESTATE_FIRST && id <= GAMESTATE_LAST) {
-		Dispatcher::getInstance().addTask(createTask(
-			boost::bind(&Game::setGameState, &g_game, (GameState_t)id)));
+		addDispatcherTask([id]() { g_game.setGameState(static_cast<GameState_t>(id)); });
 		lua_pushboolean(L, true);
 	} else {
 		lua_pushboolean(L, false);
 	}
-
 	return 1;
 }
 
@@ -10168,8 +10165,8 @@ int32_t LuaInterface::luaDoReloadInfo(lua_State* L)
 		if (id >= RELOAD_FIRST && id <= RELOAD_LAST) {
 			// we're passing it to scheduler since talkactions reload will
 			// re-init our lua state and crash due to unfinished call
-			Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
-				boost::bind(&Game::reloadInfo, &g_game, (ReloadInfo_t)id, cid, false)));
+			addSchedulerTask(SCHEDULER_MINTICKS,
+				([id, cid]() { g_game.reloadInfo(static_cast<ReloadInfo_t>(id), cid, false); }));
 			lua_pushboolean(L, true);
 		} else {
 			lua_pushboolean(L, false);
@@ -11310,13 +11307,9 @@ EXPOSE_LOG(Cerr, std::cerr)
 
 int32_t LuaInterface::luaStdSHA1(lua_State* L)
 {
-	// std.sha1(string[, upperCase = false])
-	bool upperCase = false;
-	if (lua_gettop(L) > 1) {
-		upperCase = popBoolean(L);
-	}
-
-	lua_pushstring(L, transformToSHA1(popString(L), upperCase).c_str());
+	// std.sha1(string)
+	const std::string output = transformToSHA1(popString(L));
+	lua_pushlstring(L, output.data(), output.size());
 	return 1;
 }
 

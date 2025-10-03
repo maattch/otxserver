@@ -17,11 +17,10 @@
 
 #pragma once
 
-#include "templates.h"
 #include "const.h"
-
 #include "creature.h"
 #include "luascript.h"
+#include "templates.h"
 
 class Npc;
 struct NpcType

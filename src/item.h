@@ -17,14 +17,11 @@
 
 #pragma once
 
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-
-#include "thing.h"
+#include "fileloader.h"
 #include "itemattributes.h"
-
 #include "items.h"
 #include "raids.h"
+#include "thing.h"
 
 class Creature;
 class Player;

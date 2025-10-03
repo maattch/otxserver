@@ -14,22 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "iomap.h"
 
-#include "map.h"
-#include "town.h"
-#include "tile.h"
-#include "item.h"
-#include "container.h"
-#include "depot.h"
-
-#include "teleport.h"
-#include "beds.h"
-
-#include "fileloader.h"
 #include "configmanager.h"
+#include "fileloader.h"
 #include "game.h"
+#include "house.h"
+#include "item.h"
+#include "map.h"
+#include "spawn.h"
+#include "tile.h"
+#include "town.h"
 
 extern ConfigManager g_config;
 extern Game g_game;

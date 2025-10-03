@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "networkmessage.h"
 #include "connection.h"
+#include "networkmessage.h"
 #include "tools.h"
 
 class Protocol;

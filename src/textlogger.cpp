@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#include "otpch.h"
-#include "textlogger.h"
 
-#include "dispatcher.h"
+#include "otpch.h"
+
+#include "textlogger.h"
 
 #include "configmanager.h"
 #include "game.h"

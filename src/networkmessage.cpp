@@ -19,11 +19,10 @@
 
 #include "networkmessage.h"
 
+#include "configmanager.h"
 #include "container.h"
 #include "creature.h"
-
 #include "player.h"
-#include "configmanager.h"
 
 extern ConfigManager g_config;
 

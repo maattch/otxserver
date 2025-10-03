@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include "const.h"
 
 #include "combat.h"
-#include "tools.h"
 
-#include "game.h"
 #include "configmanager.h"
-
+#include "const.h"
 #include "creature.h"
+#include "game.h"
 #include "player.h"
-#include "weapons.h"
 #include "tile.h"
+#include "tools.h"
+#include "weapons.h"
 
 extern Game g_game;
 extern Weapons* g_weapons;

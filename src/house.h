@@ -21,10 +21,6 @@
 #include "player.h"
 #include "position.h"
 
-#include <unordered_set>
-
-#include <boost/regex.hpp>
-
 class House;
 class BedItem;
 
@@ -65,7 +61,6 @@ public:
 	bool parseList(const std::string& _list);
 	bool addPlayer(std::string& name);
 	bool addGuild(const std::string& guildName, const std::string& rankName);
-	bool addExpression(const std::string& expression);
 
 	bool isInList(const Player* player);
 
@@ -74,14 +69,11 @@ public:
 private:
 	typedef std::unordered_set<uint32_t> PlayerList;
 	typedef std::list<std::pair<uint32_t, int32_t>> GuildList;
-	typedef std::list<std::string> ExpressionList;
-	typedef std::list<std::pair<boost::regex, bool>> RegexList;
 
 	std::string list;
 	PlayerList playerList;
 	GuildList guildList;
-	ExpressionList expressionList;
-	RegexList regexList;
+	bool m_allowEveryone = false;
 };
 
 class Door : public Item

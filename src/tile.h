@@ -17,9 +17,6 @@
 
 #pragma once
 
-#include <boost/shared_ptr.hpp>
-#include <unordered_set>
-
 #include "cylinder.h"
 #include "item.h"
 

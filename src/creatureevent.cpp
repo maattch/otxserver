@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#ifdef __DEBUG_LUASCRIPTS__
-	#include <sstream>
-#endif
 
 #include "creatureevent.h"
-#include "tools.h"
-
-#include "monster.h"
-#include "player.h"
 
 #include "configmanager.h"
+#include "monster.h"
+#include "player.h"
+#include "tools.h"
 
 extern ConfigManager g_config;
 extern CreatureEvents* g_creatureEvents;

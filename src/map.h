@@ -17,15 +17,10 @@
 
 #pragma once
 
-#include "tools.h"
-
-#include <unordered_map>
-
-#include "fileloader.h"
 #include "position.h"
-
-#include "waypoints.h"
 #include "tile.h"
+#include "tools.h"
+#include "waypoints.h"
 
 class Creature;
 class Player;
@@ -41,7 +36,6 @@ struct AStarNode
 	uint16_t x, y;
 };
 
-using boost::shared_ptr;
 #define MAP_MAX_LAYERS 16
 
 #define MAX_NODES 512

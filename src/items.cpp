@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iostream>
-#include <libxml/xmlmemory.h>
 
 #include "items.h"
+
 #include "condition.h"
 #include "configmanager.h"
-
 #include "movement.h"
-#include "weapons.h"
 #include "spells.h"
+#include "weapons.h"
 
 extern Spells* g_spells;
 extern ConfigManager g_config;
@@ -1773,17 +1772,18 @@ const ItemType& Items::getItemIdByClientId(int32_t spriteId) const
 
 int32_t Items::getItemIdByName(const std::string& name)
 {
-	if (!name.empty()) {
-		uint32_t i = 100;
-		ItemType* iType = NULL;
-		do {
-			if ((iType = items.getElement(i)) && boost::algorithm::iequals(name, iType->name)) {
-				return i;
-			}
-
-			++i;
-		} while (iType);
+	if (name.empty()) {
+		return -1;
 	}
 
+	uint32_t i = 100;
+	ItemType* iType = NULL;
+	do {
+		if ((iType = items.getElement(i)) && caseInsensitiveEqual(name, iType->name)) {
+			return i;
+		}
+
+		++i;
+	} while (iType);
 	return -1;
 }

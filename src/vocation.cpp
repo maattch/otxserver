@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#include "otpch.h"
-#include <iostream>
 
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
+#include "otpch.h"
 
 #include "vocation.h"
+
 #include "tools.h"
 
 Vocation Vocations::defVoc = Vocation();
@@ -511,7 +509,7 @@ Vocation* Vocations::getVocation(uint32_t vocId)
 int32_t Vocations::getVocationId(const std::string& name)
 {
 	for (VocationsMap::iterator it = vocationsMap.begin(); it != vocationsMap.end(); ++it) {
-		if (boost::algorithm::iequals(it->second->getName(), name)) {
+		if (caseInsensitiveEqual(it->second->getName(), name)) {
 			return it->first;
 		}
 	}

@@ -14,101 +14,71 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "dispatcher.h"
 
-#include "outputmessage.h"
+Dispatcher g_dispatcher;
 
-#include "game.h"
-
-extern Game g_game;
-
-Dispatcher::DispatcherState Dispatcher::m_threadState = Dispatcher::STATE_TERMINATED;
-
-Dispatcher::Dispatcher()
+void Dispatcher::threadMain()
 {
-	Dispatcher::m_threadState = Dispatcher::STATE_RUNNING;
-	m_thread = boost::thread(boost::bind(&Dispatcher::dispatcherThread, this));
-}
+	std::vector<TaskPtr> tmpTaskList;
+	// NOTE: second argument defer_lock is to prevent from immediate locking
+	std::unique_lock<std::mutex> taskLockUnique(taskLock, std::defer_lock);
 
-void Dispatcher::dispatcherThread()
-{
-	boost::unique_lock<boost::mutex> taskLockUnique(m_taskLock, boost::defer_lock);
-	while (Dispatcher::m_threadState != Dispatcher::STATE_TERMINATED) {
+	while (getState() != THREAD_STATE_TERMINATED) {
 		// check if there are tasks waiting
 		taskLockUnique.lock();
-		if (m_taskList.empty()) { // if the list is empty wait for signal
-			m_taskSignal.wait(taskLockUnique);
+
+		if (taskList.empty()) {
+			// if the list is empty wait for signal
+			taskSignal.wait(taskLockUnique);
 		}
 
-		if (!m_taskList.empty() && Dispatcher::m_threadState != Dispatcher::STATE_TERMINATED) {
-			// take the first task
-			Task* task = m_taskList.front();
-			m_taskList.pop_front();
-			taskLockUnique.unlock();
+		tmpTaskList.swap(taskList);
+		taskLockUnique.unlock();
 
+		for (auto& task : tmpTaskList) {
 			if (!task->hasExpired()) {
+				++dispatcherCycle;
+				// execute it
 				(*task)();
-
-				g_game.clearSpectatorCache();
 			}
-			delete task;
-		} else {
-			taskLockUnique.unlock();
 		}
+
+		tmpTaskList.clear();
 	}
 }
 
-void Dispatcher::addTask(Task* task, bool front /* = false*/)
+void Dispatcher::addTask(TaskPtr task)
 {
-	bool signal = false;
-	m_taskLock.lock();
-	if (Dispatcher::m_threadState == Dispatcher::STATE_RUNNING) {
-		signal = m_taskList.empty();
-		if (front) {
-			m_taskList.push_front(task);
-		} else {
-			m_taskList.push_back(task);
-		}
-	}
-#ifdef __DEBUG_SCHEDULER__
-	else
-		std::clog << "[Error - Dispatcher::addTask] Dispatcher thread is terminated." << std::endl;
-#endif
+	bool do_signal = false;
 
-	m_taskLock.unlock();
+	taskLock.lock();
+
+	if (getState() == THREAD_STATE_RUNNING) {
+		do_signal = taskList.empty();
+		taskList.push_back(std::move(task));
+	}
+
+	taskLock.unlock();
+
 	// send a signal if the list was empty
-	if (signal) {
-		m_taskSignal.notify_one();
+	if (do_signal) {
+		taskSignal.notify_one();
 	}
-}
-
-void Dispatcher::flush()
-{
-	Task* task = NULL;
-	while (!m_taskList.empty()) {
-		task = m_taskList.front();
-		m_taskList.pop_front();
-
-		(*task)();
-		delete task;
-
-		g_game.clearSpectatorCache();
-	}
-}
-
-void Dispatcher::stop()
-{
-	m_taskLock.lock();
-	m_threadState = Dispatcher::STATE_CLOSING;
-	m_taskLock.unlock();
 }
 
 void Dispatcher::shutdown()
 {
-	m_taskLock.lock();
-	m_threadState = Dispatcher::STATE_TERMINATED;
+	auto task = std::make_unique<Task>([this]() {
+		setState(THREAD_STATE_TERMINATED);
+		taskSignal.notify_one();
+	});
 
-	flush();
-	m_taskLock.unlock();
+	std::lock_guard<std::mutex> lockClass(taskLock);
+	taskList.push_back(std::move(task));
+
+	taskSignal.notify_one();
 }

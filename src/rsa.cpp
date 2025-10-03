@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "rsa.h"
 
 RSA::RSA()
@@ -57,7 +59,7 @@ bool RSA::initialize(const std::string& file)
 
 void RSA::initialize(const char* p, const char* q, const char* d)
 {
-	boost::recursive_mutex::scoped_lock lockClass(rsaLock);
+	std::scoped_lock lockClass(rsaLock);
 
 	mpz_set_str(m_p, p, 10);
 	mpz_set_str(m_q, q, 10);
@@ -81,7 +83,7 @@ void RSA::initialize(const char* p, const char* q, const char* d)
 
 void RSA::decrypt(char* msg)
 {
-	boost::recursive_mutex::scoped_lock lockClass(rsaLock);
+	std::scoped_lock lockClass(rsaLock);
 	mpz_t c, v1, v2, u2, tmp;
 
 	mpz_init2(c, 1024);

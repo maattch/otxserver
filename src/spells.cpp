@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include "const.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-#include <boost/algorithm/string.hpp>
 
 #include "spells.h"
-#include "tools.h"
 
-#include "house.h"
-#include "housetile.h"
 #include "combat.h"
-
-#include "monsters.h"
 #include "configmanager.h"
+#include "const.h"
 #include "game.h"
+#include "monsters.h"
+#include "tools.h"
 
 extern Game g_game;
 extern Spells* g_spells;
@@ -236,7 +231,7 @@ RuneSpell* Spells::getRuneSpell(uint32_t id)
 RuneSpell* Spells::getRuneSpellByName(const std::string& name)
 {
 	for (RunesMap::iterator it = runes.begin(); it != runes.end(); ++it) {
-		if (boost::algorithm::iequals(it->second->getName(), name)) {
+		if (caseInsensitiveEqual(it->second->getName(), name)) {
 			return it->second;
 		}
 	}
@@ -248,7 +243,7 @@ InstantSpell* Spells::getInstantSpell(const std::string& words)
 {
 	InstantSpell* result = NULL;
 	std::string lower = words;
-	boost::to_lower(lower);
+	toLowerCaseString(lower);
 
 	// First let's search on all nom-param spells
 	auto search2 = instants.find(lower);
@@ -542,7 +537,7 @@ bool Spell::configureSpell(xmlNodePtr p)
 		};
 
 		for (uint32_t i = 0; i < sizeof(reservedList) / sizeof(const char*); ++i) {
-			if (boost::algorithm::iequals(reservedList[i], name)) {
+			if (caseInsensitiveEqual(reservedList[i], name)) {
 				std::clog << "[Error - Spell::configureSpell] Spell is using a reserved name: " << reservedList[i] << std::endl;
 				return false;
 			}

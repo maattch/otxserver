@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "house.h"
 
-#include "tools.h"
-#include "database.h"
 #include "beds.h"
-#include "town.h"
-
-#include "iologindata.h"
-#include "ioguild.h"
-#include "iomapserialize.h"
-
 #include "configmanager.h"
+#include "database.h"
 #include "game.h"
+#include "ioguild.h"
+#include "iologindata.h"
+#include "iomapserialize.h"
+#include "tools.h"
+#include "town.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -207,7 +207,7 @@ void House::removePlayer(Player* player, bool ignoreRights)
 
 void House::removePlayers(bool ignoreInvites)
 {
-	PlayerVector kickList;
+	std::vector<Player*> kickList;
 	for (HouseTileList::iterator it = houseTiles.begin(); it != houseTiles.end(); ++it) {
 		CreatureVector* creatures = (*it)->getCreatures();
 		if (!creatures) {
@@ -227,7 +227,7 @@ void House::removePlayers(bool ignoreInvites)
 		return;
 	}
 
-	for (PlayerVector::iterator it = kickList.begin(); it != kickList.end(); ++it) {
+	for (auto it = kickList.begin(); it != kickList.end(); ++it) {
 		removePlayer((*it), false);
 	}
 }
@@ -482,8 +482,6 @@ bool AccessList::parseList(const std::string& _list)
 {
 	playerList.clear();
 	guildList.clear();
-	expressionList.clear();
-	regexList.clear();
 
 	list = _list;
 	if (_list.empty()) {
@@ -507,8 +505,11 @@ bool AccessList::parseList(const std::string& _list)
 		if (line.find("@") != std::string::npos) {
 			std::string::size_type pos = line.find("@");
 			addGuild(line.substr(pos + 1), line.substr(0, pos));
+		} else if (line == "*") {
+			m_allowEveryone = true;
 		} else if (line.find("!") != std::string::npos || line.find("*") != std::string::npos || line.find("?") != std::string::npos) {
-			addExpression(line);
+			// regex expressions no longer supported
+			continue;
 		} else {
 			addPlayer(line);
 		}
@@ -519,16 +520,9 @@ bool AccessList::parseList(const std::string& _list)
 
 bool AccessList::isInList(const Player* player)
 {
-	std::string name = player->getName();
-	boost::cmatch what;
-	try {
-		toLowerCaseString(name);
-		for (RegexList::iterator it = regexList.begin(); it != regexList.end(); ++it) {
-			if (boost::regex_match(name.c_str(), what, it->first)) {
-				return it->second;
-			}
-		}
-	} catch (...) {}
+	if (m_allowEveryone) {
+		return true;
+	}
 
 	if (playerList.find(player->getGUID()) != playerList.end()) {
 		return true;
@@ -539,7 +533,6 @@ bool AccessList::isInList(const Player* player)
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -579,42 +572,6 @@ bool AccessList::addGuild(const std::string& guildName, const std::string& rankN
 	}
 
 	guildList.push_back(std::make_pair(guildId, rankId));
-	return true;
-}
-
-bool AccessList::addExpression(const std::string& expression)
-{
-	for (ExpressionList::iterator it = expressionList.begin(); it != expressionList.end(); ++it) {
-		if ((*it) == expression) {
-			return false;
-		}
-	}
-
-	std::string out, meta = ".[{}()\\+|^$";
-	for (std::string::const_iterator it = expression.begin(); it != expression.end(); ++it) {
-		if (meta.find(*it) != std::string::npos) {
-			out += "\\";
-		}
-
-		out += (*it);
-	}
-
-	replaceString(out, "**", "");
-	replaceString(out, "*", ".*");
-	replaceString(out, "?", ".?");
-
-	try {
-		if (out.length() > 0) {
-			expressionList.push_back(out);
-			if (out.substr(0, 1) == "!") {
-				if (out.length() > 1) {
-					regexList.push_front(std::make_pair(boost::regex(out.substr(1)), false));
-				}
-			} else {
-				regexList.push_back(std::make_pair(boost::regex(out), true));
-			}
-		}
-	} catch (...) {}
 	return true;
 }
 

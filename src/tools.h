@@ -17,12 +17,11 @@
 
 #pragma once
 
-#include "enums.h"
 #include "const.h"
-
-#include <libxml/parser.h>
-#include <boost/tokenizer.hpp>
+#include "enums.h"
 #include "position.h"
+
+#include <boost/tokenizer.hpp>
 
 typedef std::vector<std::string> StringVec;
 typedef std::vector<int32_t> IntegerVec;
@@ -74,6 +73,8 @@ int64_t OTSYS_TIME();
 
 std::mt19937& getRandomGenerator();
 
+bool caseInsensitiveEqual(std::string_view str1, std::string_view str2);
+
 void trim_right(std::string& source, const std::string& t);
 void trim_left(std::string& source, const std::string& t);
 std::string trimString(std::string& str);
@@ -103,10 +104,7 @@ bool isValidAccountName(std::string text);
 bool isValidPassword(std::string text);
 bool isValidName(std::string text, bool forceUppercaseOnFirstLetter = true);
 
-std::string transformToSHA1(std::string plainText, bool upperCase);
-
-void _encrypt(std::string& str, bool upperCase);
-bool encryptTest(std::string plain, std::string& hash);
+std::string transformToSHA1(const std::string& input);
 
 StringVec explodeString(const std::string& string, const std::string& separator, bool trim = true, uint16_t limit = 0);
 IntegerVec vectorAtoi(StringVec stringVector);

@@ -17,81 +17,67 @@
 
 #pragma once
 
-#include <boost/function.hpp>
-#define DISPATCHER_TASK_EXPIRATION 2000
+#include "thread_holder_base.h"
+
+#define addDispatcherTask(function) g_dispatcher.addTask(std::make_unique<Task>(function))
+#define addTimedDispatcherTask(delay, function) g_dispatcher.addTask(std::make_unique<Task>(delay, function))
+
+static constexpr uint32_t DISPATCHER_TASK_EXPIRATION = 2000;
+static constexpr auto SYSTEM_TIME_ZERO = std::chrono::system_clock::time_point(std::chrono::milliseconds(0));
+
+class Task;
+using TaskFunc = std::function<void(void)>;
+using TaskPtr = std::unique_ptr<Task>;
 
 class Task
 {
 public:
-	Task(const boost::function<void(void)>& f) :
-		m_expiration(
-			boost::date_time::not_a_date_time),
-		m_f(f) {}
-	Task(uint32_t ms, const boost::function<void(void)>& f) :
-		m_expiration(
-			boost::get_system_time() + boost::posix_time::milliseconds(ms)),
-		m_f(f) {}
+	Task(TaskFunc&& f) :
+		m_func(std::move(f)) {}
+	Task(uint32_t ms, TaskFunc&& f) :
+		m_expiration(std::chrono::system_clock::now() + std::chrono::milliseconds(ms)),
+		m_func(std::move(f)) {}
+	virtual ~Task() = default;
 
-	virtual ~Task() {}
-	void operator()() { m_f(); }
+	void operator()() { m_func(); }
 
-	void unsetExpiration() { m_expiration = boost::date_time::not_a_date_time; }
+	void unsetExpiration() { m_expiration = SYSTEM_TIME_ZERO; }
 	bool hasExpired() const
 	{
-		if (m_expiration == boost::date_time::not_a_date_time) {
+		if (m_expiration == SYSTEM_TIME_ZERO) {
 			return false;
 		}
-
-		return m_expiration < boost::get_system_time();
+		return m_expiration < std::chrono::system_clock::now();
 	}
 
-protected:
-	boost::system_time m_expiration;
-	boost::function<void(void)> m_f;
+private:
+	TaskFunc m_func;
+	std::chrono::system_clock::time_point m_expiration = SYSTEM_TIME_ZERO;
 };
 
-inline Task* createTask(boost::function<void(void)> f)
-{
-	return new Task(f);
-}
-inline Task* createTask(uint32_t expiration, boost::function<void(void)> f)
-{
-	return new Task(expiration, f);
-}
-
-class Dispatcher
+class Dispatcher final : public ThreadHolder<Dispatcher>
 {
 public:
-	virtual ~Dispatcher() {}
-	static Dispatcher& getInstance()
-	{
-		static Dispatcher dispatcher;
-		return dispatcher;
-	}
+	Dispatcher() = default;
 
-	void addTask(Task* task, bool front = false);
+	// non-copyable
+	Dispatcher(const Dispatcher&) = delete;
+	Dispatcher& operator=(const Dispatcher&) = delete;
 
-	void stop();
+	void addTask(TaskPtr task);
+
 	void shutdown();
-	void exit() { m_thread.join(); }
 
-	void dispatcherThread();
+	uint64_t getDispatcherCycle() const { return dispatcherCycle; }
 
-protected:
-	void flush();
+	void threadMain();
 
-	Dispatcher();
-	enum DispatcherState
-	{
-		STATE_RUNNING,
-		STATE_CLOSING,
-		STATE_TERMINATED
-	};
+private:
+	std::mutex taskLock;
+	std::condition_variable taskSignal;
 
-	boost::thread m_thread;
-	boost::mutex m_taskLock;
-	boost::condition_variable m_taskSignal;
-
-	std::list<Task*> m_taskList;
-	static DispatcherState m_threadState;
+	std::vector<TaskPtr> taskList;
+	uint64_t dispatcherCycle = 0;
 };
+
+extern Dispatcher g_dispatcher;

@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "outfit.h"
+
+#include "condition.h"
+#include "game.h"
+#include "player.h"
 #include "tools.h"
 
-#include "player.h"
-#include "condition.h"
-
-#include "game.h"
 extern Game g_game;
 
 bool Outfits::parseOutfitNode(xmlNodePtr p)

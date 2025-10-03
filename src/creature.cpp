@@ -14,22 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 
 #include "creature.h"
-#include "player.h"
-#include "npc.h"
-#include "monster.h"
 
-#include "condition.h"
 #include "combat.h"
-
-#include "container.h"
-
+#include "condition.h"
 #include "configmanager.h"
 #include "game.h"
+#include "player.h"
 
-boost::recursive_mutex AutoId::lock;
+#include <iomanip>
+
+std::recursive_mutex AutoId::lock;
 uint32_t AutoId::count = 1000;
 AutoId::List AutoId::list;
 
@@ -334,7 +332,7 @@ bool Creature::getNextStep(Direction& dir, uint32_t&)
 	return true;
 }
 
-bool Creature::startAutoWalk(std::list<Direction>& listDir)
+bool Creature::startAutoWalk(const std::list<Direction>& listDir)
 {
 	listWalkDir = listDir;
 	addEventWalk(listDir.size() == 1);
@@ -357,8 +355,9 @@ void Creature::addEventWalk(bool firstStep /* = false*/)
 		g_game.checkCreatureWalk(getID());
 	}
 
-	eventWalk = Scheduler::getInstance().addEvent(createSchedulerTask(std::max((int64_t)SCHEDULER_MINTICKS, ticks),
-		boost::bind(&Game::checkCreatureWalk, &g_game, id)));
+	eventWalk = addSchedulerTask(
+		std::max<uint32_t>(SCHEDULER_MINTICKS, ticks),
+		[creatureID = getID()]() { g_game.checkCreatureWalk(creatureID); });
 }
 
 void Creature::stopEventWalk()
@@ -367,7 +366,7 @@ void Creature::stopEventWalk()
 		return;
 	}
 
-	Scheduler::getInstance().stopEvent(eventWalk);
+	g_scheduler.stopEvent(eventWalk);
 	eventWalk = 0;
 }
 
@@ -675,7 +674,7 @@ void Creature::onCreatureMove(const Creature* creature, const Tile* newTile, con
 		if (hasFollowPath) {
 			if (getWalkDelay() <= 0) {
 				isUpdatingPath = false;
-				Dispatcher::getInstance().addTask(createTask(boost::bind(&Game::updateCreatureWalk, &g_game, getID())));
+				addDispatcherTask([creatureID = getID()]() { g_game.updateCreatureWalk(creatureID); });
 			} else {
 				isUpdatingPath = true;
 			}
@@ -689,8 +688,7 @@ void Creature::onCreatureMove(const Creature* creature, const Tile* newTile, con
 	if (creature == attackedCreature || (creature == this && attackedCreature)) {
 		if (newPos.z == oldPos.z && canSee(attackedCreature->getPosition())) {
 			if (hasExtraSwing()) { // our target is moving lets see if we can get in hit
-				Dispatcher::getInstance().addTask(createTask(
-					boost::bind(&Game::checkCreatureAttack, &g_game, getID())));
+				addDispatcherTask([creatureID = getID()]() { g_game.checkCreatureAttack(creatureID); });
 			}
 
 			if (newTile->getZone() != oldTile->getZone()) {

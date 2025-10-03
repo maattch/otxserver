@@ -17,13 +17,8 @@
 
 #pragma once
 
-#include "status.h"
-
-#include "map.h"
-#include "house.h"
-
-#include "spawn.h"
 #include "item.h"
+#include "map.h"
 
 enum OTBM_AttrTypes_t
 {

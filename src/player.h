@@ -17,28 +17,22 @@
 
 #pragma once
 
-#include "enums.h"
-
+#include "container.h"
 #include "creature.h"
 #include "cylinder.h"
-
-#include "container.h"
 #include "depot.h"
-
-#include "outfit.h"
-#include "vocation.h"
+#include "enums.h"
 #include "group.h"
-
-#include "spectators.h"
-#include "ioguild.h"
-#include "party.h"
 #include "npc.h"
+#include "outfit.h"
+#include "scheduler.h"
+#include "spectators.h"
+#include "vocation.h"
 
 class House;
 class Weapon;
 class Npc;
 class Party;
-class SchedulerTask;
 class Quest;
 class ProtocolGame;
 
@@ -1140,9 +1134,9 @@ protected:
 		}
 	}
 
-	void setNextWalkActionTask(SchedulerTask* task);
-	void setNextWalkTask(SchedulerTask* task);
-	void setNextActionTask(SchedulerTask* task);
+	void setNextWalkActionTask(SchedulerTaskPtr task);
+	void setNextWalkTask(SchedulerTaskPtr task);
+	void setNextActionTask(SchedulerTaskPtr task);
 
 	virtual bool onDeath();
 	virtual Item* createCorpse(DeathList deathList);
@@ -1305,7 +1299,7 @@ private:
 
 	Vocation* vocation;
 	Spectators* client;
-	SchedulerTask* walkTask;
+	SchedulerTaskPtr walkTask;
 	Party* party;
 	Group* group;
 	Item* inventory[SLOT_LAST];

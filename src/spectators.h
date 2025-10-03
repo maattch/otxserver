@@ -18,7 +18,6 @@
 #pragma once
 
 #include "enums.h"
-
 #include "protocolgame.h"
 
 class Creature;

@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "networkmessage.h"
 #include "player.h"
 
 typedef std::map<uint32_t, std::string> StateMap;

@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#include "otpch.h"
-#include "waitlist.h"
 
-#include "player.h"
+#include "otpch.h"
+
+#include "waitlist.h"
 
 #include "configmanager.h"
 #include "game.h"
+#include "player.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -29,7 +30,7 @@ WaitList::iterator WaitingList::find(const Player* player, uint32_t& slot)
 {
 	slot = 1;
 	for (WaitList::iterator it = waitList.begin(); it != waitList.end(); ++it) {
-		if ((*it)->ip == player->getIP() && boost::algorithm::iequals((*it)->name, player->getName())) {
+		if ((*it)->ip == player->getIP() && caseInsensitiveEqual((*it)->name, player->getName())) {
 			return it;
 		}
 

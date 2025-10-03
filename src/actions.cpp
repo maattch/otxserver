@@ -14,31 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 
-#include "const.h"
-
 #include "actions.h"
-#include "tools.h"
 
-#include "player.h"
-#include "monster.h"
-#include "npc.h"
-
-#include "item.h"
-#include "container.h"
-
-#include "game.h"
-#include "configmanager.h"
-
-#include "combat.h"
-#include "spells.h"
-
-#include "house.h"
 #include "beds.h"
-
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
+#include "configmanager.h"
+#include "const.h"
+#include "container.h"
+#include "game.h"
+#include "house.h"
+#include "item.h"
+#include "player.h"
+#include "spells.h"
+#include "tools.h"
 
 extern Game g_game;
 extern Spells* g_spells;

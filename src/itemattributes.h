@@ -18,7 +18,6 @@
 #pragma once
 
 #include <boost/any.hpp>
-#include <unordered_map>
 
 class PropWriteStream;
 class PropStream;

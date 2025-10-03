@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 
 #include "ioguild.h"
-#include "database.h"
-#include "player.h"
 
-#include "configmanager.h"
-#include "game.h"
 #include "chat.h"
+#include "configmanager.h"
+#include "database.h"
+#include "game.h"
+#include "player.h"
 
 extern Chat g_chat;
 extern Game g_game;
@@ -573,8 +574,7 @@ bool IOGuild::updateWar(War_t& war)
 	war.payment = result->getNumber<int32_t>("payment");
 
 	if (war.frags[WAR_GUILD] >= war.limit || war.frags[WAR_ENEMY] >= war.limit) {
-		Scheduler::getInstance().addEvent(createSchedulerTask(1000,
-			boost::bind(&IOGuild::finishWar, this, war, true)));
+		addSchedulerTask(1000, ([this, war]() { finishWar(war, true); }));
 		return true;
 	}
 

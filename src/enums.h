@@ -68,12 +68,6 @@ enum CreatureType_t
 	CREATURETYPE_NPC = 2
 };
 
-enum Encryption_t
-{
-	ENCRYPTION_PLAIN = 0,
-	ENCRYPTION_SHA1
-};
-
 enum GuildLevel_t
 {
 	GUILDLEVEL_NONE = 0,

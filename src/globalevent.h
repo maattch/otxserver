@@ -19,9 +19,6 @@
 
 #include "baseevents.h"
 
-#include "const.h"
-#include "scheduler.h"
-
 #define TIMER_INTERVAL 1000
 
 enum GlobalEvent_t

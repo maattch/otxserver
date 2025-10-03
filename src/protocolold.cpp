@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "protocolold.h"
 
-#include "outputmessage.h"
 #include "connection.h"
 #include "game.h"
+#include "outputmessage.h"
 
 extern Game g_game;
 

@@ -14,21 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iomanip>
 
 #include "protocollogin.h"
-#include "tools.h"
-#include "const.h"
-
-#include "iologindata.h"
-#include "ioban.h"
-
-#include "outputmessage.h"
-#include "connection.h"
 
 #include "configmanager.h"
+#include "connection.h"
+#include "const.h"
 #include "game.h"
+#include "ioban.h"
+#include "iologindata.h"
+#include "outputmessage.h"
+#include "tools.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -127,7 +125,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	Account account;
-	if (!IOLoginData::getInstance()->loadAccount(account, name) || (account.name != "10" && !encryptTest(account.salt + password, account.password))) {
+	if (!IOLoginData::getInstance()->loadAccount(account, name) || (account.name != "10" && transformToSHA1(account.salt + password) != account.password)) {
 		disconnectClient(0x0A, "Invalid account name or password.");
 		return;
 	}

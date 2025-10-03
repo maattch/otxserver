@@ -17,12 +17,10 @@
 
 #pragma once
 
-#include "enums.h"
-#include "player.h"
-
-#include "tools.h"
-#include "luascript.h"
 #include "baseevents.h"
+#include "luascript.h"
+#include "player.h"
+#include "tools.h"
 
 enum TalkActionFilter
 {

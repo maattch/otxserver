@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 
 #include "itemattributes.h"
+
 #include "fileloader.h"
 
 ItemAttributes::ItemAttributes(const ItemAttributes& o)

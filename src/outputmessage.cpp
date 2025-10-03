@@ -18,8 +18,9 @@
 #include "otpch.h"
 
 #include "outputmessage.h"
-#include "protocol.h"
+
 #include "lockfree.h"
+#include "protocol.h"
 #include "scheduler.h"
 
 const uint16_t OUTPUTMESSAGE_FREE_LIST_CAPACITY = 24768;
@@ -38,8 +39,7 @@ public:
 
 void OutputMessagePool::scheduleSendAll()
 {
-	auto functor = std::bind(&OutputMessagePool::sendAll, this);
-	Scheduler::getInstance().addEvent(createSchedulerTask(OUTPUTMESSAGE_AUTOSEND_DELAY.count(), functor));
+	addSchedulerTask(OUTPUTMESSAGE_AUTOSEND_DELAY.count(), [this]() { sendAll(); });
 }
 
 void OutputMessagePool::sendAll()

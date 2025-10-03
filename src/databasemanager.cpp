@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include "enums.h"
-#include <iostream>
 
 #include "databasemanager.h"
-#include "tools.h"
 
 #include "configmanager.h"
+
 extern ConfigManager g_config;
 
 bool DatabaseManager::optimizeTables()

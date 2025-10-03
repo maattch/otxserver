@@ -18,15 +18,13 @@
 #pragma once
 
 #include "enums.h"
-#include "templates.h"
-#include "server.h"
-
-#include "map.h"
-
 #include "item.h"
-#include "player.h"
-#include "npc.h"
+#include "map.h"
 #include "monster.h"
+#include "npc.h"
+#include "player.h"
+#include "server.h"
+#include "templates.h"
 
 class Creature;
 class Player;
@@ -136,7 +134,7 @@ struct RefreshBlock_t
 	uint64_t lastRefresh;
 };
 
-typedef std::map<uint32_t, shared_ptr<RuleViolation>> RuleViolationsMap;
+typedef std::map<uint32_t, std::shared_ptr<RuleViolation>> RuleViolationsMap;
 typedef std::map<Tile*, RefreshBlock_t> RefreshTiles;
 typedef std::vector<std::pair<std::string, uint32_t>> Highscore;
 typedef std::list<Position> Trash;
@@ -305,14 +303,14 @@ public:
 	 * \param s is the player name
 	 * \return A vector of all players with the selected name
 	 */
-	PlayerVector getPlayersByName(std::string s);
+	std::vector<Player*> getPlayersByName(std::string s);
 
 	/**
 	 * Returns all players based on their account number identifier
 	 * \param acc is the account identifier
 	 * \return A vector of all players with the selected account number
 	 */
-	PlayerVector getPlayersByAccount(const uint32_t& acc);
+	std::vector<Player*> getPlayersByAccount(const uint32_t& acc);
 
 	/**
 	 * Returns all players with a certain IP address
@@ -320,7 +318,7 @@ public:
 	 * \param mask An IP mask, default 255.255.255.255
 	 * \return A vector of all players with the selected IP
 	 */
-	PlayerVector getPlayersByIP(const uint32_t& ip, const uint32_t& mask = 0xFFFFFFFF);
+	std::vector<Player*> getPlayersByIP(const uint32_t& ip, const uint32_t& mask = 0xFFFFFFFF);
 
 	/**
 	 * Place Creature on the map without sending out events to the surrounding.
@@ -512,13 +510,13 @@ public:
 	bool playerRequestChannels(const uint32_t& playerId);
 	bool playerOpenChannel(const uint32_t& playerId, const uint16_t& channelId);
 	bool playerCloseChannel(const uint32_t& playerId, const uint16_t& channelId);
-	bool playerOpenPrivateChannel(const uint32_t& playerId, std::string& receiver);
+	bool playerOpenPrivateChannel(const uint32_t& playerId, const std::string& receiver);
 	bool playerCloseNpcChannel(const uint32_t& playerId);
 	bool playerProcessRuleViolation(const uint32_t& playerId, const std::string& name);
 	bool playerCloseRuleViolation(const uint32_t& playerId, const std::string& name);
 	bool playerCancelRuleViolation(const uint32_t& playerId);
 	bool playerReceivePing(const uint32_t& playerId);
-	bool playerAutoWalk(const uint32_t& playerId, std::list<Direction>& listDir);
+	bool playerAutoWalk(const uint32_t& playerId, const std::list<Direction>& listDir);
 	bool playerStopAutoWalk(const uint32_t& playerId);
 	bool playerUseItemEx(const uint32_t& playerId, const Position& fromPos, int16_t fromStackpos,
 		const uint16_t& fromSpriteId, const Position& toPos, const int16_t& toStackpos, const uint16_t& toSpriteId, bool isHotkey);

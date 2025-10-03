@@ -17,12 +17,10 @@
 
 #pragma once
 
-#include <luajit/lua.hpp>
-
 #include "database.h"
 #include "position.h"
 
-#include <unordered_map>
+#include <luajit/lua.hpp>
 
 enum LuaVariantType_t
 {

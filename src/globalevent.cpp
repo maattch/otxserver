@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "globalevent.h"
-#include "tools.h"
+
 #include "player.h"
+#include "tools.h"
 
 GlobalEvents::GlobalEvents() :
 	m_interface("GlobalEvent Interface")
@@ -94,10 +94,8 @@ bool GlobalEvents::registerEvent(Event* event, xmlNodePtr, bool override)
 void GlobalEvents::startup()
 {
 	execute(GLOBALEVENT_STARTUP);
-	Scheduler::getInstance().addEvent(createSchedulerTask(TIMER_INTERVAL,
-		boost::bind(&GlobalEvents::timer, this)));
-	Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
-		boost::bind(&GlobalEvents::think, this)));
+	addSchedulerTask(TIMER_INTERVAL, [this]() { timer(); });
+	addSchedulerTask(SCHEDULER_MINTICKS, [this]() { think(); });
 }
 
 void GlobalEvents::timer()
@@ -116,8 +114,7 @@ void GlobalEvents::timer()
 		}
 	}
 
-	Scheduler::getInstance().addEvent(createSchedulerTask(TIMER_INTERVAL,
-		boost::bind(&GlobalEvents::timer, this)));
+	addSchedulerTask(TIMER_INTERVAL, [this]() { timer(); });
 }
 
 void GlobalEvents::think()
@@ -135,8 +132,7 @@ void GlobalEvents::think()
 		}
 	}
 
-	Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
-		boost::bind(&GlobalEvents::think, this)));
+	addSchedulerTask(SCHEDULER_MINTICKS, [this]() { think(); });
 }
 
 void GlobalEvents::execute(GlobalEvent_t type)

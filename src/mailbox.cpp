@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#include "otpch.h"
-#include "mailbox.h"
 
-#include "player.h"
-#include "iologindata.h"
-#include "town.h"
+#include "otpch.h"
+
+#include "mailbox.h"
 
 #include "configmanager.h"
 #include "game.h"
+#include "iologindata.h"
+#include "player.h"
+#include "town.h"
 
 extern ConfigManager g_config;
 extern Game g_game;

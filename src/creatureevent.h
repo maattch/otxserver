@@ -17,9 +17,8 @@
 
 #pragma once
 
-#include "enums.h"
-
 #include "baseevents.h"
+#include "enums.h"
 #include "tile.h"
 
 enum CreatureEventType_t

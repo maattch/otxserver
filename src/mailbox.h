@@ -18,7 +18,6 @@
 #pragma once
 
 #include "const.h"
-
 #include "cylinder.h"
 #include "item.h"
 

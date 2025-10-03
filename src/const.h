@@ -19,6 +19,13 @@
 
 #define NETWORKMESSAGE_MAXSIZE 24590
 
+enum ThreadState : uint8_t
+{
+	THREAD_STATE_RUNNING,
+	THREAD_STATE_CLOSING,
+	THREAD_STATE_TERMINATED,
+};
+
 enum OperatingSystem_t
 {
 	CLIENTOS_LINUX = 1,

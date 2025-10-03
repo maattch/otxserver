@@ -14,34 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "scriptmanager.h"
 
-#include <boost/filesystem.hpp>
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-
 #include "actions.h"
-#include "movement.h"
-#include "spells.h"
-#include "talkaction.h"
+#include "chat.h"
+#include "configmanager.h"
 #include "creatureevent.h"
 #include "globalevent.h"
-#include "weapons.h"
-
-#include "monsters.h"
-#include "npc.h"
-#include "spawn.h"
-#include "raids.h"
 #include "group.h"
-#include "vocation.h"
+#include "items.h"
+#include "luascript.h"
+#include "monsters.h"
+#include "movement.h"
+#include "npc.h"
 #include "outfit.h"
 #include "quests.h"
-#include "items.h"
-#include "chat.h"
-
-#include "configmanager.h"
-#include "luascript.h"
+#include "raids.h"
+#include "spawn.h"
+#include "spells.h"
+#include "talkaction.h"
+#include "vocation.h"
+#include "weapons.h"
 
 Actions* g_actions = NULL;
 CreatureEvents* g_creatureEvents = NULL;
@@ -140,20 +136,20 @@ bool ScriptManager::loadSystem()
 
 bool ScriptManager::loadMods()
 {
-	boost::filesystem::path modsPath(getFilePath(FILE_TYPE_MOD));
-	if (!boost::filesystem::exists(modsPath)) {
+	std::filesystem::path modsPath(getFilePath(FILE_TYPE_MOD));
+	if (!std::filesystem::exists(modsPath)) {
 		std::clog << "[Error - ScriptManager::loadMods] Could not locate mods directory" << std::endl;
 		return false;
 	}
 
 	int32_t i = 0, j = 0;
 	bool enabled = false;
-	for (boost::filesystem::directory_iterator it(modsPath), end; it != end; ++it) {
-		std::string s = BOOST_DIR_ITER_FILENAME(it);
-		if (boost::filesystem::is_directory(it->status()) && (s.size() > 4 ? s.substr(s.size() - 4) : "") != ".xml") {
+	for (std::filesystem::directory_iterator it(modsPath), end; it != end; ++it) {
+		if (!std::filesystem::is_regular_file(it->status()) || it->path().extension() != ".xml") {
 			continue;
 		}
 
+		std::string s = it->path().string();
 		std::clog << ">>> Loading " << s << " ...";
 		if (loadFromXml(s, enabled)) {
 			std::clog << " (done)";

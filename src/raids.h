@@ -17,12 +17,8 @@
 
 #pragma once
 
-#include "const.h"
-
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-
 #include "baseevents.h"
+#include "const.h"
 #include "position.h"
 #include "tools.h"
 

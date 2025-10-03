@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "tile.h"
 #include "const.h"
+#include "tile.h"
 
 class TrashHolder : public Item, public Cylinder
 {

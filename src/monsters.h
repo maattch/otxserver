@@ -18,6 +18,7 @@
 #pragma once
 
 #include "creature.h"
+
 #define MAX_LOOTCHANCE 100000
 #define MAX_STATICWALK 100
 

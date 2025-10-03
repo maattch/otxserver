@@ -17,15 +17,14 @@
 
 #pragma once
 
-#include "templates.h"
-#include <boost/any.hpp>
-
-#include "const.h"
-#include "enums.h"
-
-#include "map.h"
 #include "condition.h"
+#include "const.h"
 #include "creatureevent.h"
+#include "enums.h"
+#include "map.h"
+#include "templates.h"
+
+#include <boost/any.hpp>
 
 enum slots_t
 {
@@ -274,7 +273,7 @@ public:
 	ZoneType_t getZone() const { return getTile()->getZone(); }
 
 	// walk functions
-	bool startAutoWalk(std::list<Direction>& listDir);
+	bool startAutoWalk(const std::list<Direction>& listDir);
 	void stopWalk() { cancelNextWalk = true; }
 	void addEventWalk(bool firstStep = false);
 	void stopEventWalk();

@@ -14,31 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iostream>
 
 #include "player.h"
 
-#include "iologindata.h"
-#include "ioban.h"
-
-#include "town.h"
-#include "house.h"
 #include "beds.h"
-#include "quests.h"
-
-#include "combat.h"
-#include "movement.h"
-#include "weapons.h"
-#include "creatureevent.h"
-
-#include "configmanager.h"
-#include "game.h"
 #include "chat.h"
-#include "textlogger.h"
-#include "outputmessage.h"
-
+#include "combat.h"
+#include "configmanager.h"
+#include "creatureevent.h"
+#include "game.h"
+#include "house.h"
+#include "ioban.h"
+#include "ioguild.h"
+#include "iologindata.h"
+#include "movement.h"
+#include "quests.h"
 #include "spectators.h"
+#include "town.h"
+#include "weapons.h"
+
 extern ConfigManager g_config;
 extern Game g_game;
 extern Chat g_chat;
@@ -1974,40 +1970,39 @@ void Player::checkTradeState(const Item* item)
 	}
 }
 
-void Player::setNextWalkActionTask(SchedulerTask* task)
+void Player::setNextWalkActionTask(SchedulerTaskPtr task)
 {
 	if (walkTaskEvent) {
-		Scheduler::getInstance().stopEvent(walkTaskEvent);
+		g_scheduler.stopEvent(walkTaskEvent);
 		walkTaskEvent = 0;
 	}
 
-	delete walkTask;
-	walkTask = task;
+	walkTask = std::move(task);
 	setIdleTime(0);
 }
 
-void Player::setNextWalkTask(SchedulerTask* task)
+void Player::setNextWalkTask(SchedulerTaskPtr task)
 {
 	if (nextStepEvent) {
-		Scheduler::getInstance().stopEvent(nextStepEvent);
+		g_scheduler.stopEvent(nextStepEvent);
 		nextStepEvent = 0;
 	}
 
 	if (task) {
-		nextStepEvent = Scheduler::getInstance().addEvent(task);
+		nextStepEvent = g_scheduler.addEvent(std::move(task));
 		setIdleTime(0);
 	}
 }
 
-void Player::setNextActionTask(SchedulerTask* task)
+void Player::setNextActionTask(SchedulerTaskPtr task)
 {
 	if (actionTaskEvent) {
-		Scheduler::getInstance().stopEvent(actionTaskEvent);
+		g_scheduler.stopEvent(actionTaskEvent);
 		actionTaskEvent = 0;
 	}
 
 	if (task) {
-		actionTaskEvent = Scheduler::getInstance().addEvent(task);
+		actionTaskEvent = g_scheduler.addEvent(std::move(task));
 		setIdleTime(0);
 	}
 }
@@ -3815,7 +3810,7 @@ bool Player::setAttackedCreature(Creature* creature)
 	}
 
 	if (creature) {
-		Dispatcher::getInstance().addTask(createTask(boost::bind(&Game::checkCreatureAttack, &g_game, getID())));
+		addDispatcherTask([playerID = getID()]() { g_game.checkCreatureAttack(playerID); });
 	}
 
 	return true;
@@ -3850,9 +3845,8 @@ void Player::doAttacking(uint32_t)
 
 	if (const Weapon* _weapon = g_weapons->getWeapon(weapon)) {
 		if (_weapon->interruptSwing() && !canDoAction()) {
-			SchedulerTask* task = createSchedulerTask(getNextActionTime(),
-				boost::bind(&Game::checkCreatureAttack, &g_game, getID()));
-			setNextActionTask(task);
+			setNextActionTask(
+				createSchedulerTask(getNextActionTime(), [playerID = getID()]() { g_game.checkCreatureAttack(playerID); }));
 		} else {
 			if ((!_weapon->hasExhaustion() || !hasCondition(CONDITION_EXHAUST)) && _weapon->useWeapon(this, weapon, attackedCreature)) {
 				lastAttack = OTSYS_TIME();
@@ -3936,8 +3930,7 @@ void Player::onWalkComplete()
 		return;
 	}
 
-	walkTaskEvent = Scheduler::getInstance().addEvent(walkTask);
-	walkTask = NULL;
+	walkTaskEvent = g_scheduler.addEvent(std::move(walkTask));
 }
 
 void Player::getCreatureLight(LightInfo& light) const
@@ -4758,7 +4751,7 @@ bool Player::addUnjustifiedKill(const Player* attacked, bool countNow)
 
 		sendTextMessage(MSG_INFO_DESCR, "You have been banished.");
 		g_game.addMagicEffect(getPosition(), MAGIC_EFFECT_WRAPS_GREEN);
-		Scheduler::getInstance().addEvent(createSchedulerTask(1000, boost::bind(&Game::kickPlayer, &g_game, getID(), false)));
+		addSchedulerTask(1000, [playerID = getID()]() { g_game.kickPlayer(playerID, false); });
 	} else {
 		f += g_config.getNumber(ConfigManager::BLACK_LIMIT);
 		s += g_config.getNumber(ConfigManager::BLACK_SECOND_LIMIT);
@@ -4902,7 +4895,7 @@ bool Player::hasLearnedInstantSpell(const std::string& name) const
 	}
 
 	for (LearnedInstantSpellList::const_iterator it = learnedInstantSpellList.begin(); it != learnedInstantSpellList.end(); ++it) {
-		if (boost::algorithm::iequals(*it, name)) {
+		if (caseInsensitiveEqual(*it, name)) {
 			return true;
 		}
 	}

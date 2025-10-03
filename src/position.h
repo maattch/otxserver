@@ -17,11 +17,6 @@
 
 #pragma once
 
-#include <stdlib.h>
-
-#include <cmath>
-#include <iostream>
-
 enum Direction
 {
 	NORTH = 0,

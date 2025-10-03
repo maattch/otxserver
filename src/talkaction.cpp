@@ -14,36 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
+
 #include "talkaction.h"
 
-#include "iologindata.h"
-#include "ioban.h"
-
-#include "player.h"
-#include "npc.h"
-
-#include "house.h"
-#include "town.h"
-
-#include <boost/regex.hpp>
-
-#include "teleport.h"
-#include "status.h"
-#include "textlogger.h"
-
-#include <boost/version.hpp>
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-	#include "outputmessage.h"
-	#include "connection.h"
-	#include "protocollogin.h"
-	#include "protocolold.h"
-#endif
-
+#include "chat.h"
 #include "configmanager.h"
 #include "game.h"
-#include "chat.h"
+#include "house.h"
+#include "ioban.h"
+#include "ioguild.h"
+#include "iologindata.h"
+#include "player.h"
+#include "teleport.h"
+#include "textlogger.h"
 #include "tools.h"
+#include "town.h"
+
+#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#include "outputmessage.h"
+#include "connection.h"
+#include "protocollogin.h"
+#include "protocolold.h"
+#endif
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -157,7 +151,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 
 	TalkAction* talkAction = NULL;
 	for (TalkActionsMap::iterator it = talksMap.begin(); it != talksMap.end(); ++it) {
-		if (it->first == cmd[it->second->getFilter()] || (!it->second->isSensitive() && boost::algorithm::iequals(it->first, cmd[it->second->getFilter()]))) {
+		if (it->first == cmd[it->second->getFilter()] || (!it->second->isSensitive() && caseInsensitiveEqual(it->first, cmd[it->second->getFilter()]))) {
 			talkAction = it->second;
 			break;
 		}
