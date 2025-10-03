@@ -518,7 +518,7 @@ void otserv(ServiceManager* services)
 	}
 
 	std::clog << ">> Loading items (OTB)" << std::endl;
-	if (Item::items.loadFromOtb(getFilePath(FILE_TYPE_OTHER, "items/items.otb"))) {
+	if (!Item::items.loadFromOtb(getFilePath(FILE_TYPE_OTHER, "items/items.otb"))) {
 		startupErrorMessage("Unable to load items (OTB)!");
 	}
 

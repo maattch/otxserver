@@ -312,9 +312,6 @@ public:
 	uint32_t getExtraAttackSpeed() const { return extraAttackSpeed; }
 	void setPlayerExtraAttackSpeed(uint32_t speed);
 
-	// reset system
-	uint32_t getReset() const { return reset; }
-	void setReset(uint32_t value) { reset = value; }
 	float getDamageMultiplier() const { return damageMultiplier; }
 	void setDamageMultiplier(float multiplier) { damageMultiplier = multiplier; }
 
@@ -1214,7 +1211,6 @@ private:
 	uint32_t accountId;
 	uint32_t lastIP;
 	uint32_t level;
-	uint32_t reset;
 	uint32_t levelPercent;
 	uint32_t magLevel;
 	uint32_t magLevelPercent;

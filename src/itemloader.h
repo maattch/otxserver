@@ -76,7 +76,7 @@ enum itemattrib_t
 	ITEM_ATTR_FIRST = 0x10,
 	ITEM_ATTR_SERVERID = ITEM_ATTR_FIRST,
 	ITEM_ATTR_CLIENTID,
-	ITEM_ATTR_NAME,
+	ITEM_ATTR_NAME, // unused
 	ITEM_ATTR_DESCR,
 	ITEM_ATTR_SPEED,
 	ITEM_ATTR_SLOT,
@@ -144,11 +144,5 @@ struct VERSIONINFO
 	uint32_t dwMinorVersion;
 	uint32_t dwBuildNumber;
 	uint8_t CSDVersion[128];
-};
-
-struct lightBlock2
-{
-	uint16_t lightLevel;
-	uint16_t lightColor;
 };
 #pragma pack()

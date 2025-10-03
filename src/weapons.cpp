@@ -27,8 +27,7 @@ extern Game g_game;
 extern ConfigManager g_config;
 extern Weapons* g_weapons;
 
-Weapons::Weapons() :
-	m_interface("Weapon Interface")
+Weapons::Weapons() : m_interface("Weapon Interface")
 {
 	m_interface.initState();
 }
@@ -39,67 +38,55 @@ const Weapon* Weapons::getWeapon(const Item* item) const
 		return nullptr;
 	}
 
-	WeaponMap::const_iterator it = weapons.find(item->getID());
+	auto it = weapons.find(item->getID());
 	if (it != weapons.end()) {
-		return it->second;
+		return it->second.get();
 	}
-
 	return nullptr;
 }
 
 void Weapons::clear()
 {
-	for (WeaponMap::iterator it = weapons.begin(); it != weapons.end(); ++it) {
-		delete it->second;
-	}
-
 	weapons.clear();
 	m_interface.reInitState();
 }
 
-bool Weapons::loadDefaults()
+void Weapons::loadDefaults()
 {
-	for (uint32_t i = 0; i <= Item::items.size(); ++i) {
-		const ItemType* it = Item::items.getElement(i);
-		if (!it || weapons.find(it->id) != weapons.end()) {
+	for (uint16_t i = 0; i <= Item::items.size(); ++i) {
+		const ItemType& it = Item::items.getItemType(i);
+		if (it.id == 0 || weapons.find(it.id) != weapons.end()) {
 			continue;
 		}
 
-		if (it->weaponType != WEAPON_NONE) {
-			switch (it->weaponType) {
-				case WEAPON_AXE:
-				case WEAPON_SWORD:
-				case WEAPON_CLUB:
-				case WEAPON_FIST: {
-					if (WeaponMelee* weapon = new WeaponMelee(&m_interface)) {
-						weapon->configureWeapon(*it);
-						weapons[it->id] = weapon;
-					}
-
-					break;
-				}
-
-				case WEAPON_AMMO:
-				case WEAPON_DIST: {
-					if (it->weaponType == WEAPON_DIST && it->ammoType != AMMO_NONE) {
-						continue;
-					}
-
-					if (WeaponDistance* weapon = new WeaponDistance(&m_interface)) {
-						weapon->configureWeapon(*it);
-						weapons[it->id] = weapon;
-					}
-
-					break;
-				}
-
-				default:
-					break;
+		switch (it.weaponType) {
+			case WEAPON_AXE:
+			case WEAPON_SWORD:
+			case WEAPON_CLUB:
+			case WEAPON_FIST: {
+				auto weapon = std::make_unique<WeaponMelee>(&m_interface);
+				weapon->configureWeapon(it);
+				weapons.emplace(i, std::move(weapon));
+				break;
 			}
+
+			case WEAPON_AMMO:
+			case WEAPON_DIST: {
+				if (it.weaponType == WEAPON_DIST && it.ammoType != AMMO_NONE) {
+					continue;
+				}
+
+				auto weapon = std::make_unique<WeaponDistance>(&m_interface);
+				weapon->configureWeapon(it);
+				weapons.emplace(i, std::move(weapon));
+				break;
+			}
+
+			case WEAPON_NONE:
+			default:
+				break;
 		}
 	}
-
-	return true;
 }
 
 Event* Weapons::getEvent(const std::string& nodeName)
@@ -107,35 +94,22 @@ Event* Weapons::getEvent(const std::string& nodeName)
 	std::string tmpNodeName = asLowerCaseString(nodeName);
 	if (tmpNodeName == "melee") {
 		return new WeaponMelee(&m_interface);
-	}
-
-	if (tmpNodeName == "distance" || tmpNodeName == "ammunition" || tmpNodeName == "ammo") {
+	} else if (tmpNodeName == "distance" || tmpNodeName == "ammunition" || tmpNodeName == "ammo") {
 		return new WeaponDistance(&m_interface);
-	}
-
-	if (tmpNodeName == "wand" || tmpNodeName == "rod") {
+	} else if (tmpNodeName == "wand" || tmpNodeName == "rod") {
 		return new WeaponWand(&m_interface);
 	}
-
 	return nullptr;
 }
 
 bool Weapons::registerEvent(Event* event, xmlNodePtr, bool override)
 {
-	Weapon* weapon = dynamic_cast<Weapon*>(event);
-	if (!weapon) {
-		return false;
-	}
+	// it is guaranteed to be a weapon
+	Weapon* weapon = static_cast<Weapon*>(event);
 
-	WeaponMap::iterator it = weapons.find(weapon->getID());
-	if (it == weapons.end()) {
-		weapons[weapon->getID()] = weapon;
-		return true;
-	}
-
-	if (override) {
-		delete it->second;
-		it->second = weapon;
+	auto it = weapons.find(weapon->getID());
+	if (it == weapons.end() || override) {
+		weapons[weapon->getID()] = WeaponPtr(weapon);
 		return true;
 	}
 

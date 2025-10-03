@@ -63,7 +63,6 @@ Player::Player(const std::string& _name, ProtocolGame_ptr p) :
 
 	// reset system
 	damageMultiplier = 1.0f;
-	reset = 0;
 
 	pvpBlessing = pzLocked = isConnecting = addAttackSkillPoint = requestedOutfit = outfitAttributes = sentChat = showLoot = false;
 	saving = true;
@@ -4298,9 +4297,6 @@ bool Player::gainExperience(double& gainExp, Creature* target)
 			uint32_t extraExpCast = g_config.getNumber(ConfigManager::CAST_EXP_PERCENT);
 			gainExp *= 1 + ((extraExpCast && extraExpCast > 0) ? (extraExpCast / 100.0) : 0);
 		}
-	}
-	if (g_config.getBool(ConfigManager::RESET_SYSTEM_ENABLE) && getReset() > 0) {
-		gainExp *= 1 + ((getReset() / 100) * 2); // extra 2% exp each reset
 	}
 
 	// soul regeneration

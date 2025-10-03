@@ -5160,14 +5160,6 @@ bool Game::combatChangeHealth(const CombatParams& params, Creature* attacker, Cr
 			elementDamage = -params.element.damage;
 		}
 
-		// Reset System
-		Player* attackerPlayer = attacker ? attacker->getPlayer() : nullptr;
-		if (attackerPlayer && g_config.getBool(ConfigManager::RESET_SYSTEM_ENABLE)) {
-			float dmgMultiplier = attackerPlayer->getDamageMultiplier();
-			healthChange *= dmgMultiplier;
-			elementDamage *= dmgMultiplier;
-		}
-
 		int32_t damage = -healthChange;
 		if (damage > 0) {
 			if (target->hasCondition(CONDITION_MANASHIELD) && params.combatType != COMBAT_UNDEFINEDDAMAGE) {
@@ -7030,8 +7022,10 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 
 		case RELOAD_GAMESERVERS:
 		case RELOAD_ITEMS: {
-			std::clog << "[Notice - Game::reloadInfo] Reload type does not work." << std::endl;
-			done = true;
+			done = Item::items.reload();
+			if (!done) {
+				std::clog << "[Error - Game::reloadInfo] Failed to reload items." << std::endl;
+			}
 			break;
 		}
 

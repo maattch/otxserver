@@ -656,9 +656,6 @@ protected:
 	// update stats to client, by feetads
 	static int32_t luaUpdatePlayerStats(lua_State* L);
 
-	// reset system
-	static int32_t luaGetPlayerResets(lua_State* L);
-	static int32_t luaSetPlayerResets(lua_State* L);
 	static int32_t luaGetPlayerDamageMultiplier(lua_State* L);
 	static int32_t luaSetPlayerDamageMultiplier(lua_State* L);
 

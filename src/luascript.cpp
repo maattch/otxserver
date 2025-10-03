@@ -2343,9 +2343,6 @@ void LuaInterface::registerFunctions()
 	// doUpdatePlayerStats(cid)
 	lua_register(m_luaState, "doUpdatePlayerStats", LuaInterface::luaUpdatePlayerStats);
 
-	// reset system
-	lua_register(m_luaState, "getPlayerResets", LuaInterface::luaGetPlayerResets);
-	lua_register(m_luaState, "setPlayerResets", LuaInterface::luaSetPlayerResets);
 	lua_register(m_luaState, "getPlayerDamageMultiplier", LuaInterface::luaGetPlayerDamageMultiplier);
 	lua_register(m_luaState, "setPlayerDamageMultiplier", LuaInterface::luaSetPlayerDamageMultiplier);
 
@@ -8657,36 +8654,6 @@ int32_t LuaInterface::luaUpdatePlayerStats(lua_State* L)
 	return 1;
 }
 
-int32_t LuaInterface::luaGetPlayerResets(lua_State* L)
-{
-	// getPlayerResets(cid)
-	Player* player = getEnv()->getPlayerByUID(popNumber(L));
-	if (player) {
-		lua_pushnumber(L, player->getReset());
-		return 1;
-	}
-
-	errorEx(getError(LUA_ERROR_PLAYER_NOT_FOUND));
-	lua_pushnil(L);
-	return 1;
-}
-
-int32_t LuaInterface::luaSetPlayerResets(lua_State* L)
-{
-	// setPlayerResets(cid, value)
-	uint32_t value = static_cast<uint32_t>(popNumber(L));
-	Player* player = getEnv()->getPlayerByUID(popNumber(L));
-	if (player) {
-		player->setReset(value);
-		lua_pushboolean(L, true);
-		return 1;
-	}
-
-	errorEx(getError(LUA_ERROR_PLAYER_NOT_FOUND));
-	lua_pushnil(L);
-	return 1;
-}
-
 int32_t LuaInterface::luaGetPlayerDamageMultiplier(lua_State* L)
 {
 	// getPlayerDamageMultiplier(cid)
@@ -10312,133 +10279,129 @@ int32_t LuaInterface::luaisItemDoor(lua_State* L)
 int32_t LuaInterface::luaGetItemInfo(lua_State* L)
 {
 	// getItemInfo(itemid)
-	const ItemType* item;
-	if (!(item = Item::items.getElement(popNumber(L)))) {
+	const ItemType& iType = Item::items.getItemType(popNumber(L));
+	if (iType.id == 0) {
 		lua_pushboolean(L, false);
 		return 1;
 	}
 
-	lua_newtable(L);
-	setFieldBool(L, "isDoor", item->isDoor());
-	setFieldBool(L, "stopTime", item->stopTime);
-	setFieldBool(L, "showCount", item->showCount);
-	setFieldBool(L, "stackable", item->stackable);
-	setFieldBool(L, "showDuration", item->showDuration);
-	setFieldBool(L, "showCharges", item->showCharges);
-	setFieldBool(L, "showAttributes", item->showAttributes);
-	setFieldBool(L, "distRead", item->allowDistRead);
-	setFieldBool(L, "readable", item->canReadText);
-	setFieldBool(L, "writable", item->canWriteText);
-	setFieldBool(L, "forceSerialize", item->forceSerialize);
-	setFieldBool(L, "vertical", item->isVertical);
-	setFieldBool(L, "horizontal", item->isHorizontal);
-	setFieldBool(L, "hangable", item->isHangable);
-	setFieldBool(L, "usable", item->usable);
-	setFieldBool(L, "movable", item->movable);
-	setFieldBool(L, "pickupable", item->pickupable);
-	setFieldBool(L, "rotable", item->rotable);
-	setFieldBool(L, "replacable", item->replacable);
-	setFieldBool(L, "hasHeight", item->hasHeight);
-	setFieldBool(L, "blockSolid", item->blockSolid);
-	setFieldBool(L, "blockPickupable", item->blockPickupable);
-	setFieldBool(L, "blockProjectile", item->blockProjectile);
-	setFieldBool(L, "blockPathing", item->blockPathFind);
-	setFieldBool(L, "allowPickupable", item->allowPickupable);
-	setFieldBool(L, "alwaysOnTop", item->alwaysOnTop);
-	setFieldBool(L, "dualWield", item->dualWield);
+	lua_createtable(L, 0, 89);
+	setFieldBool(L, "isDoor", iType.isDoor());
+	setFieldBool(L, "stopTime", iType.stopTime);
+	setFieldBool(L, "showCount", iType.showCount);
+	setFieldBool(L, "stackable", iType.stackable);
+	setFieldBool(L, "showDuration", iType.showDuration);
+	setFieldBool(L, "showCharges", iType.showCharges);
+	setFieldBool(L, "showAttributes", iType.showAttributes);
+	setFieldBool(L, "distRead", iType.allowDistRead);
+	setFieldBool(L, "readable", iType.canReadText);
+	setFieldBool(L, "writable", iType.canWriteText);
+	setFieldBool(L, "forceSerialize", iType.forceSerialize);
+	setFieldBool(L, "vertical", iType.isVertical);
+	setFieldBool(L, "horizontal", iType.isHorizontal);
+	setFieldBool(L, "hangable", iType.isHangable);
+	setFieldBool(L, "usable", iType.usable);
+	setFieldBool(L, "movable", iType.movable);
+	setFieldBool(L, "pickupable", iType.pickupable);
+	setFieldBool(L, "rotable", iType.rotable);
+	setFieldBool(L, "replacable", iType.replacable);
+	setFieldBool(L, "hasHeight", iType.hasHeight);
+	setFieldBool(L, "blockSolid", iType.blockSolid);
+	setFieldBool(L, "blockPickupable", iType.blockPickupable);
+	setFieldBool(L, "blockProjectile", iType.blockProjectile);
+	setFieldBool(L, "blockPathing", iType.blockPathFind);
+	setFieldBool(L, "allowPickupable", iType.allowPickupable);
+	setFieldBool(L, "alwaysOnTop", iType.alwaysOnTop);
+	setFieldBool(L, "dualWield", iType.dualWield);
+	setFieldBool(L, "specialDoor", iType.specialDoor);
+	setFieldBool(L, "closingDoor", iType.closingDoor);
+	setField(L, "magicEffect", (int32_t)iType.magicEffect);
+	setField(L, "fluidSource", (int32_t)iType.fluidSource);
+	setField(L, "weaponType", (int32_t)iType.weaponType);
+	setField(L, "bedPartnerDirection", (int32_t)iType.bedPartnerDir);
+	setField(L, "ammoAction", (int32_t)iType.ammoAction);
+	setField(L, "combatType", (int32_t)iType.combatType);
+	setField(L, "corpseType", (int32_t)iType.corpseType);
+	setField(L, "shootType", (int32_t)iType.shootType);
+	setField(L, "ammoType", (int32_t)iType.ammoType);
+	setField(L, "group", (int32_t)iType.group);
+	setField(L, "type", (int32_t)iType.type);
+	setField(L, "transformUseTo", iType.transformUseTo);
+	setField(L, "transformEquipTo", iType.transformEquipTo);
+	setField(L, "transformDeEquipTo", iType.transformDeEquipTo);
+	setField(L, "clientId", iType.clientId);
+	setField(L, "maxItems", iType.maxItems);
+	setField(L, "slotPosition", iType.slotPosition);
+	setField(L, "wieldPosition", iType.wieldPosition);
+	setField(L, "speed", iType.speed);
+	setField(L, "maxTextLength", iType.maxTextLength);
+	setField(L, "writeOnceItemId", iType.writeOnceItemId);
+	setField(L, "date", iType.date);
+	setField(L, "writer", iType.writer);
+	setField(L, "text", iType.text);
+	setField(L, "criticalHitChance", iType.criticalHitChance);
+	setField(L, "attack", iType.attack);
+	setField(L, "reduceskillloss", iType.reduceSkillLoss);
+	setField(L, "extraAttack", iType.extraAttack);
+	setField(L, "defense", iType.defense);
+	setField(L, "extraDefense", iType.extraDefense);
+	setField(L, "armor", iType.armor);
+	setField(L, "breakChance", iType.breakChance);
+	setField(L, "hitChance", iType.hitChance);
+	setField(L, "maxHitChance", iType.maxHitChance);
+	setField(L, "runeLevel", iType.runeLevel);
+	setField(L, "runeMagicLevel", iType.runeMagLevel);
+	setField(L, "lightLevel", iType.lightLevel);
+	setField(L, "lightColor", iType.lightColor);
+	setField(L, "decayTo", iType.decayTo);
+	setField(L, "rotateTo", iType.rotateTo);
+	setField(L, "alwaysOnTopOrder", iType.alwaysOnTopOrder);
+	setField(L, "shootRange", iType.shootRange);
+	setField(L, "charges", iType.charges);
+	setField(L, "decayTime", iType.decayTime);
+	setField(L, "attackSpeed", iType.attackSpeed);
+	setField(L, "wieldInfo", iType.wieldInfo);
+	setField(L, "minRequiredLevel", iType.minReqLevel);
+	setField(L, "minRequiredMagicLevel", iType.minReqMagicLevel);
+	setField(L, "worth", iType.worth);
+	setField(L, "levelDoor", iType.levelDoor);
+	setField(L, "name", iType.name);
+	setField(L, "plural", iType.pluralName);
+	setField(L, "article", iType.article);
+	setField(L, "description", iType.description);
+	setField(L, "runeSpellName", iType.runeSpellName);
+	setField(L, "vocationString", iType.vocationString);
+	setFieldFloat(L, "weight", iType.weight);
 
 	createTable(L, "floorChange");
 	for (int32_t i = CHANGE_FIRST; i <= CHANGE_LAST; ++i) {
 		lua_pushnumber(L, i);
-		lua_pushboolean(L, item->floorChange[i - 1]);
+		lua_pushboolean(L, iType.floorChange[i - 1]);
 		pushTable(L);
 	}
-
 	pushTable(L);
-	setField(L, "magicEffect", (int32_t)item->magicEffect);
-	setField(L, "fluidSource", (int32_t)item->fluidSource);
-	setField(L, "weaponType", (int32_t)item->weaponType);
-	setField(L, "bedPartnerDirection", (int32_t)item->bedPartnerDir);
-	setField(L, "ammoAction", (int32_t)item->ammoAction);
-	setField(L, "combatType", (int32_t)item->combatType);
-	setField(L, "corpseType", (int32_t)item->corpseType);
-	setField(L, "shootType", (int32_t)item->shootType);
-	setField(L, "ammoType", (int32_t)item->ammoType);
 
 	createTable(L, "transformBed");
-	setField(L, "female", item->transformBed[PLAYERSEX_FEMALE]);
-	setField(L, "male", item->transformBed[PLAYERSEX_MALE]);
-
+	setField(L, "female", iType.transformBed[PLAYERSEX_FEMALE]);
+	setField(L, "male", iType.transformBed[PLAYERSEX_MALE]);
 	pushTable(L);
-	setField(L, "transformUseTo", item->transformUseTo);
-	setField(L, "transformEquipTo", item->transformEquipTo);
-	setField(L, "transformDeEquipTo", item->transformDeEquipTo);
-	setField(L, "clientId", item->clientId);
-	setField(L, "maxItems", item->maxItems);
-	setField(L, "slotPosition", item->slotPosition);
-	setField(L, "wieldPosition", item->wieldPosition);
-	setField(L, "speed", item->speed);
-	setField(L, "maxTextLength", item->maxTextLength);
-	setField(L, "writeOnceItemId", item->writeOnceItemId);
-	setField(L, "date", item->date);
-	setField(L, "writer", item->writer);
-	setField(L, "text", item->text);
-	setField(L, "criticalHitChance", item->criticalHitChance);
-	setField(L, "attack", item->attack);
-	setField(L, "reduceskillloss", item->reduceSkillLoss);
-	setField(L, "extraAttack", item->extraAttack);
-	setField(L, "defense", item->defense);
-	setField(L, "extraDefense", item->extraDefense);
-	setField(L, "armor", item->armor);
-	setField(L, "breakChance", item->breakChance);
-	setField(L, "hitChance", item->hitChance);
-	setField(L, "maxHitChance", item->maxHitChance);
-	setField(L, "runeLevel", item->runeLevel);
-	setField(L, "runeMagicLevel", item->runeMagLevel);
-	setField(L, "lightLevel", item->lightLevel);
-	setField(L, "lightColor", item->lightColor);
-	setField(L, "decayTo", item->decayTo);
-	setField(L, "rotateTo", item->rotateTo);
-	setField(L, "alwaysOnTopOrder", item->alwaysOnTopOrder);
-	setField(L, "shootRange", item->shootRange);
-	setField(L, "charges", item->charges);
-	setField(L, "decayTime", item->decayTime);
-	setField(L, "attackSpeed", item->attackSpeed);
-	setField(L, "wieldInfo", item->wieldInfo);
-	setField(L, "minRequiredLevel", item->minReqLevel);
-	setField(L, "minRequiredMagicLevel", item->minReqMagicLevel);
-	setField(L, "worth", item->worth);
-	setField(L, "levelDoor", item->levelDoor);
-	setFieldBool(L, "specialDoor", item->specialDoor);
-	setFieldBool(L, "closingDoor", item->closingDoor);
-	setField(L, "name", item->name.c_str());
-	setField(L, "plural", item->pluralName.c_str());
-	setField(L, "article", item->article.c_str());
-	setField(L, "description", item->description.c_str());
-	setField(L, "runeSpellName", item->runeSpellName.c_str());
-	setField(L, "vocationString", item->vocationString.c_str());
 
 	createTable(L, "abilities");
-	setFieldBool(L, "manaShield", item->hasAbilities() ? item->abilities->manaShield : false);
-	setFieldBool(L, "invisible", item->hasAbilities() ? item->abilities->invisible : false);
-	setFieldBool(L, "regeneration", item->hasAbilities() ? item->abilities->regeneration : false);
-	setFieldBool(L, "preventLoss", item->hasAbilities() ? item->abilities->preventLoss : false);
-	setFieldBool(L, "preventDrop", item->hasAbilities() ? item->abilities->preventDrop : false);
-	setField(L, "elementType", (int32_t)item->hasAbilities() ? item->abilities->elementType : 0);
-	setField(L, "elementDamage", item->hasAbilities() ? item->abilities->elementDamage : 0);
-	setField(L, "speed", item->hasAbilities() ? item->abilities->speed : 0);
-	setField(L, "healthGain", item->hasAbilities() ? item->abilities->healthGain : 0);
-	setField(L, "healthTicks", item->hasAbilities() ? item->abilities->healthTicks : 0);
-	setField(L, "manaGain", item->hasAbilities() ? item->abilities->manaGain : 0);
-	setField(L, "manaTicks", item->hasAbilities() ? item->abilities->manaTicks : 0);
-	setField(L, "conditionSuppressions", item->hasAbilities() ? item->abilities->conditionSuppressions : 0);
-
+	setFieldBool(L, "manaShield", iType.hasAbilities() ? iType.abilities->manaShield : false);
+	setFieldBool(L, "invisible", iType.hasAbilities() ? iType.abilities->invisible : false);
+	setFieldBool(L, "regeneration", iType.hasAbilities() ? iType.abilities->regeneration : false);
+	setFieldBool(L, "preventLoss", iType.hasAbilities() ? iType.abilities->preventLoss : false);
+	setFieldBool(L, "preventDrop", iType.hasAbilities() ? iType.abilities->preventDrop : false);
+	setField(L, "elementType", (int32_t)iType.hasAbilities() ? iType.abilities->elementType : 0);
+	setField(L, "elementDamage", iType.hasAbilities() ? iType.abilities->elementDamage : 0);
+	setField(L, "speed", iType.hasAbilities() ? iType.abilities->speed : 0);
+	setField(L, "healthGain", iType.hasAbilities() ? iType.abilities->healthGain : 0);
+	setField(L, "healthTicks", iType.hasAbilities() ? iType.abilities->healthTicks : 0);
+	setField(L, "manaGain", iType.hasAbilities() ? iType.abilities->manaGain : 0);
+	setField(L, "manaTicks", iType.hasAbilities() ? iType.abilities->manaTicks : 0);
+	setField(L, "conditionSuppressions", iType.hasAbilities() ? iType.abilities->conditionSuppressions : 0);
 	// TODO: absorb, increment, reflect, skills, skillsPercent, stats, statsPercent
-
 	pushTable(L);
-	setField(L, "group", (int32_t)item->group);
-	setField(L, "type", (int32_t)item->type);
-	setFieldFloat(L, "weight", item->weight);
 	return 1;
 }
 

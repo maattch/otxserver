@@ -22,6 +22,8 @@
 #include "itemloader.h"
 #include "position.h"
 
+class Condition;
+
 #define ITEMS_SIZE 12660
 #define ITEMS_INCREMENT 500
 
@@ -104,21 +106,25 @@ struct Abilities
 		speed, healthGain, healthTicks, manaGain, manaTicks, conditionSuppressions;
 };
 
-class Condition;
-class ItemType
+class ItemType final
 {
-private:
-	ItemType(const ItemType&) {} // TODO!
-
 public:
-	ItemType();
-	virtual ~ItemType();
-	Abilities* getAbilities()
+	ItemType() = default;
+
+	// non-copyable
+	ItemType(const ItemType&) = delete;
+	ItemType& operator=(const ItemType&) = delete;
+
+	// moveable
+	ItemType(ItemType&&) = default;
+	ItemType& operator=(ItemType&&) = default;
+
+	Abilities& getAbilities()
 	{
 		if (!abilities) {
-			abilities = new Abilities;
+			abilities.reset(new Abilities);
 		}
-		return abilities;
+		return *abilities;
 	}
 
 	bool isGroundTile() const { return (group == ITEM_GROUP_GROUND); }
@@ -139,153 +145,162 @@ public:
 	bool hasSubType() const { return (isFluidContainer() || isSplash() || stackable || charges); }
 	bool hasAbilities() const { return abilities != nullptr; }
 
-	bool loaded, stopTime, showCount, stackable, showDuration, showCharges, showAttributes, dualWield,
-		allowDistRead, canReadText, canWriteText, forceSerialize, isVertical, isHorizontal, isHangable,
-		usable, movable, pickupable, rotable, replacable, lookThrough, walkStack, hasHeight, blockSolid,
-		blockPickupable, blockProjectile, blockPathFind, allowPickupable, alwaysOnTop, floorChange[CHANGE_LAST],
-		isAnimation, specialDoor, closingDoor, cache;
+	std::string name;
+	std::string pluralName;
+	std::string article;
+	std::string description;
+	std::string text;
+	std::string writer;
+	std::string runeSpellName;
+	std::string vocationString;
 
-	MagicEffect_t magicEffect;
-	FluidTypes_t fluidSource;
-	WeaponType_t weaponType;
-	Direction bedPartnerDir;
-	AmmoAction_t ammoAction;
-	CombatType_t combatType;
-	RaceType_t corpseType;
-	ShootEffect_t shootType;
-	Ammo_t ammoType;
+	std::unique_ptr<Condition> condition;
+	std::unique_ptr<Abilities> abilities;
 
-	uint16_t transformBed[PLAYERSEX_MALE + 1], transformUseTo, transformEquipTo, transformDeEquipTo,
-		id, clientId, maxItems, slotPosition, wieldPosition, speed, maxTextLength, writeOnceItemId, wareId,
-		premiumDays;
+	uint32_t shootRange = 1;
+	uint32_t charges = 0;
+	uint32_t decayTime = 0;
+	uint32_t attackSpeed = 0;
+	uint32_t wieldInfo = 0;
+	uint32_t minReqLevel = 0;
+	uint32_t minReqMagicLevel = 0;
+	uint32_t worth = 0;
+	uint32_t levelDoor = 0;
+	uint32_t date = 0;
 
-	int32_t attack, reduceSkillLoss, criticalHitChance, extraAttack, defense, extraDefense, armor, breakChance, hitChance, maxHitChance,
-		runeLevel, runeMagLevel, lightLevel, lightColor, decayTo, rotateTo, alwaysOnTopOrder;
+	int32_t attack = 0;
+	int32_t reduceSkillLoss = 0;
+	int32_t criticalHitChance = 0;
+	int32_t extraAttack = 0;
+	int32_t defense = 0;
+	int32_t extraDefense = 0;
+	int32_t armor = 0;
+	int32_t breakChance = -1;
+	int32_t hitChance = -1;
+	int32_t maxHitChance = -1;
+	int32_t runeLevel = 0;
+	int32_t runeMagLevel = 0;
+	int32_t lightLevel = 0;
+	int32_t lightColor = 0;
+	int32_t decayTo = -1;
+	int32_t rotateTo = 0;
+	int32_t alwaysOnTopOrder = 0;
+	int32_t extraAttackChance = 0;
+	int32_t extraDefenseChance = 0;
+	int32_t attackSpeedChance = 0;
+	int32_t armorRndMin = 0;
+	int32_t armorRndMax = 0;
+	int32_t defenseRndMin = 0;
+	int32_t defenseRndMax = 0;
+	int32_t extraDefenseRndMin = 0;
+	int32_t extraDefenseRndMax = 0;
+	int32_t attackRndMin = 0;
+	int32_t attackRndMax = 0;
+	int32_t extraAttackRndMin = 0;
+	int32_t extraAttackRndMax = 0;
+	int32_t attackSpeedRndMin = 0;
+	int32_t attackSpeedRndMax = 0;
 
-	int32_t extraAttackChance, extraDefenseChance, attackSpeedChance;
-	int32_t armorRndMin, armorRndMax, defenseRndMin, defenseRndMax, extraDefenseRndMin,
-		extraDefenseRndMax, attackRndMin, attackRndMax, extraAttackRndMin, extraAttackRndMax,
-		attackSpeedRndMin, attackSpeedRndMax;
+	uint16_t id = 0;
+	uint16_t clientId = 100;
+	uint16_t maxItems = 8;
+	uint16_t slotPosition = SLOTP_HAND;
+	uint16_t wieldPosition = SLOT_HAND;
+	uint16_t speed = 0;
+	uint16_t transformUseTo = 0;
+	uint16_t transformEquipTo = 0;
+	uint16_t transformDeEquipTo = 0;
+	uint16_t maxTextLength = 0;
+	uint16_t writeOnceItemId = 0;
+	uint16_t wareId = 0;
+	uint16_t premiumDays = 0;
+	uint16_t transformBed[PLAYERSEX_MALE + 1] = {};
 
-	uint32_t shootRange, charges, decayTime, attackSpeed, wieldInfo, minReqLevel, minReqMagicLevel,
-		worth, levelDoor, date;
+	itemgroup_t group = ITEM_GROUP_NONE;
+	ItemTypes_t type = ITEM_TYPE_NONE;
+	float weight = 0.f;
 
-	std::string name, pluralName, article, description, text, writer, runeSpellName, vocationString;
+	MagicEffect_t magicEffect = MAGIC_EFFECT_NONE;
+	FluidTypes_t fluidSource = FLUID_NONE;
+	WeaponType_t weaponType = WEAPON_NONE;
+	Direction bedPartnerDir = NORTH;
+	AmmoAction_t ammoAction = AMMOACTION_NONE;
+	CombatType_t combatType = COMBAT_NONE;
+	RaceType_t corpseType = RACE_NONE;
+	ShootEffect_t shootType = SHOOT_EFFECT_NONE;
+	Ammo_t ammoType = AMMO_NONE;
 
-	Condition* condition;
-	Abilities* abilities;
-	itemgroup_t group;
-	ItemTypes_t type;
-	float weight;
+	bool loaded = false;
+	bool stopTime = false;
+	bool showCount = true;
+	bool stackable = false;
+	bool showDuration = false;
+	bool showCharges = false;
+	bool showAttributes = false;
+	bool dualWield = false;
+	bool allowDistRead = false;
+	bool canReadText = false;
+	bool canWriteText = false;
+	bool forceSerialize = false;
+	bool isVertical = false;
+	bool isHorizontal = false;
+	bool isHangable = false;
+	bool usable = false;
+	bool movable = true;
+	bool pickupable = false;
+	bool rotable = false;
+	bool replacable = true;
+	bool lookThrough = false;
+	bool walkStack = true;
+	bool hasHeight = false;
+	bool blockSolid = false;
+	bool blockPickupable = false;
+	bool blockProjectile = false;
+	bool blockPathFind = false;
+	bool allowPickupable = false;
+	bool alwaysOnTop = false;
+	bool isAnimation = false;
+	bool specialDoor = false;
+	bool closingDoor = false;
+	bool cache = false;
+	bool floorChange[CHANGE_LAST] = {};
 };
-
-template<typename A>
-class Array
-{
-public:
-	Array(uint32_t n);
-	virtual ~Array() { clear(); }
-
-	void clear()
-	{
-		if (m_data && m_size) {
-			free(m_data);
-			m_size = 0;
-		}
-	}
-	void reload();
-
-	A getElement(uint32_t id);
-	const A getElement(uint32_t id) const;
-
-	void addElement(A a, uint32_t pos);
-	uint32_t size() { return m_size; }
-
-private:
-	A* m_data;
-	uint32_t m_size;
-};
-
-template<typename A>
-Array<A>::Array(uint32_t n)
-{
-	m_data = (A*)malloc(sizeof(A) * n);
-	memset(m_data, 0, sizeof(A) * n);
-	m_size = n;
-}
-
-template<typename A>
-void Array<A>::reload()
-{
-	m_data = (A*)malloc(sizeof(A) * m_size);
-	memset(m_data, 0, sizeof(A) * m_size);
-}
-
-template<typename A>
-A Array<A>::getElement(uint32_t id)
-{
-	if (id < m_size) {
-		return m_data[id];
-	}
-
-	return 0;
-}
-
-template<typename A>
-const A Array<A>::getElement(uint32_t id) const
-{
-	if (id < m_size) {
-		return m_data[id];
-	}
-
-	return 0;
-}
-
-template<typename A>
-void Array<A>::addElement(A a, uint32_t pos)
-{
-	if (pos >= m_size) {
-		m_data = (A*)realloc(m_data, sizeof(A) * (pos + ITEMS_INCREMENT));
-		memset(m_data + m_size, 0, sizeof(A) * (pos + ITEMS_INCREMENT - m_size));
-		m_size = pos + ITEMS_INCREMENT;
-	}
-
-	m_data[pos] = a;
-}
 
 typedef std::map<int32_t, int32_t> IntegerMap;
 
-class Items
+class Items final
 {
 public:
-	Items() : items(ITEMS_SIZE) {}
-	virtual ~Items() { clear(); }
+	Items();
+
+	// non-copyable
+	Items(const Items&) = delete;
+	Items& operator=(const Items&) = delete;
+
+	bool loadFromOtb(const std::string& file);
+	bool loadFromXml();
+	void parseItemNode(xmlNodePtr itemNode, uint16_t id);
 
 	bool reload();
-	int32_t loadFromOtb(std::string);
-	bool loadFromXml();
-	void parseItemNode(xmlNodePtr itemNode, uint32_t id);
+	void clear();
 
-	ItemType& getItemType(int32_t id);
-	const ItemType& getItemType(int32_t id) const;
-	const ItemType& operator[](int32_t id) const { return getItemType(id); }
+	ItemType& getItemType(uint16_t id);
+	const ItemType& getItemType(uint16_t id) const;
+	const ItemType& operator[](uint16_t id) const { return getItemType(id); }
 
-	int32_t getItemIdByName(const std::string& name);
-	const ItemType& getItemIdByClientId(int32_t spriteId) const;
+	uint16_t getItemIdByName(const std::string& name);
+	const ItemType& getItemIdByClientId(uint16_t spriteId) const;
 
-	uint32_t size() { return items.size(); }
-	const IntegerMap getMoneyMap() const { return moneyMap; }
-	const ItemType* getElement(uint32_t id) const { return items.getElement(id); }
+	uint32_t size() const noexcept { return items.size(); }
+	const IntegerMap& getMoneyMap() const { return moneyMap; }
 
 	static uint32_t dwMajorVersion;
 	static uint32_t dwMinorVersion;
 	static uint32_t dwBuildNumber;
 
 private:
-	void clear();
-
-	Array<ItemType*> items;
-
+	std::unordered_map<std::string, uint16_t> nameToItems;
+	std::vector<ItemType> items;
+	std::vector<uint16_t> clientIdToServerId;
 	IntegerMap moneyMap;
-	IntegerMap reverseItemMap;
 };

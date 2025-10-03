@@ -29,30 +29,31 @@ class WeaponMelee;
 class WeaponDistance;
 class WeaponWand;
 
-class Weapons : public BaseEvents
+using WeaponPtr = std::unique_ptr<Weapon>;
+
+class Weapons final : public BaseEvents
 {
 public:
 	Weapons();
-	virtual ~Weapons() { clear(); }
 
-	bool loadDefaults();
+	void loadDefaults();
 	const Weapon* getWeapon(const Item* item) const;
 
 	static int32_t getMaxMeleeDamage(int32_t attackSkill, int32_t attackValue);
 	static int32_t getMaxWeaponDamage(int32_t level, int32_t attackSkill, int32_t attackValue, float attackFactor);
 
 protected:
-	virtual std::string getScriptBaseName() const { return "weapons"; }
-	virtual void clear();
+	std::string getScriptBaseName() const override { return "weapons"; }
+	void clear() override;
 
-	virtual Event* getEvent(const std::string& nodeName);
-	virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+	Event* getEvent(const std::string& nodeName) override;
+	bool registerEvent(Event* event, xmlNodePtr p, bool override) override;
 
-	virtual LuaInterface& getInterface() { return m_interface; }
+	LuaInterface& getInterface() override { return m_interface; }
+
 	LuaInterface m_interface;
 
-	typedef std::map<uint32_t, Weapon*> WeaponMap;
-	WeaponMap weapons;
+	std::map<uint16_t, WeaponPtr> weapons;
 };
 
 class Weapon : public Event

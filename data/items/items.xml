@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items>
+	<item id="1" name="water" />
+	<item id="2" name="blood" />
+	<item id="3" name="beer" />
+	<item id="4" name="slime" />
+	<item id="5" name="lemonade" />
+	<item id="6" name="milk" />
+	<item id="7" name="manafluid" />
+	<item id="10" name="lifefluid" />
+	<item id="11" name="oil" />
+	<item id="13" name="urine" />
+	<item id="14" name="coconut milk" />
+	<item id="15" name="wine" />
+	<item id="19" name="mud" />
+	<item id="21" name="fruit juice" />
+	<item id="26" name="lava" />
+	<item id="27" name="rum" />
+	<item id="28" name="swamp" />
+	<item id="35" name="tea" />
+	<item id="41" name="antidote potion" />
+	<item id="42" name="health potion" />
+	<item id="43" name="spirit potion" />
+	<item id="47" name="mana potion" />
+
 	<item id="100" name="void"/>
 	<item id="101" name="earth"/>
 	<item id="103" name="dirt"/>
@@ -22073,27 +22096,4 @@
 		<attribute key="description" value="They will expire within a short time, sell them back to Esrik before they do."/>
 		<attribute key="weight" value="2500"/>
 	</item>
-	<item id="20001" name="water"/>
-	<item id="20002" name="blood"/>
-	<item id="20003" name="beer"/>
-	<item id="20004" name="slime"/>
-	<item id="20005" name="lemonade"/>
-	<item id="20006" name="milk"/>
-	<item id="20007" name="manafluid"/>
-	<item id="20010" name="lifefluid"/>
-	<item id="20011" name="oil"/>
-	<item id="20013" name="urine"/>
-	<item id="20014" name="coconut milk"/>
-	<item id="20015" name="wine"/>
-	<item id="20019" name="mud"/>
-	<item id="20021" name="fruit juice"/>
-	<item id="20026" name="lava"/>
-	<item id="20027" name="rum"/>
-	<item id="20028" name="swamp"/>
-	<item id="20035" name="tea"/>
-	<!-- <item id="20043" name="mead"/> -->
-	<item id="20041" name="antidote potion"/>
-	<item id="20042" name="health potion"/>
-	<item id="20043" name="spirit potion"/>
-	<item id="20047" name="mana potion"/>
 </items>

@@ -114,9 +114,7 @@ bool ConfigManager::load()
 
 	m_confBool[CAST_EXP_ENABLED] = getGlobalBool("expInCast", false); // this edit by feetads
 	m_confNumber[CAST_EXP_PERCENT] = getGlobalNumber("expPercentIncast", 5.0);
-	m_confBool[LIFE_IN_PERCENTUAL] = getGlobalBool("lifeAndManaInPercentual", false); // this edit by feetads
 	m_confBool[MAXIP_USECONECT] = getGlobalBool("UseMaxIpConnect", false); // this edit by feetads
-	m_confBool[RESET_SYSTEM_ENABLE] = getGlobalBool("resetSystemEnable", false); // this edit by feetads
 
 	m_confBool[ADD_FRAG_SAMEIP] = getGlobalBool("addFragToSameIp", false);
 
