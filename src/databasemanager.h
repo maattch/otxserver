@@ -34,7 +34,6 @@ public:
 	bool tableExists(std::string table);
 	bool triggerExists(std::string trigger);
 
-	int32_t getDatabaseVersion();
 	bool isDatabaseSetup();
 
 	bool optimizeTables();

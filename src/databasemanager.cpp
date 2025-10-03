@@ -89,20 +89,6 @@ bool DatabaseManager::isDatabaseSetup()
 	return true;
 }
 
-int32_t DatabaseManager::getDatabaseVersion()
-{
-	if (!tableExists("server_config")) {
-		return 0;
-	}
-
-	int32_t value = 0;
-	if (getDatabaseConfig("db_version", value)) {
-		return value;
-	}
-
-	return -1;
-}
-
 bool DatabaseManager::getDatabaseConfig(std::string config, int32_t& value)
 {
 	value = 0;
