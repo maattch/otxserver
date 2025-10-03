@@ -1940,7 +1940,7 @@ ReturnValue Game::internalAddItem(Creature* actor, Cylinder* toCylinder, Item* i
 		if (count > 0) {
 			if (item->getItemCount() != count) {
 				Item* remainderItem = Item::CreateItem(item->getID(), count);
-				if ((ret = internalAddItem(NULL, toCylinder, remainderItem, INDEX_WHEREEVER, flags, false)) == RET_NOERROR) {
+				if ((ret = internalAddItem(NULL, destCylinder, remainderItem, INDEX_WHEREEVER, flags, false)) == RET_NOERROR) {
 					if (item->getParent() != VirtualCylinder::virtualCylinder) {
 						item->onRemoved();
 						freeThing(item);
