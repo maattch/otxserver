@@ -52,7 +52,6 @@
 
 	<!-- Players -->
 	<talkaction words="!emotespells;!emotespell;/emotespells;/emotespell" event="script" value="emotespells/emotespells.lua"/>	<!-- use emote spells -->
-	<talkaction words="/houseprotect;!houseprotect" event="function" value="houseprotect"/> <!-- house protect system -->
 	<talkaction words="/mw;!mw"  event="script" value="mwchange.lua"/>
 	<talkaction words="/hpmp;!hpmp"  event="script" value="lifeinpercent/lifeinpercent.lua"/>
 

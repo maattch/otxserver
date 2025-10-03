@@ -328,8 +328,6 @@ bool TalkAction::loadFunction(const std::string& functionName)
 		m_function = banishmentInfo;
 	} else if (m_functionName == "diagnostics") {
 		m_function = diagnostics;
-	} else if (m_functionName == "houseprotect") { // house protect
-		m_function = houseProtect;
 	} else if (m_functionName == "ghost") {
 		m_function = ghost;
 	} else if (m_functionName == "software") {
@@ -1153,63 +1151,6 @@ bool TalkAction::diagnostics(Creature* creature, const std::string&, const std::
 	player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, "Command not available, please rebuild your software with -D__ENABLE_SERVER_DIAG__");
 #endif
 	return true;
-}
-
-bool TalkAction::houseProtect(Creature* creature, const std::string&, const std::string& param)
-{
-	Player* player = creature->getPlayer();
-	if (!player) {
-		return false;
-	}
-
-	if (!g_config.getBool(ConfigManager::HOUSE_PROTECTION)) {
-		player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, "House protect are disabled by Admin!");
-		return false;
-	}
-
-	Tile* tile = g_game.getMap()->getTile(player->getPosition());
-	if (!tile) {
-		return false;
-	}
-
-	HouseTile* houseTile = tile->getHouseTile();
-	if (!houseTile) {
-		player->sendTextMessage(MSG_STATUS_CONSOLE_RED, "[House Protect]: Error! you are not inside a house!");
-		return false;
-	}
-
-	House* house = houseTile->getHouse();
-	if (!house) {
-		return false;
-	}
-
-	uint32_t owner = house->getOwner();
-	if (!owner || (owner && player->getGUID() != owner && player->getGroupId() < 4)) {
-		player->sendTextMessage(MSG_STATUS_CONSOLE_RED, "[House Protect]: Error! you are not owner this house!");
-		return false;
-	}
-
-	std::string msg = asLowerCaseString(param);
-	if (msg == "on" && !house->isProtected()) {
-		house->setProtected(true);
-		player->sendTextMessage(MSG_STATUS_CONSOLE_RED, "[House Protect]: Now your house is protected");
-		return true;
-	} else if (msg == "off" && house->isProtected()) {
-		house->setProtected(false);
-		player->sendTextMessage(MSG_STATUS_CONSOLE_RED, "[House Protect]: Now your house is unprotected");
-		return true;
-	} else if (msg.empty()) {
-		if (!house->isProtected()) {
-			house->setProtected(true);
-			player->sendTextMessage(MSG_STATUS_CONSOLE_RED, "[House Protect]: Now your house is protected");
-			return true;
-		} else {
-			house->setProtected(false);
-			player->sendTextMessage(MSG_STATUS_CONSOLE_RED, "[House Protect]: Now your house is unprotected");
-			return true;
-		}
-	}
-	return false;
 }
 
 bool TalkAction::ghost(Creature* creature, const std::string&, const std::string&)

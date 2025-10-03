@@ -319,8 +319,6 @@ public:
 protected:
 	virtual bool closeState();
 
-	static int32_t luaIsHouseProtected(lua_State* L);
-	static int32_t luaSetHouseProtection(lua_State* L);
 	static std::string getError(ErrorCode_t code);
 	static bool getArea(lua_State* L, std::list<uint32_t>& list, uint32_t& rows);
 

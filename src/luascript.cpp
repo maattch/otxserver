@@ -2040,12 +2040,6 @@ void LuaInterface::registerFunctions()
 	// getHouseInfo(houseId[, full = true])
 	lua_register(m_luaState, "getHouseInfo", LuaInterface::luaGetHouseInfo);
 
-	// setHouseProtection(houseid, protected)
-	lua_register(m_luaState, "setHouseProtection", LuaInterface::luaSetHouseProtection);
-
-	// isHouseProtected(houseid)
-	lua_register(m_luaState, "isHouseProtected", LuaInterface::luaIsHouseProtected);
-
 	// getHouseAccessList(houseid, listId)
 	lua_register(m_luaState, "getHouseAccessList", LuaInterface::luaGetHouseAccessList);
 
@@ -5479,35 +5473,6 @@ int32_t LuaInterface::luaDoCreateNpc(lua_State* L)
 
 	ScriptEnviroment* env = getEnv();
 	lua_pushnumber(L, env->addThing((Thing*)npc));
-	return 1;
-}
-
-int32_t LuaInterface::luaSetHouseProtection(lua_State* L)
-{
-	// setHouseProtection(houseid, protected)
-	bool protect = popBoolean(L);
-
-	if (House* house = Houses::getInstance()->getHouse(popNumber(L))) {
-		house->setProtected(protect);
-		lua_pushboolean(L, true);
-	} else {
-		errorEx(getError(LUA_ERROR_HOUSE_NOT_FOUND));
-		lua_pushboolean(L, false);
-	}
-
-	return 1;
-}
-
-int32_t LuaInterface::luaIsHouseProtected(lua_State* L)
-{
-	// isHouseProtected(houseid)
-	if (House* house = Houses::getInstance()->getHouse(popNumber(L))) {
-		lua_pushboolean(L, house->isProtected());
-	} else {
-		errorEx(getError(LUA_ERROR_HOUSE_NOT_FOUND));
-		lua_pushboolean(L, false);
-	}
-
 	return 1;
 }
 

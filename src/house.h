@@ -171,9 +171,6 @@ public:
 	void setPrice(uint32_t _price) { price = _price; }
 	uint32_t getPrice() const { return price; }
 
-	void setProtected(bool result) { isprotected = result; };
-	bool isProtected() const { return isprotected; };
-
 	void setLastWarning(time_t _lastWarning) { lastWarning = _lastWarning; }
 	time_t getLastWarning() const { return lastWarning; }
 
@@ -234,7 +231,7 @@ private:
 	void removePlayer(Player* player, bool ignoreRights);
 	void removePlayers(bool ignoreInvites);
 
-	bool guild, pendingTransfer, isprotected;
+	bool guild, pendingTransfer;
 	time_t paidUntil, lastWarning;
 	uint32_t id, owner, ownerAccountId, rentWarnings, rent, price, townId, size, syncFlags;
 	std::string name;

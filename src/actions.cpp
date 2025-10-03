@@ -299,15 +299,7 @@ ReturnValue Actions::canUse(const Player* player, const Position& pos)
 		if (houseTile && houseTile->getHouse() && !houseTile->getHouse()->isInvited(player)) {
 			return RET_PLAYERISNOTINVITED;
 		}
-
-		// CUSTOM: Protect House
-		if (houseTile && houseTile->getHouse() && !player->hasCustomFlag(PlayerCustomFlag_CanThrowAnywhere) && houseTile->getHouse()->isProtected() && player->getGUID() != houseTile->getHouse()->getOwner()) {
-			if (g_config.getBool(ConfigManager::HOUSE_PROTECTION) && player->getAccount() != houseTile->getHouse()->getOwnerAccountId()) {
-				return RET_HOUSEPROTECTED;
-			}
-		}
 	}
-
 	return RET_NOERROR;
 }
 

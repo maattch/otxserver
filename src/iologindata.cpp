@@ -1179,13 +1179,13 @@ bool IOLoginData::saveItems(const Player* player, const ItemBlockList& itemList,
 		item->serializeAttr(propWriteStream);
 
 		std::string key = "serial";
-		boost::any value = item->getAttribute(key.c_str());
+		boost::any value = item->getAttribute("serial");
 		if (value.empty()) {
 			item->generateSerial();
-			value = item->getAttribute(key.c_str());
+			value = item->getAttribute("serial");
 		}
 
-		item->eraseAttribute(key.c_str());
+		item->eraseAttribute("serial");
 
 		uint32_t attributesSize = 0;
 		const char* attributes = propWriteStream.getStream(attributesSize);

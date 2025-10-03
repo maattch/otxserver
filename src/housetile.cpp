@@ -93,13 +93,6 @@ ReturnValue HouseTile::__queryAdd(int32_t index, const Thing* thing, uint32_t co
 				if (!house->isInvited(player) && !player->hasCustomFlag(PlayerCustomFlag_CanThrowAnywhere)) {
 					return RET_PLAYERISNOTINVITED;
 				}
-
-				// CUSTOM: Protect House
-				if (!player->hasCustomFlag(PlayerCustomFlag_CanThrowAnywhere) && house->isProtected() && player->getGUID() != house->getOwner()) {
-					if (g_config.getBool(ConfigManager::HOUSE_OWNED_BY_ACCOUNT) && player->getAccount() != house->getOwnerAccountId()) {
-						return RET_HOUSEPROTECTED;
-					}
-				}
 			}
 		}
 	}
@@ -113,13 +106,6 @@ ReturnValue HouseTile::__queryRemove(const Thing* thing, uint32_t count, uint32_
 		if (const Player* player = actor->getPlayer()) {
 			if (!house->isInvited(player) && !player->hasCustomFlag(PlayerCustomFlag_CanThrowAnywhere)) {
 				return RET_PLAYERISNOTINVITED;
-			}
-
-			// CUSTOM: Protect House
-			if (!player->hasCustomFlag(PlayerCustomFlag_CanThrowAnywhere) && house->isProtected() && player->getGUID() != house->getOwner()) {
-				if (g_config.getBool(ConfigManager::HOUSE_PROTECTION) && player->getAccount() != house->getOwnerAccountId()) {
-					return RET_HOUSEPROTECTED;
-				}
 			}
 		}
 	}

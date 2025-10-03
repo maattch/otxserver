@@ -34,7 +34,7 @@ extern Game g_game;
 
 House::House(uint32_t houseId)
 {
-	guild = pendingTransfer = isprotected = false;
+	guild = pendingTransfer = false;
 	name = "OTX headquarter (Flat 1, Area 42)";
 	entry = Position();
 	id = houseId;
