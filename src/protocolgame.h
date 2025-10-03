@@ -345,7 +345,7 @@ private:
 	void AddPlayerStats(OutputMessage_ptr msg);
 	void AddPlayerStatsNew(OutputMessage_ptr msg); // make by feetads
 	void AddCreatureSpeak(OutputMessage_ptr msg, const Creature* creature, MessageClasses type,
-		const std::string& text, const uint16_t& channelId, Position* pos, const uint32_t& statementId);
+		const std::string& text, const uint16_t channelId, Position* pos, const uint32_t statementId);
 	void AddCreatureHealth(OutputMessage_ptr msg, const Creature* creature);
 	void AddCreatureOutfit(OutputMessage_ptr msg, const Creature* creature, const Outfit_t& outfit, bool outfitWindow = false);
 	void AddPlayerSkills(OutputMessage_ptr msg);

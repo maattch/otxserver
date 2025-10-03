@@ -60,7 +60,7 @@ void ServiceManager::stop()
 		try {
 			io_service.post([servicePort = servicePortIt.second]() { servicePort->onStopServer(); });
 		} catch (boost::system::system_error& e) {
-			std::cout << "[ServiceManager::stop] Network Error: " << e.what() << std::endl;
+			std::clog << "[ServiceManager::stop] Network Error: " << e.what() << std::endl;
 		}
 	}
 
@@ -191,8 +191,8 @@ void ServicePort::open(uint16_t port)
 
 		accept();
 	} catch (boost::system::system_error& e) {
-		std::cout << "[ServicePort::open] Error: " << e.what() << std::endl;
-		std::cout << "\033[38;5;208m>> if bind adress already in use, send cmd 'killall -9 theotxserver'.\033[0m" << std::endl;
+		std::clog << "[ServicePort::open] Error: " << e.what() << std::endl;
+		std::clog << "if bind adress already in use, send cmd 'killall -9 theotxserver'." << std::endl;
 
 		pendingStart = true;
 		addSchedulerTask(15000, ([service = std::weak_ptr<ServicePort>(shared_from_this()), port]() {

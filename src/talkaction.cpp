@@ -1423,9 +1423,7 @@ bool TalkAction::software(Creature* creature, const std::string&, const std::str
 	}
 
 	std::ostringstream s;
-	s << "The " << SOFTWARE_NAME << " Version: (" << SOFTWARE_VERSION << "." << MINOR_VERSION << ")" << std::endl;
-	s << "Codename: (" << SOFTWARE_CODENAME << ")" << std::endl
-	  << std::endl;
+	s << "The " << SOFTWARE_NAME << " Version: (" << SOFTWARE_VERSION << "." << MINOR_VERSION << ")" << std::endl << std::endl;
 	s << "Server Developers: " << SOFTWARE_DEVELOPERS << "." << std::endl;
 
 	player->sendTextMessage(MSG_EVENT_ADVANCE, s.str());

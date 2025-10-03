@@ -791,7 +791,7 @@ bool LuaInterface::loadFile(const std::string& file, Npc* npc /* = NULL*/)
 bool LuaInterface::loadDirectory(std::string dir, bool recursively, bool loadSystems, Npc* npc /* = NULL*/)
 {
 	if (!std::filesystem::exists(dir) || !std::filesystem::is_directory(dir)) {
-		std::cout << "[Error - LuaInterface::loadDirectory] Cannot load directory " << dir << std::endl;
+		std::clog << "[Error - LuaInterface::loadDirectory] Cannot load directory " << dir << std::endl;
 		return false;
 	}
 
@@ -3229,7 +3229,7 @@ int32_t LuaInterface::luaGetPlayerFlagValue(lua_State* L)
 		if (index < PlayerFlag_LastFlag) {
 			lua_pushboolean(L, player->hasFlag((PlayerFlags)index));
 		} else {
-			errorEx("No valid flag index - " + asString<uint32_t>(index));
+			errorEx("No valid flag index - " + std::to_string(index));
 			lua_pushboolean(L, false);
 		}
 	} else {
@@ -3250,7 +3250,7 @@ int32_t LuaInterface::luaGetPlayerCustomFlagValue(lua_State* L)
 		if (index < PlayerCustomFlag_LastFlag) {
 			lua_pushboolean(L, player->hasCustomFlag((PlayerCustomFlags)index));
 		} else {
-			errorEx("No valid flag index - " + asString<uint32_t>(index));
+			errorEx("No valid flag index - " + std::to_string(index));
 			lua_pushboolean(L, false);
 		}
 	} else {
@@ -5128,7 +5128,7 @@ int32_t LuaInterface::luaDoCreateTeleport(lua_State* L)
 	Teleport* newTeleport = newItem->getTeleport();
 	if (!newTeleport) {
 		delete newItem;
-		errorEx("Item " + asString(itemId) + " is not a teleport.");
+		errorEx("Item " + std::to_string(itemId) + " is not a teleport.");
 		lua_pushboolean(L, false);
 		return 1;
 	}
@@ -6475,7 +6475,7 @@ int32_t LuaInterface::luaSetCombatCallBack(lua_State* L)
 
 	CallBack* callback = combat->getCallback(key);
 	if (!callback) {
-		errorEx(asString<uint32_t>(key) + " is not a valid callback key");
+		errorEx(std::to_string(key) + " is not a valid callback key");
 		lua_pushboolean(L, false);
 		return 1;
 	}

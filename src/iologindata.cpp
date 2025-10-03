@@ -1094,7 +1094,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 		std::list<uint16_t> autoLootList = player->getAutoLoot();
 		PropWriteStream PWS_AutoLoot;
-		for (const uint16_t& loot : autoLootList) {
+		for (const uint16_t loot : autoLootList) {
 			PWS_AutoLoot.addShort(loot);
 		}
 

@@ -35,13 +35,13 @@ bool DatabaseManager::optimizeTables()
 
 	query.str("");
 	do {
-		std::clog << "\033[33m>>> Optimizing table: \033[0m" << result->getString("TABLE_NAME") << "... ";
+		std::clog << ">>> Optimizing table: " << result->getString("TABLE_NAME") << "... ";
 		query << "OPTIMIZE TABLE `" << result->getString("TABLE_NAME") << "`;";
 
 		if (g_database.executeQuery(query.str())) {
-			std::clog << "\033[32m[success]\033[0m" << std::endl;
+			std::clog << "[success]" << std::endl;
 		} else {
-			std::clog << "\033[31m[failure]\033[0m" << std::endl;
+			std::clog << "[failure]" << std::endl;
 		}
 
 		query.str("");

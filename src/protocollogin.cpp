@@ -58,14 +58,12 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	msg.skipBytes(2); // client platform
 	uint16_t version = msg.get<uint16_t>();
 
-#ifdef CLIENT_VERSION_DATA
-	uint32_t datSignature = msg.get<uint32_t>();
-	uint32_t sprSignature = msg.get<uint32_t>();
-
-	uint32_t picSignature = msg.get<uint32_t>();
-#else
+	// skip
+	// dat signature (4 bytes)
+	// spr signature (4 bytes)
+	// pic signature (4 bytes)
 	msg.skipBytes(12);
-#endif
+
 	if (!RSA_decrypt(msg)) {
 		getConnection()->close();
 		return;
@@ -91,23 +89,6 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 			return;
 		}
 	}
-
-#ifdef CLIENT_VERSION_DATA
-	if (sprSignature != CLIENT_VERSION_SPR) {
-		disconnectClient(0x0A, CLIENT_VERSION_DATA);
-		return;
-	}
-
-	if (datSignature != CLIENT_VERSION_DAT) {
-		disconnectClient(0x0A, CLIENT_VERSION_DATA);
-		return;
-	}
-
-	if (picSignature != CLIENT_VERSION_PIC) {
-		disconnectClient(0x0A, CLIENT_VERSION_DATA);
-		return;
-	}
-#endif
 
 	if (g_game.getGameState() < GAMESTATE_NORMAL) {
 		disconnectClient(0x0A, "Server is just starting up, please wait.");

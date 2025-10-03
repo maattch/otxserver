@@ -20,10 +20,6 @@
 // definitions must be called first
 #include "definitions.h"
 
-#if defined WINDOWS
-	#include <winerror.h>
-#endif
-
 // STD
 #include <algorithm>
 #include <bitset>

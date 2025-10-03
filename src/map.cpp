@@ -848,7 +848,7 @@ void AStarNodes::closeNode(AStarNode* node)
 {
 	size_t pos = GET_NODE_INDEX(node);
 	if (pos >= MAX_NODES) {
-		std::cout << "AStarNodes. trying to close node out of range" << std::endl;
+		std::clog << "AStarNodes. trying to close node out of range" << std::endl;
 		return;
 	}
 
@@ -860,7 +860,7 @@ void AStarNodes::openNode(AStarNode* node)
 {
 	size_t pos = GET_NODE_INDEX(node);
 	if (pos >= MAX_NODES) {
-		std::cout << "AStarNodes. trying to open node out of range" << std::endl;
+		std::clog << "AStarNodes. trying to open node out of range" << std::endl;
 		return;
 	}
 

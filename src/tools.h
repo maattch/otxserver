@@ -44,31 +44,6 @@ enum DistributionType_t
 	DISTRO_NORMAL
 };
 
-template<typename T>
-inline void asString(const T& object, std::string& s)
-{
-	std::ostringstream ss;
-	ss << object;
-	s = ss.str();
-}
-
-template<typename T>
-inline std::string asString(const T& object)
-{
-	std::ostringstream ss;
-	ss << object;
-	return ss.str();
-}
-
-template<class T>
-inline T fromString(const std::string& s)
-{
-	std::istringstream ss(s);
-	T t;
-	ss >> t;
-	return t;
-}
-
 int64_t OTSYS_TIME();
 
 std::mt19937& getRandomGenerator();

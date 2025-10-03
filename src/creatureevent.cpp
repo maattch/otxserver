@@ -2001,7 +2001,7 @@ uint32_t CreatureEvent::executeExtendedOpcode(Creature* creature, uint8_t opcode
 			return result;
 		}
 	} else {
-		std::cout << "[Error - CreatureEvent::executeRemoved] Call stack overflow." << std::endl;
+		std::clog << "[Error - CreatureEvent::executeRemoved] Call stack overflow." << std::endl;
 		return 0;
 	}
 }

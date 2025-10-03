@@ -22,22 +22,13 @@
 #define CLIENT_VERSION_ITEMS 20
 #define CLIENT_VERSION_STRING "8.60"
 
-#define TRACK_MESSAGE(x)
-
-#define SOFTWARE_NAME "OTX Server Fe Edition"
+#define SOFTWARE_NAME "OTXServer Fe Edition (modified by Wtver)"
 #define SOFTWARE_VERSION "1"
 #define MINOR_VERSION "15"
-#define SOFTWARE_CODENAME "SNAPSHOT"
 #define SOFTWARE_DEVELOPERS "https://github.com/FeTads/otxserver"
 
-// #define CLIENT_VERSION_DATA
-#define CLIENT_VERSION_DAT 0
-#define CLIENT_VERSION_SPR 0
-#define CLIENT_VERSION_PIC 0
-
-#define VERSION_DATABASE 42
-
 #define MAX_RAND_RANGE 10000000
+
 #ifndef __FUNCTION__
 	#define __FUNCTION__ __func__
 #endif
@@ -58,6 +49,9 @@
 		#define HAS_ITERATOR_DEBUGGING 0
 	#endif
 
+	#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
+	#define VC_EXTRALEAN
+
 	#include <cstring>
 	#define atoll _atoi64
 
@@ -72,56 +66,17 @@
 	#pragma warning(disable : 4309)
 	#pragma warning(disable : 4996) // '_ftime64' : this function or variable may be unsafe
 	#pragma warning(disable : 26812) // prefer 'enum class' over 'enum'
-
-	#ifndef _WIN32
-		#define _WIN32
-	#endif
-	#ifndef WIN32
-		#define WIN32
-	#endif
-
-	#ifndef __WINDOWS__
-		#define __WINDOWS__
-	#endif
-	#ifndef WINDOWS
-		#define WINDOWS
-	#endif
-#else
-	#if defined _WIN32 || defined WIN32 || defined __WINDOWS__ || defined WINDOWS
-		#ifndef _WIN32
-			#define _WIN32
-		#endif
-		#ifndef WIN32
-			#define WIN32
-		#endif
-
-		#ifndef __WINDOWS__
-			#define __WINDOWS__
-		#endif
-		#ifndef WINDOWS
-			#define WINDOWS
-		#endif
-	#endif
-
-	#ifdef __CYGWIN__
-		#undef WIN32
-		#undef _WIN32
-		#undef WINDOWS
-		#undef __WINDOWS__
-		#define HAVE_ERRNO_AS_DEFINE
-	#endif
 #endif
 
-#ifdef __WINDOWS__
+#ifdef _WIN32
 	#ifdef _WIN32_WINNT
 		#undef _WIN32_WINNT
 	#endif
 
-	// Windows 2000	0x0500
-	// Windows XP	0x0501
-	// Windows 2003	0x0502
-	// Windows Vista	0x0600
+	// Windows 2000	 0x0500
+	// Windows XP	 0x0501
+	// Windows 2003	 0x0502
+	// Windows Vista 0x0600
 	// Windows Seven 0x0601
-
-	#define _WIN32_WINNT 0x0501
+	#define _WIN32_WINNT 0x0601
 #endif

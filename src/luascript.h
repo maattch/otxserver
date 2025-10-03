@@ -341,7 +341,6 @@ protected:
 	static int32_t luaDoSendAnimatedText(lua_State* L);
 	static int32_t luaDoSendMagicEffect(lua_State* L);
 	static int32_t luaDoSendDistanceShoot(lua_State* L);
-	static int32_t luaDoShowTextWindow(lua_State* L);
 	static int32_t luaDoShowTextDialog(lua_State* L);
 	static int32_t luaDoDecayItem(lua_State* L);
 	static int32_t luaDoCreateItem(lua_State* L);
@@ -446,12 +445,8 @@ protected:
 	static int32_t luaDoAddAccountWarnings(lua_State* L);
 	static int32_t luaGetAccountWarnings(lua_State* L);
 	static int32_t luaDoRemoveNotations(lua_State* L);
-	static int32_t luaDoRemoveStatements(lua_State* L);
 	static int32_t luaGetNotationsCount(lua_State* L);
-	static int32_t luaGetStatementsCount(lua_State* L);
 	static int32_t luaGetBanData(lua_State* L);
-	static int32_t luaGetBanReason(lua_State* L);
-	static int32_t luaGetBanAction(lua_State* L);
 	static int32_t luaGetBanList(lua_State* L);
 	static int32_t luaGetPlayerModes(lua_State* L);
 	static int32_t luaGetPlayerRates(lua_State* L);
@@ -543,7 +538,6 @@ protected:
 	static int32_t luaHasCreatureCondition(lua_State* L);
 	static int32_t luaGetCreatureConditionInfo(lua_State* L);
 	static int32_t luaHasPlayerClient(lua_State* L);
-	static int32_t luaGetDepotId(lua_State* L);
 	static int32_t luaGetVocationInfo(lua_State* L);
 	static int32_t luaGetGroupInfo(lua_State* L);
 	static int32_t luaGetMonsterInfo(lua_State* L);
@@ -841,10 +835,9 @@ protected:
 
 private:
 	void registerGlobalVariable(const std::string& name, lua_Number value);
-	static int luaErrorHandler(lua_State* L);
 };
 
-class LuaEnvironment : public LuaInterface
+class LuaEnvironment final : public LuaInterface
 {
 public:
 	LuaEnvironment();

@@ -42,7 +42,7 @@ namespace
 		// close the connection handle
 		MysqlPtr handle(mysql_init(nullptr));
 		if (!handle) {
-			std::cout << "\n[Error - mysql_init]\nFailed to initialize MySQL connection handle." << std::endl;
+			std::clog << "\n[Error - mysql_init]\nFailed to initialize MySQL connection handle." << std::endl;
 			goto error;
 		}
 
@@ -59,7 +59,7 @@ namespace
 				static_cast<unsigned int>(g_config.getNumber(ConfigManager::SQL_PORT)),
 				nullptr,
 				0)) {
-			std::cout << "[Error - connectToDatabase]\nMessage: " << mysql_error(handle.get()) << " (" << mysql_errno(handle.get()) << ')' << std::endl;
+			std::clog << "[Error - connectToDatabase]\nMessage: " << mysql_error(handle.get()) << " (" << mysql_errno(handle.get()) << ')' << std::endl;
 			goto error;
 		}
 		return handle;
@@ -80,7 +80,7 @@ namespace
 	{
 		while (mysql_real_query(handle.get(), query.data(), query.length()) != 0) {
 			unsigned int errn = mysql_errno(handle.get());
-			std::cout << "[Error - executeDatabaseQuery]\nQuery: " << query << "\nMessage: " << mysql_error(handle.get()) << " (" << errn << ')' << std::endl;
+			std::clog << "[Error - executeDatabaseQuery]\nQuery: " << query << "\nMessage: " << mysql_error(handle.get()) << " (" << errn << ')' << std::endl;
 			if (!isLostConnectionError(errn) || !retryIfLostConnection) {
 				return false;
 			}
@@ -106,7 +106,7 @@ bool Database::connect()
 	}
 
 	if (maxPacketSize < 8 * 1024 * 1024) {
-		std::cout << "[Database::connect] 'max_allowed_packet' less than 8MB, consider increasing it." << std::endl;
+		std::clog << "[Database::connect] 'max_allowed_packet' less than 8MB, consider increasing it." << std::endl;
 	}
 	return true;
 }
@@ -172,7 +172,7 @@ retry:
 	MysqlResultPtr res{ mysql_store_result(handle.get()) };
 	if (!res) {
 		const unsigned errorn = mysql_errno(handle.get());
-		std::cout << "[Error - Database::storeQuery]\nQuery: " << query << "\nMessage: " << mysql_error(handle.get()) << " (" << errorn << ')' << std::endl;
+		std::clog << "[Error - Database::storeQuery]\nQuery: " << query << "\nMessage: " << mysql_error(handle.get()) << " (" << errorn << ')' << std::endl;
 		if (!isLostConnectionError(errorn) || !retryQueries) {
 			return nullptr;
 		}
@@ -234,7 +234,7 @@ bool DBResult::getBoolean(const std::string& s) const
 {
 	auto it = listNames.find(s);
 	if (it == listNames.end()) {
-		std::cout << "[Error - DBResult::getBoolean] Column '" << s << "' doesn't exist in the result set" << std::endl;
+		std::clog << "[Error - DBResult::getBoolean] Column '" << s << "' doesn't exist in the result set" << std::endl;
 		return false;
 	}
 
@@ -250,7 +250,7 @@ std::string DBResult::getString(const std::string& s) const
 {
 	auto it = listNames.find(s);
 	if (it == listNames.end()) {
-		std::cout << "[Error - DBResult::getString] Column '" << s << "' does not exist in result set." << std::endl;
+		std::clog << "[Error - DBResult::getString] Column '" << s << "' does not exist in result set." << std::endl;
 		return {};
 	}
 
@@ -266,7 +266,7 @@ const char* DBResult::getStream(const std::string& s, unsigned long& size) const
 {
 	auto it = listNames.find(s);
 	if (it == listNames.end()) {
-		std::cout << "[Error - DBResult::getStream] Column '" << s << "' does not exist in result set." << std::endl;
+		std::clog << "[Error - DBResult::getStream] Column '" << s << "' does not exist in result set." << std::endl;
 		size = 0;
 		return nullptr;
 	}

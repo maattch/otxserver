@@ -70,8 +70,8 @@ std::string BaseEvents::getScriptPath(std::string path /* = ""*/) const
 		path = getScriptBaseName();
 	}
 
-	if (fileExists(getFilePath(FILE_TYPE_OTHER, std::string(path + "." + asString(g_config.getNumber(ConfigManager::WORLD_ID)) + "/" + path + ".xml")))) {
-		path += "." + asString(g_config.getNumber(ConfigManager::WORLD_ID));
+	if (fileExists(getFilePath(FILE_TYPE_OTHER, std::string(path + "." + std::to_string(g_config.getNumber(ConfigManager::WORLD_ID)) + "/" + path + ".xml")))) {
+		path += "." + std::to_string(g_config.getNumber(ConfigManager::WORLD_ID));
 	}
 
 	return path;

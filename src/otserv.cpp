@@ -74,7 +74,7 @@ bool argumentsHandler(StringVec args)
 						 "\t--admin-port=$1\tPort for admin server to listen on.\n"
 						 "\t--manager-port=$1\tPort for manager server to listen on.\n"
 						 "\t--status-port=$1\tPort for status server to listen on.\n";
-#ifndef WINDOWS
+#ifndef _WIN32
 			std::clog << "\t--runfile=$1\t\tSpecifies run file. Will contain the pid\n"
 						 "\t\t\t\tof the server process as long as run status.\n";
 #endif
@@ -82,77 +82,6 @@ bool argumentsHandler(StringVec args)
 						 "\t\t\t\tthis file.\n"
 						 "\t--closed\t\t\tStarts the server as closed.\n"
 						 "\t--no-script\t\t\tStarts the server without script system.\n";
-			return false;
-		}
-
-		std::string luajit = "no";
-		std::string groundCache = "no";
-		std::string serverDiag = "no";
-		std::string loginServer = "no";
-		std::string useMySQL = "no";
-		std::string useMySQLpp = "no";
-		std::string useSQLite = "no";
-		std::string usePostgreSQL = "no";
-
-#ifdef __LUAJIT__
-		luajit = "yes";
-#endif
-
-#ifdef __GROUND_CACHE__
-		groundCache = "yes";
-#endif
-
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-		serverDiag = "yes";
-#endif
-
-#ifdef __USE_MYSQL__
-		useMySQL = "yes";
-#endif
-
-#ifdef __USE_MYSQLPP__
-		useMySQLpp = "yes";
-#endif
-
-#ifdef __USE_SQLITE__
-		useSQLite = "yes";
-#endif
-
-#ifdef __USE_PGSQL__
-		usePostgreSQL = "yes";
-#endif
-
-		if ((*it) == "--version" || (*it) == "-v") {
-			std::clog << "The " << SOFTWARE_NAME << " Version: (" << SOFTWARE_VERSION << "." << MINOR_VERSION << ") - Codename: (" << SOFTWARE_CODENAME << ")\n"
-																																						   "Compiled with "
-					  << BOOST_COMPILER << " for arch "
-#if defined(__amd64__) || defined(_M_X64)
-										   "64 Bits"
-#elif defined(__i386__) || defined(_M_IX86) || defined(_X86_)
-										   "32 Bits"
-#else
-										   "unk"
-#endif
-										   " at "
-					  << __DATE__ << " " << __TIME__ << ".\n"
-
-														"\n"
-														"\t\tFEATURES ON THIS BUILD:\n"
-
-														"\t\tLua Version: "
-					  << LUA_RELEASE << "\n"
-					  << "\t\tXML Version: " << LIBXML_DOTTED_VERSION << "\n"
-					  << "\t\tBOOST Version: " << BOOST_LIB_VERSION << "\n"
-					  << "\t\tLuaJIT: " << luajit << "\n"
-					  << "\t\tGroundCache: " << groundCache << "\n"
-					  << "\t\tServerDiag: " << serverDiag << "\n"
-					  << "\t\tLoginServer: " << loginServer << "\n"
-					  << "\t\tUseMySQL: " << useMySQL << "\n"
-					  << "\t\tUseSQLite: " << useSQLite << "\n"
-					  << "\t\tUsePostgreSQL: " << usePostgreSQL << "\n\n"
-					  <<
-
-				"A server developed by: " SOFTWARE_DEVELOPERS ".\n";
 			return false;
 		}
 
@@ -176,7 +105,7 @@ bool argumentsHandler(StringVec args)
 		} else if (tmp[0] == "--status-port") {
 			g_config.setNumber(ConfigManager::STATUS_PORT, atoi(tmp[1].c_str()));
 		}
-#ifndef WINDOWS
+#ifndef _WIN32
 		else if (tmp[0] == "--runfile" || tmp[0] == "--run-file" || tmp[0] == "--pidfile" || tmp[0] == "--pid-file") {
 			g_config.setString(ConfigManager::RUNFILE, tmp[1]);
 		}
@@ -184,7 +113,7 @@ bool argumentsHandler(StringVec args)
 		else if (tmp[0] == "--log") {
 			g_config.setString(ConfigManager::OUTPUT_LOG, tmp[1]);
 		}
-#ifndef WINDOWS
+#ifndef _WIN32
 		else if (tmp[0] == "--daemon" || tmp[0] == "-d") {
 			g_config.setBool(ConfigManager::DAEMONIZE, true);
 		}
@@ -199,7 +128,7 @@ bool argumentsHandler(StringVec args)
 	return true;
 }
 
-#ifndef WINDOWS
+#ifndef _WIN32
 void signalHandler(int32_t sig)
 {
 	switch (sig) {
@@ -287,7 +216,7 @@ int main(int argc, char* argv[])
 	ServiceManager servicer;
 	g_config.startup();
 
-#ifndef WINDOWS
+#ifndef _WIN32
 	// ignore sigpipe...
 	struct sigaction sigh;
 	sigh.sa_handler = SIG_IGN;
@@ -330,90 +259,46 @@ int main(int argc, char* argv[])
 void otserv(ServiceManager* services)
 {
 	std::srand((uint32_t)OTSYS_TIME());
-#if defined(WINDOWS)
+#ifdef _WIN32
 	SetConsoleTitleA(SOFTWARE_NAME);
 #endif
 
 	g_game.setGameState(GAMESTATE_STARTUP);
-	/* #if !defined(WINDOWS) && !defined(__ROOT_PERMISSION__)
-		if(!getuid() || !geteuid())
-		{
-			std::clog << "> WARNING: " "The " << SOFTWARE_NAME << " has been executed as super user! It is "
-				<< "recommended to run as a normal user." << std::endl << "Continue? (y/N)" << std::endl;
-			char buffer = getchar();
-			if(buffer != 121 && buffer != 89)
-				startupErrorMessage("Aborted.");
-		}
-	#endif */
 
-	std::string luajit = "no";
-	std::string groundCache = "no";
-	std::string serverDiag = "no";
-	std::string loginServer = "no";
-	std::string useMySQL = "no";
-	std::string useMySQLpp = "no";
-	std::string useSQLite = "no";
-	std::string usePostgreSQL = "no";
-
-#ifdef __LUAJIT__
-	luajit = "yes";
-#endif
-
-#ifdef __GROUND_CACHE__
-	groundCache = "yes";
-#endif
-
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-	serverDiag = "yes";
-#endif
-
-#ifdef __USE_MYSQL__
-	useMySQL = "yes";
-#endif
-
-#ifdef __USE_MYSQLPP__
-	useMySQLpp = "yes";
-#endif
-
-#ifdef __USE_SQLITE__
-	useSQLite = "yes";
-#endif
-
-#ifdef __USE_PGSQL__
-	usePostgreSQL = "yes";
-#endif
-
-	std::clog << "The " << SOFTWARE_NAME << " Version: (" << SOFTWARE_VERSION << "." << MINOR_VERSION << ") - Codename: (" << SOFTWARE_CODENAME << ")" << std::endl
-			  << "Compiled with " << BOOST_COMPILER << " for arch "
+	std::clog << SOFTWARE_NAME << " Version: (" << SOFTWARE_VERSION << "." << MINOR_VERSION << ")\n"
+		"Compiled with " << BOOST_COMPILER << " for arch "
 #if defined(__amd64__) || defined(_M_X64)
-													   "64 Bits"
+		"64 Bits"
 #elif defined(__i386__) || defined(_M_IX86) || defined(_X86_)
-													   "32 Bits"
+		"32 Bits"
 #else
-													   "unk"
+		"unk"
 #endif
-													   " at "
-			  << __DATE__ << " " << __TIME__ << std::endl
-			  << std::endl
-			  <<
+		" at " << __DATE__ << " " << __TIME__ << ".\n"
 
-		"\t\tFEATURES ON THIS BUILD: " << std::endl
-			  << std::endl
-			  <<
+		"\n"
+		"\t\tFEATURES ON THIS BUILD:\n"
 
-		"\t\tLua Version: " << LUA_RELEASE << "\n"
-			  << "\t\tXML Version: " << LIBXML_DOTTED_VERSION << "\n"
-			  << "\t\tBOOST Version: " << BOOST_LIB_VERSION << "\n"
-			  << "\t\tLuaJIT: " << luajit << "\n"
-			  << "\t\tGroundCache: " << groundCache << "\n"
-			  << "\t\tServerDiag: " << serverDiag << "\n"
-			  << "\t\tLoginServer: " << loginServer << "\n"
-			  << "\t\tUseMySQL: " << useMySQL << "\n"
-			  << "\t\tUseSQLite: " << useSQLite << "\n"
-			  << "\t\tUsePostgreSQL: " << usePostgreSQL << "\n\n"
-			  <<
+#ifdef LUAJIT_VERSION
+		<< "\t\tLua Version: " << LUAJIT_VERSION << '\n'
+#else
+		<< "\t\tLua Version: " << LUA_RELEASE << '\n'
+#endif
+		<< "\t\tXML Version: " << LIBXML_DOTTED_VERSION << '\n'
+		<< "\t\tBOOST Version: " << (BOOST_VERSION / 100000) << '.' << (BOOST_VERSION / 100 % 1000) << '.' << (BOOST_VERSION % 100) << '\n'
+#ifdef __GROUND_CACHE__
+		<< "\t\tGroundCache: yes\n"
+#else
+		<< "\t\tGroundCache: no\n"
+#endif
+#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+		<< "\t\tServerDiag: yes\n"
+#else
+		<< "\t\tServerDiag: no\n"
+#endif
+		<< '\n'
+		<< "A server developed by: " SOFTWARE_DEVELOPERS ".\n";
 
-		"A server developed by: " SOFTWARE_DEVELOPERS "." << std::endl;
 	std::ostringstream ss;
 #ifdef __DEBUG__
 	ss << " GLOBAL";
@@ -459,7 +344,7 @@ void otserv(ServiceManager* services)
 		startupErrorMessage("Unable to load " + g_config.getString(ConfigManager::CONFIG_FILE) + "!");
 	}
 
-#ifndef WINDOWS
+#ifndef _WIN32
 	if (g_config.getBool(ConfigManager::DAEMONIZE)) {
 		std::clog << "> Daemonization... ";
 		if (fork()) {
@@ -483,7 +368,7 @@ void otserv(ServiceManager* services)
 
 	IntegerVec cores = vectorAtoi(explodeString(g_config.getString(ConfigManager::CORES_USED), ","));
 	if (cores[0] != -1) {
-#ifdef WINDOWS
+#ifdef _WIN32
 		int32_t mask = 0;
 		for (IntegerVec::iterator it = cores.begin(); it != cores.end(); ++it) {
 			mask += 1 << (*it);
@@ -543,7 +428,7 @@ void otserv(ServiceManager* services)
 	if (g_database.connect()) {
 		std::clog << ">> Running Database Manager" << std::endl;
 		if (g_config.getBool(ConfigManager::OPTIMIZE_DATABASE) && !DatabaseManager::getInstance()->optimizeTables()) {
-			std::clog << "\033[32m>>> [Done] No tables to optimize.\033[0m" << std::endl;
+			std::clog << "[Done] No tables to optimize." << std::endl;
 		}
 	} else {
 		startupErrorMessage("Couldn't estabilish connection to SQL database!");
@@ -685,7 +570,7 @@ void otserv(ServiceManager* services)
 		startupErrorMessage("Unable to load experience stages!");
 	}
 
-	std::clog << "\033[31m[Mods cannot use LIB functions, add functions in mod file]\033[0m " << std::endl
+	std::clog << "[Mods cannot use LIB functions, add functions in mod file]" << std::endl
 			  << ">> Loading mods:" << std::endl;
 	if (!ScriptManager::getInstance()->loadMods()) {
 		startupErrorMessage();

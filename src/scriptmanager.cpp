@@ -150,7 +150,7 @@ bool ScriptManager::loadMods()
 		}
 
 		std::string s = it->path().string();
-		std::clog << ">>> Loading " << s << " ...";
+		std::clog << ">>> Loading " << s << "...";
 		if (loadFromXml(s, enabled)) {
 			std::clog << " (done)";
 			if (!enabled) {
@@ -189,7 +189,7 @@ bool ScriptManager::reloadMods()
 bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 {
 	enabled = false;
-	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_MOD, file).c_str());
+	xmlDocPtr doc = xmlParseFile(file.data());
 	if (!doc) {
 		std::clog << "[Error - ScriptManager::loadFromXml] Cannot load mod " << file << std::endl;
 		std::clog << getLastXMLError() << std::endl;
@@ -203,7 +203,6 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 	if (xmlStrcmp(root->name, (const xmlChar*)"mod")) {
 		std::clog << "[Error - ScriptManager::loadFromXml] Malformed mod " << file << std::endl;
 		std::clog << getLastXMLError() << std::endl;
-
 		xmlFreeDoc(doc);
 		return false;
 	}
@@ -251,13 +250,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 				protocol = vectorAtoi(explodeString(strValue, "-"));
 			}
 
-			int16_t database = VERSION_DATABASE;
-			if (readXMLInteger(versionNode, "database", intValue)) {
-				database = intValue;
-			}
-
-			if (id == asLowerCaseString(SOFTWARE_VERSION) && database >= VERSION_DATABASE
-				&& protocol[0] >= CLIENT_VERSION_MIN && (protocol.size() < 2 || protocol[1] <= CLIENT_VERSION_MAX)) {
+			if (id == asLowerCaseString(SOFTWARE_VERSION) && protocol[0] >= CLIENT_VERSION_MIN && (protocol.size() < 2 || protocol[1] <= CLIENT_VERSION_MAX)) {
 				supported = true;
 				break;
 			}
