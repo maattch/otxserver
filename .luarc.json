@@ -1,0 +1,27 @@
+{
+	"$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+	"description": "OTX LuaLS settings",
+	"runtime.version": "LuaJIT",
+	"hint.enable": false,
+	"diagnostics.disable": [
+		"lowercase-global",
+		"cast-local-type",
+		"inject-field"
+	],
+	"diagnostics.workspaceRate": 100,
+	"diagnostics.workspaceDelay": 5000,
+	"diagnostics.severity": {
+		"spell-check": "Warning",
+		"trailing-space": "Warning",
+		"missing-global-doc": "Warning",
+		"missing-local-export-doc": "Warning"
+	},
+	"workspace": {
+		"maxPreload": 5000,
+		"preloadFileSize": 1024
+	},
+	"type": {
+		"castNumberToInteger": true,
+		"inferParamType": false
+	}
+}
