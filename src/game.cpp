@@ -2827,7 +2827,7 @@ bool Game::playerUseItemEx(const uint32_t playerId, const Position& fromPos, int
 	}
 
 	Position walkToPos = fromPos;
-	ReturnValue ret = g_actions->canUse(player, fromPos);
+	ReturnValue ret = Actions::canUse(player, fromPos);
 	if (ret == RET_NOERROR) {
 		ret = g_actions->canUseEx(player, toPos, item);
 		if (ret == RET_TOOFARAWAY) {
@@ -2919,7 +2919,7 @@ bool Game::playerUseItem(const uint32_t playerId, const Position& pos, const int
 		return false;
 	}
 
-	ReturnValue ret = g_actions->canUse(player, pos);
+	ReturnValue ret = Actions::canUse(player, pos);
 	if (ret == RET_TOOFARAWAY && player->hasCustomFlag(PlayerCustomFlag_CanUseFar)) {
 		ret = RET_NOERROR;
 	}
@@ -3000,7 +3000,7 @@ bool Game::playerUseBattleWindow(const uint32_t playerId, const Position& pos, c
 		return false;
 	}
 
-	ReturnValue ret = g_actions->canUse(player, pos);
+	ReturnValue ret = Actions::canUse(player, pos);
 	if (ret != RET_NOERROR) {
 		if (ret == RET_TOOFARAWAY) {
 			if (player->getNoMove()) {

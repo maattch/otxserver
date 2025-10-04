@@ -67,7 +67,7 @@ bool isValidName(std::string text, bool forceUppercaseOnFirstLetter = true);
 std::string transformToSHA1(const std::string& input);
 
 StringVec explodeString(const std::string& string, const std::string& separator, bool trim = true, uint16_t limit = 0);
-IntegerVec vectorAtoi(StringVec stringVector);
+std::vector<int32_t> vectorAtoi(const std::vector<std::string>& strvec);
 std::string parseParams(tokenizer::iterator& it, tokenizer::iterator end); // TODO: replace by StringVec...
 
 std::string convertIPAddress(uint32_t ip);
@@ -101,7 +101,7 @@ std::string getLastXMLError();
 
 std::string parseVocationString(StringVec vocStringVec);
 bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, StringVec& vocStringMap, std::string& errorStr);
-bool parseIntegerVec(std::string str, IntegerVec& intVector);
+std::vector<int32_t> parseStringInts(const std::string& str);
 
 Skulls_t getSkulls(std::string strValue);
 PartyShields_t getShields(std::string strValue);

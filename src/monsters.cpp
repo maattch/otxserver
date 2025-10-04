@@ -1433,11 +1433,9 @@ bool Monsters::loadLoot(xmlNodePtr node, LootBlock& lootBlock)
 {
 	std::string strValue;
 	if (readXMLString(node, "id", strValue) || readXMLString(node, "ids", strValue)) {
-		IntegerVec idsVec;
-		parseIntegerVec(strValue, idsVec);
-		for (IntegerVec::iterator it = idsVec.begin(); it != idsVec.end(); ++it) {
-			lootBlock.ids.push_back(*it);
-			if (Item::items[(*it)].isContainer()) {
+		for (const int32_t id : parseStringInts(strValue)) {
+			lootBlock.ids.push_back(static_cast<uint16_t>(id));
+			if (Item::items[static_cast<uint16_t>(id)].isContainer()) {
 				loadChildLoot(node, lootBlock);
 			}
 		}

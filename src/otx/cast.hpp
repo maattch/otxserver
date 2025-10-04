@@ -2,21 +2,82 @@
 
 namespace otx::util
 {
-	template<class T> T cast(const char* str);
+	// safe-cast
+	template<class T> inline std::pair<T, bool> safe_cast(const char* str);
 
-	template<> inline float cast(const char* str) { return std::strtof(str, nullptr); }
-	template<> inline double cast(const char* str) { return std::strtod(str, nullptr); }
-	template<> inline long cast(const char* str) { return std::strtol(str, nullptr, 0); }
-	template<> inline long long cast(const char* str) { return std::strtoll(str, nullptr, 0); }
-	template<> inline unsigned long cast(const char* str) { return std::strtoul(str, nullptr, 0); }
-	template<> inline unsigned long long cast(const char* str) { return std::strtoull(str, nullptr, 0); }
+	template<> inline std::pair<double, bool> safe_cast(const char* str)
+	{
+		char* endp;
+		auto v = std::strtod(str, &endp);
+		return { v, (endp != str && *endp == '\0') };
+	}
+	template<> inline std::pair<float, bool> safe_cast(const char* str)
+	{
+		char* endp;
+		auto v = std::strtof(str, &endp);
+		return { v, (endp != str && *endp == '\0') };
+	}
+	template<> inline std::pair<long, bool> safe_cast(const char* str)
+	{
+		char* endp;
+		auto v = std::strtol(str, &endp, 0);
+		return { v, (endp != str && *endp == '\0') };
+	}
+	template<> inline std::pair<long long, bool> safe_cast(const char* str)
+	{
+		char* endp;
+		auto v = std::strtoll(str, &endp, 0);
+		return { v, (endp != str && *endp == '\0') };
+	}
+	template<> inline std::pair<unsigned long, bool> safe_cast(const char* str)
+	{
+		char* endp;
+		unsigned long v = std::strtoul(str, &endp, 0);
+		return { v, (endp != str && *endp == '\0') };
+	}
+	template<> inline std::pair<unsigned long long, bool> safe_cast(const char* str)
+	{
+		char* endp;
+		auto v = std::strtoull(str, &endp, 0);
+		return { v, (endp != str && *endp == '\0') };
+	}
 
-	template<> inline char cast(const char* str) { return static_cast<char>(cast<long>(str)); }
-	template<> inline signed char cast(const char* str) { return static_cast<signed char>(cast<long>(str)); }
-	template<> inline short cast(const char* str) { return static_cast<short>(cast<long>(str)); }
-	template<> inline int cast(const char* str) { return static_cast<int>(cast<long>(str)); }
-	template<> inline unsigned char cast(const char* str) { return static_cast<unsigned char>(cast<unsigned long>(str)); }
-	template<> inline unsigned short cast(const char* str) { return static_cast<unsigned short>(cast<unsigned long>(str)); }
-	template<> inline unsigned int cast(const char* str) { return static_cast<unsigned int>(cast<unsigned long>(str)); }
+	template<> inline std::pair<char, bool> safe_cast(const char* str)
+	{
+		auto p = safe_cast<long>(str);
+		return { static_cast<char>(p.first), p.second };
+	}
+	template<> inline std::pair<signed char, bool> safe_cast(const char* str)
+	{
+		auto p = safe_cast<long>(str);
+		return { static_cast<signed char>(p.first), p.second };
+	}
+	template<> inline std::pair<short, bool> safe_cast(const char* str)
+	{
+		auto p = safe_cast<long>(str);
+		return { static_cast<short>(p.first), p.second };
+	}
+	template<> inline std::pair<int, bool> safe_cast(const char* str)
+	{
+		auto p = safe_cast<long>(str);
+		return { static_cast<int>(p.first), p.second };
+	}
+	template<> inline std::pair<unsigned char, bool> safe_cast(const char* str)
+	{
+		auto p = safe_cast<unsigned long>(str);
+		return { static_cast<unsigned char>(p.first), p.second };
+	}
+	template<> inline std::pair<unsigned short, bool> safe_cast(const char* str)
+	{
+		auto p = safe_cast<unsigned long>(str);
+		return { static_cast<unsigned short>(p.first), p.second };
+	}
+	template<> inline std::pair<unsigned int, bool> safe_cast(const char* str)
+	{
+		auto p = safe_cast<unsigned long>(str);
+		return { static_cast<unsigned int>(p.first), p.second };
+	}
+
+	template<class T> T cast(const char* str) { return safe_cast<T>(str).first; }
 
 } // otx::util

@@ -395,17 +395,16 @@ StringVec explodeString(const std::string& string, const std::string& separator,
 	return returnVector;
 }
 
-IntegerVec vectorAtoi(StringVec stringVector)
+std::vector<int32_t> vectorAtoi(const std::vector<std::string>& strvec)
 {
-	IntegerVec returnVector;
-	for (StringVec::iterator it = stringVector.begin(); it != stringVector.end(); ++it) {
-		int32_t number = atoi((*it).c_str());
-		if (number || (*it) == "0") {
-			returnVector.push_back(number);
+	std::vector<int32_t> vec;
+	for (const std::string& s : strvec) {
+		auto result = otx::util::safe_cast<int32_t>(s.data());
+		if (result.second) {
+			vec.push_back(result.first);
 		}
 	}
-
-	return returnVector;
+	return vec;
 }
 
 bool hasBitSet(uint32_t flag, uint32_t flags)
@@ -1610,8 +1609,8 @@ bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, String
 			return false;
 		}
 	} else if (readXMLString(vocationNode, "id", strValue)) {
-		IntegerVec intVector;
-		if (!parseIntegerVec(strValue, intVector)) {
+		auto intVector = parseStringInts(strValue);
+		if (intVector.empty()) {
 			errorStr = "Invalid vocation id - '" + strValue + "'";
 			return false;
 		}
@@ -1645,30 +1644,23 @@ bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, String
 	return true;
 }
 
-bool parseIntegerVec(std::string str, IntegerVec& intVector)
+std::vector<int32_t> parseStringInts(const std::string& str)
 {
-	StringVec strVector = explodeString(str, ";");
-	IntegerVec tmpIntVector;
-	for (StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it) {
-		tmpIntVector = vectorAtoi(explodeString((*it), "-"));
-
-		if (tmpIntVector.size() == 0) {
-			return false;
-		}
-
-		if (!tmpIntVector[0] && it->substr(0, 1) != "0") {
+	std::vector<int32_t> vec;
+	for (const std::string& s : explodeString(str, ";")) {
+		auto tmpIntVector = vectorAtoi(explodeString(s, "-"));
+		if (tmpIntVector.empty()) {
 			continue;
 		}
 
-		intVector.push_back(tmpIntVector[0]);
+		vec.push_back(tmpIntVector[0]);
 		if (tmpIntVector.size() > 1) {
 			while (tmpIntVector[0] < tmpIntVector[1]) {
-				intVector.push_back(++tmpIntVector[0]);
+				vec.push_back(++tmpIntVector[0]);
 			}
 		}
 	}
-
-	return true;
+	return vec;
 }
 
 bool fileExists(const std::string& filename)

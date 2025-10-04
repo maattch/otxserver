@@ -65,8 +65,8 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 	}
 
 	if (readXMLString(p, "group", strValue) || readXMLString(p, "groups", strValue)) {
-		newOutfit.groups.clear();
-		if (!parseIntegerVec(strValue, newOutfit.groups)) {
+		newOutfit.groups = parseStringInts(strValue);
+		if (newOutfit.groups.empty()) {
 			std::clog << "[Warning - Outfits::parseOutfitNode] Invalid group(s) for an outfit with id " << newOutfit.outfitId << std::endl;
 		}
 	}
@@ -106,10 +106,9 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 			continue;
 		}
 
-		IntegerVec intVector;
-		if (!parseIntegerVec(strValue, intVector)) {
-			std::clog << "[Error - Outfits::parseOutfitNode] Invalid gender(s) for an outfit with id " << outfit.outfitId
-					  << " and looktype " << outfit.lookType << std::endl;
+		auto intVector = parseStringInts(strValue);
+		if (intVector.empty()) {
+			std::clog << "[Error - Outfits::parseOutfitNode] Invalid gender(s) for an outfit with id " << outfit.outfitId << " and looktype " << outfit.lookType << std::endl;
 			continue;
 		}
 

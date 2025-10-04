@@ -276,8 +276,8 @@ bool TalkAction::configureEvent(xmlNodePtr p)
 	}
 
 	if (readXMLString(p, "group", strValue) || readXMLString(p, "groups", strValue)) {
-		m_groups.clear();
-		if (!parseIntegerVec(strValue, m_groups)) {
+		m_groups = parseStringInts(strValue);
+		if (m_groups.empty()) {
 			std::clog << "[Warning - TalkAction::configureEvent] Invalid group(s) for TalkAction: " << strValue << std::endl;
 		}
 	}
