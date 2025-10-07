@@ -24,8 +24,6 @@
 #include "creature.h"
 #include "player.h"
 
-extern ConfigManager g_config;
-
 std::string NetworkMessage::getString(uint16_t stringLen /* = 0*/)
 {
 	if (stringLen == 0) {

@@ -28,10 +28,6 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern ConfigManager g_config;
-extern Chat g_chat;
-
 Spectators::Spectators(ProtocolGame_ptr client) : owner(client)
 {
 	id = 0;

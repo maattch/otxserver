@@ -601,7 +601,6 @@ inline int32_t Item::getUniqueId() const
 	if (ok) {
 		return v;
 	}
-
 	return 0;
 }
 
@@ -612,7 +611,6 @@ inline uint16_t Item::getCharges() const
 	if (ok && v >= 0) {
 		return (uint16_t)v;
 	}
-
 	return 0;
 }
 

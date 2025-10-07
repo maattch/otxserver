@@ -59,7 +59,7 @@ struct Outfit
 
 	uint32_t outfitId, lookType;
 	std::string name, storageId, storageValue;
-	IntegerVec groups;
+	std::vector<int32_t> groups;
 };
 
 typedef std::list<Outfit> OutfitList;

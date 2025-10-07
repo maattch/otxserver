@@ -26,7 +26,7 @@
 #include "depot.h"
 #include "game.h"
 #include "house.h"
-#include "luascript.h"
+#include "lua_definitions.h"
 #include "mailbox.h"
 #include "movement.h"
 #include "teleport.h"
@@ -34,10 +34,6 @@
 #include "trashholder.h"
 
 #include "otx/util.hpp"
-
-extern Game g_game;
-extern ConfigManager g_config;
-extern MoveEvents* g_moveEvents;
 
 Items Item::items;
 
@@ -51,7 +47,7 @@ Item* Item::CreateItem(const uint16_t type, uint16_t amount /* = 0*/)
 		return nullptr;
 	}
 
-	if (!it.id) {
+	if (it.id == 0) {
 		return nullptr;
 	}
 
@@ -266,12 +262,17 @@ void Item::copyAttributes(Item* item)
 
 void Item::makeUnique(Item* parent)
 {
-	if (!parent || !parent->getUniqueId()) {
+	if (!parent) {
 		return;
 	}
 
-	ScriptEnviroment::removeUniqueThing(parent);
-	setUniqueId(parent->getUniqueId());
+	const uint16_t uniqueId = parent->getUniqueId();
+	if (uniqueId == 0) {
+		return;
+	}
+
+	g_game.removeUniqueItem(uniqueId);
+	setUniqueId(uniqueId);
 	parent->eraseAttribute("uid");
 }
 
@@ -282,9 +283,11 @@ void Item::onRemoved()
 		raid = nullptr;
 	}
 
-	ScriptEnviroment::removeTempItem(this);
-	if (getUniqueId()) {
-		ScriptEnviroment::removeUniqueThing(this);
+	otx::lua::removeTempItem(this);
+
+	const uint16_t uniqueId = getUniqueId();
+	if (uniqueId != 0) {
+		g_game.removeUniqueItem(uniqueId);
 	}
 }
 
@@ -693,9 +696,10 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 
 		// ItemAttributes class
 		case ATTR_ATTRIBUTE_MAP: {
+			// TODO: fix that shit
 			bool unique = hasIntegerAttribute("uid"), ret = unserializeMap(propStream);
 			if (!unique && hasIntegerAttribute("uid")) { // unfortunately we have to do this
-				ScriptEnviroment::addUniqueThing(this);
+				g_game.addUniqueItem(getUniqueId(), this);
 			}
 
 			// this attribute has a custom behavior as well
@@ -1750,12 +1754,12 @@ void Item::setActionId(int32_t aid, bool callEvent /* = true*/)
 	}
 
 	if (tile && getActionId()) {
-		g_moveEvents->onRemoveTileItem(tile, this);
+		g_moveEvents.onRemoveTileItem(tile, this);
 	}
 
 	setAttribute("aid", aid);
 	if (tile) {
-		g_moveEvents->onAddTileItem(tile, this);
+		g_moveEvents.onAddTileItem(tile, this);
 	}
 }
 
@@ -1772,18 +1776,19 @@ void Item::resetActionId(bool callEvent /* = true*/)
 
 	eraseAttribute("aid");
 	if (tile) {
-		g_moveEvents->onAddTileItem(tile, this);
+		g_moveEvents.onAddTileItem(tile, this);
 	}
 }
 
 void Item::setUniqueId(int32_t uid)
 {
-	if (getUniqueId()) {
+	if (getUniqueId() != 0) {
 		return;
 	}
 
-	setAttribute("uid", uid);
-	ScriptEnviroment::addUniqueThing(this);
+	if (g_game.addUniqueItem(uid, this)) {
+		setAttribute("uid", uid);
+	}
 }
 
 bool Item::canDecay()

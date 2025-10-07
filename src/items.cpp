@@ -28,11 +28,6 @@
 
 #include "otx/util.hpp"
 
-extern Spells* g_spells;
-extern ConfigManager g_config;
-extern MoveEvents* g_moveEvents;
-extern Weapons* g_weapons;
-
 uint32_t Items::dwMajorVersion = 0;
 uint32_t Items::dwMinorVersion = 0;
 uint32_t Items::dwBuildNumber = 0;
@@ -61,8 +56,8 @@ bool Items::reload()
 		return false;
 	}
 
-	g_moveEvents->reload();
-	g_weapons->reload();
+	g_moveEvents.reload();
+	g_weapons.reload();
 	return true;
 }
 
@@ -371,7 +366,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 {
 	ItemType& it = getItemType(id);
 	if (it.loaded) {
-		std::cout << "[Warning - Items::parseItemNode] Duplicate registered item with id " << id << " (" << it.name << ')' << std::endl;
+		std::clog << "[Warning - Items::parseItemNode] Duplicate registered item with id " << id << " (" << it.name << ')' << std::endl;
 		return;
 	}
 

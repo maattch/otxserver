@@ -99,8 +99,7 @@ public:
 	Group* getGroup(uint32_t groupId);
 	int32_t getGroupId(const std::string& name);
 
-	GroupsMap::iterator getFirstGroup() { return groupsMap.begin(); }
-	GroupsMap::iterator getLastGroup() { return groupsMap.end(); }
+	const auto& getGroups() { return groupsMap; }
 
 private:
 	Groups() {}

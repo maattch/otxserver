@@ -29,10 +29,6 @@
 #include "teleport.h"
 #include "trashholder.h"
 
-extern ConfigManager g_config;
-extern Game g_game;
-extern MoveEvents* g_moveEvents;
-
 StaticTile reallyNullTile(0xFFFF, 0xFFFF, 0xFFFF);
 Tile& Tile::nullTile = reallyNullTile;
 
@@ -1582,10 +1578,10 @@ void Tile::postAddNotification(Creature* actor, Thing* thing, const Cylinder* ol
 				fromTile = oldParent->getTile();
 			}
 
-			g_moveEvents->onCreatureMove(actor, creature, fromTile, this, true);
+			g_moveEvents.onCreatureMove(actor, creature, fromTile, this, true);
 		} else if (Item* item = thing->getItem()) {
-			g_moveEvents->onAddTileItem(this, item);
-			g_moveEvents->onItemMove(actor, item, this, true);
+			g_moveEvents.onAddTileItem(this, item);
+			g_moveEvents.onItemMove(actor, item, this, true);
 		}
 
 		if (hasFlag(TILESTATE_TELEPORT)) {
@@ -1626,10 +1622,10 @@ void Tile::postRemoveNotification(Creature* actor, Thing* thing, const Cylinder*
 			toTile = newParent->getTile();
 		}
 
-		g_moveEvents->onCreatureMove(actor, creature, this, toTile, false);
+		g_moveEvents.onCreatureMove(actor, creature, this, toTile, false);
 	} else if (Item* item = thing->getItem()) {
-		g_moveEvents->onRemoveTileItem(this, item);
-		g_moveEvents->onItemMove(actor, item, this, false);
+		g_moveEvents.onRemoveTileItem(this, item);
+		g_moveEvents.onItemMove(actor, item, this, false);
 	}
 }
 

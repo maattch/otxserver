@@ -22,8 +22,6 @@
 #include "configmanager.h"
 #include "scheduler.h"
 
-extern ConfigManager g_config;
-
 ServiceManager::ServiceManager() :
 	death_timer(io_service),
 	running(false)

@@ -25,9 +25,6 @@
 
 #include "otx/util.hpp"
 
-extern ConfigManager g_config;
-extern Game g_game;
-
 WaitList::iterator WaitingList::find(const Player* player, uint32_t& slot)
 {
 	slot = 1;

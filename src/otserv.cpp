@@ -40,12 +40,6 @@
 #include "otx/util.hpp"
 
 RSA g_RSA;
-ConfigManager g_config;
-Game g_game;
-Chat g_chat;
-
-Monsters g_monsters;
-Npcs g_npcs;
 
 std::mutex g_loaderLock;
 std::condition_variable g_loaderSignal;
@@ -117,8 +111,6 @@ bool argumentsHandler(StringVec args)
 #endif
 		else if (tmp[0] == "--closed") {
 			g_config.setBool(ConfigManager::START_CLOSED, true);
-		} else if (tmp[0] == "--no-script" || tmp[0] == "--noscript") {
-			g_config.setBool(ConfigManager::SCRIPT_SYSTEM, false);
 		}
 	}
 
@@ -187,8 +179,7 @@ void startupErrorMessage(std::string error = "")
 {
 	// we will get a crash here as the threads aren't going down smoothly
 	if (error.length() > 0) {
-		std::clog << std::endl
-				  << "> ERROR: " << error << std::endl;
+		std::clog << std::endl << "> ERROR: " << error << std::endl;
 	}
 
 	getchar();
@@ -206,6 +197,9 @@ int main(int argc, char* argv[])
 	}
 
 	std::set_new_handler(allocationHandler);
+
+	g_lua.init();
+	otx::scriptmanager::init();
 
 	g_dispatcher.start();
 	g_scheduler.start();
@@ -247,6 +241,9 @@ int main(int argc, char* argv[])
 		g_scheduler.shutdown();
 		g_dispatcher.shutdown();
 	}
+
+	otx::scriptmanager::terminate();
+	g_lua.terminate();
 
 	g_scheduler.join();
 	g_dispatcher.join();
@@ -564,19 +561,9 @@ void otserv(ServiceManager* services)
 		startupErrorMessage("Unable to load experience stages!");
 	}
 
-	std::clog << "[Mods cannot use LIB functions, add functions in mod file]" << std::endl
-			  << ">> Loading mods:" << std::endl;
-	if (!ScriptManager::getInstance()->loadMods()) {
+	std::clog << ">> Loading script systems:" << std::endl;
+	if (!otx::scriptmanager::load()) {
 		startupErrorMessage();
-	}
-
-	if (g_config.getBool(ConfigManager::SCRIPT_SYSTEM)) {
-		std::clog << ">> Loading script systems:" << std::endl;
-		if (!ScriptManager::getInstance()->loadSystem()) {
-			startupErrorMessage();
-		}
-	} else {
-		ScriptManager::getInstance();
 	}
 
 	std::clog << ">> Loading monsters" << std::endl;

@@ -25,13 +25,21 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern ConfigManager g_config;
-extern Weapons* g_weapons;
+Weapons g_weapons;
 
-Weapons::Weapons() : m_interface("Weapon Interface")
+void Weapons::init()
 {
-	m_interface.initState();
+	m_interface = std::make_unique<LuaInterface>("Weapons Interface");
+	m_interface->initState();
+	g_lua.addScriptInterface(m_interface.get());
+}
+
+void Weapons::terminate()
+{
+	weapons.clear();
+
+	g_lua.removeScriptInterface(m_interface.get());
+	m_interface.reset();
 }
 
 const Weapon* Weapons::getWeapon(const Item* item) const
@@ -50,7 +58,7 @@ const Weapon* Weapons::getWeapon(const Item* item) const
 void Weapons::clear()
 {
 	weapons.clear();
-	m_interface.reInitState();
+	m_interface->reInitState();
 }
 
 void Weapons::loadDefaults()
@@ -66,7 +74,7 @@ void Weapons::loadDefaults()
 			case WEAPON_SWORD:
 			case WEAPON_CLUB:
 			case WEAPON_FIST: {
-				auto weapon = std::make_unique<WeaponMelee>(&m_interface);
+				auto weapon = std::make_unique<WeaponMelee>(getInterface());
 				weapon->configureWeapon(it);
 				weapons.emplace(i, std::move(weapon));
 				break;
@@ -78,7 +86,7 @@ void Weapons::loadDefaults()
 					continue;
 				}
 
-				auto weapon = std::make_unique<WeaponDistance>(&m_interface);
+				auto weapon = std::make_unique<WeaponDistance>(getInterface());
 				weapon->configureWeapon(it);
 				weapons.emplace(i, std::move(weapon));
 				break;
@@ -95,22 +103,22 @@ Event* Weapons::getEvent(const std::string& nodeName)
 {
 	std::string tmpNodeName = otx::util::as_lower_string(nodeName);
 	if (tmpNodeName == "melee") {
-		return new WeaponMelee(&m_interface);
+		return new WeaponMelee(getInterface());
 	} else if (tmpNodeName == "distance" || tmpNodeName == "ammunition" || tmpNodeName == "ammo") {
-		return new WeaponDistance(&m_interface);
+		return new WeaponDistance(getInterface());
 	} else if (tmpNodeName == "wand" || tmpNodeName == "rod") {
-		return new WeaponWand(&m_interface);
+		return new WeaponWand(getInterface());
 	}
 	return nullptr;
 }
 
-bool Weapons::registerEvent(Event* event, xmlNodePtr, bool override)
+bool Weapons::registerEvent(Event* event, xmlNodePtr)
 {
 	// it is guaranteed to be a weapon
 	Weapon* weapon = static_cast<Weapon*>(event);
 
 	auto it = weapons.find(weapon->getID());
-	if (it == weapons.end() || override) {
+	if (it == weapons.end()) {
 		weapons[weapon->getID()] = WeaponPtr(weapon);
 		return true;
 	}
@@ -244,10 +252,9 @@ bool Weapon::loadFunction(const std::string& functionName)
 {
 	std::string tmpFunctionName = otx::util::as_lower_string(functionName);
 	if (tmpFunctionName == "internalloadweapon" || tmpFunctionName == "default") {
-		m_scripted = EVENT_SCRIPT_FALSE;
+		m_scripted = false;
 		return configureWeapon(Item::items[getID()]);
 	}
-
 	return false;
 }
 
@@ -493,51 +500,20 @@ int32_t Weapon::getManaCost(const Player* player) const
 bool Weapon::executeUseWeapon(Player* player, const LuaVariant& var) const
 {
 	// onUseWeapon(cid, var)
-	if (m_interface->reserveEnv()) {
-		ScriptEnviroment* env = m_interface->getEnv();
-		if (m_scripted == EVENT_SCRIPT_BUFFER) {
-			env->setRealPos(player->getPosition());
-			std::ostringstream scriptstream;
-
-			scriptstream << "local cid = " << env->addThing(player) << std::endl;
-			env->streamVariant(scriptstream, "var", var);
-
-			if (m_scriptData) {
-				scriptstream << *m_scriptData;
-			}
-
-			bool result = true;
-			if (m_interface->loadBuffer(scriptstream.str())) {
-				lua_State* L = m_interface->getState();
-				result = m_interface->getGlobalBool(L, "_result", true);
-			}
-
-			m_interface->releaseEnv();
-			return result;
-		} else {
-#ifdef __DEBUG_LUASCRIPTS__
-			char desc[60];
-			sprintf(desc, "onUseWeapon - %s", player->getName().c_str());
-			env->setEvent(desc);
-#endif
-
-			env->setScriptId(m_scriptId, m_interface);
-			env->setRealPos(player->getPosition());
-
-			lua_State* L = m_interface->getState();
-			m_interface->pushFunction(m_scriptId);
-
-			lua_pushnumber(L, env->addThing(player));
-			m_interface->pushVariant(L, var);
-
-			bool result = m_interface->callFunction(2);
-			m_interface->releaseEnv();
-			return result;
-		}
-	} else {
-		std::clog << "[Error - Weapon::executeUseWeapon] Call stack overflow" << std::endl;
+	if (!otx::lua::reserveScriptEnv()) {
+		std::clog << "[Error - Weapon::executeUseWeapon] Call stack overflow." << std::endl;
 		return false;
 	}
+
+	ScriptEnvironment& env = otx::lua::getScriptEnv();
+	env.setScriptId(m_scriptId, m_interface);
+
+	lua_State* L = m_interface->getState();
+	m_interface->pushFunction(m_scriptId);
+
+	lua_pushnumber(L, env.addThing(player));
+	otx::lua::pushVariant(L, var);
+	return otx::lua::callFunction(L, 2);
 }
 
 WeaponMelee::WeaponMelee(LuaInterface* _interface) :
@@ -687,7 +663,7 @@ int32_t WeaponDistance::playerWeaponCheck(Player* player, Creature* target) cons
 	const ItemType& it = Item::items[id];
 	if (it.weaponType == WEAPON_AMMO) {
 		if (Item* item = player->getWeapon(true)) {
-			if (const Weapon* weapon = g_weapons->getWeapon(item)) {
+			if (const Weapon* weapon = g_weapons.getWeapon(item)) {
 				return weapon->playerWeaponCheck(player, target);
 			}
 		}

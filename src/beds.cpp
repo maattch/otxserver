@@ -25,9 +25,6 @@
 #include "iologindata.h"
 #include "player.h"
 
-extern Game g_game;
-extern ConfigManager g_config;
-
 Attr_ReadValue BedItem::readAttr(AttrTypes_t attr, PropStream& propStream)
 {
 	switch (attr) {

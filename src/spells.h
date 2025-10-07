@@ -20,7 +20,7 @@
 #include "actions.h"
 #include "baseevents.h"
 #include "enums.h"
-#include "luascript.h"
+#include "lua_definitions.h"
 #include "player.h"
 #include "talkaction.h"
 
@@ -36,8 +36,10 @@ typedef std::map<SpellGroup_t, uint32_t> SpellGroup;
 class Spells : public BaseEvents
 {
 public:
-	Spells();
-	virtual ~Spells() { clear(); }
+	Spells() = default;
+
+	void init();
+	void terminate();
 
 	Spell* getSpellByName(const std::string& name);
 
@@ -57,18 +59,21 @@ protected:
 	virtual void clear();
 
 	virtual Event* getEvent(const std::string& nodeName);
-	virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+	virtual bool registerEvent(Event* event, xmlNodePtr p);
 
-	virtual LuaInterface& getInterface() { return m_interface; }
-	LuaInterface m_interface;
+	LuaInterface* getInterface() override { return m_interface.get(); }
+
+	LuaInterfacePtr m_interface;
 
 	RunesMap runes;
 	InstantsMap instants;
 	InstantsMap instantsWithParam;
 
-	uint32_t spellId;
+	uint32_t spellId = 0;
 	friend class CombatSpell;
 };
+
+extern Spells g_spells;
 
 typedef bool(InstantSpellFunction)(const InstantSpell* spell, Creature* creature, const std::string& param);
 typedef bool(ConjureSpellFunction)(const ConjureSpell* spell, Creature* creature, const std::string& param);
@@ -102,7 +107,6 @@ public:
 
 protected:
 	virtual std::string getScriptEventName() const { return "onCastSpell"; }
-	virtual std::string getScriptEventParams() const { return "cid, var"; }
 
 	bool needDirection;
 	bool needTarget;
@@ -205,7 +209,6 @@ public:
 
 protected:
 	virtual std::string getScriptEventName() const { return "onCastSpell"; }
-	virtual std::string getScriptEventParams() const { return "cid, var"; }
 
 	static InstantSpellFunction SearchPlayer;
 	static InstantSpellFunction SummonMonster;
@@ -243,7 +246,6 @@ public:
 
 protected:
 	virtual std::string getScriptEventName() const { return "onCastSpell"; }
-	virtual std::string getScriptEventParams() const { return "cid, var"; }
 
 	static ReturnValue internalConjureItem(Player* player, uint32_t conjureId, uint32_t conjureCount,
 		bool transform = false, uint32_t reagentId = 0);
@@ -285,7 +287,6 @@ public:
 
 protected:
 	virtual std::string getScriptEventName() const { return "onCastSpell"; }
-	virtual std::string getScriptEventParams() const { return "cid, var"; }
 
 	static RuneSpellFunction Illusion;
 	static RuneSpellFunction Convince;

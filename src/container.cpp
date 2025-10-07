@@ -23,8 +23,6 @@
 #include "iomap.h"
 #include "player.h"
 
-extern Game g_game;
-
 Container::Container(uint16_t type) :
 	Item(type)
 {

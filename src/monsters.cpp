@@ -30,10 +30,7 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern Spells* g_spells;
-extern Monsters g_monsters;
-extern ConfigManager g_config;
+Monsters g_monsters;
 
 void MonsterType::reset()
 {
@@ -334,7 +331,7 @@ bool Monsters::deserializeSpell(xmlNodePtr node, spellBlock_t& sb, const std::st
 		std::swap(sb.minCombatValue, sb.maxCombatValue);
 	}
 
-	if ((sb.spell = g_spells->getSpellByName(name))) {
+	if ((sb.spell = g_spells.getSpellByName(name))) {
 		return true;
 	}
 
@@ -350,7 +347,7 @@ bool Monsters::deserializeSpell(xmlNodePtr node, spellBlock_t& sb, const std::st
 		}
 
 		combatSpell = new CombatSpell(nullptr, needTarget, needDirection);
-		if (!combatSpell->loadScript(getFilePath(FILE_TYPE_OTHER, g_spells->getScriptBaseName() + "/scripts/" + scriptName), true)) {
+		if (!combatSpell->loadScript(getFilePath(FILE_TYPE_OTHER, g_spells.getScriptBaseName() + "/scripts/" + scriptName))) {
 			delete combatSpell;
 			return false;
 		}

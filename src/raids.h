@@ -58,6 +58,9 @@ public:
 		return &instance;
 	}
 
+	static void init();
+	static void terminate();
+
 	bool loadFromXml();
 	bool parseRaidNode(xmlNodePtr raidNode, bool checkDuplicate, FileType_t pathing);
 
@@ -253,18 +256,14 @@ private:
 class ScriptEvent : public RaidEvent, public Event
 {
 public:
-	ScriptEvent(Raid* raid, bool ref) :
-		RaidEvent(raid, ref),
-		Event(&m_interface) {}
+	ScriptEvent(Raid* raid, bool ref);
 	virtual ~ScriptEvent() {}
 
 	virtual bool configureRaidEvent(xmlNodePtr eventNode);
 	virtual bool executeEvent(const std::string& name) const;
 
 	virtual bool configureEvent(xmlNodePtr) { return false; }
-	static LuaInterface m_interface;
 
 protected:
 	virtual std::string getScriptEventName() const { return "onRaid"; }
-	virtual std::string getScriptEventParams() const { return ""; }
 };

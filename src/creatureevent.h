@@ -75,8 +75,10 @@ class CreatureEvent;
 class CreatureEvents : public BaseEvents
 {
 public:
-	CreatureEvents();
-	virtual ~CreatureEvents();
+	CreatureEvents() = default;
+
+	void init();
+	void terminate();
 
 	// global events
 	bool playerLogin(Player* player);
@@ -92,10 +94,11 @@ protected:
 	virtual void clear();
 
 	virtual Event* getEvent(const std::string& nodeName);
-	virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+	virtual bool registerEvent(Event* event, xmlNodePtr p);
 
-	virtual LuaInterface& getInterface() { return m_interface; }
-	LuaInterface m_interface;
+	LuaInterface* getInterface() override { return m_interface.get(); }
+
+	LuaInterfacePtr m_interface;
 
 	// creature events
 	typedef std::vector<CreatureEvent*> CreatureEventList;
@@ -110,7 +113,6 @@ class CreatureEvent : public Event
 {
 public:
 	CreatureEvent(LuaInterface* _interface);
-	CreatureEvent(const CreatureEvent* copy);
 	virtual ~CreatureEvent() {}
 
 	virtual bool configureEvent(xmlNodePtr p);
@@ -158,9 +160,10 @@ public:
 
 protected:
 	virtual std::string getScriptEventName() const;
-	virtual std::string getScriptEventParams() const;
 
 	bool m_loaded;
 	std::string m_eventName;
 	CreatureEventType_t m_type;
 };
+
+extern CreatureEvents g_creatureEvents;

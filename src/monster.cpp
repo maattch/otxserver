@@ -30,11 +30,6 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern ConfigManager g_config;
-extern Monsters g_monsters;
-extern CreatureEvents* g_creatureEvents;
-
 uint32_t Monster::monsterAutoID = 0x40000000;
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
@@ -171,7 +166,7 @@ void Monster::onCreatureAppear(const Creature* creature)
 			(*it)->executeSpawn(this);
 		}
 
-		g_creatureEvents->monsterSpawn(this);
+		g_creatureEvents.monsterSpawn(this);
 		// We just spawned lets look around to see who is there.
 		if (isSummon()) {
 			isMasterInRange = canSee(master->getPosition());

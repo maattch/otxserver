@@ -21,7 +21,7 @@
 #include "combat.h"
 #include "const.h"
 #include "item.h"
-#include "luascript.h"
+#include "lua_definitions.h"
 #include "player.h"
 
 class Weapon;
@@ -34,7 +34,10 @@ using WeaponPtr = std::unique_ptr<Weapon>;
 class Weapons final : public BaseEvents
 {
 public:
-	Weapons();
+	Weapons() = default;
+
+	void init();
+	void terminate();
 
 	void loadDefaults();
 	const Weapon* getWeapon(const Item* item) const;
@@ -47,14 +50,16 @@ protected:
 	void clear() override;
 
 	Event* getEvent(const std::string& nodeName) override;
-	bool registerEvent(Event* event, xmlNodePtr p, bool override) override;
+	bool registerEvent(Event* event, xmlNodePtr p) override;
 
-	LuaInterface& getInterface() override { return m_interface; }
+	LuaInterface* getInterface() override { return m_interface.get(); }
 
-	LuaInterface m_interface;
+	LuaInterfacePtr m_interface;
 
 	std::map<uint16_t, WeaponPtr> weapons;
 };
+
+extern Weapons g_weapons;
 
 class Weapon : public Event
 {
@@ -86,7 +91,6 @@ public:
 
 protected:
 	virtual std::string getScriptEventName() const { return "onUseWeapon"; }
-	virtual std::string getScriptEventParams() const { return "cid, var"; }
 
 	bool executeUseWeapon(Player* player, const LuaVariant& var) const;
 

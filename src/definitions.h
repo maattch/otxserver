@@ -58,14 +58,17 @@
 	#define strncasecmp _strnicmp
 	#define strcasecmp _stricmp
 
-	#pragma warning(disable : 4786) // msvc too long debug names in stl
+	// enable warnings
+	#pragma warning(default : 4800) // implicit conversion from 'type' to bool. Possible information loss
+	#pragma warning(default : 5038) // data member 'member1' will be initialized after data member 'member2'
+
+	// disable warnings
 	#pragma warning(disable : 4250) // 'class1' : inherits 'class2::member' via dominance
-	#pragma warning(disable : 4244)
-	#pragma warning(disable : 4267)
-	#pragma warning(disable : 4018)
-	#pragma warning(disable : 4309)
-	#pragma warning(disable : 4996) // '_ftime64' : this function or variable may be unsafe
-	#pragma warning(disable : 26812) // prefer 'enum class' over 'enum'
+	#pragma warning(disable : 4706) // assignment within conditional expression
+	#pragma warning(disable : 4267) // 'return' : conversion from 'X' to 'Y', possible loss of data
+	#pragma warning(disable : 4244) // 'return' : conversion from 'X' to 'Y', possible loss of data
+	#pragma warning(disable : 26812) // The enum type is unscoped. Prefer 'enum class' over 'enum'
+	#pragma warning(disable : 26813) // Use 'bitwise and' to check if flag is set
 #endif
 
 #ifdef _WIN32

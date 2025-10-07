@@ -104,7 +104,7 @@ public:
 	void endNode();
 	int32_t setProps(void* data, uint16_t size);
 
-	int32_t getError() const { return m_lastError; }
+	int32_t getLastError() const { return m_lastError; }
 	void clearError() { m_lastError = ERROR_NONE; }
 
 protected:

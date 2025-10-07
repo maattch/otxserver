@@ -19,7 +19,7 @@
 
 #include "baseevents.h"
 #include "const.h"
-#include "luascript.h"
+#include "lua_definitions.h"
 
 class Action : public Event
 {
@@ -48,7 +48,6 @@ public:
 
 protected:
 	std::string getScriptEventName() const override { return "onUse"; }
-	std::string getScriptEventParams() const override { return "cid, item, fromPosition, itemEx, toPosition"; }
 
 	bool allowFarUse = false;
 	bool checkLineOfSight = true;
@@ -57,11 +56,14 @@ protected:
 class Actions final : public BaseEvents
 {
 public:
-	Actions();
+	Actions() = default;
 
 	// non-copyable
 	Actions(const Actions&) = delete;
 	Actions& operator=(const Actions&) = delete;
+
+	void init();
+	void terminate();
 
 	bool useItem(Player* player, const Position& pos, uint8_t index, Item* item);
 	bool useItemEx(Player* player, const Position& fromPos, const Position& toPos,
@@ -69,7 +71,7 @@ public:
 
 	static ReturnValue canUse(const Player* player, const Position& pos);
 	ReturnValue canUseEx(const Player* player, const Position& pos, const Item* item);
-	ReturnValue canUseFar(const Creature* creature, const Position& toPos, bool checkLineOfSight);
+	static ReturnValue canUseFar(const Creature* creature, const Position& toPos, bool checkLineOfSight);
 
 	bool hasAction(const Item* item) { return getAction(item) != nullptr; }
 
@@ -78,7 +80,7 @@ private:
 	void clear() override;
 
 	Event* getEvent(const std::string& nodeName) override;
-	bool registerEvent(Event* event, xmlNodePtr p, bool override) override;
+	bool registerEvent(Event* event, xmlNodePtr p) override;
 
 	bool executeUse(Action* action, Player* player, Item* item, const PositionEx& posEx, uint32_t creatureId);
 	ReturnValue internalUseItem(Player* player, const Position& pos, uint8_t index, Item* item, uint32_t creatureId);
@@ -88,13 +90,14 @@ private:
 
 	Action* getAction(const Item* item);
 
-	LuaInterface& getInterface() override { return m_interface; }
+	LuaInterface* getInterface() override { return m_interface.get(); }
 
-
-	LuaInterface m_interface;
+	LuaInterfacePtr m_interface;
 
 	std::unique_ptr<Action> defaultAction;
 	std::map<uint16_t, Action> useItemMap;
 	std::map<uint16_t, Action> uniqueItemMap;
 	std::map<uint16_t, Action> actionItemMap;
 };
+
+extern Actions g_actions;

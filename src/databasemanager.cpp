@@ -21,8 +21,6 @@
 
 #include "configmanager.h"
 
-extern ConfigManager g_config;
-
 bool DatabaseManager::optimizeTables()
 {
 	std::ostringstream query;

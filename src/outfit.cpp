@@ -25,8 +25,6 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-
 bool Outfits::parseOutfitNode(xmlNodePtr p)
 {
 	if (xmlStrcmp(p->name, (const xmlChar*)"outfit")) {

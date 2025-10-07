@@ -29,10 +29,6 @@
 
 #include <iomanip>
 
-extern Game g_game;
-extern ConfigManager g_config;
-extern CreatureEvents* g_creatureEvents;
-
 Creature::CountBlock_t::CountBlock_t(uint32_t points) :
 	start(otx::util::mstime()),
 	ticks(start),
@@ -57,8 +53,6 @@ Creature::Creature()
 
 	health = 1000;
 	healthMax = 1000;
-	mana = 0;
-	manaMax = 0;
 
 	lastStep = 0;
 	lastStepCost = 1;
@@ -920,24 +914,6 @@ void Creature::changeHealth(int32_t healthChange)
 	g_game.addCreatureHealth(this);
 }
 
-void Creature::changeMana(int32_t manaChange)
-{
-	if (manaChange > 0) {
-		mana += std::min(manaChange, getMaxMana() - mana);
-	} else {
-		mana = std::max((int32_t)0, mana + manaChange);
-	}
-}
-
-// Reset System
-void Creature::changeMaxMana(int32_t manaChange)
-{
-	manaMax = manaChange;
-	if (mana > manaMax) {
-		mana = manaMax;
-	}
-}
-
 void Creature::changeMaxHealth(int32_t healthChange)
 {
 	healthMax = healthChange;
@@ -1775,7 +1751,7 @@ void Creature::resetLight()
 
 bool Creature::registerCreatureEvent(const std::string& name)
 {
-	CreatureEvent* newEvent = g_creatureEvents->getEventByName(name);
+	CreatureEvent* newEvent = g_creatureEvents.getEventByName(name);
 	if (!newEvent || !newEvent->isLoaded()) { // check for existance
 		return false;
 	}
@@ -1794,7 +1770,7 @@ bool Creature::registerCreatureEvent(const std::string& name)
 
 bool Creature::unregisterCreatureEvent(const std::string& name)
 {
-	CreatureEvent* event = g_creatureEvents->getEventByName(name);
+	CreatureEvent* event = g_creatureEvents.getEventByName(name);
 	if (!event || !event->isLoaded()) { // check for existance
 		return false;
 	}

@@ -27,16 +27,30 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern Spells* g_spells;
-extern Monsters g_monsters;
-extern ConfigManager g_config;
+Spells g_spells;
 
-Spells::Spells() :
-	m_interface("Spell Interface")
+void Spells::init()
 {
-	m_interface.initState();
-	spellId = 0;
+	m_interface = std::make_unique<LuaInterface>("Spells Interface");
+	m_interface->initState();
+	g_lua.addScriptInterface(m_interface.get());
+}
+
+void Spells::terminate()
+{
+	for (RunesMap::iterator rit = runes.begin(); rit != runes.end(); ++rit) {
+		delete rit->second;
+	}
+	for (InstantsMap::iterator it = instants.begin(); it != instants.end(); ++it) {
+		delete it->second;
+	}
+
+	runes.clear();
+	instants.clear();
+	instantsWithParam.clear();
+
+	g_lua.removeScriptInterface(m_interface.get());
+	m_interface.reset();
 }
 
 // add here and in Enum.s
@@ -141,28 +155,28 @@ void Spells::clear()
 
 	instantsWithParam.clear();
 	spellId = 0;
-	m_interface.reInitState();
+	m_interface->reInitState();
 }
 
 Event* Spells::getEvent(const std::string& nodeName)
 {
 	std::string tmpNodeName = otx::util::as_lower_string(nodeName);
 	if (tmpNodeName == "rune") {
-		return new RuneSpell(&m_interface);
+		return new RuneSpell(getInterface());
 	}
 
 	if (tmpNodeName == "instant") {
-		return new InstantSpell(&m_interface);
+		return new InstantSpell(getInterface());
 	}
 
 	if (tmpNodeName == "conjure") {
-		return new ConjureSpell(&m_interface);
+		return new ConjureSpell(getInterface());
 	}
 
 	return nullptr;
 }
 
-bool Spells::registerEvent(Event* event, xmlNodePtr, bool override)
+bool Spells::registerEvent(Event* event, xmlNodePtr)
 {
 	if (InstantSpell* instant = dynamic_cast<InstantSpell*>(event)) {
 		std::string lowerWords = otx::util::as_lower_string(instant->getWords());
@@ -178,11 +192,6 @@ bool Spells::registerEvent(Event* event, xmlNodePtr, bool override)
 			}
 			return true;
 		}
-		if (override) {
-			delete it->second;
-			it->second = instant;
-			return true;
-		}
 
 		std::clog << "[Warning - Spells::registerEvent] Duplicate registered instant spell with words: " << instant->getWords() << std::endl;
 		return false;
@@ -196,16 +205,9 @@ bool Spells::registerEvent(Event* event, xmlNodePtr, bool override)
 			return true;
 		}
 
-		if (override) {
-			delete it->second;
-			it->second = rune;
-			return true;
-		}
-
 		std::clog << "[Warning - Spells::registerEvent] Duplicate registered rune with id: " << rune->getRuneItemId() << std::endl;
 		return false;
 	}
-
 	return false;
 }
 
@@ -215,7 +217,6 @@ Spell* Spells::getSpellByName(const std::string& name)
 	if ((spell = getRuneSpellByName(name)) || (spell = getInstantSpellByName(name))) {
 		return spell;
 	}
-
 	return nullptr;
 }
 
@@ -360,7 +361,7 @@ bool BaseSpell::castSpell(Creature* creature, Creature* target)
 }
 
 CombatSpell::CombatSpell(Combat* _combat, bool _needTarget, bool _needDirection) :
-	Event(&g_spells->getInterface())
+	Event(g_spells.getInterface())
 {
 	combat = _combat;
 	needTarget = _needTarget;
@@ -374,14 +375,12 @@ CombatSpell::~CombatSpell()
 
 bool CombatSpell::loadScriptCombat()
 {
-	if (m_interface->reserveEnv()) {
-		ScriptEnviroment* env = m_interface->getEnv();
-		combat = env->getCombatObject(env->getLastCombatId());
-
-		env->resetCallback();
-		m_interface->releaseEnv();
+	if (otx::lua::reserveScriptEnv()) {
+		ScriptEnvironment& env = otx::lua::getScriptEnv();
+		combat = g_lua.getCombatById(g_lua.getLastCombatId());
+		env.resetCallback();
+		otx::lua::resetScriptEnv();
 	}
-
 	return combat != nullptr;
 }
 
@@ -448,54 +447,26 @@ bool CombatSpell::castSpell(Creature* creature, Creature* target)
 	} else {
 		combat->doCombat(creature, target);
 	}
-
 	return true;
 }
 
 bool CombatSpell::executeCastSpell(Creature* creature, const LuaVariant& var)
 {
 	// onCastSpell(cid, var)
-	if (m_interface->reserveEnv()) {
-		ScriptEnviroment* env = m_interface->getEnv();
-		if (m_scripted == EVENT_SCRIPT_BUFFER) {
-			env->setRealPos(creature->getPosition());
-			std::ostringstream scriptstream;
-
-			scriptstream << "local cid = " << env->addThing(creature) << std::endl;
-			env->streamVariant(scriptstream, "var", var);
-
-			scriptstream << *m_scriptData;
-			bool result = true;
-			if (m_interface->loadBuffer(scriptstream.str())) {
-				lua_State* L = m_interface->getState();
-				result = m_interface->getGlobalBool(L, "_result", true);
-			}
-
-			m_interface->releaseEnv();
-			return result;
-		} else {
-#ifdef __DEBUG_LUASCRIPTS__
-			char desc[60];
-			sprintf(desc, "onCastSpell - %s", creature->getName().c_str());
-			env->setEvent(desc);
-#endif
-
-			env->setScriptId(m_scriptId, m_interface);
-			env->setRealPos(creature->getPosition());
-			lua_State* L = m_interface->getState();
-
-			m_interface->pushFunction(m_scriptId);
-			lua_pushnumber(L, env->addThing(creature));
-			m_interface->pushVariant(L, var);
-
-			bool result = m_interface->callFunction(2);
-			m_interface->releaseEnv();
-			return result;
-		}
-	} else {
+	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - CombatSpell::executeCastSpell] Call stack overflow." << std::endl;
 		return false;
 	}
+
+	ScriptEnvironment& env = otx::lua::getScriptEnv();
+	env.setScriptId(m_scriptId, m_interface);
+
+	lua_State* L = m_interface->getState();
+	m_interface->pushFunction(m_scriptId);
+
+	lua_pushnumber(L, env.addThing(creature));
+	otx::lua::pushVariant(L, var);
+	return otx::lua::callFunction(L, 2);
 }
 
 Spell::Spell()
@@ -1267,7 +1238,7 @@ bool InstantSpell::loadFunction(const std::string& functionName)
 		return false;
 	}
 
-	m_scripted = EVENT_SCRIPT_FALSE;
+	m_scripted = false;
 	return true;
 }
 
@@ -1439,47 +1410,20 @@ bool InstantSpell::internalCastSpell(Creature* creature, const LuaVariant& var)
 bool InstantSpell::executeCastSpell(Creature* creature, const LuaVariant& var)
 {
 	// onCastSpell(cid, var)
-	if (m_interface->reserveEnv()) {
-		ScriptEnviroment* env = m_interface->getEnv();
-		if (m_scripted == EVENT_SCRIPT_BUFFER) {
-			env->setRealPos(creature->getPosition());
-			std::ostringstream scriptstream;
-
-			scriptstream << "local cid = " << env->addThing(creature) << std::endl;
-			env->streamVariant(scriptstream, "var", var);
-
-			scriptstream << *m_scriptData;
-			bool result = true;
-			if (m_interface->loadBuffer(scriptstream.str())) {
-				lua_State* L = m_interface->getState();
-				result = m_interface->getGlobalBool(L, "_result", true);
-			}
-
-			m_interface->releaseEnv();
-			return result;
-		} else {
-#ifdef __DEBUG_LUASCRIPTS__
-			char desc[60];
-			sprintf(desc, "onCastSpell - %s", creature->getName().c_str());
-			env->setEvent(desc);
-#endif
-
-			env->setScriptId(m_scriptId, m_interface);
-			env->setRealPos(creature->getPosition());
-			lua_State* L = m_interface->getState();
-
-			m_interface->pushFunction(m_scriptId);
-			lua_pushnumber(L, env->addThing(creature));
-			m_interface->pushVariant(L, var);
-
-			bool result = m_interface->callFunction(2);
-			m_interface->releaseEnv();
-			return result;
-		}
-	} else {
+	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - InstantSpell::executeCastSpell] Call stack overflow." << std::endl;
 		return false;
 	}
+
+	ScriptEnvironment& env = otx::lua::getScriptEnv();
+	env.setScriptId(m_scriptId, m_interface);
+
+	lua_State* L = m_interface->getState();
+	m_interface->pushFunction(m_scriptId);
+
+	lua_pushnumber(L, env.addThing(creature));
+	otx::lua::pushVariant(L, var);
+	return otx::lua::callFunction(L, 2);
 }
 
 bool InstantSpell::SearchPlayer(const InstantSpell*, Creature* creature, const std::string& param)
@@ -1714,7 +1658,7 @@ bool ConjureSpell::loadFunction(const std::string& functionName)
 		return false;
 	}
 
-	m_scripted = EVENT_SCRIPT_FALSE;
+	m_scripted = false;
 	return true;
 }
 
@@ -1900,7 +1844,7 @@ bool RuneSpell::loadFunction(const std::string& functionName)
 		return false;
 	}
 
-	m_scripted = EVENT_SCRIPT_FALSE;
+	m_scripted = false;
 	return true;
 }
 
@@ -2161,45 +2105,18 @@ bool RuneSpell::internalCastSpell(Creature* creature, const LuaVariant& var)
 bool RuneSpell::executeCastSpell(Creature* creature, const LuaVariant& var)
 {
 	// onCastSpell(cid, var)
-	if (m_interface->reserveEnv()) {
-		ScriptEnviroment* env = m_interface->getEnv();
-		if (m_scripted == EVENT_SCRIPT_BUFFER) {
-			env->setRealPos(creature->getPosition());
-			std::ostringstream scriptstream;
-
-			scriptstream << "local cid = " << env->addThing(creature) << std::endl;
-			env->streamVariant(scriptstream, "var", var);
-
-			scriptstream << *m_scriptData;
-			bool result = true;
-			if (m_interface->loadBuffer(scriptstream.str())) {
-				lua_State* L = m_interface->getState();
-				result = m_interface->getGlobalBool(L, "_result", true);
-			}
-
-			m_interface->releaseEnv();
-			return result;
-		} else {
-#ifdef __DEBUG_LUASCRIPTS__
-			char desc[60];
-			sprintf(desc, "onCastSpell - %s", creature->getName().c_str());
-			env->setEvent(desc);
-#endif
-
-			env->setScriptId(m_scriptId, m_interface);
-			env->setRealPos(creature->getPosition());
-			lua_State* L = m_interface->getState();
-
-			m_interface->pushFunction(m_scriptId);
-			lua_pushnumber(L, env->addThing(creature));
-			m_interface->pushVariant(L, var);
-
-			bool result = m_interface->callFunction(2);
-			m_interface->releaseEnv();
-			return result;
-		}
-	} else {
+	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - RuneSpell::executeCastSpell] Call stack overflow." << std::endl;
 		return false;
 	}
+
+	ScriptEnvironment& env = otx::lua::getScriptEnv();
+	env.setScriptId(m_scriptId, m_interface);
+
+	lua_State* L = m_interface->getState();
+	m_interface->pushFunction(m_scriptId);
+
+	lua_pushnumber(L, env.addThing(creature));
+	otx::lua::pushVariant(L, var);
+	return otx::lua::callFunction(L, 2);
 }

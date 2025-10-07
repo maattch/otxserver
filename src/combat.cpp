@@ -29,10 +29,6 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern Weapons* g_weapons;
-extern ConfigManager g_config;
-
 Combat::Combat()
 {
 	params.valueCallback = nullptr;
@@ -91,7 +87,7 @@ bool Combat::getMinMaxValues(Creature* creature, Creature* target, CombatParams&
 				case FORMULA_SKILL: {
 					bool crit = false;
 					Item* item = player->getWeapon(false);
-					if (const Weapon* weapon = g_weapons->getWeapon(item)) {
+					if (const Weapon* weapon = g_weapons.getWeapon(item)) {
 						_params.element.type = item->getElementType();
 						if (_params.element.type != COMBAT_NONE) {
 							_params.element.damage = weapon->getWeaponElementDamage(player, item, true);
@@ -1094,19 +1090,19 @@ void Combat::doCombatDefault(Creature* caster, Creature* target, const CombatPar
 void ValueCallback::getMinMaxValues(Player* player, CombatParams& params, int32_t& min, int32_t& max) const
 {
 	//"onGetPlayerMinMaxValues"(cid, ...)
-	if (!m_interface->reserveEnv()) {
+	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - ValueCallback::getMinMaxValues] Callstack overflow." << std::endl;
 		return;
 	}
 
-	ScriptEnviroment* env = m_interface->getEnv();
-	if (!env->setCallbackId(m_scriptId, m_interface)) {
+	ScriptEnvironment& env = otx::lua::getScriptEnv();
+	if (!env.setCallbackId(m_scriptId, m_interface)) {
 		return;
 	}
 
 	m_interface->pushFunction(m_scriptId);
 	lua_State* L = m_interface->getState();
-	lua_pushnumber(L, env->addThing(player));
+	lua_pushnumber(L, env.addThing(player));
 
 	int32_t parameters = 1;
 	switch (type) {
@@ -1170,20 +1166,20 @@ void ValueCallback::getMinMaxValues(Player* player, CombatParams& params, int32_
 
 	int32_t args = lua_gettop(L);
 	if (!lua_pcall(L, parameters, 3, 0)) {
-		params.element.damage = LuaInterface::popNumber(L);
-		max = LuaInterface::popNumber(L);
-		min = LuaInterface::popNumber(L);
+		params.element.damage = otx::lua::popNumber(L);
+		max = otx::lua::popNumber(L);
+		min = otx::lua::popNumber(L);
 		player->increaseCombatValues(min, max, params.useCharges, type != FORMULA_SKILL);
 	} else {
-		LuaInterface::error(nullptr, std::string(LuaInterface::popString(L)));
+		otx::lua::reportErrorEx(L, otx::lua::popString(L));
 	}
 
 	if ((lua_gettop(L) + parameters + 1) != args) {
-		LuaInterface::error(__FUNCTION__, "Stack size changed!");
+		otx::lua::reportErrorEx(L, "Stack size changed!");
 	}
 
-	env->resetCallback();
-	m_interface->releaseEnv();
+	env.resetCallback();
+	otx::lua::resetScriptEnv();
 }
 
 //**********************************************************
@@ -1191,21 +1187,20 @@ void ValueCallback::getMinMaxValues(Player* player, CombatParams& params, int32_
 void TileCallback::onTileCombat(Creature* creature, Tile* tile) const
 {
 	//"onTileCombat"(cid, pos)
-	if (m_interface->reserveEnv()) {
-		ScriptEnviroment* env = m_interface->getEnv();
-		if (!env->setCallbackId(m_scriptId, m_interface)) {
+	if (otx::lua::reserveScriptEnv()) {
+		ScriptEnvironment& env = otx::lua::getScriptEnv();
+		if (!env.setCallbackId(m_scriptId, m_interface)) {
 			return;
 		}
 
 		m_interface->pushFunction(m_scriptId);
 		lua_State* L = m_interface->getState();
 
-		lua_pushnumber(L, creature ? env->addThing(creature) : 0);
-		m_interface->pushPosition(L, tile->getPosition(), 0);
+		lua_pushnumber(L, creature ? env.addThing(creature) : 0);
+		otx::lua::pushPosition(L, tile->getPosition(), 0);
 
-		m_interface->callFunction(2);
-		env->resetCallback();
-		m_interface->releaseEnv();
+		otx::lua::callFunction(L, 2);
+		env.resetCallback();
 	} else {
 		std::clog << "[Error - TileCallback::onTileCombat] Call stack overflow." << std::endl;
 	}
@@ -1216,34 +1211,34 @@ void TileCallback::onTileCombat(Creature* creature, Tile* tile) const
 void TargetCallback::onTargetCombat(Creature* creature, Creature* target) const
 {
 	//"onTargetCombat"(cid, target)
-	if (m_interface->reserveEnv()) {
-		ScriptEnviroment* env = m_interface->getEnv();
-		if (!env->setCallbackId(m_scriptId, m_interface)) {
+	if (otx::lua::reserveScriptEnv()) {
+		ScriptEnvironment& env = otx::lua::getScriptEnv();
+		if (!env.setCallbackId(m_scriptId, m_interface)) {
 			return;
 		}
 
 		uint32_t cid = 0;
 		if (creature) {
-			cid = env->addThing(creature);
+			cid = env.addThing(creature);
 		}
 
 		m_interface->pushFunction(m_scriptId);
 		lua_State* L = m_interface->getState();
 
 		lua_pushnumber(L, cid);
-		lua_pushnumber(L, env->addThing(target));
+		lua_pushnumber(L, env.addThing(target));
 
 		int32_t size = lua_gettop(L);
 		if (lua_pcall(L, 2, 0 /*nReturnValues*/, 0) != 0) {
-			LuaInterface::error(nullptr, std::string(LuaInterface::popString(L)));
+			otx::lua::reportErrorEx(L, otx::lua::popString(L));
 		}
 
 		if ((lua_gettop(L) + 2 /*nParams*/ + 1) != size) {
-			LuaInterface::error(__FUNCTION__, "Stack size changed!");
+			otx::lua::reportErrorEx(L, "Stack size changed!");
 		}
 
-		env->resetCallback();
-		m_interface->releaseEnv();
+		env.resetCallback();
+		otx::lua::resetScriptEnv();
 	} else {
 		std::clog << "[Error - TargetCallback::onTargetCombat] Call stack overflow." << std::endl;
 		return;

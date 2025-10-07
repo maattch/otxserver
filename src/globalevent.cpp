@@ -23,15 +23,23 @@
 
 #include "otx/util.hpp"
 
-GlobalEvents::GlobalEvents() :
-	m_interface("GlobalEvent Interface")
+GlobalEvents g_globalEvents;
+
+void GlobalEvents::init()
 {
-	m_interface.initState();
+	m_interface = std::make_unique<LuaInterface>("GlobalEvent Interface");
+	m_interface->initState();
+	g_lua.addScriptInterface(m_interface.get());
 }
 
-GlobalEvents::~GlobalEvents()
+void GlobalEvents::terminate()
 {
-	clear();
+	clearMap(thinkMap);
+	clearMap(serverMap);
+	clearMap(timerMap);
+
+	g_lua.removeScriptInterface(m_interface.get());
+	m_interface.reset();
 }
 
 void GlobalEvents::clearMap(GlobalEventMap& map)
@@ -50,18 +58,18 @@ void GlobalEvents::clear()
 	clearMap(serverMap);
 	clearMap(timerMap);
 
-	m_interface.reInitState();
+	m_interface->reInitState();
 }
 
 Event* GlobalEvents::getEvent(const std::string& nodeName)
 {
 	if (otx::util::as_lower_string(nodeName) == "globalevent") {
-		return new GlobalEvent(&m_interface);
+		return new GlobalEvent(getInterface());
 	}
 	return nullptr;
 }
 
-bool GlobalEvents::registerEvent(Event* event, xmlNodePtr, bool override)
+bool GlobalEvents::registerEvent(Event* event, xmlNodePtr)
 {
 	GlobalEvent* globalEvent = dynamic_cast<GlobalEvent*>(event);
 	if (!globalEvent) {
@@ -78,12 +86,6 @@ bool GlobalEvents::registerEvent(Event* event, xmlNodePtr, bool override)
 	GlobalEventMap::iterator it = map->find(globalEvent->getName());
 	if (it == map->end()) {
 		map->insert(std::make_pair(globalEvent->getName(), globalEvent));
-		return true;
-	}
-
-	if (override) {
-		delete it->second;
-		it->second = globalEvent;
 		return true;
 	}
 
@@ -266,111 +268,45 @@ std::string GlobalEvent::getScriptEventName() const
 	return "onThink";
 }
 
-std::string GlobalEvent::getScriptEventParams() const
-{
-	switch (m_eventType) {
-		case GLOBALEVENT_RECORD:
-			return "current, old, cid";
-		case GLOBALEVENT_NONE:
-			return "interval";
-		case GLOBALEVENT_TIMER:
-			return "time";
-		default:
-			break;
-	}
-
-	return "";
-}
-
 int32_t GlobalEvent::executeRecord(uint32_t current, uint32_t old, Player* player)
 {
 	// onRecord(current, old, cid)
-	if (m_interface->reserveEnv()) {
-		ScriptEnviroment* env = m_interface->getEnv();
-		if (m_scripted == EVENT_SCRIPT_BUFFER) {
-			std::ostringstream scriptstream;
-			scriptstream << "local current = " << current << std::endl;
-			scriptstream << "local old = " << old << std::endl;
-			scriptstream << "local cid = " << env->addThing(player) << std::endl;
-
-			if (m_scriptData) {
-				scriptstream << *m_scriptData;
-			}
-
-			bool result = true;
-			if (m_interface->loadBuffer(scriptstream.str())) {
-				lua_State* L = m_interface->getState();
-				result = m_interface->getGlobalBool(L, "_result", true);
-			}
-
-			m_interface->releaseEnv();
-			return result;
-		} else {
-#ifdef __DEBUG_LUASCRIPTS__
-			char desc[125];
-			sprintf(desc, "%s - %i to %i (%s)", getName().c_str(), old, current, player->getName().c_str());
-			env->setEvent(desc);
-#endif
-
-			env->setScriptId(m_scriptId, m_interface);
-			lua_State* L = m_interface->getState();
-
-			m_interface->pushFunction(m_scriptId);
-			lua_pushnumber(L, current);
-			lua_pushnumber(L, old);
-			lua_pushnumber(L, env->addThing(player));
-
-			bool result = m_interface->callFunction(3);
-			m_interface->releaseEnv();
-			return result;
-		}
-	} else {
+	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - GlobalEvent::executeRecord] Call stack overflow." << std::endl;
 		return 0;
 	}
+
+	ScriptEnvironment& env = otx::lua::getScriptEnv();
+	env.setScriptId(m_scriptId, m_interface);
+
+	lua_State* L = m_interface->getState();
+	m_interface->pushFunction(m_scriptId);
+
+	lua_pushnumber(L, current);
+	lua_pushnumber(L, old);
+	lua_pushnumber(L, env.addThing(player));
+	return otx::lua::callFunction(L, 3);
 }
 
 int32_t GlobalEvent::executeEvent()
 {
-	if (m_interface->reserveEnv()) {
-		ScriptEnviroment* env = m_interface->getEnv();
-		if (m_scripted == EVENT_SCRIPT_BUFFER) {
-			std::ostringstream scriptstream;
-			if (m_eventType == GLOBALEVENT_NONE) {
-				scriptstream << "local interval = " << m_interval << std::endl;
-			} else if (m_eventType == GLOBALEVENT_TIMER) {
-				scriptstream << "local time = " << m_interval << std::endl;
-			}
-
-			if (m_scriptData) {
-				scriptstream << *m_scriptData;
-			}
-
-			bool result = true;
-			if (m_interface->loadBuffer(scriptstream.str())) {
-				lua_State* L = m_interface->getState();
-				result = m_interface->getGlobalBool(L, "_result", true);
-			}
-
-			m_interface->releaseEnv();
-			return result;
-		} else {
-			env->setScriptId(m_scriptId, m_interface);
-			lua_State* L = m_interface->getState();
-			m_interface->pushFunction(m_scriptId);
-
-			int32_t params = 0;
-			if (m_eventType == GLOBALEVENT_NONE || m_eventType == GLOBALEVENT_TIMER) {
-				lua_pushnumber(L, m_interval);
-				params = 1;
-			}
-
-			bool result = m_interface->callFunction(params);
-			m_interface->releaseEnv();
-			return result;
-		}
-	} else {
+	// onThink(interval)
+	// onTime(interval)
+	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - GlobalEvent::executeEvent] Call stack overflow." << std::endl;
 		return 0;
 	}
+
+	ScriptEnvironment& env = otx::lua::getScriptEnv();
+	env.setScriptId(m_scriptId, m_interface);
+
+	lua_State* L = m_interface->getState();
+	m_interface->pushFunction(m_scriptId);
+
+	int params = 0;
+	if (m_eventType == GLOBALEVENT_NONE || m_eventType == GLOBALEVENT_TIMER) {
+		lua_pushnumber(L, m_interval);
+		params = 1;
+	}
+	return otx::lua::callFunction(L, params);
 }

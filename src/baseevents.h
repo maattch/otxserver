@@ -17,86 +17,65 @@
 
 #pragma once
 
-#include "luascript.h"
+#include "lua_definitions.h"
 
 class Event;
 class BaseEvents
 {
 public:
-	BaseEvents() :
-		m_loaded(false) {}
-	virtual ~BaseEvents() {}
+	BaseEvents() = default;
+	virtual ~BaseEvents() = default;
 
 	bool loadFromXml();
 	bool reload();
 
-	bool parseEventNode(xmlNodePtr p, std::string scriptsPath, bool override);
+	bool parseEventNode(xmlNodePtr p, const std::string& scriptsPath);
 	bool isLoaded() const { return m_loaded; }
 
 protected:
 	virtual std::string getScriptBaseName() const = 0;
 	virtual void clear() = 0;
 
-	virtual bool registerEvent(Event* event, xmlNodePtr p, bool override) = 0;
+	virtual bool registerEvent(Event* event, xmlNodePtr p) = 0;
 	virtual Event* getEvent(const std::string& nodeName) = 0;
 
-	virtual LuaInterface& getInterface() = 0;
+	virtual LuaInterface* getInterface() = 0;
 
-	bool m_loaded;
-};
-
-enum EventScript_t
-{
-	EVENT_SCRIPT_FALSE,
-	EVENT_SCRIPT_BUFFER,
-	EVENT_SCRIPT_TRUE
+	bool m_loaded = false;
 };
 
 class Event
 {
 public:
-	Event(LuaInterface* _interface) :
-		m_interface(_interface),
-		m_scripted(EVENT_SCRIPT_FALSE),
-		m_scriptId(0),
-		m_scriptData(nullptr) {}
-	Event(const Event* copy);
-	virtual ~Event();
+	explicit Event(LuaInterface* scriptInterface) : m_interface(scriptInterface) {}
+	virtual ~Event() = default;
 
 	virtual bool configureEvent(xmlNodePtr p) = 0;
-	virtual bool isScripted() const { return m_scripted != EVENT_SCRIPT_FALSE; }
+	virtual bool isScripted() const { return m_scripted; }
 
-	bool loadBuffer(const std::string& buffer);
-	bool checkBuffer(const std::string& base, const std::string& buffer) const;
-
-	bool loadScript(const std::string& script, bool file);
-	bool checkScript(const std::string& base, const std::string& script, bool file) const;
+	bool loadScript(const std::string& script);
 
 	virtual bool loadFunction(const std::string&) { return false; }
 
 protected:
 	virtual std::string getScriptEventName() const = 0;
-	virtual std::string getScriptEventParams() const = 0;
 
 	LuaInterface* m_interface;
-	EventScript_t m_scripted;
-
-	int32_t m_scriptId;
-	std::string* m_scriptData;
+	int m_scriptId = 0;
+	bool m_scripted = false;
 };
 
 class CallBack
 {
 public:
-	CallBack();
-	virtual ~CallBack() {}
+	CallBack() = default;
+	virtual ~CallBack() = default;
 
-	bool loadCallBack(LuaInterface* _interface, std::string name);
+	bool loadCallBack(LuaInterface* scriptInterface, const std::string& name);
 
 protected:
-	int32_t m_scriptId;
-	LuaInterface* m_interface;
-
-	bool m_loaded;
 	std::string m_callbackName;
+	LuaInterface* m_interface = nullptr;
+	int m_scriptId = 0;
+	bool m_loaded = false;
 };

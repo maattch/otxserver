@@ -23,8 +23,6 @@
 #include "game.h"
 #include "spells.h"
 
-extern Game g_game;
-
 void TrashHolder::__addThing(Creature* actor, int32_t, Thing* thing)
 {
 	if (Item* item = thing->getItem()) {

@@ -33,7 +33,7 @@
 #include "ioguild.h"
 #include "iologindata.h"
 #include "items.h"
-#include "luascript.h"
+#include "lua_definitions.h"
 #include "monsters.h"
 #include "movement.h"
 #include "quests.h"
@@ -52,17 +52,7 @@
 
 #include "otx/util.hpp"
 
-extern ConfigManager g_config;
-extern Actions* g_actions;
-extern Monsters g_monsters;
-extern Npcs g_npcs;
-extern Chat g_chat;
-extern TalkActions* g_talkActions;
-extern Spells* g_spells;
-extern MoveEvents* g_moveEvents;
-extern Weapons* g_weapons;
-extern CreatureEvents* g_creatureEvents;
-extern GlobalEvents* g_globalEvents;
+Game g_game;
 
 Game::Game()
 {
@@ -174,7 +164,7 @@ void Game::start(ServiceManager* servicer)
 
 void Game::loadGameState()
 {
-	ScriptEnviroment::loadGameState();
+	loadGlobalStorages();
 	loadPlayersRecord();
 	loadMotd();
 	checkHighscores();
@@ -195,7 +185,7 @@ void Game::setGameState(GameState_t newState)
 
 				loadGameState();
 
-				g_globalEvents->startup();
+				g_globalEvents.startup();
 				if (g_config.getBool(ConfigManager::INIT_PREMIUM_UPDATE)) {
 					IOLoginData::getInstance()->updatePremiumDays();
 				}
@@ -209,7 +199,7 @@ void Game::setGameState(GameState_t newState)
 			}
 
 			case GAMESTATE_SHUTDOWN: {
-				g_globalEvents->execute(GLOBALEVENT_SHUTDOWN);
+				g_globalEvents.execute(GLOBALEVENT_SHUTDOWN);
 
 				auto it = players.begin();
 				while (it != players.end()) {
@@ -274,7 +264,7 @@ void Game::saveGameState(uint8_t flags)
 	}
 
 	if (hasBitSet(SAVE_STATE, flags)) {
-		ScriptEnviroment::saveGameState();
+		saveGlobalStorages();
 	}
 
 	if (gameState == GAMESTATE_MAINTAIN) {
@@ -502,14 +492,14 @@ void Game::refreshMap(RefreshTiles::iterator* it /* = nullptr*/, uint32_t limit 
 		for (ItemVector::reverse_iterator it = list.rbegin(); it != list.rend(); ++it) {
 			Item* item = (*it)->clone();
 			if (internalAddItem(nullptr, tile, item, INDEX_WHEREEVER, FLAG_NOLIMIT) == RET_NOERROR) {
-				if (item->getUniqueId()) {
-					ScriptEnviroment::addUniqueThing(item);
+				const uint16_t uniqueId = item->getUniqueId();
+				if (uniqueId != 0) {
+					addUniqueItem(uniqueId, item);
 				}
 
 				startDecay(item);
 			} else {
-				std::clog << "> WARNING: Could not refresh item: " << item->getID()
-						  << " at position: " << tile->getPosition() << std::endl;
+				std::clog << "> WARNING: Could not refresh item: " << item->getID() << " at position: " << tile->getPosition() << std::endl;
 				delete item;
 			}
 		}
@@ -580,7 +570,7 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
 			case STACKPOS_USEITEM: {
 				thing = tile->getTopDownItem();
 				Item* item = tile->getItemByTopOrder(2);
-				if (item && g_actions->hasAction(item)) {
+				if (item && g_actions.hasAction(item)) {
 					const ItemType& it = Item::items[item->getID()];
 					if (!thing || (!it.hasHeight && !it.allowPickupable)) {
 						thing = item;
@@ -1501,7 +1491,7 @@ bool Game::playerMoveItem(const uint32_t playerId, const Position& fromPos,
 		return false;
 	}
 
-	if (!g_creatureEvents->executeMoveItems(player, item, mapFromPos, mapToPos)) {
+	if (!g_creatureEvents.executeMoveItems(player, item, mapFromPos, mapToPos)) {
 		return false;
 	}
 
@@ -2829,7 +2819,7 @@ bool Game::playerUseItemEx(const uint32_t playerId, const Position& fromPos, int
 	Position walkToPos = fromPos;
 	ReturnValue ret = Actions::canUse(player, fromPos);
 	if (ret == RET_NOERROR) {
-		ret = g_actions->canUseEx(player, toPos, item);
+		ret = g_actions.canUseEx(player, toPos, item);
 		if (ret == RET_TOOFARAWAY) {
 			if (!player->hasCustomFlag(PlayerCustomFlag_CanUseFar)) {
 				walkToPos = toPos;
@@ -2892,7 +2882,7 @@ bool Game::playerUseItemEx(const uint32_t playerId, const Position& fromPos, int
 
 	player->setIdleTime(0);
 	player->setNextActionTask(nullptr);
-	return g_actions->useItemEx(player, fromPos, toPos, toStackpos, item, isHotkey);
+	return g_actions.useItemEx(player, fromPos, toPos, toStackpos, item, isHotkey);
 }
 
 bool Game::playerUseItem(const uint32_t playerId, const Position& pos, const int16_t stackpos,
@@ -2963,7 +2953,7 @@ bool Game::playerUseItem(const uint32_t playerId, const Position& pos, const int
 
 	player->setIdleTime(0);
 	player->setNextActionTask(nullptr);
-	return g_actions->useItem(player, pos, index, item);
+	return g_actions.useItem(player, pos, index, item);
 }
 
 bool Game::playerUseBattleWindow(const uint32_t playerId, const Position& pos, const int16_t stackpos,
@@ -3040,7 +3030,7 @@ bool Game::playerUseBattleWindow(const uint32_t playerId, const Position& pos, c
 
 	player->setIdleTime(0);
 	player->setNextActionTask(nullptr);
-	return g_actions->useItemEx(player, pos, creature->getPosition(),
+	return g_actions.useItemEx(player, pos, creature->getPosition(),
 		creature->getParent()->__getIndexOfThing(creature), item, isHotkey, creatureId);
 }
 
@@ -3760,11 +3750,11 @@ bool Game::playerPurchaseItem(const uint32_t playerId, const uint16_t spriteId, 
 		subType = count;
 	}
 
-	if (!player->canShopItem(it.id, subType, SHOPEVENT_BUY)) {
+	if (!player->canBuyItem(it.id, subType)) {
 		return false;
 	}
 
-	merchant->onPlayerTrade(player, SHOPEVENT_BUY, onBuy, it.id, subType, amount, ignoreCap, inBackpacks);
+	merchant->onPlayerTrade(player, onBuy, it.id, subType, amount, ignoreCap, inBackpacks);
 	return true;
 }
 
@@ -3802,11 +3792,11 @@ bool Game::playerSellItem(const uint32_t playerId, const uint16_t spriteId, cons
 		subType = count;
 	}
 
-	if (!player->canShopItem(it.id, subType, SHOPEVENT_SELL)) {
+	if (!player->canSellItem(it.id)) {
 		return false;
 	}
 
-	merchant->onPlayerTrade(player, SHOPEVENT_SELL, onSell, it.id, subType, amount, ignoreEquipped);
+	merchant->onPlayerTrade(player, onSell, it.id, subType, amount, ignoreEquipped);
 	return true;
 }
 
@@ -4165,9 +4155,7 @@ bool Game::playerFollowCreature(const uint32_t playerId, const uint32_t creature
 	}
 
 	player->setAttackedCreature(nullptr);
-	addDispatcherTask(([this, playerID = player->getID()]() {
-		updateCreatureWalk(playerID);
-	}));
+	addDispatcherTask(([this, playerID = player->getID()]() { updateCreatureWalk(playerID); }));
 	return player->setFollowCreature(followCreature);
 }
 
@@ -4381,13 +4369,13 @@ bool Game::playerSay(const uint32_t playerId, const uint16_t channelId, const Me
 		return internalCreatureSay(player, MSG_SPEAK_SAY, text, false);
 	}
 
-	if (g_talkActions->onPlayerSay(player, type == MSG_SPEAK_SAY ? (unsigned)CHANNEL_DEFAULT : channelId, text, false)) {
+	if (g_talkActions.onPlayerSay(player, type == MSG_SPEAK_SAY ? (unsigned)CHANNEL_DEFAULT : channelId, text, false)) {
 		return true;
 	}
 
 	ReturnValue ret = RET_NOERROR;
 	if (!muted) {
-		ret = g_spells->onPlayerSay(player, text);
+		ret = g_spells.onPlayerSay(player, text);
 		if (ret == RET_NOERROR || (ret == RET_NEEDEXCHANGE && !g_config.getBool(ConfigManager::BUFFER_SPELL_FAILURE))) {
 			return true;
 		}
@@ -6605,7 +6593,7 @@ std::string Game::getSearchString(const Position& fromPos, const Position& toPos
 	return ss.str();
 }
 
-double Game::getExperienceStage(const uint32_t level, const double& divider /* = 1.*/)
+double Game::getExperienceStage(const uint32_t level, const double divider /* = 1.*/)
 {
 	if (!g_config.getBool(ConfigManager::EXPERIENCE_STAGES)) {
 		return g_config.getDouble(ConfigManager::RATE_EXPERIENCE) * divider;
@@ -6614,7 +6602,6 @@ double Game::getExperienceStage(const uint32_t level, const double& divider /* =
 	if (lastStageLevel && level >= lastStageLevel) {
 		return stages[lastStageLevel] * divider;
 	}
-
 	return stages[level] * divider;
 }
 
@@ -6801,7 +6788,7 @@ void Game::checkPlayersRecord(Player* player)
 		return;
 	}
 
-	GlobalEventMap recordEvents = g_globalEvents->getEventMap(GLOBALEVENT_RECORD);
+	GlobalEventMap recordEvents = g_globalEvents.getEventMap(GLOBALEVENT_RECORD);
 	for (GlobalEventMap::iterator it = recordEvents.begin(); it != recordEvents.end(); ++it) {
 		it->second->executeRecord(count, playersRecord, player);
 	}
@@ -6818,12 +6805,12 @@ void Game::loadPlayersRecord()
 	}
 }
 
-bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool completeReload /* = false*/)
+bool Game::reloadInfo(ReloadInfo_t reload)
 {
 	bool done = false;
 	switch (reload) {
 		case RELOAD_ACTIONS: {
-			done = g_actions->reload();
+			done = g_actions.reload();
 			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload actions." << std::endl;
 			}
@@ -6844,14 +6831,14 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 			break;
 		}
 		case RELOAD_CREATUREEVENTS: {
-			done = g_creatureEvents->reload();
+			done = g_creatureEvents.reload();
 			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload creatureevents." << std::endl;
 			}
 			break;
 		}
 		case RELOAD_GLOBALEVENTS: {
-			done = g_globalEvents->reload();
+			done = g_globalEvents.reload();
 			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload globalevents." << std::endl;
 			}
@@ -6881,7 +6868,7 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 			break;
 		}
 		case RELOAD_MOVEEVENTS: {
-			done = g_moveEvents->reload();
+			done = g_moveEvents.reload();
 			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload moveevents." << std::endl;
 			}
@@ -6910,7 +6897,7 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 			break;
 		}
 		case RELOAD_SPELLS: {
-			if (!g_spells->reload()) {
+			if (!g_spells.reload()) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload spells." << std::endl;
 			} else if (!g_monsters.reload()) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload monsters when reloading spells." << std::endl;
@@ -6927,25 +6914,18 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 			break;
 		}
 		case RELOAD_TALKACTIONS: {
-			done = g_talkActions->reload();
+			done = g_talkActions.reload();
 			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload talk actions." << std::endl;
 			}
 			break;
 		}
 		case RELOAD_WEAPONS: {
-			if (g_weapons->reload()) {
-				g_weapons->loadDefaults();
+			if (g_weapons.reload()) {
+				g_weapons.loadDefaults();
 				done = true;
 			} else {
-				std::cout << "[Error - Game::reloadInfo] Failed to reload weapons." << std::endl;
-			}
-			break;
-		}
-		case RELOAD_MODS: {
-			done = ScriptManager::getInstance()->reloadMods();
-			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload mods." << std::endl;
+				std::clog << "[Error - Game::reloadInfo] Failed to reload weapons." << std::endl;
 			}
 			break;
 		}
@@ -6953,7 +6933,8 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 		case RELOAD_GAMESERVERS:
 		case RELOAD_GROUPS:
 		case RELOAD_OUTFITS:
-		case RELOAD_VOCATIONS: {
+		case RELOAD_VOCATIONS:
+		case RELOAD_MODS: {
 			done = true;
 			std::clog << "[Notice - Game::reloadInfo] Reload type does not work." << std::endl;
 			break;
@@ -6962,7 +6943,7 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 		case RELOAD_ALL: {
 			done = true;
 			for (uint8_t i = RELOAD_FIRST; i <= RELOAD_LAST; ++i) {
-				if (!reloadInfo(static_cast<ReloadInfo_t>(i), 0, true)) {
+				if (!reloadInfo(static_cast<ReloadInfo_t>(i))) {
 					done = false;
 				}
 			}
@@ -6974,27 +6955,7 @@ bool Game::reloadInfo(ReloadInfo_t reload, uint32_t playerId /* = 0*/, bool comp
 			break;
 		}
 	}
-
-	if (reload != RELOAD_CONFIG && reload != RELOAD_MODS && !completeReload && !ScriptManager::getInstance()->reloadMods()) {
-		std::clog << "[Error - Game::reloadInfo] Failed to reload mods." << std::endl;
-	}
-
-	Player* player = getPlayerByID(playerId);
-	if (!player || player->isRemoved()) {
-		return done;
-	}
-
-	if (done) {
-		player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, "Reloaded successfully.");
-		return true;
-	}
-
-	if (reload == RELOAD_ALL) {
-		player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, "Failed to reload some parts.");
-	} else {
-		player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, "Failed to reload.");
-	}
-	return false;
+	return done;
 }
 
 void Game::prepareGlobalSave(uint8_t minutes)
@@ -7037,7 +6998,7 @@ void Game::globalSave()
 	}
 
 	// call the global event
-	g_globalEvents->execute(GLOBALEVENT_GLOBALSAVE);
+	g_globalEvents.execute(GLOBALEVENT_GLOBALSAVE);
 	if (close) {
 		// shutdown server
 		addDispatcherTask([this]() { setGameState(GAMESTATE_SHUTDOWN); });
@@ -7213,4 +7174,94 @@ void Game::addMonster(Monster* monster)
 void Game::removeMonster(Monster* monster)
 {
 	monsters.erase(monster->getID());
+}
+
+Item* Game::getUniqueItem(uint16_t uniqueId)
+{
+	auto it = uniqueItems.find(uniqueId);
+	if (it == uniqueItems.end()) {
+		return nullptr;
+	}
+	return it->second;
+}
+
+bool Game::addUniqueItem(uint16_t uniqueId, Item* item)
+{
+	if (uniqueItems.emplace(uniqueId, item).second) {
+		return true;
+	}
+
+	// scripted quest system
+	if (item->getActionId() != 2000) {
+		std::clog << "[Warning - Game::addUniqueItem] Duplicate unique id: " << uniqueId << std::endl;
+	}
+	return false;
+}
+
+void Game::removeUniqueItem(uint16_t uniqueId)
+{
+	auto it = uniqueItems.find(uniqueId);
+	if (it != uniqueItems.end()) {
+		uniqueItems.erase(it);
+	}
+}
+
+const std::string* Game::getGlobalStorage(const std::string& key) const
+{
+	auto it = globalStorages.find(key);
+	if (it != globalStorages.end()) {
+		return &it->second;
+	}
+	return nullptr;
+}
+
+void Game::setGlobalStorage(const std::string& key, const std::string& value)
+{
+	if (value != "-1") {
+		globalStorages.insert_or_assign(key, value);
+	} else {
+		removeGlobalStorage(key);
+	}
+}
+
+void Game::removeGlobalStorage(const std::string& key)
+{
+	auto it = globalStorages.find(key);
+	if (it != globalStorages.end()) {
+		globalStorages.erase(it);
+	}
+}
+
+void Game::loadGlobalStorages()
+{
+	DBResultPtr result = g_database.storeQuery("SELECT `key`, `value` FROM `global_storage`");
+	if (result) {
+		do {
+			globalStorages.emplace(result->getString("key"), result->getString("value"));
+		} while (result->next());
+	}
+}
+
+void Game::saveGlobalStorages()
+{
+	if (!g_config.getBool(ConfigManager::SAVE_GLOBAL_STORAGE)) {
+		return;
+	}
+
+	if (!g_database.executeQuery("DELETE FROM `global_storage`")) {
+		return;
+	}
+
+	DBInsert stmt;
+	stmt.setQuery("INSERT INTO `global_storage` (`key`, `value`) VALUES ");
+
+	std::ostringstream query;
+	for (const auto& [key, value] : globalStorages) {
+		query << g_database.escapeString(key) << ", " << g_database.escapeString(value);
+		if (!stmt.addRow(query.str())) {
+			return;
+		}
+		query.str("");
+	}
+	stmt.execute();
 }

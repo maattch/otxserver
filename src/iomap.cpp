@@ -29,9 +29,6 @@
 #include "tile.h"
 #include "town.h"
 
-extern ConfigManager g_config;
-extern Game g_game;
-
 typedef uint8_t attribute_t;
 typedef uint32_t flags_t;
 
@@ -210,7 +207,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 #endif
 	NODE nodeMapData = f.getChildNode(nodeMap, type);
 	while (nodeMapData != NO_NODE) {
-		if (f.getError() != ERROR_NONE) {
+		if (f.getLastError() != ERROR_NONE) {
 			setLastErrorString("Invalid map node.");
 			return false;
 		}
@@ -230,7 +227,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 			int32_t baseX = areaCoord->_x, baseY = areaCoord->_y, baseZ = areaCoord->_z;
 			NODE nodeTile = f.getChildNode(nodeMapData, type);
 			while (nodeTile != NO_NODE) {
-				if (f.getError() != ERROR_NONE) {
+				if (f.getLastError() != ERROR_NONE) {
 					setLastErrorString("Could not read node data.");
 					return false;
 				}

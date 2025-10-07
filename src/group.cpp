@@ -24,8 +24,6 @@
 
 #include "otx/util.hpp"
 
-extern ConfigManager g_config;
-
 Group Groups::defGroup = Group();
 
 void Groups::clear()

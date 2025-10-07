@@ -31,14 +31,25 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern Spells* g_spells;
-extern Actions* g_actions;
-extern ConfigManager g_config;
+Actions g_actions;
 
-Actions::Actions() : m_interface("Action Interface")
+void Actions::init()
 {
-	m_interface.initState();
+	m_interface = std::make_unique<LuaInterface>("Action Interface");
+	m_interface->initState();
+	g_lua.addScriptInterface(m_interface.get());
+}
+
+void Actions::terminate()
+{
+	useItemMap.clear();
+	uniqueItemMap.clear();
+	actionItemMap.clear();
+
+	defaultAction.reset();
+
+	g_lua.removeScriptInterface(m_interface.get());
+	m_interface.reset();
 }
 
 void Actions::clear()
@@ -49,18 +60,18 @@ void Actions::clear()
 
 	defaultAction.reset();
 
-	m_interface.reInitState();
+	m_interface->reInitState();
 }
 
 Event* Actions::getEvent(const std::string& nodeName)
 {
 	if (otx::util::as_lower_string(nodeName) == "action") {
-		return new Action(&m_interface);
+		return new Action(getInterface());
 	}
 	return nullptr;
 }
 
-bool Actions::registerEvent(Event* event, xmlNodePtr p, bool)
+bool Actions::registerEvent(Event* event, xmlNodePtr p)
 {
 	// event is guaranteed to be action
 	Action* action = static_cast<Action*>(event);
@@ -262,7 +273,7 @@ Action* Actions::getAction(const Item* item)
 		return &it->second;
 	}
 
-	if (Action* runeSpell = g_spells->getRuneSpell(item->getID())) {
+	if (Action* runeSpell = g_spells.getRuneSpell(item->getID())) {
 		return runeSpell;
 	}
 	return nullptr;
@@ -477,69 +488,34 @@ ReturnValue Action::canExecuteAction(const Player* player, const Position& pos)
 	if (!getAllowFarUse()) {
 		return Actions::canUse(player, pos);
 	}
-	return g_actions->canUseFar(player, pos, getCheckLineOfSight());
+	return Actions::canUseFar(player, pos, getCheckLineOfSight());
 }
 
 bool Action::executeUse(Player* player, Item* item, const PositionEx& fromPos, const PositionEx& toPos, bool extendedUse, uint32_t)
 {
 	// onUse(cid, item, fromPosition, itemEx, toPosition)
-	if (m_interface->reserveEnv()) {
-		ScriptEnviroment* env = m_interface->getEnv();
-		if (m_scripted == EVENT_SCRIPT_BUFFER) {
-			env->setRealPos(player->getPosition());
-			std::ostringstream scriptstream;
-
-			scriptstream << "local cid = " << env->addThing(player) << std::endl;
-			env->streamThing(scriptstream, "item", item, env->addThing(item));
-			env->streamPosition(scriptstream, "fromPosition", fromPos, fromPos.stackpos);
-
-			Thing* thing = g_game.internalGetThing(player, toPos, toPos.stackpos);
-			if (thing && (thing != item || !extendedUse)) {
-				env->streamThing(scriptstream, "itemEx", thing, env->addThing(thing));
-				env->streamPosition(scriptstream, "toPosition", toPos, toPos.stackpos);
-			} else {
-				env->streamThing(scriptstream, "itemEx", nullptr, 0);
-				env->streamPosition(scriptstream, "toPosition", PositionEx());
-			}
-
-			if (m_scriptData) {
-				scriptstream << *m_scriptData;
-			}
-
-			bool result = true;
-			if (m_interface->loadBuffer(scriptstream.str())) {
-				lua_State* L = m_interface->getState();
-				result = m_interface->getGlobalBool(L, "_result", true);
-			}
-
-			m_interface->releaseEnv();
-			return result;
-		} else {
-			env->setScriptId(m_scriptId, m_interface);
-			env->setRealPos(player->getPosition());
-
-			lua_State* L = m_interface->getState();
-			m_interface->pushFunction(m_scriptId);
-
-			lua_pushnumber(L, env->addThing(player));
-			LuaInterface::pushThing(L, item, env->addThing(item));
-			LuaInterface::pushPosition(L, fromPos, fromPos.stackpos);
-
-			Thing* thing = g_game.internalGetThing(player, toPos, toPos.stackpos);
-			if (thing && (thing != item || !extendedUse)) {
-				LuaInterface::pushThing(L, thing, env->addThing(thing));
-				LuaInterface::pushPosition(L, toPos, toPos.stackpos);
-			} else {
-				LuaInterface::pushThing(L, nullptr, 0);
-				LuaInterface::pushPosition(L, PositionEx());
-			}
-
-			bool result = m_interface->callFunction(5);
-			m_interface->releaseEnv();
-			return result;
-		}
-	} else {
+	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - Action::executeUse]: Call stack overflow." << std::endl;
 		return false;
 	}
+
+	ScriptEnvironment& env = otx::lua::getScriptEnv();
+	env.setScriptId(m_scriptId, m_interface);
+
+	lua_State* L = m_interface->getState();
+	m_interface->pushFunction(m_scriptId);
+
+	lua_pushnumber(L, env.addThing(player));
+	otx::lua::pushThing(L, item, env.addThing(item));
+	otx::lua::pushPosition(L, fromPos, fromPos.stackpos);
+
+	Thing* thing = g_game.internalGetThing(player, toPos, toPos.stackpos);
+	if (thing && (thing != item || !extendedUse)) {
+		otx::lua::pushThing(L, thing, env.addThing(thing));
+		otx::lua::pushPosition(L, toPos, toPos.stackpos);
+	} else {
+		otx::lua::pushThing(L, nullptr, 0);
+		otx::lua::pushPosition(L, PositionEx());
+	}
+	return otx::lua::callFunction(L, 5);
 }

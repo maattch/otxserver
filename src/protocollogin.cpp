@@ -27,9 +27,6 @@
 #include "iologindata.h"
 #include "outputmessage.h"
 
-extern ConfigManager g_config;
-extern Game g_game;
-
 extern std::list<std::pair<uint32_t, uint32_t>> serverIps;
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__

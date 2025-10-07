@@ -23,8 +23,6 @@
 #include "game.h"
 #include "iologindata.h"
 
-extern Game g_game;
-
 bool IOBan::isIpBanished(uint32_t ip, uint32_t mask /* = 0xFFFFFFFF*/) const
 {
 	if (!ip) {

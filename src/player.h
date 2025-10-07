@@ -147,12 +147,15 @@ public:
 	virtual const std::string& getName() const { return name; }
 	virtual const std::string& getNameDescription() const { return nameDescription; }
 	virtual std::string getDescription(int32_t lookDistance) const;
+	void setNameDescription(const std::string& description) { nameDescription = description; }
 
 	const std::string& getSpecialDescription() const { return specialDescription; }
 	void setSpecialDescription(const std::string& desc) { specialDescription = desc; }
 
 	void manageAccount(const std::string& text);
 	bool isAccountManager() const { return (accountManager != MANAGER_NONE); }
+	AccountManager_t getAccountManagerType() const { return accountManager; }
+
 	void kick(bool displayEffect, bool forceLogout);
 
 	void setGUID(uint32_t _guid) { guid = _guid; }
@@ -347,7 +350,8 @@ public:
 	time_t getLastLogin() const { return lastLogin; }
 	time_t getLastLogout() const { return lastLogout; }
 
-	Position getLoginPosition() const { return loginPosition; }
+	const Position& getLoginPosition() const { return loginPosition; }
+	void setLoginPosition(const Position& position) { loginPosition = position; }
 
 	uint32_t getTown() const { return town; }
 	void setTown(uint32_t _town) { town = _town; }
@@ -364,10 +368,15 @@ public:
 	void setCapacity(double newCapacity) { capacity = newCapacity; }
 	double getFreeCapacity() const;
 
-	virtual int32_t getSoul() const { return getPlayerInfo(PLAYERINFO_SOUL); }
-	virtual int32_t getMaxHealth() const { return getPlayerInfo(PLAYERINFO_MAXHEALTH); }
-	virtual int32_t getMaxMana() const { return getPlayerInfo(PLAYERINFO_MAXMANA); }
+	int32_t getSoul() const { return getPlayerInfo(PLAYERINFO_SOUL); }
+	int32_t getBaseSoul() const { return soul; }
 	int32_t getSoulMax() const { return soulMax; }
+
+	virtual int32_t getMaxHealth() const { return getPlayerInfo(PLAYERINFO_MAXHEALTH); }
+
+	int32_t getMana() const override { return mana; }
+	int32_t getMaxMana() const override { return getPlayerInfo(PLAYERINFO_MAXMANA); }
+	int32_t getBaseMaxMana() const override { return manaMax; }
 
 	Item* getInventoryItem(slots_t slot) const;
 	Item* getEquippedItem(slots_t slot) const;
@@ -376,6 +385,7 @@ public:
 	void setItemAbility(slots_t slot, bool enabled) { inventoryAbilities[slot] = enabled; }
 
 	int32_t getBaseSkill(skills_t skill) const { return skills[skill][SKILL_LEVEL]; }
+	int32_t getSkillTries(skills_t skill) const { return skills[skill][SKILL_TRIES]; }
 	int32_t getVarSkill(skills_t skill) const { return varSkills[skill]; }
 	void setVarSkill(skills_t skill, int32_t modifier) { varSkills[skill] += modifier; }
 
@@ -459,7 +469,9 @@ public:
 
 	void openShopWindow(Npc* npc);
 	void closeShopWindow(bool send = true);
-	bool canShopItem(uint16_t itemId, uint8_t subType, ShopEvent_t event);
+
+	bool canBuyItem(uint16_t itemId, uint8_t subType);
+	bool canSellItem(uint16_t itemId);
 
 	chaseMode_t getChaseMode() const { return chaseMode; }
 	void setChaseMode(chaseMode_t mode);
@@ -477,8 +489,10 @@ public:
 	bool isProtected() const;
 	virtual bool isAttackable() const;
 
-	virtual void changeHealth(int32_t healthChange);
-	virtual void changeMana(int32_t manaChange);
+	void changeHealth(int32_t healthChange) override;
+	void changeMana(int32_t manaChange) override;
+	void changeMaxMana(int32_t manaChange) override;
+
 	void changeSoul(int32_t soulChange);
 
 	bool isPzLocked() const { return pzLocked; }
@@ -1050,6 +1064,12 @@ public:
 	void unlearnInstantSpell(const std::string& name);
 	bool hasLearnedInstantSpell(const std::string& name) const;
 
+	Spectators* getSpectators() const { return client; }
+
+	virtual Thing* __getThing(uint32_t index) const;
+	virtual uint32_t __getItemTypeCount(uint16_t itemId, int32_t subType = -1) const;
+	virtual std::map<uint32_t, uint32_t>& __getAllItemTypeCount(std::map<uint32_t, uint32_t>& countMap) const;
+
 	VIPSet VIPList;
 	ContainerVector containerVec;
 	InvitationsList invitationsList;
@@ -1062,7 +1082,7 @@ public:
 	uint64_t balance;
 	double rates[SKILL__LAST + 1];
 
-protected:
+private:
 	void checkTradeState(const Item* item);
 	void internalAddDepot(Depot* depot, uint32_t depotId);
 
@@ -1108,12 +1128,9 @@ protected:
 
 	virtual void __removeThing(Thing* thing, uint32_t count);
 
-	virtual Thing* __getThing(uint32_t index) const;
 	virtual int32_t __getIndexOfThing(const Thing* thing) const;
 	virtual int32_t __getFirstIndex() const;
 	virtual int32_t __getLastIndex() const;
-	virtual uint32_t __getItemTypeCount(uint16_t itemId, int32_t subType = -1) const;
-	virtual std::map<uint32_t, uint32_t>& __getAllItemTypeCount(std::map<uint32_t, uint32_t>& countMap) const;
 
 	virtual void __internalAddThing(Thing* thing);
 	virtual void __internalAddThing(uint32_t index, Thing* thing);
@@ -1137,7 +1154,6 @@ protected:
 	bool isPromoted(uint32_t pLevel = 1) const { return promotionLevel >= pLevel; }
 	bool hasCapacity(const Item* item, uint32_t count) const;
 
-private:
 	bool talkState[13];
 	bool inventoryAbilities[SLOT_LAST];
 	bool pzLocked;
@@ -1167,6 +1183,8 @@ private:
 	uint16_t mailAttempts;
 	uint16_t lastStatsTrainingTime;
 
+	int32_t mana = 0;
+	int32_t manaMax = 0;
 	int32_t premiumDays;
 	int32_t soul;
 	int32_t soulMax;

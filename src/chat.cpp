@@ -29,9 +29,7 @@
 
 #include <fstream>
 
-extern ConfigManager g_config;
-extern Game g_game;
-extern Chat g_chat;
+Chat g_chat;
 
 uint16_t ChatChannel::staticFlags = CHANNELFLAG_ENABLED | CHANNELFLAG_ACTIVE;
 

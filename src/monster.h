@@ -124,8 +124,8 @@ public:
 	bool searchTarget(TargetSearchType_t searchType = TARGETSEARCH_DEFAULT);
 	bool selectTarget(Creature* creature);
 
-	const CreatureList& getTargetList() { return targetList; }
-	const std::unordered_map<uint32_t, Creature*>& getFriendList() { return friendList; }
+	const auto& getTargetList() { return targetList; }
+	const auto& getFriendList() { return friendList; }
 
 	bool isTarget(Creature* creature);
 	bool getIdleStatus() const { return isIdle; }

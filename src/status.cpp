@@ -26,11 +26,8 @@
 
 #include "otx/util.hpp"
 
-extern ConfigManager g_config;
-extern Game g_game;
-
 std::map<uint32_t, int64_t> ProtocolStatus::ipConnectMap;
-const uint64_t ProtocolStatus::start = otx::util::mstime();
+const int64_t ProtocolStatus::start = otx::util::mstime();
 
 enum RequestedInfo_t : uint16_t
 {

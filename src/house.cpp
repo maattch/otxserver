@@ -30,9 +30,6 @@
 
 #include "otx/util.hpp"
 
-extern ConfigManager g_config;
-extern Game g_game;
-
 House::House(uint32_t houseId)
 {
 	guild = pendingTransfer = false;

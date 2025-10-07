@@ -18,9 +18,10 @@
 #pragma once
 
 #include "baseevents.h"
-#include "luascript.h"
 
-enum TalkActionFilter
+class TalkAction;
+
+enum TalkActionFilter : uint8_t
 {
 	TALKFILTER_QUOTATION,
 	TALKFILTER_WORD,
@@ -28,39 +29,43 @@ enum TalkActionFilter
 	TALKFILTER_LAST
 };
 
-class TalkAction;
-typedef std::map<std::string, TalkAction*> TalkActionsMap;
-
-class TalkActions : public BaseEvents
+class TalkActions final : public BaseEvents
 {
 public:
-	TalkActions();
-	virtual ~TalkActions();
+	TalkActions() = default;
+
+	// non-copyable
+	TalkActions(const TalkActions&) = delete;
+	TalkActions& operator=(const TalkActions&) = delete;
+
+	void init();
+	void terminate();
 
 	bool onPlayerSay(Creature* creature, uint16_t channelId, const std::string& words, bool ignoreAccess);
 
-	inline TalkActionsMap::const_iterator getFirstTalk() const { return talksMap.begin(); }
-	inline TalkActionsMap::const_iterator getLastTalk() const { return talksMap.end(); }
+	const auto& getTalkActions() const { return talkactions; }
 
-protected:
-	TalkAction* defaultTalkAction;
-	TalkActionsMap talksMap;
+private:
+	std::string getScriptBaseName() const override { return "talkactions"; }
+	void clear() override;
 
-	virtual std::string getScriptBaseName() const { return "talkactions"; }
-	virtual void clear();
+	Event* getEvent(const std::string& nodeName) override;
+	bool registerEvent(Event* event, xmlNodePtr p) override;
 
-	virtual Event* getEvent(const std::string& nodeName);
-	virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+	LuaInterface* getInterface() override { return m_interface.get(); }
 
-	virtual LuaInterface& getInterface() { return m_interface; }
-	LuaInterface m_interface;
+	LuaInterfacePtr m_interface;
+
+	std::map<std::string, TalkAction> talkactions;
+	std::unique_ptr<TalkAction> defaultTalkAction;
 };
+
+extern TalkActions g_talkActions;
 
 typedef bool(TalkFunction)(Creature* creature, const std::string& words, const std::string& param);
 class TalkAction : public Event
 {
 public:
-	TalkAction(const TalkAction* copy);
 	TalkAction(LuaInterface* _interface);
 	virtual ~TalkAction() {}
 
@@ -87,12 +92,10 @@ public:
 	bool hasGroups() const { return !m_groups.empty(); }
 	bool hasGroup(int32_t value) const { return std::find(m_groups.begin(), m_groups.end(), value) != m_groups.end(); }
 
-	auto getGroupsBegin() const { return m_groups.begin(); }
-	auto getGroupsEnd() const { return m_groups.end(); }
+	const auto& getGroups() const { return m_groups; }
 
 protected:
 	virtual std::string getScriptEventName() const { return "onSay"; }
-	virtual std::string getScriptEventParams() const { return "cid, words, param, channel"; }
 
 	static TalkFunction houseBuy;
 	static TalkFunction houseSell;

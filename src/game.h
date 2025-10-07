@@ -90,7 +90,7 @@ enum ReloadInfo_t : uint8_t
 	RELOAD_TALKACTIONS,
 	RELOAD_VOCATIONS,
 	RELOAD_WEAPONS,
-	RELOAD_MODS,
+	RELOAD_MODS, // unused
 	RELOAD_ALL,
 	RELOAD_GLOBAL,
 
@@ -560,7 +560,7 @@ public:
 	void loadPlayersRecord();
 	void checkPlayersRecord(Player* player);
 
-	bool reloadInfo(ReloadInfo_t reload, uint32_t playerId = 0, bool completeReload = false);
+	bool reloadInfo(ReloadInfo_t reload);
 	void cleanup();
 	void shutdown();
 	void freeThing(Thing* thing);
@@ -649,10 +649,9 @@ public:
 	bool closeRuleViolation(Player* player);
 
 	bool loadExperienceStages();
-	double getExperienceStage(const uint32_t level, const double& divider = 1.);
+	double getExperienceStage(const uint32_t level, const double divider = 1.);
 
-	inline StageList::const_iterator getFirstStage() const { return stages.begin(); }
-	inline StageList::const_iterator getLastStage() const { return stages.end(); }
+	const auto& getExperienceStages() const { return stages; }
 	size_t getStagesCount() const { return stages.size(); }
 
 	Map* getMap() { return map; }
@@ -683,6 +682,10 @@ public:
 	void addMonster(Monster* monster);
 	void removeMonster(Monster* monster);
 
+	Item* getUniqueItem(uint16_t uniqueId);
+	bool addUniqueItem(uint16_t uniqueId, Item* item);
+	void removeUniqueItem(uint16_t uniqueId);
+
 	const auto& getPlayers() { return players; }
 	const auto& getMonsters() { return monsters; }
 	const auto& getNpcs() { return npcs; }
@@ -691,6 +694,14 @@ public:
 	uint32_t getMonstersOnline() { return static_cast<uint32_t>(monsters.size()); }
 	uint32_t getNpcsOnline() { return static_cast<uint32_t>(npcs.size()); }
 	uint32_t getCreaturesOnline() { return getPlayersOnline() + getMonstersOnline() + getNpcsOnline(); }
+
+	const std::string* getGlobalStorage(const std::string& key) const;
+	void setGlobalStorage(const std::string& key, const std::string& value);
+	void removeGlobalStorage(const std::string& key);
+	const auto& getGlobalStorages() const { return globalStorages; }
+
+	void loadGlobalStorages();
+	void saveGlobalStorages();
 
 protected:
 	bool playerWhisper(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
@@ -712,9 +723,10 @@ protected:
 	std::unordered_map<uint32_t, Monster*> monsters;
 	std::unordered_map<uint32_t, Player*> players;
 	std::unordered_map<uint32_t, Npc*> npcs;
-
 	std::unordered_map<std::string, Player*> mappedPlayerNames;
 	std::unordered_map<uint32_t, Player*> mappedPlayerGuids;
+	std::unordered_map<uint16_t, Item*> uniqueItems;
+	std::unordered_map<std::string, std::string> globalStorages;
 
 	RuleViolationsMap ruleViolations;
 	std::map<std::string, bool> monsterNamesMap_;
@@ -757,3 +769,5 @@ protected:
 	Highscore highscoreStorage[9];
 	time_t lastHighscoreCheck;
 };
+
+extern Game g_game;

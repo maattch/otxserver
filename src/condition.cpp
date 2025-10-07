@@ -26,9 +26,6 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern ConfigManager g_config;
-
 Condition::Condition(ConditionId_t _id, ConditionType_t _type, int32_t _ticks, bool _buff, uint32_t _subId) :
 	id(_id),
 	subId(_subId),

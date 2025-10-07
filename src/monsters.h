@@ -152,3 +152,5 @@ private:
 	typedef std::map<uint32_t, MonsterType*> MonsterMap;
 	MonsterMap monsters;
 };
+
+extern Monsters g_monsters;

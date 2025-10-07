@@ -130,8 +130,7 @@ public:
 	int32_t getVocationId(const std::string& name);
 	int32_t getPromotedVocation(uint32_t vocationId);
 
-	VocationsMap::iterator getFirstVocation() { return vocationsMap.begin(); }
-	VocationsMap::iterator getLastVocation() { return vocationsMap.end(); }
+	const auto& getVocations() { return vocationsMap; }
 
 private:
 	static Vocation defVoc;

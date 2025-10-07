@@ -26,10 +26,6 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern Chat g_chat;
-extern ConfigManager g_config;
-
 Party::CountBlock_t::CountBlock_t(int32_t heal, int32_t damage) :
 	ticks(otx::util::mstime()),
 	totalHeal(heal),

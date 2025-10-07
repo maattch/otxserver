@@ -24,8 +24,8 @@ public:
 	Town(uint32_t townId) { id = townId; }
 	virtual ~Town() {}
 
-	Position getPosition() const { return position; }
-	std::string getName() const { return name; }
+	const Position& getPosition() const { return position; }
+	const std::string& getName() const { return name; }
 
 	void setPosition(const Position& pos) { position = pos; }
 	void setName(const std::string& townName) { name = townName; }
@@ -38,7 +38,6 @@ private:
 	Position position;
 };
 
-typedef std::map<uint32_t, Town*> TownMap;
 class Towns
 {
 public:
@@ -50,7 +49,7 @@ public:
 
 	bool addTown(uint32_t townId, Town* town)
 	{
-		TownMap::iterator it = townMap.find(townId);
+		auto it = townMap.find(townId);
 		if (it != townMap.end()) {
 			return false;
 		}
@@ -61,18 +60,17 @@ public:
 
 	Town* getTown(const std::string& townName)
 	{
-		for (TownMap::iterator it = townMap.begin(); it != townMap.end(); ++it) {
-			if (caseInsensitiveEqual(it->second->getName(), townName)) {
-				return it->second;
+		for (const auto& it : townMap) {
+			if (caseInsensitiveEqual(it.second->getName(), townName)) {
+				return it.second;
 			}
 		}
-
 		return nullptr;
 	}
 
 	Town* getTown(uint32_t townId)
 	{
-		TownMap::iterator it = townMap.find(townId);
+		auto it = townMap.find(townId);
 		if (it != townMap.end()) {
 			return it->second;
 		}
@@ -80,9 +78,8 @@ public:
 		return nullptr;
 	}
 
-	TownMap::const_iterator getFirstTown() const { return townMap.begin(); }
-	TownMap::const_iterator getLastTown() const { return townMap.end(); }
+	const auto& getTowns() const { return townMap; }
 
 private:
-	TownMap townMap;
+	std::map<uint32_t, Town*> townMap;
 };

@@ -41,63 +41,52 @@
 #include "protocolold.h"
 #endif
 
-extern ConfigManager g_config;
-extern Game g_game;
-extern Chat g_chat;
-extern TalkActions* g_talkActions;
+TalkActions g_talkActions;
 
-TalkActions::TalkActions() :
-	m_interface("TalkAction Interface")
+void TalkActions::init()
 {
-	m_interface.initState();
-	defaultTalkAction = nullptr;
+	m_interface = std::make_unique<LuaInterface>("TalkActions Interface");
+	m_interface->initState();
+	g_lua.addScriptInterface(m_interface.get());
 }
 
-TalkActions::~TalkActions()
+void TalkActions::terminate()
 {
-	clear();
+	talkactions.clear();
+	defaultTalkAction.reset();
+
+	g_lua.removeScriptInterface(m_interface.get());
+	m_interface.reset();
 }
 
 void TalkActions::clear()
 {
-	for (TalkActionsMap::iterator it = talksMap.begin(); it != talksMap.end(); ++it) {
-		delete it->second;
-	}
+	talkactions.clear();
+	defaultTalkAction.reset();
 
-	talksMap.clear();
-	m_interface.reInitState();
-
-	delete defaultTalkAction;
-	defaultTalkAction = nullptr;
+	m_interface->reInitState();
 }
 
 Event* TalkActions::getEvent(const std::string& nodeName)
 {
 	if (otx::util::as_lower_string(nodeName) == "talkaction") {
-		return new TalkAction(&m_interface);
+		return new TalkAction(getInterface());
 	}
-
 	return nullptr;
 }
 
-bool TalkActions::registerEvent(Event* event, xmlNodePtr p, bool override)
+bool TalkActions::registerEvent(Event* event, xmlNodePtr p)
 {
-	TalkAction* talkAction = dynamic_cast<TalkAction*>(event);
-	if (!talkAction) {
-		return false;
-	}
+	// it is guaranteed to be a TalkAction
+	TalkAction* talkAction = static_cast<TalkAction*>(event);
 
 	std::string strValue;
 	if (readXMLString(p, "default", strValue) && booleanString(strValue)) {
 		if (!defaultTalkAction) {
-			defaultTalkAction = talkAction;
-		} else if (override) {
-			delete defaultTalkAction;
-			defaultTalkAction = talkAction;
+			defaultTalkAction.reset(talkAction);
 		} else {
 			std::clog << "[Warning - TalkAction::registerEvent] You cannot define more than one default talkAction." << std::endl;
 		}
-
 		return true;
 	}
 
@@ -105,20 +94,13 @@ bool TalkActions::registerEvent(Event* event, xmlNodePtr p, bool override)
 		strValue = ";";
 	}
 
-	StringVec strVector = explodeString(talkAction->getWords(), strValue);
-	for (StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it) {
-		otx::util::trim_string(*it);
-		talkAction->setWords(*it);
-		if (talksMap.find(*it) != talksMap.end()) {
-			if (!override) {
-				std::clog << "[Warning - TalkAction::registerEvent] Duplicate registered talkaction with words: " << (*it) << std::endl;
-				continue;
-			}
-
-			delete talksMap[(*it)];
+	for (const std::string& s : explodeString(talkAction->getWords(), strValue)) {
+		std::string words = s;
+		otx::util::trim_string(words);
+		talkAction->setWords(words);
+		if (!talkactions.emplace(std::move(words), *talkAction).second) {
+			std::clog << "[Warning - TalkAction::registerEvent] Duplicate registered talkaction with words: " << s << std::endl;
 		}
-
-		talksMap[(*it)] = new TalkAction(talkAction);
 	}
 
 	delete talkAction;
@@ -152,15 +134,15 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 	}
 
 	TalkAction* talkAction = nullptr;
-	for (TalkActionsMap::iterator it = talksMap.begin(); it != talksMap.end(); ++it) {
-		if (it->first == cmd[it->second->getFilter()] || (!it->second->isSensitive() && caseInsensitiveEqual(it->first, cmd[it->second->getFilter()]))) {
-			talkAction = it->second;
+	for (auto& it : talkactions) {
+		if (it.first == cmd[it.second.getFilter()] || (!it.second.isSensitive() && caseInsensitiveEqual(it.first, cmd[it.second.getFilter()]))) {
+			talkAction = &it.second;
 			break;
 		}
 	}
 
 	if (!talkAction && defaultTalkAction) {
-		talkAction = defaultTalkAction;
+		talkAction = defaultTalkAction.get();
 	}
 
 	if (!talkAction || (talkAction->getChannel() != -1 && talkAction->getChannel() != channelId)) {
@@ -217,7 +199,6 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 	if (TalkFunction* function = talkAction->getFunction()) {
 		return function(creature, cmd[talkAction->getFilter()], param[talkAction->getFilter()]);
 	}
-
 	return false;
 }
 
@@ -230,21 +211,6 @@ TalkAction::TalkAction(LuaInterface* _interface) :
 	m_channel = -1;
 	m_logged = m_hidden = false;
 	m_sensitive = true;
-}
-
-TalkAction::TalkAction(const TalkAction* copy) :
-	Event(copy)
-{
-	m_words = copy->m_words;
-	m_function = copy->m_function;
-	m_filter = copy->m_filter;
-	m_access = copy->m_access;
-	m_channel = copy->m_channel;
-	m_logged = copy->m_logged;
-	m_hidden = copy->m_hidden;
-	m_sensitive = copy->m_sensitive;
-	m_exceptions = copy->m_exceptions;
-	m_groups = copy->m_groups;
 }
 
 bool TalkAction::configureEvent(xmlNodePtr p)
@@ -339,63 +305,30 @@ bool TalkAction::loadFunction(const std::string& functionName)
 		return false;
 	}
 
-	m_scripted = EVENT_SCRIPT_FALSE;
+	m_scripted = false;
 	return true;
 }
 
 int32_t TalkAction::executeSay(Creature* creature, const std::string& words, std::string param, uint16_t channel)
 {
 	// onSay(cid, words, param, channel)
-	if (m_interface->reserveEnv()) {
-		otx::util::trim_string(param);
-		ScriptEnviroment* env = m_interface->getEnv();
-		if (m_scripted == EVENT_SCRIPT_BUFFER) {
-			env->setRealPos(creature->getPosition());
-			std::ostringstream scriptstream;
-			scriptstream << "local cid = " << env->addThing(creature) << std::endl;
-
-			scriptstream << "local words = \"" << words << "\"" << std::endl;
-			scriptstream << "local param = \"" << param << "\"" << std::endl;
-			scriptstream << "local channel = " << channel << std::endl;
-
-			if (m_scriptData) {
-				scriptstream << *m_scriptData;
-			}
-
-			bool result = true;
-			if (m_interface->loadBuffer(scriptstream.str())) {
-				lua_State* L = m_interface->getState();
-				result = m_interface->getGlobalBool(L, "_result", true);
-			}
-
-			m_interface->releaseEnv();
-			return result;
-		} else {
-#ifdef __DEBUG_LUASCRIPTS__
-			char desc[125];
-			sprintf(desc, "%s - %s- %s", creature->getName().c_str(), words.c_str(), param.c_str());
-			env->setEvent(desc);
-#endif
-
-			env->setScriptId(m_scriptId, m_interface);
-			env->setRealPos(creature->getPosition());
-
-			lua_State* L = m_interface->getState();
-			m_interface->pushFunction(m_scriptId);
-			lua_pushnumber(L, env->addThing(creature));
-
-			lua_pushstring(L, words.c_str());
-			lua_pushstring(L, param.c_str());
-			lua_pushnumber(L, channel);
-
-			bool result = m_interface->callFunction(4);
-			m_interface->releaseEnv();
-			return result;
-		}
-	} else {
+	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - TalkAction::executeSay] Call stack overflow." << std::endl;
 		return 0;
 	}
+
+	otx::util::trim_string(param);
+	ScriptEnvironment& env = otx::lua::getScriptEnv();
+	env.setScriptId(m_scriptId, m_interface);
+
+	lua_State* L = m_interface->getState();
+	m_interface->pushFunction(m_scriptId);
+
+	lua_pushnumber(L, env.addThing(creature));
+	otx::lua::pushString(L, words);
+	otx::lua::pushString(L, param);
+	lua_pushnumber(L, channel);
+	return otx::lua::callFunction(L, 4);
 }
 
 bool TalkAction::houseBuy(Creature* creature, const std::string&, const std::string&)
@@ -977,7 +910,7 @@ bool TalkAction::thingProporties(Creature* creature, const std::string&, const s
 				} else if (action == "capacity" || action == "cap") {
 					_player->setCapacity(atoi(parseParams(it, tokens.end()).c_str()));
 				} else if (action == "execute") {
-					g_talkActions->onPlayerSay(_player, atoi(parseParams(it, tokens.end()).c_str()),
+					g_talkActions.onPlayerSay(_player, atoi(parseParams(it, tokens.end()).c_str()),
 						parseParams(it, tokens.end()), booleanString(parseParams(it, tokens.end())));
 				} else if (action == "saving" || action == "save") {
 					_player->switchSaving();

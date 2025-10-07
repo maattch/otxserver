@@ -28,10 +28,6 @@
 
 #include "otx/util.hpp"
 
-extern ConfigManager g_config;
-extern Monsters g_monsters;
-extern Game g_game;
-
 #define MINSPAWN_INTERVAL 1000
 #define DEFAULTSPAWN_INTERVAL 60000
 

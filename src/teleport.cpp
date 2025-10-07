@@ -21,8 +21,6 @@
 
 #include "game.h"
 
-extern Game g_game;
-
 Attr_ReadValue Teleport::readAttr(AttrTypes_t attr, PropStream& propStream)
 {
 	if (attr != ATTR_TELE_DEST) {

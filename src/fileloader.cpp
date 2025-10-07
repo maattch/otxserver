@@ -263,9 +263,8 @@ int32_t FileLoader::setProps(void* data, uint16_t size)
 {
 	// data
 	if (!writeData(data, size, true)) {
-		return getError();
+		return getLastError();
 	}
-
 	return ERROR_NONE;
 }
 

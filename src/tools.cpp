@@ -19,13 +19,12 @@
 
 #include "tools.h"
 
-#include "vocation.h"
 #include "configmanager.h"
+#include "otx/cast.hpp"
 #include "otx/util.hpp"
+#include "vocation.h"
 
 #include <iomanip>
-
-extern ConfigManager g_config;
 
 namespace
 {
@@ -1692,11 +1691,7 @@ uint32_t adlerChecksum(uint8_t* data, size_t length)
 
 std::string getFilePath(FileType_t type, std::string name /* = ""*/)
 {
-#ifdef __FILESYSTEM_HIERARCHY_STANDARD__
-	std::string path = "/var/lib/tfs/";
-#else
 	std::string path = g_config.getString(ConfigManager::DATA_DIRECTORY);
-#endif
 	switch (type) {
 		case FILE_TYPE_OTHER:
 			path += name;
@@ -1705,33 +1700,12 @@ std::string getFilePath(FileType_t type, std::string name /* = ""*/)
 			path += "XML/" + name;
 			break;
 		case FILE_TYPE_LOG:
-#ifndef __FILESYSTEM_HIERARCHY_STANDARD__
 			path = g_config.getString(ConfigManager::LOGS_DIRECTORY) + name;
-#else
-			path = "/var/log/tfs/" + name;
-#endif
 			break;
-		case FILE_TYPE_MOD: {
-#ifndef __FILESYSTEM_HIERARCHY_STANDARD__
-			path = "mods/" + name;
-#else
-			path = "/usr/share/tfs/" + name;
-#endif
-			break;
-		}
-		case FILE_TYPE_CONFIG: {
-#if defined(__HOMEDIR_CONF__)
-			if (fileExists("~/.tfs/" + name)) {
-				path = "~/.tfs/" + name;
-			} else
-#endif
-#if defined(__FILESYSTEM_HIERARCHY_STANDARD__)
-				path = "/etc/tfs/" + name;
-#else
+		case FILE_TYPE_CONFIG:
 			path = name;
-#endif
 			break;
-		}
+
 		default:
 			std::clog << "> ERROR: Wrong file type!" << std::endl;
 			break;

@@ -174,3 +174,5 @@ private:
 	ChatChannel* dummyPrivate;
 	std::string partyName, lootName;
 };
+
+extern Chat g_chat;

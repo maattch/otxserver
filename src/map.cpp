@@ -28,8 +28,6 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-
 Map::Map()
 {
 	mapWidth = 0;

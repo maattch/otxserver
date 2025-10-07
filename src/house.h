@@ -211,16 +211,13 @@ public:
 
 	void addDoor(Door* door);
 	void removeDoor(Door* door);
-	HouseDoorList::iterator getHouseDoorBegin() { return doorList.begin(); }
-	HouseDoorList::iterator getHouseDoorEnd() { return doorList.end(); }
 
 	void addBed(BedItem* bed);
-	HouseBedList::iterator getHouseBedsBegin() { return bedsList.begin(); }
-	HouseBedList::iterator getHouseBedsEnd() { return bedsList.end(); }
-
 	void addTile(HouseTile* tile);
-	HouseTileList::iterator getHouseTileBegin() { return houseTiles.begin(); }
-	HouseTileList::iterator getHouseTileEnd() { return houseTiles.end(); }
+
+	const auto& getHouseDoors() { return doorList; }
+	const auto& getHouseBeds() { return bedsList; }
+	const auto& getHouseTiles() { return houseTiles; }
 
 	Door* getDoorByNumber(uint8_t doorId) const;
 	Door* getDoorByPosition(const Position& pos);
@@ -259,8 +256,7 @@ public:
 	bool payHouse(House* house, time_t _time, uint32_t bid);
 	bool payRent(Player* player, House* house, uint32_t bid, time_t _time = 0);
 
-	HouseMap::iterator getHouseBegin() { return houseMap.begin(); }
-	HouseMap::iterator getHouseEnd() { return houseMap.end(); }
+	const auto& getHouses() { return houseMap; }
 
 	House* getHouse(uint32_t houseId, bool add = false);
 	House* getHouseByPlayer(Player* player);

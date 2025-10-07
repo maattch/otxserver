@@ -17,8 +17,6 @@
 
 #pragma once
 
-#include "luascript.h"
-
 class ConfigManager
 {
 public:
@@ -219,7 +217,6 @@ public:
 	enum bool_config_t
 	{
 		GLOBALSAVE_ENABLED = 0,
-		SCRIPT_SYSTEM,
 		MONSTER_ATTACK_MONSTER,
 		START_CLOSED,
 		START_CHOOSEVOC,
@@ -345,33 +342,13 @@ public:
 	bool setNumber(uint32_t _what, int64_t _value);
 	bool setBool(uint32_t _what, bool _value);
 
-	void getValue(const std::string& key, lua_State* _L) { LuaInterface::getValue(key, L, _L); }
-
 private:
-	static void moveValue(lua_State* fromL, lua_State* toL);
-
-	std::string getGlobalString(const std::string& _identifier, const std::string& _default = "")
-	{
-		return LuaInterface::getGlobalString(L, _identifier, _default);
-	}
-	bool getGlobalBool(const std::string& _identifier, bool _default = false)
-	{
-		return LuaInterface::getGlobalBool(L, _identifier, _default);
-	}
-	int64_t getGlobalNumber(const std::string& _identifier, const int64_t _default = 0)
-	{
-		return LuaInterface::getGlobalNumber(L, _identifier, _default);
-	}
-	double getGlobalDouble(const std::string& _identifier, const double _default = 0)
-	{
-		return LuaInterface::getGlobalDouble(L, _identifier, _default);
-	}
-
 	bool m_loaded, m_startup;
-	lua_State* L;
 
 	std::string m_confString[LAST_STRING_CONFIG];
 	bool m_confBool[LAST_BOOL_CONFIG];
 	int64_t m_confNumber[LAST_NUMBER_CONFIG];
 	double m_confDouble[LAST_DOUBLE_CONFIG];
 };
+
+extern ConfigManager g_config;

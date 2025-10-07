@@ -23,8 +23,6 @@
 #include "game.h"
 #include "outputmessage.h"
 
-extern Game g_game;
-
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 // uint32_t ProtocolOld::protocolOldCount = 0;
 #endif

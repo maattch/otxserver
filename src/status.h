@@ -57,7 +57,7 @@ public:
 		return std::static_pointer_cast<ProtocolStatus>(shared_from_this());
 	}
 
-	static const uint64_t start;
+	static const int64_t start;
 
 protected:
 	static std::map<uint32_t, int64_t> ipConnectMap;

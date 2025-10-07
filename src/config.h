@@ -1,4 +1,6 @@
 #pragma once
 
+#define STRICT_LUA 0
+
 #define FEATURE_EXTENDED_EFFECTS 0
 #define FEATURE_EXTENDED_DISTANCE_EFFECTS 0

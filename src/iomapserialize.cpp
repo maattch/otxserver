@@ -26,9 +26,6 @@
 
 #include "otx/util.hpp"
 
-extern ConfigManager g_config;
-extern Game g_game;
-
 bool IOMapSerialize::loadMap(Map* map)
 {
 	std::string config = otx::util::as_lower_string(g_config.getString(ConfigManager::HOUSE_STORAGE));
@@ -45,14 +42,13 @@ bool IOMapSerialize::loadMap(Map* map)
 		return false;
 	}
 
-	for (HouseMap::iterator it = Houses::getInstance()->getHouseBegin();
-		it != Houses::getInstance()->getHouseEnd(); ++it) {
-		if (!it->second->hasSyncFlag(House::HOUSE_SYNC_UPDATE)) {
+	for (const auto& it : Houses::getInstance()->getHouses()) {
+		if (!it.second->hasSyncFlag(House::HOUSE_SYNC_UPDATE)) {
 			continue;
 		}
 
-		it->second->resetSyncFlag(House::HOUSE_SYNC_UPDATE);
-		it->second->updateDoorDescription();
+		it.second->resetSyncFlag(House::HOUSE_SYNC_UPDATE);
+		it.second->updateDoorDescription();
 	}
 	return true;
 }
@@ -128,8 +124,8 @@ bool IOMapSerialize::loadHouses()
 	} while (result->next());
 
 	std::ostringstream query;
-	for (HouseMap::iterator it = Houses::getInstance()->getHouseBegin(); it != Houses::getInstance()->getHouseEnd(); ++it) {
-		if (!(house = it->second) || !house->getId() || !house->getOwner()) {
+	for (const auto& it : Houses::getInstance()->getHouses()) {
+		if (!(house = it.second) || !house->getId() || !house->getOwner()) {
 			continue;
 		}
 
@@ -152,8 +148,8 @@ bool IOMapSerialize::updateHouses()
 	std::ostringstream query;
 
 	House* house = nullptr;
-	for (HouseMap::iterator it = Houses::getInstance()->getHouseBegin(); it != Houses::getInstance()->getHouseEnd(); ++it) {
-		if (!(house = it->second)) {
+	for (const auto& it : Houses::getInstance()->getHouses()) {
+		if (!(house = it.second)) {
 			continue;
 		}
 
@@ -221,8 +217,8 @@ bool IOMapSerialize::saveHouses()
 		return false;
 	}
 
-	for (HouseMap::iterator it = Houses::getInstance()->getHouseBegin(); it != Houses::getInstance()->getHouseEnd(); ++it) {
-		saveHouse(it->second);
+	for (const auto& it : Houses::getInstance()->getHouses()) {
+		saveHouse(it.second);
 	}
 
 	return trans.commit();
@@ -264,9 +260,8 @@ bool IOMapSerialize::saveHouse(House* house)
 		}
 	}
 
-	const Door* door;
-	for (HouseDoorList::iterator it = house->getHouseDoorBegin(); it != house->getHouseDoorEnd(); ++it) {
-		if (!(door = *it) || !door->getAccessList(listText) || listText.empty()) {
+	for (Door* door : house->getHouseDoors()) {
+		if (!door->getAccessList(listText) || listText.empty()) {
 			continue;
 		}
 
@@ -334,8 +329,8 @@ bool IOMapSerialize::loadMapRelational(Map* map)
 	std::ostringstream query; // lock mutex!
 
 	House* house = nullptr;
-	for (HouseMap::iterator it = Houses::getInstance()->getHouseBegin(); it != Houses::getInstance()->getHouseEnd(); ++it) {
-		if (!(house = it->second)) {
+	for (const auto& it : Houses::getInstance()->getHouses()) {
+		if (!(house = it.second)) {
 			continue;
 		}
 
@@ -368,10 +363,10 @@ bool IOMapSerialize::loadMapRelational(Map* map)
 			} while (result->next());
 		} else // backward compatibility
 		{
-			for (HouseTileList::iterator it = house->getHouseTileBegin(); it != house->getHouseTileEnd(); ++it) {
+			for (HouseTile* tile : house->getHouseTiles()) {
 				query.str("");
-				query << "SELECT `id` FROM `tiles` WHERE `x` = " << (*it)->getPosition().x << " AND `y` = "
-					  << (*it)->getPosition().y << " AND `z` = " << (*it)->getPosition().z << " LIMIT 1";
+				query << "SELECT `id` FROM `tiles` WHERE `x` = " << tile->getPosition().x << " AND `y` = "
+					  << tile->getPosition().y << " AND `z` = " << tile->getPosition().z << " LIMIT 1";
 				if (DBResultPtr result = g_database.storeQuery(query.str())) {
 					query.str("");
 					query << "SELECT * FROM `tile_items` WHERE `tile_id` = " << result->getNumber<int32_t>("id") << " ORDER BY `sid` DESC";
@@ -386,7 +381,7 @@ bool IOMapSerialize::loadMapRelational(Map* map)
 								}
 							}
 						} else {
-							loadItems(itemsResult, (*it), false);
+							loadItems(itemsResult, tile, false);
 						}
 					}
 				}
@@ -415,8 +410,8 @@ bool IOMapSerialize::saveMapRelational(Map*)
 	}
 
 	uint32_t tileId = 0;
-	for (HouseMap::iterator it = Houses::getInstance()->getHouseBegin(); it != Houses::getInstance()->getHouseEnd(); ++it) {
-		saveHouseRelational(it->second, tileId);
+	for (const auto& it : Houses::getInstance()->getHouses()) {
+		saveHouseRelational(it.second, tileId);
 	}
 
 	// End the transaction
@@ -492,8 +487,8 @@ bool IOMapSerialize::saveMapBinary(Map*)
 
 	DBInsert stmt;
 	stmt.setQuery("INSERT INTO `house_data` (`house_id`, `data`) VALUES ");
-	for (HouseMap::iterator it = Houses::getInstance()->getHouseBegin(); it != Houses::getInstance()->getHouseEnd(); ++it) {
-		saveHouseBinary(stmt, it->second);
+	for (const auto& it : Houses::getInstance()->getHouses()) {
+		saveHouseBinary(stmt, it.second);
 	}
 
 	if (!stmt.execute()) {
@@ -573,8 +568,8 @@ bool IOMapSerialize::saveMapBinaryTileBased(Map*)
 
 	DBInsert stmt;
 	stmt.setQuery("INSERT INTO `tile_store` (`house_id`, `data`) VALUES ");
-	for (HouseMap::iterator it = Houses::getInstance()->getHouseBegin(); it != Houses::getInstance()->getHouseEnd(); ++it) {
-		saveHouseBinaryTileBased(stmt, it->second);
+	for (const auto& it : Houses::getInstance()->getHouses()) {
+		saveHouseBinaryTileBased(stmt, it.second);
 	}
 
 	if (!stmt.execute()) {
@@ -587,18 +582,17 @@ bool IOMapSerialize::saveMapBinaryTileBased(Map*)
 
 bool IOMapSerialize::saveHouseRelational(House* house, uint32_t& tileId)
 {
-	for (HouseTileList::iterator tit = house->getHouseTileBegin(); tit != house->getHouseTileEnd(); ++tit) {
-		saveItems(tileId, house->getId(), (*tit));
+	for (HouseTile* tile : house->getHouseTiles()) {
+		saveItems(tileId, house->getId(), tile);
 	}
-
 	return true;
 }
 
 bool IOMapSerialize::saveHouseBinary(DBInsert& stmt, House* house)
 {
 	PropWriteStream stream;
-	for (HouseTileList::iterator tit = house->getHouseTileBegin(); tit != house->getHouseTileEnd(); ++tit) {
-		if (!saveTile(stream, *tit)) {
+	for (HouseTile* tile : house->getHouseTiles()) {
+		if (!saveTile(stream, tile)) {
 			continue;
 		}
 	}
@@ -616,9 +610,9 @@ bool IOMapSerialize::saveHouseBinary(DBInsert& stmt, House* house)
 
 bool IOMapSerialize::saveHouseBinaryTileBased(DBInsert& stmt, House* house)
 {
-	for (HouseTileList::iterator tit = house->getHouseTileBegin(); tit != house->getHouseTileEnd(); ++tit) {
+	for (HouseTile* tile : house->getHouseTiles()) {
 		PropWriteStream stream;
-		if (!saveTile(stream, *tit)) {
+		if (!saveTile(stream, tile)) {
 			continue;
 		}
 
@@ -634,7 +628,6 @@ bool IOMapSerialize::saveHouseBinaryTileBased(DBInsert& stmt, House* house)
 			return false;
 		}
 	}
-
 	return true;
 }
 

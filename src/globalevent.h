@@ -38,8 +38,11 @@ typedef std::map<std::string, GlobalEvent*> GlobalEventMap;
 class GlobalEvents : public BaseEvents
 {
 public:
-	GlobalEvents();
-	virtual ~GlobalEvents();
+	GlobalEvents() = default;
+
+	void init();
+	void terminate();
+
 	void startup();
 
 	void timer();
@@ -54,13 +57,16 @@ protected:
 	virtual void clear();
 
 	virtual Event* getEvent(const std::string& nodeName);
-	virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+	virtual bool registerEvent(Event* event, xmlNodePtr p);
 
-	virtual LuaInterface& getInterface() { return m_interface; }
-	LuaInterface m_interface;
+	LuaInterface* getInterface() override { return m_interface.get(); }
+
+	LuaInterfacePtr m_interface;
 
 	GlobalEventMap thinkMap, serverMap, timerMap;
 };
+
+extern GlobalEvents g_globalEvents;
 
 class GlobalEvent : public Event
 {
@@ -85,7 +91,6 @@ protected:
 	GlobalEvent_t m_eventType;
 
 	virtual std::string getScriptEventName() const;
-	virtual std::string getScriptEventParams() const;
 
 	std::string m_name;
 	int64_t m_lastExecution;

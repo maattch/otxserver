@@ -23,9 +23,6 @@
 #include "game.h"
 #include "tools.h"
 
-extern ConfigManager g_config;
-extern Game g_game;
-
 void Logger::open()
 {
 	std::string path = g_config.getString(ConfigManager::OUTPUT_LOG);

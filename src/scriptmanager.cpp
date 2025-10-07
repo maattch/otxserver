@@ -20,111 +20,86 @@
 #include "scriptmanager.h"
 
 #include "actions.h"
-#include "chat.h"
-#include "configmanager.h"
 #include "creatureevent.h"
 #include "globalevent.h"
-#include "group.h"
-#include "items.h"
-#include "luascript.h"
-#include "monsters.h"
+#include "lua_definitions.h"
 #include "movement.h"
-#include "npc.h"
-#include "outfit.h"
-#include "quests.h"
-#include "raids.h"
-#include "spawn.h"
 #include "spells.h"
 #include "talkaction.h"
-#include "vocation.h"
 #include "weapons.h"
 
-#include "otx/util.hpp"
-
-Actions* g_actions = nullptr;
-CreatureEvents* g_creatureEvents = nullptr;
-Spells* g_spells = nullptr;
-TalkActions* g_talkActions = nullptr;
-MoveEvents* g_moveEvents = nullptr;
-Weapons* g_weapons = nullptr;
-GlobalEvents* g_globalEvents = nullptr;
-
-extern Chat g_chat;
-extern ConfigManager g_config;
-extern Monsters g_monsters;
-extern Npcs g_npcs;
-
-extern LuaEnvironment g_luaEnvironment;
-
-ScriptManager::ScriptManager() :
-	modsLoaded(false)
+void otx::scriptmanager::init()
 {
-	g_weapons = new Weapons();
-	g_spells = new Spells();
-	g_actions = new Actions();
-	g_talkActions = new TalkActions();
-	g_moveEvents = new MoveEvents();
-	g_creatureEvents = new CreatureEvents();
-	g_globalEvents = new GlobalEvents();
+	g_actions.init();
+	g_creatureEvents.init();
+	g_globalEvents.init();
+	g_moveEvents.init();
+	g_spells.init();
+	g_talkActions.init();
+	g_weapons.init();
+
+	Raids::init();
 }
 
-bool ScriptManager::loadSystem()
+bool otx::scriptmanager::load()
 {
 	std::clog << ">>> Loading global... ";
-	if (!g_luaEnvironment.loadFile("data/global.lua")) {
+
+	LuaInterface* mainInterface = g_lua.getMainInterface();
+	if (!mainInterface->loadFile("data/global.lua")) {
 		std::clog << "failed!" << std::endl;
 		return false;
 	}
 	std::clog << "(done)." << std::endl;
 
 	std::clog << ">>> Loading weapons... ";
-	if (!g_weapons->loadFromXml()) {
+	if (!g_weapons.loadFromXml()) {
 		std::clog << "failed!" << std::endl;
 		return false;
 	}
 	std::clog << "(done)." << std::endl;
 
 	std::clog << ">>> Preparing weapons... ";
-	g_weapons->loadDefaults();
+	g_weapons.loadDefaults();
 	std::clog << "(done)." << std::endl;
 
 	std::clog << ">>> Loading spells... ";
-	if (!g_spells->loadFromXml()) {
+	if (!g_spells.loadFromXml()) {
 		std::clog << "failed!" << std::endl;
 		return false;
 	}
 	std::clog << "(done)." << std::endl;
 
 	std::clog << ">>> Loading actions... ";
-	if (!g_actions->loadFromXml()) {
+	if (!g_actions.loadFromXml()) {
 		std::clog << "failed!" << std::endl;
 		return false;
 	}
 	std::clog << "(done)." << std::endl;
 
 	std::clog << ">>> Loading talkactions... ";
-	if (!g_talkActions->loadFromXml()) {
+	if (!g_talkActions.loadFromXml()) {
 		std::clog << "failed!" << std::endl;
 		return false;
 	}
 	std::clog << "(done)." << std::endl;
 
 	std::clog << ">>> Loading movements... ";
-	if (!g_moveEvents->loadFromXml()) {
+	if (!g_moveEvents.loadFromXml()) {
 		std::clog << "failed!" << std::endl;
 		return false;
 	}
 	std::clog << "(done)." << std::endl;
 
 	std::clog << ">>> Loading creaturescripts... ";
-	if (!g_creatureEvents->loadFromXml()) {
+	if (!g_creatureEvents.loadFromXml()) {
 		std::clog << "failed!" << std::endl;
 		return false;
 	}
 	std::clog << "(done)." << std::endl;
 
 	std::clog << ">>> Loading globalscripts... ";
-	if (!g_globalEvents->loadFromXml()) {
+	if (!g_globalEvents.loadFromXml()) {
 		std::clog << "failed!" << std::endl;
 		return false;
 	}
@@ -132,213 +107,15 @@ bool ScriptManager::loadSystem()
 	return true;
 }
 
-bool ScriptManager::loadMods()
+void otx::scriptmanager::terminate()
 {
-	std::filesystem::path modsPath(getFilePath(FILE_TYPE_MOD));
-	if (!std::filesystem::exists(modsPath)) {
-		std::clog << "[Error - ScriptManager::loadMods] Could not locate mods directory" << std::endl;
-		return false;
-	}
+	g_actions.terminate();
+	g_creatureEvents.terminate();
+	g_globalEvents.terminate();
+	g_moveEvents.terminate();
+	g_spells.terminate();
+	g_talkActions.terminate();
+	g_weapons.terminate();
 
-	int32_t i = 0, j = 0;
-	bool enabled = false;
-	for (std::filesystem::directory_iterator it(modsPath), end; it != end; ++it) {
-		if (!std::filesystem::is_regular_file(it->status()) || it->path().extension() != ".xml") {
-			continue;
-		}
-
-		std::string s = it->path().string();
-		std::clog << ">>> Loading " << s << "...";
-		if (loadFromXml(s, enabled)) {
-			std::clog << " (done)";
-			if (!enabled) {
-				++j;
-				std::clog << ", but disabled";
-			}
-
-			std::clog << ".";
-		} else {
-			std::clog << " failed!";
-		}
-
-		std::clog << std::endl;
-		++i;
-	}
-
-	std::clog << ">>> (" << j << ") mods were disabled";
-
-	std::clog << "." << std::endl;
-	modsLoaded = true;
-	return true;
-}
-
-void ScriptManager::clearMods()
-{
-	modMap.clear();
-	libMap.clear();
-}
-
-bool ScriptManager::reloadMods()
-{
-	clearMods();
-	return loadMods();
-}
-
-bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
-{
-	enabled = false;
-	xmlDocPtr doc = xmlParseFile(file.data());
-	if (!doc) {
-		std::clog << "[Error - ScriptManager::loadFromXml] Cannot load mod " << file << std::endl;
-		std::clog << getLastXMLError() << std::endl;
-		return false;
-	}
-
-	int32_t intValue;
-	std::string strValue;
-
-	xmlNodePtr p, root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"mod")) {
-		std::clog << "[Error - ScriptManager::loadFromXml] Malformed mod " << file << std::endl;
-		std::clog << getLastXMLError() << std::endl;
-		xmlFreeDoc(doc);
-		return false;
-	}
-
-	if (!readXMLString(root, "name", strValue)) {
-		strValue = file;
-	}
-
-	ModBlock mod;
-	mod.enabled = true;
-	mod.name = strValue;
-	if (readXMLString(root, "enabled", strValue) && !booleanString(strValue)) {
-		mod.enabled = false;
-	}
-
-	mod.file = file;
-	if (readXMLString(root, "author", strValue)) {
-		mod.author = strValue;
-	}
-
-	if (readXMLString(root, "version", strValue)) {
-		mod.version = strValue;
-	}
-
-	if (readXMLString(root, "contact", strValue)) {
-		mod.contact = strValue;
-	}
-
-	bool supported = true;
-	for (p = root->children; p; p = p->next) {
-		if (xmlStrcmp(p->name, (const xmlChar*)"server")) {
-			continue;
-		}
-
-		supported = false;
-		for (xmlNodePtr versionNode = p->children; versionNode; versionNode = versionNode->next) {
-			std::string id = SOFTWARE_VERSION;
-			if (readXMLString(versionNode, "id", strValue)) {
-				id = otx::util::as_lower_string(strValue);
-			}
-
-			IntegerVec protocol;
-			protocol.push_back(CLIENT_VERSION_MIN);
-			if (readXMLString(versionNode, "protocol", strValue)) {
-				protocol = vectorAtoi(explodeString(strValue, "-"));
-			}
-
-			if (id == otx::util::as_lower_string(SOFTWARE_VERSION) && protocol[0] >= CLIENT_VERSION_MIN && (protocol.size() < 2 || protocol[1] <= CLIENT_VERSION_MAX)) {
-				supported = true;
-				break;
-			}
-		}
-	}
-
-	if (!supported) {
-		std::clog << "[Warning - ScriptManager::loadFromXml] Your server is not supported by mod " << file << std::endl;
-		xmlFreeDoc(doc);
-		return false;
-	}
-
-	if (mod.enabled) {
-		std::string scriptsPath = getFilePath(FILE_TYPE_MOD, "scripts/");
-		for (p = root->children; p; p = p->next) {
-			if (!xmlStrcmp(p->name, (const xmlChar*)"quest")) {
-				Quests::getInstance()->parseQuestNode(p, modsLoaded);
-			} else if (!xmlStrcmp(p->name, (const xmlChar*)"outfit")) {
-				Outfits::getInstance()->parseOutfitNode(p);
-			} else if (!xmlStrcmp(p->name, (const xmlChar*)"vocation")) {
-				Vocations::getInstance()->parseVocationNode(p); // duplicates checking is dangerous, shouldn't be performed until we find some good solution
-			} else if (!xmlStrcmp(p->name, (const xmlChar*)"group")) {
-				Groups::getInstance()->parseGroupNode(p); // duplicates checking is dangerous, shouldn't be performed until we find some good solution
-			} else if (!xmlStrcmp(p->name, (const xmlChar*)"raid")) {
-				Raids::getInstance()->parseRaidNode(p, modsLoaded, FILE_TYPE_MOD); // TODO: support mods path
-			} else if (!xmlStrcmp(p->name, (const xmlChar*)"spawn")) {
-				Spawns::getInstance()->parseSpawnNode(p, modsLoaded);
-			} else if (!xmlStrcmp(p->name, (const xmlChar*)"channel")) {
-				g_chat.parseChannelNode(p); // TODO: duplicates- channel destructor needs to send closeChannel to users!
-			} else if (!xmlStrcmp(p->name, (const xmlChar*)"npc")) {
-				g_npcs.parseNpcNode(p, FILE_TYPE_MOD);
-			} else if (!xmlStrcmp(p->name, (const xmlChar*)"monster")) {
-				std::string path, name;
-				if ((readXMLString(p, "file", path) || readXMLString(p, "path", path)) && readXMLString(p, "name", name)) {
-					g_monsters.loadMonster(getFilePath(FILE_TYPE_MOD, "monster/" + path), name, true);
-				}
-			} else if (!xmlStrcmp(p->name, (const xmlChar*)"item")) {
-				if (readXMLInteger(p, "id", intValue)) {
-					Item::items.parseItemNode(p, intValue);
-				}
-			}
-			if (!xmlStrcmp(p->name, (const xmlChar*)"description") || !xmlStrcmp(p->name, (const xmlChar*)"info")) {
-				if (parseXMLContentString(p->children, strValue)) {
-					otx::util::replace_all(strValue, "\t", "");
-					mod.description = strValue;
-				}
-			} else if (!xmlStrcmp(p->name, (const xmlChar*)"lib") || !xmlStrcmp(p->name, (const xmlChar*)"config")) {
-				if (!readXMLString(p, "name", strValue)) {
-					if (!xmlStrcmp(p->name, (const xmlChar*)"lib")) {
-						strValue = mod.name + "-lib";
-					} else if (!xmlStrcmp(p->name, (const xmlChar*)"config")) {
-						strValue = mod.name + "-config";
-					}
-				} else {
-					otx::util::to_lower_string(strValue);
-				}
-
-				std::string strLib;
-				if (parseXMLContentString(p->children, strLib)) {
-					LibMap::iterator it = libMap.find(strValue);
-					if (it == libMap.end()) {
-						LibBlock lb;
-						lb.first = file;
-						lb.second = strLib;
-
-						libMap[strValue] = lb;
-					} else {
-						std::clog << "[Warning - ScriptManager::loadFromXml] Duplicated lib in mod "
-								  << strValue << ", previously declared in " << it->second.first << std::endl;
-					}
-				}
-			} else if (!g_actions->parseEventNode(p, scriptsPath, modsLoaded)) {
-				if (!g_talkActions->parseEventNode(p, scriptsPath, modsLoaded)) {
-					if (!g_moveEvents->parseEventNode(p, scriptsPath, modsLoaded)) {
-						if (!g_creatureEvents->parseEventNode(p, scriptsPath, modsLoaded)) {
-							if (!g_globalEvents->parseEventNode(p, scriptsPath, modsLoaded)) {
-								if (!g_spells->parseEventNode(p, scriptsPath, modsLoaded)) {
-									g_weapons->parseEventNode(p, scriptsPath, modsLoaded);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	enabled = mod.enabled;
-	modMap[mod.name] = mod;
-
-	xmlFreeDoc(doc);
-	return true;
+	Raids::terminate();
 }

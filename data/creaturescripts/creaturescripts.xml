@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <creaturescripts>
-
 	<event type="throw" name="decayOnDepotThrow" event="script" value="decayOnDepotItem.lua"/>
 	<event type="tradeaccept" name="decayOnDepotTrade" event="script" value="decayOnDepotItem.lua"/>
 
@@ -28,9 +27,6 @@
 	<event type="think" name="Idle" event="script" value="idle.lua"/>
 	<event type="think" name="SkullCheck" event="script" value="skullcheck.lua"/>
 	<event type="combat" name="partyAndGuildProtection" event="script" value="partyAndGuildProtection.lua"/>
-	<event type="login" name="recordIp" event="script" value="recordIp.lua"/>
-	<event type="kill" name="SummonKill" event="script" value="obsidianknife.lua"/>
-	<event type="login" name="obs_login" event="script" value="obsidianknife.lua"/>
 	<event type="extendedopcode" name="ExtendedOpcode" event="script" value="extendedopcode.lua"/>
 	<event type="tradeaccept" name="PlayerTrade" event="script" value="playerTrade.lua"/>
 </creaturescripts>

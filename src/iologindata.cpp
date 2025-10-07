@@ -27,9 +27,6 @@
 #include "town.h"
 #include "vocation.h"
 
-extern ConfigManager g_config;
-extern Game g_game;
-
 Account IOLoginData::loadAccount(uint32_t accountId, bool preLoad /* = false*/)
 {
 	std::ostringstream query;
@@ -989,8 +986,8 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	query.str("");
 
 	stmt.setQuery("INSERT INTO `player_storage` (`player_id`, `key`, `value`) VALUES ");
-	for (StorageMap::const_iterator cit = player->getStorageBegin(); cit != player->getStorageEnd(); ++cit) {
-		query << player->getGUID() << "," << g_database.escapeString(cit->first) << "," << g_database.escapeString(cit->second);
+	for (const auto& [key, value] : player->getStorages()) {
+		query << player->getGUID() << "," << g_database.escapeString(key) << "," << g_database.escapeString(value);
 		if (!stmt.addRow(query.str())) {
 			return false;
 		}
@@ -1149,8 +1146,8 @@ bool IOLoginData::savePlayerItems(Player* player)
 	query.str("");
 
 	stmt.setQuery("INSERT INTO `player_storage` (`player_id`, `key`, `value`) VALUES ");
-	for (StorageMap::const_iterator cit = player->getStorageBegin(); cit != player->getStorageEnd(); ++cit) {
-		query << player->getGUID() << "," << g_database.escapeString(cit->first) << "," << g_database.escapeString(cit->second);
+	for (const auto& [key, value] : player->getStorages()) {
+		query << player->getGUID() << "," << g_database.escapeString(key) << "," << g_database.escapeString(value);
 		if (!stmt.addRow(query.str())) {
 			return false;
 		}

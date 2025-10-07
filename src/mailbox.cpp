@@ -27,9 +27,6 @@
 
 #include "otx/util.hpp"
 
-extern ConfigManager g_config;
-extern Game g_game;
-
 ReturnValue Mailbox::canSend(const Item* item, Creature* actor) const
 {
 	if (item->getID() != ITEM_PARCEL && item->getID() != ITEM_LETTER) {

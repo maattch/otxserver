@@ -23,8 +23,6 @@
 
 Database g_database;
 
-extern ConfigManager g_config;
-
 namespace
 {
 	MysqlPtr connectToDatabase(const bool retryIfError)

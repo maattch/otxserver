@@ -25,10 +25,6 @@
 #include "game.h"
 #include "player.h"
 
-extern Chat g_chat;
-extern Game g_game;
-extern ConfigManager g_config;
-
 bool IOGuild::getGuildId(uint32_t& id, const std::string& name)
 {
 	DBResultPtr result;

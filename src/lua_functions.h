@@ -17,9 +17,7 @@
 
 #pragma once
 
-namespace otx::scriptmanager
+namespace otx::lua
 {
-	void init();
-	bool load();
-	void terminate();
+	void registerFunctions();
 }

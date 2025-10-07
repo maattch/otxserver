@@ -26,10 +26,23 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern ConfigManager g_config;
+namespace
+{
+	LuaInterfacePtr luaInterface;
+}
 
-LuaInterface ScriptEvent::m_interface("Raid Interface");
+void Raids::init()
+{
+	luaInterface = std::make_unique<LuaInterface>("Raids Interface");
+	luaInterface->initState();
+	g_lua.addScriptInterface(luaInterface.get());
+}
+
+void Raids::terminate()
+{
+	g_lua.removeScriptInterface(luaInterface.get());
+	luaInterface.reset();
+}
 
 Raids::Raids()
 {
@@ -185,7 +198,7 @@ void Raids::clear()
 	}
 
 	raidList.clear();
-	ScriptEvent::m_interface.reInitState();
+	luaInterface->reInitState();
 }
 
 bool Raids::reload()
@@ -870,6 +883,13 @@ bool AreaSpawnEvent::executeEvent(const std::string&) const
 	return true;
 }
 
+ScriptEvent::ScriptEvent(Raid* raid, bool ref) :
+	RaidEvent(raid, ref),
+	Event(luaInterface.get())
+{
+	//
+}
+
 bool ScriptEvent::configureRaidEvent(xmlNodePtr eventNode)
 {
 	if (!RaidEvent::configureRaidEvent(eventNode)) {
@@ -877,34 +897,28 @@ bool ScriptEvent::configureRaidEvent(xmlNodePtr eventNode)
 	}
 
 	std::string scriptsName = Raids::getInstance()->getScriptBaseName();
-	if (!m_interface.getState()) {
-		m_interface.initState();
-		std::string path = getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/lib/"));
-		if (!m_interface.loadDirectory(path, false, true)) {
+	if (!luaInterface->getState()) {
+		luaInterface->initState();
+		std::string path = getFilePath(FILE_TYPE_OTHER, scriptsName + "/lib/");
+		if (!luaInterface->loadDirectory(path, false, true)) {
 			std::clog << "[Warning - ScriptEvent::configureRaidEvent] Cannot load " << path << std::endl;
 		}
 	}
 
 	std::string strValue;
 	if (readXMLString(eventNode, "file", strValue)) {
-		std::string path = getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/scripts/" + strValue));
-		if (!fileExists(path.c_str())) {
-			path = getFilePath(FILE_TYPE_MOD, std::string("/scripts/" + strValue));
-		}
-
+		std::string path = getFilePath(FILE_TYPE_OTHER, scriptsName + "/scripts/" + strValue);
 		if (!fileExists(path.c_str())) {
 			std::clog << "[Error - ScriptEvent::configureRaidEvent] Cannot find script file " << strValue << std::endl;
 			return false;
 		}
 
-		if (checkScript(scriptsName, path, true) && loadScript(path, true)) {
+		if (loadScript(path)) {
 			return true;
 		}
 
 		std::clog << "[Error - ScriptEvent::configureRaidEvent] Cannot load script file " << path << std::endl;
 		return false;
-	} else if (parseXMLContentString(eventNode->children, strValue) && checkBuffer(scriptsName, strValue) && loadBuffer(strValue)) {
-		return true;
 	}
 
 	std::clog << "[Error - ScriptEvent::configureRaidEvent] Cannot load script buffer." << std::endl;
@@ -914,36 +928,17 @@ bool ScriptEvent::configureRaidEvent(xmlNodePtr eventNode)
 bool ScriptEvent::executeEvent(const std::string& name) const
 {
 	// onRaid(name)
-	if (m_interface.reserveEnv()) {
-		ScriptEnviroment* env = m_interface.getEnv();
-		if (m_scripted == EVENT_SCRIPT_BUFFER) {
-			std::ostringstream scriptstream;
-			scriptstream << "local name = \"" << name << "\"" << std::endl;
-
-			bool result = true;
-			if (m_scriptData && m_interface.loadBuffer(*m_scriptData)) {
-				lua_State* L = m_interface.getState();
-				result = m_interface.getGlobalBool(L, "_result", true);
-			}
-
-			m_interface.releaseEnv();
-			return result;
-		} else {
-#ifdef __DEBUG_LUASCRIPTS__
-			env->setEvent("Raid event");
-#endif
-			env->setScriptId(m_scriptId, &m_interface);
-			lua_State* L = m_interface.getState();
-
-			m_interface.pushFunction(m_scriptId);
-			lua_pushstring(L, name.c_str());
-
-			bool result = m_interface.callFunction(1);
-			m_interface.releaseEnv();
-			return result;
-		}
-	} else {
+	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - ScriptEvent::executeEvent] Call stack overflow." << std::endl;
 		return false;
 	}
+
+	ScriptEnvironment& env = otx::lua::getScriptEnv();
+	env.setScriptId(m_scriptId, luaInterface.get());
+
+	lua_State* L = luaInterface->getState();
+	luaInterface->pushFunction(m_scriptId);
+
+	otx::lua::pushString(L, name);
+	return otx::lua::callFunction(L, 1);
 }

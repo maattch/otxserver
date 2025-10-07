@@ -237,12 +237,17 @@ public:
 
 	virtual int32_t getHealth() const { return health; }
 	virtual int32_t getMaxHealth() const { return healthMax; }
-	virtual int32_t getMana() const { return mana; }
-	virtual int32_t getMaxMana() const { return manaMax; }
+	int32_t getBaseMaxHealth() const { return healthMax; }
 
-	const Outfit_t getCurrentOutfit() const { return currentOutfit; }
-	void setCurrentOutfit(Outfit_t outfit) { currentOutfit = outfit; }
-	const Outfit_t getDefaultOutfit() const { return defaultOutfit; }
+	virtual int32_t getMana() const { return 0; }
+	virtual int32_t getMaxMana() const { return 0; }
+	virtual int32_t getBaseMaxMana() const { return 0; }
+
+	const Outfit_t& getCurrentOutfit() const { return currentOutfit; }
+	void setCurrentOutfit(const Outfit_t& outfit) { currentOutfit = outfit; }
+
+	const Outfit_t& getDefaultOutfit() const { return defaultOutfit; }
+	void setDefaultOutfit(const Outfit_t& outfit) { defaultOutfit = outfit; }
 
 	bool isInvisible() const { return hasCondition(CONDITION_INVISIBLE, -1, false); }
 	virtual bool isGhost() const { return false; }
@@ -287,7 +292,7 @@ public:
 
 	virtual void addSummon(Creature* creature);
 	virtual void removeSummon(const Creature* creature);
-	const std::list<Creature*>& getSummons() { return summons; }
+	const auto& getSummons() { return summons; }
 	void destroySummons();
 	uint32_t getSummonCount() const { return summons.size(); }
 
@@ -317,15 +322,14 @@ public:
 
 	virtual void changeHealth(int32_t healthChange);
 	void changeMaxHealth(int32_t healthChange);
-	virtual void changeMana(int32_t manaChange);
-	void changeMaxMana(int32_t manaChange);
+	virtual void changeMana(int32_t) {}
+	virtual void changeMaxMana(int32_t) {}
 
 	virtual bool getStorage(const std::string& key, std::string& value) const;
 	virtual bool setStorage(const std::string& key, const std::string& value);
 	virtual void eraseStorage(const std::string& key) { storageMap.erase(key); }
 
-	inline StorageMap::const_iterator getStorageBegin() const { return storageMap.begin(); }
-	inline StorageMap::const_iterator getStorageEnd() const { return storageMap.end(); }
+	const auto& getStorages() const { return storageMap; }
 
 	virtual void gainHealth(Creature* caster, int32_t amount);
 	virtual void drainHealth(Creature* attacker, CombatType_t combatType, int32_t damage);
@@ -467,7 +471,6 @@ protected:
 
 	int32_t checkVector;
 	int32_t health, healthMax;
-	int32_t mana, manaMax;
 	int64_t lastFailedFollow;
 
 	bool hideName, hideHealth, cannotMove;

@@ -23,9 +23,6 @@
 #include "game.h"
 #include "house.h"
 
-extern ConfigManager g_config;
-extern Game g_game;
-
 HouseTile::HouseTile(int32_t x, int32_t y, int32_t z, House* _house) :
 	DynamicTile(x, y, z)
 {

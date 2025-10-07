@@ -27,8 +27,6 @@
 
 #include "otx/util.hpp"
 
-extern ConfigManager g_config;
-
 bool ConnectionManager::acceptConnection(uint32_t clientip)
 {
 	std::lock_guard<std::recursive_mutex> lockClass(lock);

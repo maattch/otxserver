@@ -68,6 +68,8 @@ CREATE TABLE IF NOT EXISTS `players`
 	`deleted` INT NOT NULL DEFAULT '0',
 	`description` VARCHAR(255) NOT NULL DEFAULT '',
 	`broadcasting` TINYINT NOT NULL DEFAULT '0',
+	`offlinetraining_time` INT NOT NULL DEFAULT '0',
+	`offlinetraining_skill` INT NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`),
 	UNIQUE KEY `name` (`name`),
 	FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON DELETE CASCADE
@@ -183,6 +185,7 @@ CREATE TABLE IF NOT EXISTS `killers`
 	`death_id` INT NOT NULL,
 	`final_hit` TINYINT NOT NULL DEFAULT '0',
 	`unjustified` TINYINT NOT NULL DEFAULT '0',
+	`war` BIGINT NOT NULL DEFAULT '0',
 	PRIMARY KEY (`id`),
 	FOREIGN KEY (`death_id`) REFERENCES `player_deaths`(`id`) ON DELETE CASCADE
 ) ENGINE = InnoDB;

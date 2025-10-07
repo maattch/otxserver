@@ -39,12 +39,6 @@
 
 #include "otx/util.hpp"
 
-extern Game g_game;
-extern ConfigManager g_config;
-extern Actions actions;
-extern CreatureEvents* g_creatureEvents;
-extern Chat g_chat;
-
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 uint32_t ProtocolGame::protocolGameCount = 0;
 #endif
@@ -503,13 +497,13 @@ bool ProtocolGame::logout(bool displayEffect, bool forceLogout)
 					return false;
 				}
 
-				if (!g_creatureEvents->playerLogout(player, false)) { // let the script handle the error message
+				if (!g_creatureEvents.playerLogout(player, false)) { // let the script handle the error message
 					return false;
 				}
 			} else {
-				g_creatureEvents->playerLogout(player, true);
+				g_creatureEvents.playerLogout(player, true);
 			}
-		} else if (!g_creatureEvents->playerLogout(player, true)) {
+		} else if (!g_creatureEvents.playerLogout(player, true)) {
 			return false;
 		}
 
