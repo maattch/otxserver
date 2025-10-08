@@ -75,6 +75,7 @@
       <Filter>otx</Filter>
     </ClCompile>
     <ClCompile Include="..\src\lua_definitions.cpp" />
+    <ClCompile Include="..\src\xtea.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\actions.h" />
@@ -162,6 +163,7 @@
     </ClInclude>
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\lua_definitions.h" />
+    <ClInclude Include="..\src\xtea.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OTXServer.rc" />

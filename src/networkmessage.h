@@ -28,142 +28,131 @@ class RSA;
 class NetworkMessage
 {
 public:
-	typedef uint16_t MsgSize_t;
+	using MsgSize_t = uint16_t;
+
 	// Headers:
 	// 2 bytes for unencrypted message size
 	// 4 bytes for checksum
 	// 2 bytes for encrypted message size
-	static const MsgSize_t INITIAL_BUFFER_POSITION = 8;
-	enum
-	{
-		HEADER_LENGTH = 2,
-		CHECKSUM_LENGTH = 4,
-		XTEA_MULTIPLE = 8,
-		MAX_BODY_LENGTH = NETWORKMESSAGE_MAXSIZE - HEADER_LENGTH - CHECKSUM_LENGTH - XTEA_MULTIPLE,
-		MAX_PROTOCOL_BODY_LENGTH = MAX_BODY_LENGTH - 10
-	};
+	static constexpr MsgSize_t INITIAL_BUFFER_POSITION = 8;
 
-	NetworkMessage()
-	{
-		reset();
-	}
+	static constexpr uint8_t HEADER_LENGTH = 2;
+	static constexpr uint8_t CHECKSUM_LENGTH = 4;
+	static constexpr uint8_t XTEA_MULTIPLE = 8;
+	static constexpr uint16_t MAX_BODY_LENGTH = NETWORKMESSAGE_MAXSIZE - HEADER_LENGTH - CHECKSUM_LENGTH - XTEA_MULTIPLE;
+	static constexpr uint16_t MAX_PROTOCOL_BODY_LENGTH = MAX_BODY_LENGTH - 10;
 
-	void reset()
-	{
-		overrun = false;
-		length = 0;
-		position = INITIAL_BUFFER_POSITION;
-	}
+	NetworkMessage() noexcept = default;
+
+	void reset() noexcept { info = {}; }
 
 	// simply read functions for incoming message
-	uint8_t getByte()
-	{
+	uint8_t getByte() noexcept {
 		if (!canRead(1)) {
 			return 0;
 		}
-
-		return buffer[position++];
+		return buffer[info.position++];
 	}
 
-	uint8_t getPreviousByte()
-	{
-		return buffer[--position];
-	}
+	uint8_t getPreviousByte() noexcept { return buffer[--info.position]; }
 
+	// workaround missing "is_trivially_copyable" and "is_trivially_constructible" in g++ < 5.0
 	template<typename T>
-	T get()
-	{
+#if defined(__GNUC__) && __GNUC__ < 5
+	std::enable_if_t<std::has_trivial_copy_constructor_v<T>, T> get() noexcept {
+#else
+	std::enable_if_t<std::is_trivially_copyable_v<T>, T> get() noexcept {
+		static_assert(std::is_trivially_constructible<T>::value, "Destination type must be trivially constructible");
+#endif
 		if (!canRead(sizeof(T))) {
 			return 0;
 		}
 
-		T v;
-		memcpy(&v, buffer + position, sizeof(T));
-		position += sizeof(T);
-		return v;
+		T value;
+		std::memcpy(&value, buffer + info.position, sizeof(T));
+		info.position += sizeof(T);
+		return value;
 	}
 
 	std::string getString(uint16_t stringLen = 0);
 	Position getPosition();
 
 	// skips count unknown/unused bytes in an incoming message
-	void skipBytes(int16_t count)
-	{
-		position += count;
-	}
+	void skipBytes(int16_t count) noexcept { info.position += count; }
 
 	// simply write functions for outgoing message
-	void addByte(uint8_t value)
-	{
-		if (!canAdd(1)) {
-			return;
+	void addByte(uint8_t value) noexcept {
+		if (canAdd(1)) {
+			buffer[info.position++] = value;
+			++info.length;
 		}
-
-		buffer[position++] = value;
-		length++;
 	}
 
 	template<typename T>
-	void add(T value)
-	{
-		if (!canAdd(sizeof(T))) {
-			return;
+	void add(T value) noexcept {
+		if (canAdd(sizeof(T))) {
+			std::memcpy(buffer + info.position, &value, sizeof(T));
+			info.position += sizeof(T);
+			info.length += sizeof(T);
 		}
-
-		memcpy(buffer + position, &value, sizeof(T));
-		position += sizeof(T);
-		length += sizeof(T);
 	}
 
 	void addBytes(const char* bytes, size_t size);
 	void addPaddingBytes(size_t n);
 
-	void addString(const std::string& value);
-
-	void addDouble(double value, uint8_t precision = 2);
+	void addDouble(double value, uint8_t precision);
+	void addString(std::string_view value);
 
 	// write functions for complex types
 	void addPosition(const Position& pos);
-	void addItem(uint16_t id, uint8_t count, Player* player);
-	void addItem(const Item* item, Player* player);
-	void addItemId(uint16_t itemId, Player* player);
+	void addItem(const Item* item);
+	void addItemId(uint16_t itemId);
 
-	MsgSize_t getLength() const { return length; }
-	void setLength(MsgSize_t newLength) { length = newLength; }
+	MsgSize_t getLength() const noexcept { return info.length; }
+	void setLength(MsgSize_t newLength) noexcept { info.length = newLength; }
 
-	MsgSize_t getBufferPosition() const { return position; }
+	MsgSize_t getRemainingBufferLength() const noexcept { return info.length - info.position; }
 
-	uint16_t getLengthHeader() const {
-		return static_cast<uint16_t>(buffer[0] | buffer[1] << 8);
+	MsgSize_t getBufferPosition() const noexcept { return info.position; }
+	bool setBufferPosition(MsgSize_t pos) noexcept {
+		if (pos < NETWORKMESSAGE_MAXSIZE - INITIAL_BUFFER_POSITION) {
+			info.position = pos + INITIAL_BUFFER_POSITION;
+			return true;
+		}
+		return false;
 	}
 
-	bool isOverrun() const { return overrun; }
+	uint16_t getLengthHeader() const noexcept { return static_cast<uint16_t>(buffer[0] | buffer[1] << 8); }
 
-	uint8_t* getBuffer() { return buffer; }
-	const uint8_t* getBuffer() const { return buffer; }
+	bool isOverrun() const noexcept { return info.overrun; }
 
-	uint8_t* getBodyBuffer() {
-		position = 2;
+	uint8_t* getBuffer() noexcept { return buffer; }
+	const uint8_t* getBuffer() const noexcept { return buffer; }
+
+	uint8_t* getRemainingBuffer() noexcept { return buffer + info.position; }
+
+	uint8_t* getBodyBuffer() noexcept {
+		info.position = HEADER_LENGTH;
 		return buffer + HEADER_LENGTH;
 	}
 
-protected:
-	inline bool canAdd(size_t size) const {
-		return (size + position) < MAX_BODY_LENGTH;
-	}
+private:
+	bool canAdd(size_t size) const noexcept { return (size + info.position) < MAX_BODY_LENGTH; }
 
-	inline bool canRead(int32_t size)
-	{
-		if ((position + size) > (length + 8) || size >= (NETWORKMESSAGE_MAXSIZE - position)) {
-			overrun = true;
+	bool canRead(size_t size) noexcept {
+		if ((info.position + size) > (info.length + INITIAL_BUFFER_POSITION) || size >= (NETWORKMESSAGE_MAXSIZE - info.position)) {
+			info.overrun = true;
 			return false;
 		}
 		return true;
 	}
 
-	MsgSize_t length;
-	MsgSize_t position;
-	bool overrun;
+protected:
+	struct {
+		MsgSize_t length{ 0 };
+		MsgSize_t position{ INITIAL_BUFFER_POSITION };
+		bool overrun{ false };
+	} info;
 
 	uint8_t buffer[NETWORKMESSAGE_MAXSIZE];
 };

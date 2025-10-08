@@ -17,8 +17,7 @@
 
 #pragma once
 
-#define NETWORKMESSAGE_MAXSIZE 24590
-
+static constexpr uint16_t NETWORKMESSAGE_MAXSIZE = 65535;
 static constexpr uint32_t PLAYER_ID_RANGE = 0x10000000;
 static constexpr uint32_t MONSTER_ID_RANGE = 0x40000000;
 static constexpr uint32_t NPC_ID_RANGE = 0x80000000;

@@ -245,6 +245,7 @@
     <ClCompile Include="..\src\waitlist.cpp" />
     <ClCompile Include="..\src\weapons.cpp" />
     <ClCompile Include="..\src\wildcardtree.cpp" />
+    <ClCompile Include="..\src\xtea.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\actions.h" />
@@ -328,6 +329,7 @@
     <ClInclude Include="..\src\waypoints.h" />
     <ClInclude Include="..\src\weapons.h" />
     <ClInclude Include="..\src\wildcardtree.h" />
+    <ClInclude Include="..\src\xtea.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OTXServer.rc" />

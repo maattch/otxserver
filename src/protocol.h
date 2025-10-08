@@ -18,16 +18,12 @@
 #pragma once
 
 #include "connection.h"
+#include "xtea.h"
 
 class Protocol : public std::enable_shared_from_this<Protocol>
 {
 public:
-	explicit Protocol(Connection_ptr connection) :
-		connection(connection),
-		key(),
-		encryptionEnabled(false),
-		checksumEnabled(true),
-		rawMessages(false) {}
+	explicit Protocol(Connection_ptr connection) : m_connection(connection) {}
 	virtual ~Protocol() = default;
 
 	// non-copyable
@@ -36,20 +32,14 @@ public:
 
 	virtual void parsePacket(NetworkMessage&) {}
 
-	virtual void onSendMessage(const OutputMessage_ptr& msg) const;
+	void onSendMessage(const OutputMessage_ptr& msg);
 	void onRecvMessage(NetworkMessage& msg);
 	virtual void onRecvFirstMessage(NetworkMessage& msg) = 0;
 	virtual void onConnect() {}
 
-	bool isConnectionExpired() const
-	{
-		return connection.expired();
-	}
+	bool isConnectionExpired() const { return m_connection.expired(); }
 
-	Connection_ptr getConnection() const
-	{
-		return connection.lock();
-	}
+	Connection_ptr getConnection() const { return m_connection.lock(); }
 
 	uint32_t getIP() const;
 
@@ -57,56 +47,40 @@ public:
 	OutputMessage_ptr getOutputBuffer();
 	OutputMessage_ptr getOutputBuffer(int32_t size);
 
-	OutputMessage_ptr& getCurrentBuffer()
-	{
-		return outputBuffer;
-	}
+	OutputMessage_ptr& getCurrentBuffer() { return m_outputBuffer; }
 
-	void send(OutputMessage_ptr msg) const
-	{
+	void send(OutputMessage_ptr msg) const {
 		if (auto connection = getConnection()) {
 			connection->send(msg);
 		}
 	}
 
-protected:
-	void disconnect() const
-	{
+	void disconnect() const {
 		if (auto connection = getConnection()) {
 			connection->close();
 		}
 	}
-	void enableXTEAEncryption()
-	{
-		encryptionEnabled = true;
-	}
-	void setXTEAKey(const uint32_t* key)
-	{
-		memcpy(this->key, key, sizeof(*key) * 4);
-	}
-	void disableChecksum()
-	{
-		checksumEnabled = false;
-	}
 
-	void XTEA_encrypt(OutputMessage& msg) const;
-	bool XTEA_decrypt(NetworkMessage& msg) const;
+protected:
+	void enableXTEAEncryption() { m_encryptionEnabled = true; }
+	void setXTEAKey(otx::xtea::key&& key) { m_key = otx::xtea::expand_key(std::move(key)); }
+	void disableChecksum() { m_checksumEnabled = false; }
+
 	static bool RSA_decrypt(NetworkMessage& msg);
 
-	void setRawMessages(bool value)
-	{
-		rawMessages = value;
-	}
+	void setRawMessages(bool value) { m_rawMessages = value; }
 
 	virtual void release() {}
-	friend class Connection;
 
-	OutputMessage_ptr outputBuffer;
+	OutputMessage_ptr m_outputBuffer;
 
 private:
-	const ConnectionWeak_ptr connection;
-	uint32_t key[4];
-	bool encryptionEnabled;
-	bool checksumEnabled;
-	bool rawMessages;
+	const ConnectionWeak_ptr m_connection;
+
+	otx::xtea::round_keys m_key;
+	bool m_encryptionEnabled{ false };
+	bool m_checksumEnabled{ true };
+	bool m_rawMessages{ false };
+
+	friend class Connection;
 };

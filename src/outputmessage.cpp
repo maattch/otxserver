@@ -22,46 +22,50 @@
 #include "lockfree.h"
 #include "protocol.h"
 #include "scheduler.h"
+#include "tools.h"
 
-const uint16_t OUTPUTMESSAGE_FREE_LIST_CAPACITY = 24768;
-const std::chrono::milliseconds OUTPUTMESSAGE_AUTOSEND_DELAY{ 3 };
-
-class OutputMessageAllocator
+namespace
 {
-public:
-	typedef OutputMessage value_type;
-	template<typename U>
-	struct rebind
+	const uint16_t OUTPUTMESSAGE_FREE_LIST_CAPACITY = 2048;
+	const std::chrono::milliseconds OUTPUTMESSAGE_AUTOSEND_DELAY{ 10 };
+
+	void sendAll(const std::vector<Protocol_ptr>& bufferedProtocols);
+
+	void scheduleSendAll(const std::vector<Protocol_ptr>& bufferedProtocols)
 	{
-		typedef LockfreePoolingAllocator<U, OUTPUTMESSAGE_FREE_LIST_CAPACITY> other;
-	};
-};
+		g_scheduler.addEvent(createSchedulerTask(OUTPUTMESSAGE_AUTOSEND_DELAY.count(), [&]() { sendAll(bufferedProtocols); }));
+	}
 
-void OutputMessagePool::scheduleSendAll()
-{
-	addSchedulerTask(OUTPUTMESSAGE_AUTOSEND_DELAY.count(), [this]() { sendAll(); });
-}
+	void sendAll(const std::vector<Protocol_ptr>& bufferedProtocols)
+	{
+		// dispatcher thread
+		for (auto& protocol : bufferedProtocols) {
+			auto& msg = protocol->getCurrentBuffer();
+			if (msg) {
+				protocol->send(std::move(msg));
+			}
+		}
 
-void OutputMessagePool::sendAll()
-{
-	// dispatcher thread
-	for (auto& protocol : bufferedProtocols) {
-		auto& msg = protocol->getCurrentBuffer();
-		if (msg) {
-			protocol->send(std::move(msg));
+		if (!bufferedProtocols.empty()) {
+			scheduleSendAll(bufferedProtocols);
 		}
 	}
 
-	if (!bufferedProtocols.empty()) {
-		scheduleSendAll();
+} //namespace
+
+void OutputMessage::addCryptoHeader(bool addChecksum)
+{
+	if (addChecksum) {
+		add_header(adlerChecksum(buffer + outputBufferStart, info.length));
 	}
+	writeMessageLength();
 }
 
 void OutputMessagePool::addProtocolToAutosend(Protocol_ptr protocol)
 {
 	// dispatcher thread
 	if (bufferedProtocols.empty()) {
-		scheduleSendAll();
+		scheduleSendAll(bufferedProtocols);
 	}
 	bufferedProtocols.emplace_back(protocol);
 }
@@ -78,5 +82,7 @@ void OutputMessagePool::removeProtocolFromAutosend(const Protocol_ptr& protocol)
 
 OutputMessage_ptr OutputMessagePool::getOutputMessage()
 {
-	return std::allocate_shared<OutputMessage>(OutputMessageAllocator());
+	// LockfreePoolingAllocator<void,...> will leave (void* allocate) ill-formed because
+	// of sizeof(T), so this guarantees that only one list will be initialized
+	return std::allocate_shared<OutputMessage>(LockfreePoolingAllocator<void, OUTPUTMESSAGE_FREE_LIST_CAPACITY>());
 }

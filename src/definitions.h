@@ -27,6 +27,8 @@
 #define MINOR_VERSION "15"
 #define SOFTWARE_DEVELOPERS "https://github.com/FeTads/otxserver"
 
+#define UNUSED(x) (void)(x)
+
 #define MAX_RAND_RANGE 10000000
 
 #ifndef __FUNCTION__
@@ -59,6 +61,9 @@
 	#define strcasecmp _stricmp
 
 	// enable warnings
+	#pragma warning(default : 4100) // 'identifier': unreferenced parameter
+	#pragma warning(default : 4101) // 'identifier': unreferenced local variable
+	#pragma warning(default : 4102) // 'label': unreferenced label
 	#pragma warning(default : 4800) // implicit conversion from 'type' to bool. Possible information loss
 	#pragma warning(default : 5038) // data member 'member1' will be initialized after data member 'member2'
 

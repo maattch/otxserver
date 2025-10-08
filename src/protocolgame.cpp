@@ -616,7 +616,7 @@ void ProtocolGame::onConnect()
 void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 {
 	if (g_game.getGameState() == GAMESTATE_SHUTDOWN) {
-		getConnection()->close();
+		disconnect();
 		return;
 	}
 
@@ -628,9 +628,15 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 		return;
 	}
 
-	uint32_t key[4] = { msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>() };
+	otx::xtea::key key;
+	key[0] = msg.get<uint32_t>();
+	key[1] = msg.get<uint32_t>();
+	key[2] = msg.get<uint32_t>();
+	key[3] = msg.get<uint32_t>();
+
 	enableXTEAEncryption();
-	setXTEAKey(key);
+	setXTEAKey(std::move(key));
+
 	if (operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
 		auto output = OutputMessagePool::getOutputMessage();
 		if (output) {
@@ -1039,7 +1045,7 @@ void ProtocolGame::GetTileDescription(const Tile* tile, OutputMessage_ptr msg)
 {
 	int32_t count = 0;
 	if (tile->ground) {
-		msg->addItem(tile->ground, player);
+		msg->addItem(tile->ground);
 		++count;
 	}
 
@@ -1049,7 +1055,7 @@ void ProtocolGame::GetTileDescription(const Tile* tile, OutputMessage_ptr msg)
 	ItemVector::const_iterator it;
 	if (items) {
 		for (it = items->getBeginTopItem(); (it != items->getEndTopItem() && count < 10); ++it, ++count) {
-			msg->addItem(*it, player);
+			msg->addItem(*it);
 		}
 	}
 
@@ -1070,7 +1076,7 @@ void ProtocolGame::GetTileDescription(const Tile* tile, OutputMessage_ptr msg)
 
 	if (items) {
 		for (it = items->getBeginDownItem(); (it != items->getEndDownItem() && count < 10); ++it, ++count) {
-			msg->addItem(*it, player);
+			msg->addItem(*it);
 		}
 	}
 }
@@ -2122,7 +2128,7 @@ void ProtocolGame::sendContainer(uint32_t cid, const Container* container, bool 
 	msg->addByte(0x6E);
 	msg->addByte(cid);
 
-	msg->addItem(container, player);
+	msg->addItem(container);
 	msg->addString(container->getName());
 	msg->addByte(container->capacity());
 
@@ -2131,7 +2137,7 @@ void ProtocolGame::sendContainer(uint32_t cid, const Container* container, bool 
 
 	ItemList::const_iterator cit = container->getItems();
 	for (uint32_t i = 0; cit != container->getEnd() && i < 255; ++cit, ++i) {
-		msg->addItem(*cit, player);
+		msg->addItem(*cit);
 	}
 }
 
@@ -2231,7 +2237,7 @@ void ProtocolGame::sendGoods(const ShopInfoList& shop)
 	msg->addByte(std::min(goodsMap.size(), (size_t)255));
 	std::map<uint32_t, uint32_t>::const_iterator it = goodsMap.begin();
 	for (uint32_t i = 0; it != goodsMap.end() && i < 255; ++it, ++i) {
-		msg->addItemId(it->first, player);
+		msg->addItemId(it->first);
 		msg->addByte(std::min(it->second, (uint32_t)255));
 	}
 }
@@ -2293,15 +2299,15 @@ void ProtocolGame::sendTradeItemRequest(const Player* _player, const Item* item,
 	msg->addString(_player->getName());
 	if (const Container* container = item->getContainer()) {
 		msg->addByte(std::min(255U, container->getItemHoldingCount() + 1));
-		msg->addItem(item, player);
+		msg->addItem(item);
 
 		uint16_t i = 0;
 		for (ContainerIterator it = container->begin(); i < 255 && it != container->end(); ++it, ++i) {
-			msg->addItem(*it, player);
+			msg->addItem(*it);
 		}
 	} else {
 		msg->addByte(1);
-		msg->addItem(item, player);
+		msg->addItem(item);
 	}
 }
 
@@ -2885,7 +2891,7 @@ void ProtocolGame::sendTextWindow(uint32_t windowTextId, Item* item, uint16_t ma
 
 	msg->addByte(0x96);
 	msg->add<uint32_t>(windowTextId);
-	msg->addItem(item, player);
+	msg->addItem(item);
 	if (canWrite) {
 		msg->add<uint16_t>(maxLen);
 		msg->addString(item->getText());
@@ -3327,7 +3333,7 @@ void ProtocolGame::AddCreatureOutfit(OutputMessage_ptr msg, const Creature* crea
 			msg->addByte(outfit.lookFeet);
 			msg->addByte(outfit.lookAddons);
 		} else if (outfit.lookTypeEx) {
-			msg->addItemId(outfit.lookTypeEx, player);
+			msg->addItemId(outfit.lookTypeEx);
 		} else {
 			msg->add<uint16_t>(outfit.lookTypeEx);
 		}
@@ -3365,7 +3371,7 @@ void ProtocolGame::AddTileItem(OutputMessage_ptr msg, const Position& pos, uint3
 	msg->addByte(0x6A);
 	msg->addPosition(pos);
 	msg->addByte(stackpos);
-	msg->addItem(item, player);
+	msg->addItem(item);
 }
 
 void ProtocolGame::AddTileCreature(OutputMessage_ptr msg, const Position& pos, uint32_t stackpos, const Creature* creature)
@@ -3393,7 +3399,7 @@ void ProtocolGame::UpdateTileItem(OutputMessage_ptr msg, const Position& pos, ui
 	msg->addByte(0x6B);
 	msg->addPosition(pos);
 	msg->addByte(stackpos);
-	msg->addItem(item, player);
+	msg->addItem(item);
 }
 
 void ProtocolGame::RemoveTileItem(OutputMessage_ptr msg, const Position& pos, uint32_t stackpos)
@@ -3503,7 +3509,7 @@ void ProtocolGame::AddInventoryItem(OutputMessage_ptr msg, slots_t slot, const I
 	if (item) {
 		msg->addByte(0x78);
 		msg->addByte(slot);
-		msg->addItem(item, player);
+		msg->addItem(item);
 	} else {
 		RemoveInventoryItem(msg, slot);
 	}
@@ -3525,7 +3531,7 @@ void ProtocolGame::AddContainerItem(OutputMessage_ptr msg, uint8_t cid, const It
 {
 	msg->addByte(0x70);
 	msg->addByte(cid);
-	msg->addItem(item, player);
+	msg->addItem(item);
 }
 
 void ProtocolGame::UpdateContainerItem(OutputMessage_ptr msg, uint8_t cid, uint8_t slot, const Item* item)
@@ -3533,7 +3539,7 @@ void ProtocolGame::UpdateContainerItem(OutputMessage_ptr msg, uint8_t cid, uint8
 	msg->addByte(0x71);
 	msg->addByte(cid);
 	msg->addByte(slot);
-	msg->addItem(item, player);
+	msg->addItem(item);
 }
 
 void ProtocolGame::RemoveContainerItem(OutputMessage_ptr msg, uint8_t cid, uint8_t slot)

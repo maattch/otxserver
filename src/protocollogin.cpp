@@ -43,11 +43,16 @@ void ProtocolLogin::disconnectClient(uint8_t error, const char* message)
 void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 {
 	if (g_game.getGameState() == GAMESTATE_SHUTDOWN) {
-		getConnection()->close();
+		disconnect();
 		return;
 	}
 
-	uint32_t clientIp = getConnection()->getIP();
+	auto connection = getConnection();
+	if (!connection) {
+		return;
+	}
+
+	uint32_t clientIp = connection->getIP();
 	msg.skipBytes(2); // client platform
 	uint16_t version = msg.get<uint16_t>();
 
@@ -58,13 +63,18 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	msg.skipBytes(12);
 
 	if (!RSA_decrypt(msg)) {
-		getConnection()->close();
+		disconnect();
 		return;
 	}
 
-	uint32_t key[4] = { msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>() };
+	otx::xtea::key key;
+	key[0] = msg.get<uint32_t>();
+	key[1] = msg.get<uint32_t>();
+	key[2] = msg.get<uint32_t>();
+	key[3] = msg.get<uint32_t>();
+
 	enableXTEAEncryption();
-	setXTEAKey(key);
+	setXTEAKey(std::move(key));
 
 	std::string name = msg.getString(), password = msg.getString();
 	if (name.empty()) {

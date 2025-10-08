@@ -19,10 +19,7 @@
 
 #include "networkmessage.h"
 
-#include "configmanager.h"
-#include "container.h"
-#include "creature.h"
-#include "player.h"
+#include "item.h"
 
 std::string NetworkMessage::getString(uint16_t stringLen /* = 0*/)
 {
@@ -31,12 +28,12 @@ std::string NetworkMessage::getString(uint16_t stringLen /* = 0*/)
 	}
 
 	if (!canRead(stringLen)) {
-		return std::string();
+		return {};
 	}
 
-	char* v = reinterpret_cast<char*>(buffer) + position; // does not break strict aliasing
-	position += stringLen;
-	return std::string(v, stringLen);
+	uint8_t* bufferPtr = buffer + info.position;
+	info.position += stringLen;
+	return { reinterpret_cast<char*>(bufferPtr), stringLen };
 }
 
 Position NetworkMessage::getPosition()
@@ -48,23 +45,23 @@ Position NetworkMessage::getPosition()
 	return pos;
 }
 
-void NetworkMessage::addString(const std::string& value)
+void NetworkMessage::addString(std::string_view value)
 {
-	size_t stringLen = value.length();
+	const size_t stringLen = value.length();
 	if (!canAdd(stringLen + 2) || stringLen > 8192) {
 		return;
 	}
 
 	add<uint16_t>(stringLen);
-	memcpy(buffer + position, value.c_str(), stringLen);
-	position += stringLen;
-	length += stringLen;
+	std::memcpy(buffer + info.position, value.data(), stringLen);
+	info.position += stringLen;
+	info.length += stringLen;
 }
 
-void NetworkMessage::addDouble(double value, uint8_t precision /* = 2*/)
+void NetworkMessage::addDouble(double value, uint8_t precision)
 {
 	addByte(precision);
-	add<uint32_t>((value * std::pow(static_cast<float>(10), precision)) + std::numeric_limits<int32_t>::max());
+	add<uint32_t>((value * std::pow(10.f, precision)) + std::numeric_limits<int32_t>::max());
 }
 
 void NetworkMessage::addBytes(const char* bytes, size_t size)
@@ -73,9 +70,9 @@ void NetworkMessage::addBytes(const char* bytes, size_t size)
 		return;
 	}
 
-	memcpy(buffer + position, bytes, size);
-	position += size;
-	length += size;
+	std::memcpy(buffer + info.position, bytes, size);
+	info.position += size;
+	info.length += size;
 }
 
 void NetworkMessage::addPaddingBytes(size_t n)
@@ -84,8 +81,8 @@ void NetworkMessage::addPaddingBytes(size_t n)
 		return;
 	}
 
-	memset(buffer + position, 0x33, n);
-	length += n;
+	std::fill_n(buffer + info.position, n, 0x33);
+	info.length += n;
 }
 
 void NetworkMessage::addPosition(const Position& pos)
@@ -95,18 +92,7 @@ void NetworkMessage::addPosition(const Position& pos)
 	addByte(pos.z);
 }
 
-void NetworkMessage::addItem(uint16_t id, uint8_t count, Player* player)
-{
-	const ItemType& it = Item::items[id];
-	add<uint16_t>(it.clientId);
-	if (it.stackable) {
-		addByte(count);
-	} else if (it.isSplash() || it.isFluidContainer()) {
-		addByte(fluidMap[count & 7]);
-	}
-}
-
-void NetworkMessage::addItem(const Item* item, Player* player)
+void NetworkMessage::addItem(const Item* item)
 {
 	const ItemType& it = Item::items[item->getID()];
 	add<uint16_t>(it.clientId);
@@ -117,7 +103,7 @@ void NetworkMessage::addItem(const Item* item, Player* player)
 	}
 }
 
-void NetworkMessage::addItemId(uint16_t itemId, Player* player)
+void NetworkMessage::addItemId(uint16_t itemId)
 {
 	add<uint16_t>(Item::items[itemId].clientId);
 }

@@ -35,8 +35,8 @@ public:
 	Task(TaskFunc&& f) :
 		m_func(std::move(f)) {}
 	Task(uint32_t ms, TaskFunc&& f) :
-		m_expiration(std::chrono::system_clock::now() + std::chrono::milliseconds(ms)),
-		m_func(std::move(f)) {}
+		m_func(std::move(f)),
+		m_expiration(std::chrono::system_clock::now() + std::chrono::milliseconds(ms)) {}
 	virtual ~Task() = default;
 
 	void operator()() { m_func(); }

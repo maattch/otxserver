@@ -20,8 +20,8 @@
 #include "server.h"
 
 #include "configmanager.h"
-#include "scheduler.h"
 #include "otx/util.hpp"
+#include "scheduler.h"
 
 namespace
 {

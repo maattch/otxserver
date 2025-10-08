@@ -19,84 +19,61 @@
 
 #include "connection.h"
 #include "networkmessage.h"
-#include "tools.h"
 
 class Protocol;
-
-class OutputMessage : public NetworkMessage
+class OutputMessage final : public NetworkMessage
 {
 public:
-	OutputMessage() :
-		outputBufferStart(INITIAL_BUFFER_POSITION) {}
+	OutputMessage() = default;
 
 	// non-copyable
 	OutputMessage(const OutputMessage&) = delete;
 	OutputMessage& operator=(const OutputMessage&) = delete;
 
-	uint8_t* getOutputBuffer()
-	{
-		return buffer + outputBufferStart;
-	}
+	uint8_t* getOutputBuffer() { return buffer + outputBufferStart; }
 
-	void writeMessageLength()
-	{
-		add_header(length);
-	}
+	void writeMessageLength() { add_header(info.length); }
 
-	void addCryptoHeader(bool addChecksum)
-	{
-		if (addChecksum) {
-			add_header(adlerChecksum(buffer + outputBufferStart, length));
-		}
+	void addCryptoHeader(bool addChecksum);
 
-		writeMessageLength();
-	}
-
-	inline void append(const NetworkMessage& msg)
-	{
+	void append(const NetworkMessage& msg) {
 		auto msgLen = msg.getLength();
-		memcpy(buffer + position, msg.getBuffer() + 8, msgLen);
-		length += msgLen;
-		position += msgLen;
+		std::memcpy(buffer + info.position, msg.getBuffer() + NetworkMessage::INITIAL_BUFFER_POSITION, msgLen);
+		info.length += msgLen;
+		info.position += msgLen;
 	}
 
-	inline void append(const OutputMessage_ptr& msg)
-	{
+	void append(const OutputMessage_ptr& msg) {
 		auto msgLen = msg->getLength();
-		memcpy(buffer + position, msg->getBuffer() + 8, msgLen);
-		length += msgLen;
-		position += msgLen;
+		std::memcpy(buffer + info.position, msg->getBuffer() + NetworkMessage::INITIAL_BUFFER_POSITION, msgLen);
+		info.length += msgLen;
+		info.position += msgLen;
 	}
 
-protected:
-	template<typename T>
-	inline void add_header(T add)
-	{
+private:
+	template <typename T>
+	void add_header(T add) {
 		assert(outputBufferStart >= sizeof(T));
 		outputBufferStart -= sizeof(T);
-		memcpy(buffer + outputBufferStart, &add, sizeof(T));
+		std::memcpy(buffer + outputBufferStart, &add, sizeof(T));
 		// added header size to the message size
-		length += sizeof(T);
+		info.length += sizeof(T);
 	}
 
-	MsgSize_t outputBufferStart;
+	MsgSize_t outputBufferStart = NetworkMessage::INITIAL_BUFFER_POSITION;
 };
 
-class OutputMessagePool
+class OutputMessagePool final
 {
 public:
 	// non-copyable
 	OutputMessagePool(const OutputMessagePool&) = delete;
 	OutputMessagePool& operator=(const OutputMessagePool&) = delete;
 
-	static OutputMessagePool& getInstance()
-	{
+	static OutputMessagePool& getInstance() {
 		static OutputMessagePool instance;
 		return instance;
 	}
-
-	void sendAll();
-	void scheduleSendAll();
 
 	static OutputMessage_ptr getOutputMessage();
 
