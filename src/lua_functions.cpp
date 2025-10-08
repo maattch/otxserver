@@ -121,7 +121,7 @@ static int luaGetPlayerNameDescription(lua_State* L)
 		otx::lua::pushString(L, player->getNameDescription());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -133,7 +133,7 @@ static int luaGetPlayerSpecialDescription(lua_State* L)
 		otx::lua::pushString(L, player->getSpecialDescription());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -149,7 +149,7 @@ static int luaGetPlayerFood(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -161,7 +161,7 @@ static int luaGetPlayerAccess(lua_State* L)
 		lua_pushnumber(L, player->getAccess());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -173,7 +173,7 @@ static int luaGetPlayerGhostAccess(lua_State* L)
 		lua_pushnumber(L, player->getGhostAccess());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -185,7 +185,7 @@ static int luaGetPlayerLevel(lua_State* L)
 		lua_pushnumber(L, player->getLevel());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -197,7 +197,7 @@ static int luaGetPlayerExperience(lua_State* L)
 		lua_pushnumber(L, player->getExperience());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -209,7 +209,7 @@ static int luaGetPlayerSpentMana(lua_State* L)
 		lua_pushnumber(L, player->getSpentMana());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -221,7 +221,7 @@ static int luaGetPlayerVocation(lua_State* L)
 		lua_pushnumber(L, player->getVocationId());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -233,7 +233,7 @@ static int luaGetPlayerMoney(lua_State* L)
 		lua_pushnumber(L, g_game.getMoney(player));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -245,7 +245,7 @@ static int luaGetPlayerFreeCap(lua_State* L)
 		lua_pushnumber(L, static_cast<int64_t>(player->getFreeCapacity()));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -257,7 +257,7 @@ static int luaGetPlayerGuildId(lua_State* L)
 		lua_pushnumber(L, player->getGuildId());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -269,7 +269,7 @@ static int luaGetPlayerGuildName(lua_State* L)
 		otx::lua::pushString(L, player->getGuildName());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -281,7 +281,7 @@ static int luaGetPlayerGuildRankId(lua_State* L)
 		lua_pushnumber(L, player->getRankId());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -293,7 +293,7 @@ static int luaGetPlayerGuildRank(lua_State* L)
 		otx::lua::pushString(L, player->getRankName());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -305,7 +305,7 @@ static int luaGetPlayerGuildLevel(lua_State* L)
 		lua_pushnumber(L, player->getGuildLevel());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -317,7 +317,7 @@ static int luaGetPlayerGuildNick(lua_State* L)
 		otx::lua::pushString(L, player->getGuildNick());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -329,7 +329,7 @@ static int luaGetPlayerTown(lua_State* L)
 		lua_pushnumber(L, player->getTown());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -341,7 +341,7 @@ static int luaGetPlayerPromotionLevel(lua_State* L)
 		lua_pushnumber(L, player->getPromotionLevel());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -353,7 +353,7 @@ static int luaGetPlayerGroupId(lua_State* L)
 		lua_pushnumber(L, player->getGroupId());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -365,7 +365,7 @@ static int luaGetPlayerGUID(lua_State* L)
 		lua_pushnumber(L, player->getGUID());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -377,7 +377,7 @@ static int luaGetPlayerAccountId(lua_State* L)
 		lua_pushnumber(L, player->getAccount());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -389,7 +389,7 @@ static int luaGetPlayerAccount(lua_State* L)
 		otx::lua::pushString(L, player->getAccountName());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -401,7 +401,7 @@ static int luaGetPlayerPremiumDays(lua_State* L)
 		lua_pushnumber(L, player->getPremiumDays());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -417,7 +417,7 @@ static int luaGetPlayerBalance(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -429,7 +429,7 @@ static int luaGetPlayerStamina(lua_State* L)
 		lua_pushnumber(L, player->getStaminaMinutes());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -441,7 +441,7 @@ static int luaGetPlayerLossSkill(lua_State* L)
 		lua_pushboolean(L, player->getLossSkill());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -453,7 +453,7 @@ static int luaGetPlayerPartner(lua_State* L)
 		lua_pushnumber(L, player->marriage);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -465,7 +465,7 @@ static int luaIsPlayerPzLocked(lua_State* L)
 		lua_pushboolean(L, player->isPzLocked());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -477,7 +477,7 @@ static int luaIsPlayerSaving(lua_State* L)
 		lua_pushboolean(L, player->isSaving());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -489,7 +489,7 @@ static int luaIsPlayerProtected(lua_State* L)
 		lua_pushboolean(L, player->isProtected());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -501,7 +501,7 @@ static int luaGetPlayerIp(lua_State* L)
 		lua_pushnumber(L, player->getIP());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -513,7 +513,7 @@ static int luaGetPlayerSkullEnd(lua_State* L)
 		lua_pushnumber(L, player->getSkullEnd());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -526,7 +526,7 @@ static int luaDoPlayerSendOutfitWindow(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -538,7 +538,7 @@ static int luaGetPlayerIdleTime(lua_State* L)
 		lua_pushnumber(L, player->getIdleTime());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -550,7 +550,7 @@ static int luaHasPlayerClient(lua_State* L)
 		lua_pushboolean(L, player->hasClient());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -562,7 +562,7 @@ static int luaGetPlayerLastLoad(lua_State* L)
 		lua_pushnumber(L, player->getLastLoad());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -574,7 +574,7 @@ static int luaGetPlayerLastLogin(lua_State* L)
 		lua_pushnumber(L, player->getLastLogin());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -586,7 +586,7 @@ static int luaGetPlayerAccountManager(lua_State* L)
 		lua_pushnumber(L, player->getAccountManagerType());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -598,7 +598,7 @@ static int luaGetPlayerTradeState(lua_State* L)
 		lua_pushnumber(L, player->getTradeState());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -610,7 +610,7 @@ static int luaGetPlayerOperatingSystem(lua_State* L)
 		lua_pushnumber(L, player->getOperatingSystem());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -622,7 +622,7 @@ static int luaGetPlayerClientVersion(lua_State* L)
 		lua_pushnumber(L, player->getClientVersion());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -635,7 +635,7 @@ static int luaGetPlayerSex(lua_State* L)
 		lua_pushnumber(L, player->getSex(full));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -649,7 +649,7 @@ static int luaDoPlayerSetNameDescription(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -663,7 +663,7 @@ static int luaDoPlayerSetSpecialDescription(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -676,7 +676,7 @@ static int luaGetPlayerMagLevel(lua_State* L)
 		lua_pushnumber(L, ignoreModifiers ? player->getBaseMagicLevel() : player->getMagicLevel());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -689,7 +689,7 @@ static int luaGetPlayerRequiredMana(lua_State* L)
 		lua_pushnumber(L, player->getVocation()->getReqMana(magLevel));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -703,7 +703,7 @@ static int luaGetPlayerRequiredSkillTries(lua_State* L)
 		lua_pushnumber(L, player->getVocation()->getReqSkillTries(skill, level));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -717,11 +717,11 @@ static int luaGetPlayerFlagValue(lua_State* L)
 			lua_pushboolean(L, player->hasFlag(flag));
 		} else {
 			otx::lua::reportErrorEx(L, "Invalid flag value.");
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -735,11 +735,11 @@ static int luaGetPlayerCustomFlagValue(lua_State* L)
 			lua_pushboolean(L, player->hasCustomFlag(flag));
 		} else {
 			otx::lua::reportErrorEx(L, "Invalid flag value.");
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -750,7 +750,7 @@ static int luaDoPlayerLearnInstantSpell(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -770,7 +770,7 @@ static int luaDoPlayerUnlearnInstantSpell(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -790,7 +790,7 @@ static int luaGetPlayerLearnedInstantSpell(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -810,7 +810,7 @@ static int luaGetPlayerInstantSpellCount(lua_State* L)
 		lua_pushnumber(L, g_spells.getInstantSpellCount(player));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -821,7 +821,7 @@ static int luaGetPlayerInstantSpellInfo(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -829,7 +829,7 @@ static int luaGetPlayerInstantSpellInfo(lua_State* L)
 	InstantSpell* spell = g_spells.getInstantSpellByIndex(player, index);
 	if (!spell) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_SPELL_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -848,8 +848,7 @@ static int luaGetInstantSpellInfo(lua_State* L)
 	// getInstantSpellInfo(name)
 	InstantSpell* spell = g_spells.getInstantSpellByName(otx::lua::getString(L, 1));
 	if (!spell) {
-		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_SPELL_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -869,7 +868,7 @@ static int luaDoCreatureCastSpell(lua_State* L)
 	Creature* creature = otx::lua::getCreature(L, 1);
 	if (!creature) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -878,7 +877,7 @@ static int luaDoCreatureCastSpell(lua_State* L)
 		lua_pushboolean(L, spell->castSpell(creature));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_SPELL_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -891,7 +890,7 @@ static int luaDoRemoveItem(lua_State* L)
 		lua_pushboolean(L, g_game.internalRemoveItem(nullptr, item, count) != RET_NOERROR);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -907,7 +906,7 @@ static int luaDoPlayerRemoveItem(lua_State* L)
 		lua_pushboolean(L, g_game.removeItemOfType(player, itemId, count, subType, ignoreEquipped));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -921,7 +920,7 @@ static int luaDoPlayerFeed(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -935,7 +934,7 @@ static int luaDoPlayerSendCancel(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -948,7 +947,7 @@ static int luaDoPlayerSendCastList(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -962,7 +961,7 @@ static int luaDoSendDefaultCancel(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -977,7 +976,7 @@ static int luaGetSearchString(lua_State* L)
 
 	if (toPosition.x == 0 || toPosition.y == 0 || fromPosition.x == 0 || fromPosition.y == 0) {
 		otx::lua::reportErrorEx(L, "Wrong position(s) specified");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	} else {
 		otx::lua::pushString(L, g_game.getSearchString(fromPosition, toPosition, fromIsCreature, toIsCreature));
 	}
@@ -996,11 +995,11 @@ static int luaGetClosestFreeTile(lua_State* L)
 		if (newPos.x != 0) {
 			otx::lua::pushPosition(L, newPos);
 		} else {
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1015,7 +1014,7 @@ static int luaDoTeleportThing(lua_State* L)
 		lua_pushboolean(L, g_game.internalTeleport(thing, destination, !pushMove, FLAG_NOLIMIT, fullTeleport) == RET_NOERROR);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_THING_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1026,7 +1025,7 @@ static int luaDoItemSetDestination(lua_State* L)
 	Item* item = otx::lua::getItem(L, 1);
 	if (!item) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1036,7 +1035,7 @@ static int luaDoItemSetDestination(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, "Target item is not a teleport.");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1052,7 +1051,7 @@ static int luaDoTransformItem(lua_State* L)
 	Item* item = env.getItemByUID(uid);
 	if (!item) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1085,7 +1084,7 @@ static int luaDoCreatureSay(lua_State* L)
 	Creature* creature = otx::lua::getCreature(L, 1);
 	if (!creature) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1094,7 +1093,7 @@ static int luaDoCreatureSay(lua_State* L)
 		Creature* target = g_game.getCreatureByID(creatureId);
 		if (!target) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 
@@ -1116,14 +1115,14 @@ static int luaDoCreatureChannelSay(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	Creature* speaker = otx::lua::getCreature(L, 2);
 	if (!speaker) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1180,7 +1179,7 @@ static int luaDoPlayerAddSkillTry(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1192,7 +1191,7 @@ static int luaGetCreatureSpeakType(lua_State* L)
 		lua_pushnumber(L, creature->getSpeakType());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1204,7 +1203,7 @@ static int luaDoCreatureSetSpeakType(lua_State* L)
 		const auto messageType = static_cast<MessageClasses>(otx::lua::getNumber<uint8_t>(L, 2));
 		if (!((messageType >= MSG_SPEAK_FIRST && messageType <= MSG_SPEAK_LAST) || (messageType >= MSG_SPEAK_MONSTER_FIRST && messageType <= MSG_SPEAK_MONSTER_LAST))) {
 			otx::lua::reportErrorEx(L, "Invalid speak type");
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 
@@ -1212,7 +1211,7 @@ static int luaDoCreatureSetSpeakType(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1224,7 +1223,7 @@ static int luaGetCreatureHideHealth(lua_State* L)
 		lua_pushboolean(L, creature->getHideHealth());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1239,7 +1238,7 @@ static int luaDoCreatureSetHideHealth(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1259,7 +1258,7 @@ static int luaDoCreatureAddHealth(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1279,7 +1278,7 @@ static int luaDoCreatureAddMana(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1294,7 +1293,7 @@ static int luaDoPlayerAddSpentMana(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1320,14 +1319,14 @@ static int luaDoPlayerAddItem(lua_State* L)
 
 	if (slot > SLOT_AMMO) {
 		otx::lua::reportErrorEx(L, "Invalid slot");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1349,7 +1348,7 @@ static int luaDoPlayerAddItem(lua_State* L)
 		Item* newItem = Item::CreateItem(itemId, stackCount);
 		if (!newItem) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return ++ret;
 		}
 
@@ -1388,14 +1387,14 @@ static int luaDoPlayerAddItemEx(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	Item* item = otx::lua::getItem(L, 2);
 	if (!item) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1404,7 +1403,7 @@ static int luaDoPlayerAddItemEx(lua_State* L)
 
 	if (slot > SLOT_AMMO) {
 		otx::lua::reportErrorEx(L, "Invalid slot type.");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1426,7 +1425,7 @@ static int luaDoTileAddItemEx(lua_State* L)
 	Item* item = otx::lua::getItem(L, 1);
 	if (!item) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1445,7 +1444,7 @@ static int luaDoTileAddItemEx(lua_State* L)
 			}
 		} else {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_TILE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 		return 1;
 	}
@@ -1475,7 +1474,7 @@ static int luaDoRelocate(lua_State* L)
 	Tile* toTile = g_game.getTile(toPos);
 	if (!fromTile || !toTile) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_TILE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1558,7 +1557,7 @@ static int luaDoCleanTile(lua_State* L)
 	Tile* tile = g_game.getTile(pos);
 	if (!tile) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_TILE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1589,7 +1588,7 @@ static int luaDoPlayerSendTextMessage(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1627,7 +1626,7 @@ static int luaDoPlayerSendChannelMessage(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1641,7 +1640,7 @@ static int luaDoPlayerOpenChannel(lua_State* L)
 		return 1;
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1653,7 +1652,7 @@ static int luaDoPlayerOpenPrivateChannel(lua_State* L)
 		lua_pushboolean(L, g_game.playerCreatePrivateChannel(player->getID()));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1666,7 +1665,7 @@ static int luaDoPlayerSendChannels(lua_State* L)
 	if (lua_gettop(L) > 1) {
 		if (!otx::lua::isTable(L, 2)) {
 			otx::lua::reportErrorEx(L, "Invalid channel list table.");
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 
@@ -1689,7 +1688,7 @@ static int luaDoPlayerSendChannels(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1709,7 +1708,7 @@ static int luaDoSendCreatureSquare(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1740,11 +1739,12 @@ static int luaGetPlayerSkillLevel(lua_State* L)
 		if (skillId <= SKILL_LAST) {
 			lua_pushnumber(L, ignoreModifiers ? player->getBaseSkill(skillId) : player->getSkill(skillId, SKILL_LEVEL));
 		} else {
-			lua_pushboolean(L, false);
+			otx::lua::reportErrorEx(L, "Invalid skill type.");
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1757,11 +1757,12 @@ static int luaGetPlayerSkillTries(lua_State* L)
 		if (skillId <= SKILL_LAST) {
 			lua_pushnumber(L, player->getSkillTries(skillId));
 		} else {
-			lua_pushboolean(L, false);
+			otx::lua::reportErrorEx(L, "Invalid skill type.");
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1775,7 +1776,7 @@ static int luaDoPlayerSetOfflineTrainingSkill(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1789,7 +1790,7 @@ static int luaDoCreatureSetDropLoot(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1803,11 +1804,12 @@ static int luaGetPlayerLossPercent(lua_State* L)
 			uint32_t value = player->getLossPercent(lossType);
 			lua_pushnumber(L, value);
 		} else {
-			lua_pushboolean(L, false);
+			otx::lua::reportErrorEx(L, "Invalid loss type.");
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1822,11 +1824,12 @@ static int luaDoPlayerSetLossPercent(lua_State* L)
 			player->setLossPercent(lossType, percent);
 			lua_pushboolean(L, true);
 		} else {
-			lua_pushboolean(L, false);
+			otx::lua::reportErrorEx(L, "Invalid loss type.");
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1840,7 +1843,7 @@ static int luaDoPlayerSetLossSkill(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -1852,7 +1855,7 @@ static int luaDoShowTextDialog(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -1909,7 +1912,7 @@ static int luaDoDecayItem(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2105,7 +2108,7 @@ static int luaDoCreateItem(lua_State* L)
 			lua_pushnumber(L, otx::lua::getScriptEnv().addThing(item));
 		} else {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_TILE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 		return 1;
 	}
@@ -2129,7 +2132,7 @@ static int luaDoCreateItem(lua_State* L)
 		Item* newItem = Item::CreateItem(it.id, stackCount);
 		if (!newItem) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return ++ret;
 		}
 
@@ -2178,7 +2181,7 @@ static int luaDoCreateItemEx(lua_State* L)
 	Item* newItem = Item::CreateItem(it.id, count);
 	if (!newItem) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -2200,7 +2203,7 @@ static int luaDoCreateTeleport(lua_State* L)
 	Tile* tile = g_game.getMap()->getTile(position);
 	if (!tile) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_TILE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -2209,7 +2212,7 @@ static int luaDoCreateTeleport(lua_State* L)
 	if (!newTeleport) {
 		delete newItem;
 		otx::lua::reportErrorEx(L, "Item " + std::to_string(itemId) + " is not a teleport.");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -2246,7 +2249,7 @@ static int luaGetCreatureStorageList(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2270,7 +2273,7 @@ static int luaGetCreatureStorage(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2289,7 +2292,7 @@ static int luaDoCreatureSetStorage(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2464,19 +2467,19 @@ static int luaGetHouseFromPosition(lua_State* L)
 	Tile* tile = g_game.getMap()->getTile(pos);
 	if (!tile) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_TILE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	HouseTile* houseTile = tile->getHouseTile();
 	if (!houseTile) {
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	House* house = houseTile->getHouse();
 	if (!house) {
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -2495,14 +2498,14 @@ static int luaDoCreateMonster(lua_State* L)
 	Monster* monster = Monster::createMonster(name);
 	if (!monster) {
 		otx::lua::reportErrorEx(L, "Monster with name '" + name + "' not found");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	if (!g_game.placeCreature(monster, pos, extend, force)) {
 		delete monster;
 		otx::lua::reportErrorEx(L, "Cannot create monster: " + name);
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -2519,7 +2522,7 @@ static int luaDoCreateNpc(lua_State* L)
 	Npc* npc = Npc::createNpc(name);
 	if (!npc) {
 		otx::lua::reportErrorEx(L, "Npc with name '" + name + "' not found");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -2547,7 +2550,7 @@ static int luaDoRemoveCreature(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2561,7 +2564,7 @@ static int luaDoPlayerAddMoney(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2575,7 +2578,7 @@ static int luaDoPlayerRemoveMoney(lua_State* L)
 		lua_pushboolean(L, g_game.removeMoney(player, money, 0, canDrop));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2589,7 +2592,7 @@ static int luaDoPlayerTransferMoneyTo(lua_State* L)
 		lua_pushboolean(L, player->transferMoneyTo(target, money));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2606,7 +2609,7 @@ static int luaDoPlayerSetPzLocked(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2625,7 +2628,7 @@ static int luaDoPlayerSetTown(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2639,7 +2642,7 @@ static int luaDoPlayerSetVocation(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2653,7 +2656,7 @@ static int luaDoPlayerSetSex(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2667,7 +2670,7 @@ static int luaDoPlayerAddSoul(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2695,7 +2698,7 @@ static int luaGetPlayerItemCount(lua_State* L)
 		lua_pushnumber(L, player->__getItemTypeCount(itemId, subType));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2709,7 +2712,7 @@ static int luaGetHouseInfo(lua_State* L)
 	House* house = Houses::getInstance()->getHouse(houseId);
 	if (!house) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_HOUSE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -2805,7 +2808,7 @@ static int luaSetHouseAccessList(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_HOUSE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2821,7 +2824,7 @@ static int luaSetHouseOwner(lua_State* L)
 		lua_pushboolean(L, house->setOwnerEx(ownerId, clean));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_HOUSE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2840,7 +2843,8 @@ static int luaSetWorldType(lua_State* L)
 		g_game.setWorldType(type);
 		lua_pushboolean(L, true);
 	} else {
-		lua_pushboolean(L, false);
+		otx::lua::reportErrorEx(L, "Invalid world type.");
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2882,7 +2886,8 @@ static int luaGetWorldCreatures(lua_State* L)
 			break;
 
 		default:
-			lua_pushboolean(L, false);
+			otx::lua::reportErrorEx(L, "Invalid type.");
+			lua_pushnil(L);
 			break;
 	}
 	return 1;
@@ -2908,7 +2913,7 @@ static int luaGetPlayerLight(lua_State* L)
 	}
 
 	otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-	lua_pushboolean(L, false);
+	lua_pushnil(L);
 	return 1;
 }
 
@@ -2920,7 +2925,7 @@ static int luaGetPlayerSoul(lua_State* L)
 		lua_pushnumber(L, ignoreModifiers ? player->getBaseSoul() : player->getSoul());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -2941,7 +2946,7 @@ static int luaDoPlayerAddExperience(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3040,7 +3045,7 @@ static int luaDoItemRaidUnref(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3128,7 +3133,7 @@ static int luaSetCombatArea(lua_State* L)
 	// setCombatArea(combat, area)
 	if (otx::lua::getScriptEnv().getScriptId() != EVENT_ID_LOADING) {
 		otx::lua::reportErrorEx(L, "This function can only be used while loading the script.");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3138,7 +3143,7 @@ static int luaSetCombatArea(lua_State* L)
 	Combat* combat = g_lua.getCombatById(combatId);
 	if (!combat) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_COMBAT_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3147,7 +3152,7 @@ static int luaSetCombatArea(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_AREA_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3157,7 +3162,7 @@ static int luaSetCombatCondition(lua_State* L)
 	// setCombatCondition(combat, condition)
 	if (otx::lua::getScriptEnv().getScriptId() != EVENT_ID_LOADING) {
 		otx::lua::reportErrorEx(L, "This function can only be used while loading the script.");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3167,7 +3172,7 @@ static int luaSetCombatCondition(lua_State* L)
 	Combat* combat = g_lua.getCombatById(combatId);
 	if (!combat) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_COMBAT_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3176,7 +3181,7 @@ static int luaSetCombatCondition(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONDITION_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3186,7 +3191,7 @@ static int luaSetCombatParam(lua_State* L)
 	// setCombatParam(combat, key, value)
 	if (otx::lua::getScriptEnv().getScriptId() != EVENT_ID_LOADING) {
 		otx::lua::reportErrorEx(L, "This function can only be used while loading the script");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3199,7 +3204,7 @@ static int luaSetCombatParam(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_COMBAT_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3216,7 +3221,7 @@ static int luaSetConditionParam(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONDITION_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3234,7 +3239,7 @@ static int luaAddDamageCondition(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONDITION_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3250,7 +3255,7 @@ static int luaAddOutfitCondition(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONDITION_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3261,7 +3266,7 @@ static int luaSetCombatCallback(lua_State* L)
 	ScriptEnvironment& env = otx::lua::getScriptEnv();
 	if (otx::lua::getScriptEnv().getScriptId() != EVENT_ID_LOADING) {
 		otx::lua::reportErrorEx(L, "This function can only be used while loading the script.");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3272,7 +3277,7 @@ static int luaSetCombatCallback(lua_State* L)
 	Combat* combat = g_lua.getCombatById(combatId);
 	if (!combat) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_COMBAT_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3282,13 +3287,13 @@ static int luaSetCombatCallback(lua_State* L)
 	CallBack* callback = combat->getCallback(key);
 	if (!callback) {
 		otx::lua::reportErrorEx(L, std::to_string(key) + " is not a valid callback key.");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	if (!callback->loadCallBack(interface, fname)) {
 		otx::lua::reportErrorEx(L, "Cannot load callback.");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	} else {
 		lua_pushboolean(L, true);
 	}
@@ -3301,7 +3306,7 @@ static int luaSetCombatFormula(lua_State* L)
 	//                  minl = *, maxl = maxl, minm = *, maxm = minm, minc = 0, maxc = 0])
 	if (otx::lua::getScriptEnv().getScriptId() != EVENT_ID_LOADING) {
 		otx::lua::reportErrorEx(L, "This function can only be used while loading the script.");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3323,7 +3328,7 @@ static int luaSetCombatFormula(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_COMBAT_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3342,7 +3347,7 @@ static int luaSetConditionFormula(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONDITION_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3359,7 +3364,7 @@ static int luaDoCombat(lua_State* L)
 		creature = g_game.getCreatureByID(creatureId);
 		if (!creature) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 	}
@@ -3367,13 +3372,13 @@ static int luaDoCombat(lua_State* L)
 	const Combat* combat = g_lua.getCombatById(combatId);
 	if (!combat) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_COMBAT_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	if (var.type == VARIANT_NONE) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_VARIANT_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3421,7 +3426,7 @@ static int luaDoCombat(lua_State* L)
 
 		default: {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_VARIANT_UNKNOWN));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 	}
@@ -3447,7 +3452,7 @@ static int luaDoCombatAreaHealth(lua_State* L)
 		creature = g_game.getCreatureByID(creatureId);
 		if (!creature) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 	}
@@ -3463,7 +3468,7 @@ static int luaDoCombatAreaHealth(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_AREA_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3483,7 +3488,7 @@ static int luaDoTargetCombatHealth(lua_State* L)
 		creature = g_game.getCreatureByID(creatureId);
 		if (!creature) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 	}
@@ -3498,7 +3503,7 @@ static int luaDoTargetCombatHealth(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3519,7 +3524,7 @@ static int luaDoCombatAreaMana(lua_State* L)
 		creature = g_game.getCreatureByID(creatureId);
 		if (!creature) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 	}
@@ -3534,7 +3539,7 @@ static int luaDoCombatAreaMana(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_AREA_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3553,7 +3558,7 @@ static int luaDoTargetCombatMana(lua_State* L)
 		creature = g_game.getCreatureByID(creatureId);
 		if (!creature) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 	}
@@ -3567,7 +3572,7 @@ static int luaDoTargetCombatMana(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3586,7 +3591,7 @@ static int luaDoCombatAreaCondition(lua_State* L)
 		creature = g_game.getCreatureByID(creatureId);
 		if (!creature) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 	}
@@ -3602,11 +3607,11 @@ static int luaDoCombatAreaCondition(lua_State* L)
 			lua_pushboolean(L, true);
 		} else {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_AREA_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONDITION_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3623,7 +3628,7 @@ static int luaDoTargetCombatCondition(lua_State* L)
 		creature = g_game.getCreatureByID(creatureId);
 		if (!creature) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 	}
@@ -3638,11 +3643,11 @@ static int luaDoTargetCombatCondition(lua_State* L)
 			lua_pushboolean(L, true);
 		} else {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONDITION_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3661,7 +3666,7 @@ static int luaDoCombatAreaDispel(lua_State* L)
 		creature = g_game.getCreatureByID(creatureId);
 		if (!creature) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 	}
@@ -3676,7 +3681,7 @@ static int luaDoCombatAreaDispel(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_AREA_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3690,7 +3695,7 @@ static int luaDoTargetCombatDispel(lua_State* L)
 		creature = g_game.getCreatureByID(creatureId);
 		if (!creature) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 	}
@@ -3707,7 +3712,7 @@ static int luaDoTargetCombatDispel(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3721,7 +3726,7 @@ static int luaDoChallengeCreature(lua_State* L)
 		lua_pushboolean(L, target->challengeCreature(creature));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3734,7 +3739,7 @@ static int luaDoSummonMonster(lua_State* L)
 		lua_pushnumber(L, g_game.placeSummon(creature, name));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3748,7 +3753,7 @@ static int luaDoConvinceCreature(lua_State* L)
 		lua_pushboolean(L, target->convinceCreature(creature));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3759,7 +3764,7 @@ static int luaGetMonsterTargetList(lua_State* L)
 	Monster* monster = otx::lua::getMonster(L, 1);
 	if (!monster) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_MONSTER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3783,7 +3788,7 @@ static int luaGetMonsterFriendList(lua_State* L)
 	Monster* monster = otx::lua::getMonster(L, 1);
 	if (!monster) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_MONSTER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3807,14 +3812,14 @@ static int luaDoMonsterSetTarget(lua_State* L)
 	Monster* monster = otx::lua::getMonster(L, 1);
 	if (!monster) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_MONSTER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	Creature* target = otx::lua::getCreature(L, 2);
 	if (!target) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -3836,7 +3841,7 @@ static int luaDoMonsterChangeTarget(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_MONSTER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4043,7 +4048,7 @@ static int luaDoAddCondition(lua_State* L)
 	Creature* creature = otx::lua::getCreature(L, 1);
 	if (!creature) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -4051,7 +4056,7 @@ static int luaDoAddCondition(lua_State* L)
 	Condition* condition = g_lua.getConditionById(conditionObjId);
 	if (!condition) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONDITION_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -4076,7 +4081,7 @@ static int luaDoRemoveCondition(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4090,7 +4095,7 @@ static int luaDoRemoveConditions(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4188,7 +4193,7 @@ static int luaDoChangeSpeed(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4202,7 +4207,7 @@ static int luaSetCreatureOutfit(lua_State* L)
 		lua_pushboolean(L, Spell::CreateIllusion(creature, outfit, time) == RET_NOERROR);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4214,7 +4219,7 @@ static int luaGetCreatureOutfit(lua_State* L)
 		otx::lua::pushOutfit(L, creature->getCurrentOutfit());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4228,7 +4233,7 @@ static int luaSetMonsterOutfit(lua_State* L)
 		lua_pushboolean(L, Spell::CreateIllusion(creature, monsterName, time) == RET_NOERROR);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4242,7 +4247,7 @@ static int luaSetItemOutfit(lua_State* L)
 		lua_pushboolean(L, Spell::CreateIllusion(creature, itemId, time) == RET_NOERROR);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4269,8 +4274,7 @@ static int luaGetStorage(lua_State* L)
 	const std::string* value = g_game.getGlobalStorage(key);
 	if (!value) {
 		lua_pushnumber(L, -1);
-		lua_pushnil(L);
-		return 2;
+		return 1;
 	}
 
 	auto result = otx::util::safe_cast<int64_t>(value->data());
@@ -4336,7 +4340,7 @@ static int luaDoPlayerSetGuildId(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4350,7 +4354,7 @@ static int luaDoPlayerSetGuildLevel(lua_State* L)
 		lua_pushboolean(L, player->setGuildLevel(level, rank));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4364,7 +4368,7 @@ static int luaDoPlayerSetGuildNick(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4377,7 +4381,7 @@ static int luaGetGuildId(lua_State* L)
 	if (IOGuild::getInstance()->getGuildId(guildId, guildName)) {
 		lua_pushnumber(L, guildId);
 	} else {
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4402,13 +4406,14 @@ static int luaDoMoveCreature(lua_State* L)
 		const auto flags = otx::lua::getNumber<uint8_t>(L, 3, FLAG_NOLIMIT);
 
 		if (direction > NORTHEAST) {
-			lua_pushboolean(L, false);
+			otx::lua::reportErrorEx(L, "Invalid direction.");
+			lua_pushnil(L);
 			return 1;
 		}
 		lua_pushnumber(L, g_game.internalMoveCreature(creature, direction, flags));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4422,7 +4427,7 @@ static int luaDoSteerCreature(lua_State* L)
 		lua_pushboolean(L, g_game.steerCreature(creature, position, maxNodes));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4673,7 +4678,7 @@ static int luaRegisterCreatureEvent(lua_State* L)
 		lua_pushboolean(L, creature->registerCreatureEvent(name));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4686,7 +4691,7 @@ static int luaUnregisterCreatureEvent(lua_State* L)
 		lua_pushboolean(L, creature->unregisterCreatureEvent(name));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4701,12 +4706,12 @@ static int luaUnregisterCreatureEventType(lua_State* L)
 			creature->unregisterCreatureEvent(_type);
 			lua_pushboolean(L, true);
 		} else {
-			otx::lua::reportErrorEx(L, "Invalid event type");
-			lua_pushboolean(L, false);
+			otx::lua::reportErrorEx(L, "Invalid event type.");
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4758,7 +4763,7 @@ static int luaDoAddContainerItemEx(lua_State* L)
 		Item* item = otx::lua::getScriptEnv().getItemByUID(uid);
 		if (!item) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 
@@ -4786,7 +4791,7 @@ static int luaDoAddContainerItem(lua_State* L)
 	Container* container = otx::lua::getContainer(L, 1);
 	if (!container) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONTAINER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -4815,7 +4820,7 @@ static int luaDoAddContainerItem(lua_State* L)
 		Item* newItem = Item::CreateItem(itemId, stackCount);
 		if (!newItem) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 
@@ -4866,7 +4871,7 @@ static int luaDoPlayerAddOutfit(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -4889,7 +4894,7 @@ static int luaDoPlayerRemoveOutfit(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -4914,7 +4919,7 @@ static int luaDoPlayerAddOutfitId(lua_State* L)
 		lua_pushboolean(L, player->addOutfit(outfitId, addons));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4928,7 +4933,7 @@ static int luaDoPlayerRemoveOutfitId(lua_State* L)
 		lua_pushboolean(L, player->removeOutfit(outfitId, addons));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4939,7 +4944,7 @@ static int luaCanPlayerWearOutfit(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -4964,7 +4969,7 @@ static int luaCanPlayerWearOutfitId(lua_State* L)
 		lua_pushboolean(L, player->canWearOutfit(outfitId, addons));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -4986,7 +4991,7 @@ static int luaDoCreatureChangeOutfit(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5000,7 +5005,7 @@ static int luaDoPlayerPopupFYI(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5014,7 +5019,7 @@ static int luaDoPlayerSendTutorial(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5031,7 +5036,7 @@ static int luaDoPlayerSendMailByName(lua_State* L)
 	Item* item = otx::lua::getScriptEnv().getItemByUID(uid);
 	if (!item) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -5061,7 +5066,7 @@ static int luaDoPlayerAddMapMark(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5075,7 +5080,7 @@ static int luaDoPlayerAddPremiumDays(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5087,7 +5092,7 @@ static int luaGetCreatureLastPosition(lua_State* L)
 		otx::lua::pushPosition(L, creature->getLastPosition());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5149,7 +5154,7 @@ static int luaGetCreatureNoMove(lua_State* L)
 		lua_pushboolean(L, creature->getNoMove());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5165,11 +5170,11 @@ static int luaGetCreatureGuildEmblem(lua_State* L)
 			lua_pushnumber(L, creature->getGuildEmblem(target));
 		} else {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5184,7 +5189,7 @@ static int luaDoCreatureSetGuildEmblem(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5200,11 +5205,11 @@ static int luaGetCreaturePartyShield(lua_State* L)
 			lua_pushnumber(L, creature->getPartyShield(target));
 		} else {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5219,7 +5224,7 @@ static int luaDoCreatureSetPartyShield(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5235,7 +5240,7 @@ static int luaGetCreatureSkullType(lua_State* L)
 			lua_pushnumber(L, creature->getSkullType(target));
 		} else {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
@@ -5253,11 +5258,12 @@ static int luaDoCreatureSetLookDir(lua_State* L)
 			g_game.internalCreatureTurn(creature, direction);
 			lua_pushboolean(L, true);
 		} else {
-			lua_pushboolean(L, false);
+			otx::lua::reportErrorEx(L, "Invalid direction.");
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5272,7 +5278,7 @@ static int luaDoCreatureSetSkullType(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5287,7 +5293,7 @@ static int luaDoPlayerSetSkullEnd(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5313,7 +5319,7 @@ static int luaSetCreatureSpeed(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5328,7 +5334,7 @@ static int luaSendProgressbar(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5427,7 +5433,7 @@ static int luaHasCreatureCondition(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5447,11 +5453,11 @@ static int luaGetCreatureConditionInfo(lua_State* L)
 			otx::lua::setTableValue(L, "persistent", condition->isPersistent());
 			otx::lua::setTableValue(L, "subId", condition->getSubId());
 		} else {
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5464,7 +5470,7 @@ static int luaGetPlayerBlessing(lua_State* L)
 		lua_pushboolean(L, player->hasBlessing(blessing));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5482,7 +5488,7 @@ static int luaDoPlayerAddBlessing(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5494,7 +5500,7 @@ static int luaGetPlayerPVPBlessing(lua_State* L)
 		lua_pushboolean(L, player->hasPVPBlessing());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5508,7 +5514,7 @@ static int luaDoPlayerSetPVPBlessing(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5522,7 +5528,7 @@ static int luaDoPlayerSetPromotionLevel(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5540,7 +5546,7 @@ static int luaDoPlayerSetGroupId(lua_State* L)
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5609,7 +5615,7 @@ static int luaGetCreatureMaxHealth(lua_State* L)
 		lua_pushnumber(L, ignoreModifiers ? creature->getBaseMaxHealth() : creature->getMaxHealth());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5624,7 +5630,7 @@ static int luaDoPlayerSetStamina(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5638,7 +5644,7 @@ static int luaDoPlayerSetBalance(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5652,7 +5658,7 @@ static int luaDoPlayerSetPartner(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5663,14 +5669,14 @@ static int luaDoPlayerFollowCreature(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	Creature* creature = otx::lua::getCreature(L, 2);
 	if (!creature) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -5700,14 +5706,14 @@ static int luaDoPlayerJoinParty(lua_State* L)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
 	Player* leader = otx::lua::getPlayer(L, 2);
 	if (!leader) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -5725,7 +5731,7 @@ static int luaDoPlayerLeaveParty(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5737,7 +5743,7 @@ static int luaIsPlayerUsingOtclient(lua_State* L)
 		lua_pushboolean(L, player->isUsingOtclient());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5752,7 +5758,7 @@ static int luaDoSendPlayerExtendedOpcode(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5869,7 +5875,7 @@ static int luaGetPlayersOnline(lua_State* L)
 
 	int index = 0;
 	for (const auto& it : players) {
-		lua_pushnumber(L, otx::lua::getScriptEnv().addThing(it.second));
+		lua_pushnumber(L, env.addThing(it.second));
 		lua_rawseti(L, -2, ++index);
 	}
 	return 1;
@@ -5884,7 +5890,7 @@ static int luaSetCreatureMaxHealth(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5898,7 +5904,7 @@ static int luaSetCreatureMaxMana(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5912,7 +5918,7 @@ static int luaDoPlayerSetMaxCapacity(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5966,7 +5972,7 @@ static int luaDoPlayerSetIdleTime(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -5981,7 +5987,7 @@ static int luaDoCreatureSetNoMove(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -6031,11 +6037,12 @@ static int luaDoPlayerSetRate(lua_State* L)
 			player->rates[skill] = value;
 			lua_pushboolean(L, true);
 		} else {
-			lua_pushboolean(L, false);
+			otx::lua::reportErrorEx(L, "Invalid skill.");
+			lua_pushnil(L);
 		}
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -6048,7 +6055,7 @@ static int luaDoPlayerSwitchSaving(lua_State* L)
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -6062,7 +6069,7 @@ static int luaDoPlayerSave(lua_State* L)
 		lua_pushboolean(L, IOLoginData::getInstance()->savePlayer(player, false, shallow));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -6173,7 +6180,7 @@ static int luaGetHighscoreString(lua_State* L)
 	if (skillId <= SKILL__LAST) {
 		otx::lua::pushString(L, g_game.getHighscoreString(skillId));
 	} else {
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -6315,7 +6322,7 @@ static int luaDoCreatureExecuteTalkAction(lua_State* L)
 		lua_pushboolean(L, g_talkActions.onPlayerSay(creature, channelId, text, ignoreAccess));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -6332,7 +6339,7 @@ static int luaDoExecuteRaid(lua_State* L)
 	Raid* raid = Raids::getInstance()->getRaidByName(raidName);
 	if (!raid || !raid->isLoaded()) {
 		otx::lua::reportErrorEx(L, "Raid with name " + raidName + " does not exists");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -6383,7 +6390,7 @@ static int luaDoSaveHouse(lua_State* L)
 			std::ostringstream s;
 			s << "House not found, ID: " << houseId;
 			otx::lua::reportErrorEx(L, s.str());
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 
@@ -6637,7 +6644,7 @@ static int luaDoItemSetAttribute(lua_State* L)
 	Item* item = otx::lua::getItem(L, 1);
 	if (!item) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -6646,7 +6653,7 @@ static int luaDoItemSetAttribute(lua_State* L)
 	if (key == "uid" || key == "aid") {
 		if (!otx::lua::isNumber(L, 3)) {
 			otx::lua::reportErrorEx(L, "Protected key must have a number value.");
-			lua_pushboolean(L, false);
+			lua_pushnil(L);
 			return 1;
 		}
 
@@ -6654,7 +6661,7 @@ static int luaDoItemSetAttribute(lua_State* L)
 		if (key == "uid") {
 			if (value < 1000 || value > 0xFFFF) {
 				otx::lua::reportErrorEx(L, "UniqueId must be in range of 1000 to 65535.");
-				lua_pushboolean(L, false);
+				lua_pushnil(L);
 				return 1;
 			}
 
@@ -6672,7 +6679,7 @@ static int luaDoItemSetAttribute(lua_State* L)
 		item->setAttribute(key.data(), otx::lua::getString(L, 3));
 	} else {
 		otx::lua::reportErrorEx(L, "Invalid attribute value.");
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -6792,7 +6799,7 @@ static int luaHasItemProperty(lua_State* L)
 	Item* item = otx::lua::getItem(L, 1);
 	if (!item) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 		return 1;
 	}
 
@@ -6815,7 +6822,7 @@ static int luaHasMonsterRaid(lua_State* L)
 		lua_pushboolean(L, monster->hasRaid());
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_MONSTER_NOT_FOUND));
-		lua_pushboolean(L, false);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -7502,28 +7509,32 @@ static int luaBitUXor(lua_State* L)
 static int luaBitLeftShift(lua_State* L)
 {
 	// bit.lshift(v1, v2)
-	lua_pushnumber(L, otx::lua::getNumber<int32_t>(L, 1) << otx::lua::getNumber<int32_t>(L, 2));
+	const auto value = otx::lua::getNumber<int32_t>(L, 1) << otx::lua::getNumber<int32_t>(L, 2);
+	lua_pushnumber(L, value);
 	return 1;
 }
 
 static int luaBitRightShift(lua_State* L)
 {
 	// bit.rshift(v1, v2)
-	lua_pushnumber(L, otx::lua::getNumber<int32_t>(L, 1) >> otx::lua::getNumber<int32_t>(L, 2));
+	const auto value = otx::lua::getNumber<int32_t>(L, 1) >> otx::lua::getNumber<int32_t>(L, 2);
+	lua_pushnumber(L, value);
 	return 1;
 }
 
 static int luaBitULeftShift(lua_State* L)
 {
 	// bit.ulshift(v1, v2)
-	lua_pushnumber(L, otx::lua::getNumber<uint32_t>(L, 1) << otx::lua::getNumber<uint32_t>(L, 2));
+	const auto value = otx::lua::getNumber<uint32_t>(L, 1) << otx::lua::getNumber<uint32_t>(L, 2);
+	lua_pushnumber(L, value);
 	return 1;
 }
 
 static int luaBitURightShift(lua_State* L)
 {
 	// bit.urshift(v1, v2)
-	lua_pushnumber(L, otx::lua::getNumber<uint32_t>(L, 1) >> otx::lua::getNumber<uint32_t>(L, 2));
+	const auto value = otx::lua::getNumber<uint32_t>(L, 1) >> otx::lua::getNumber<uint32_t>(L, 2);
+	lua_pushnumber(L, value);
 	return 1;
 }
 
@@ -7601,1123 +7612,395 @@ void otx::lua::registerFunctions()
 {
 	lua_State* L = g_lua.getLuaState();
 
-	// getCreatureHealth(cid)
-	lua_register(L, "getCreatureHealth", luaGetCreatureHealth);
-
-	// getCreatureMaxHealth(cid[, ignoreModifiers = false])
-	lua_register(L, "getCreatureMaxHealth", luaGetCreatureMaxHealth);
-
-	// existMonsterByName(name)
+	// Game
 	lua_register(L, "existMonsterByName", luaExistMonsterByName);
-
-	// getCreatureMana(cid)
-	lua_register(L, "getCreatureMana", luaGetCreatureMana);
-
-	// getCreatureMaxMana(cid[, ignoreModifiers = false])
-	lua_register(L, "getCreatureMaxMana", luaGetCreatureMaxMana);
-
-	// getCreatureHideHealth(cid)
-	lua_register(L, "getCreatureHideHealth", luaGetCreatureHideHealth);
-
-	// doCreatureSetHideHealth(cid, hide)
-	lua_register(L, "doCreatureSetHideHealth", luaDoCreatureSetHideHealth);
-
-	// getCreatureSpeakType(cid)
-	lua_register(L, "getCreatureSpeakType", luaGetCreatureSpeakType);
-
-	// doCreatureSetSpeakType(cid, type)
-	lua_register(L, "doCreatureSetSpeakType", luaDoCreatureSetSpeakType);
-
-	// getCreatureLookDirection(cid)
-	lua_register(L, "getCreatureLookDirection", luaGetCreatureLookDirection);
-
-	// getPlayerLevel(cid)
-	lua_register(L, "getPlayerLevel", luaGetPlayerLevel);
-
-	// getPlayerExperience(cid)
-	lua_register(L, "getPlayerExperience", luaGetPlayerExperience);
-
-	// getPlayerMagLevel(cid[, ignoreModifiers = false])
-	lua_register(L, "getPlayerMagLevel", luaGetPlayerMagLevel);
-
-	// getPlayerSpentMana(cid)
-	lua_register(L, "getPlayerSpentMana", luaGetPlayerSpentMana);
-
-	// getPlayerFood(cid)
-	lua_register(L, "getPlayerFood", luaGetPlayerFood);
-
-	// getPlayerAccess(cid)
-	lua_register(L, "getPlayerAccess", luaGetPlayerAccess);
-
-	// getPlayerGhostAccess(cid)
-	lua_register(L, "getPlayerGhostAccess", luaGetPlayerGhostAccess);
-
-	// getPlayerSkillLevel(cid, skill[, ignoreModifiers = false])
-	lua_register(L, "getPlayerSkillLevel", luaGetPlayerSkillLevel);
-
-	// getPlayerSkillTries(cid, skill)
-	lua_register(L, "getPlayerSkillTries", luaGetPlayerSkillTries);
-
-	// doPlayerSetOfflineTrainingSkill(cid, skill)
-	lua_register(L, "doPlayerSetOfflineTrainingSkill", luaDoPlayerSetOfflineTrainingSkill);
-
-	// getPlayerTown(cid)
-	lua_register(L, "getPlayerTown", luaGetPlayerTown);
-
-	// getPlayerVocation(cid)
-	lua_register(L, "getPlayerVocation", luaGetPlayerVocation);
-
-	// getPlayerIp(cid)
-	lua_register(L, "getPlayerIp", luaGetPlayerIp);
-
-	// getPlayerRequiredMana(cid, magicLevel)
-	lua_register(L, "getPlayerRequiredMana", luaGetPlayerRequiredMana);
-
-	// getPlayerRequiredSkillTries(cid, skillId, skillLevel)
-	lua_register(L, "getPlayerRequiredSkillTries", luaGetPlayerRequiredSkillTries);
-
-	// getPlayerItemCount(cid, itemid[, subType = -1])
-	lua_register(L, "getPlayerItemCount", luaGetPlayerItemCount);
-
-	// getPlayerMoney(cid)
-	lua_register(L, "getPlayerMoney", luaGetPlayerMoney);
-
-	// getPlayerSoul(cid[, ignoreModifiers = false])
-	lua_register(L, "getPlayerSoul", luaGetPlayerSoul);
-
-	// getPlayerFreeCap(cid)
-	lua_register(L, "getPlayerFreeCap", luaGetPlayerFreeCap);
-
-	// getPlayerLight(cid)
-	lua_register(L, "getPlayerLight", luaGetPlayerLight);
-
-	// getPlayerSlotItem(cid, slot)
-	lua_register(L, "getPlayerSlotItem", luaGetPlayerSlotItem);
-
-	// getPlayerWeapon(cid[, ignoreAmmo = false])
-	lua_register(L, "getPlayerWeapon", luaGetPlayerWeapon);
-
-	// getPlayerItemById(cid, deepSearch, itemId[, subType = -1])
-	lua_register(L, "getPlayerItemById", luaGetPlayerItemById);
-
-	// getPlayerDepotItems(cid, depotid)
-	lua_register(L, "getPlayerDepotItems", luaGetPlayerDepotItems);
-
-	// getPlayerGuildId(cid)
-	lua_register(L, "getPlayerGuildId", luaGetPlayerGuildId);
-
-	// getPlayerGuildName(cid)
-	lua_register(L, "getPlayerGuildName", luaGetPlayerGuildName);
-
-	// getPlayerGuildRankId(cid)
-	lua_register(L, "getPlayerGuildRankId", luaGetPlayerGuildRankId);
-
-	// getPlayerGuildRank(cid)
-	lua_register(L, "getPlayerGuildRank", luaGetPlayerGuildRank);
-
-	// getPlayerGuildNick(cid)
-	lua_register(L, "getPlayerGuildNick", luaGetPlayerGuildNick);
-
-	// getPlayerGuildLevel(cid)
-	lua_register(L, "getPlayerGuildLevel", luaGetPlayerGuildLevel);
-
-	// getPlayerGUID(cid)
-	lua_register(L, "getPlayerGUID", luaGetPlayerGUID);
-
-	// getPlayerNameDescription(cid)
-	lua_register(L, "getPlayerNameDescription", luaGetPlayerNameDescription);
-
-	// doPlayerSetNameDescription(cid, desc)
-	lua_register(L, "doPlayerSetNameDescription", luaDoPlayerSetNameDescription);
-
-	// getPlayerSpecialDescription(cid)
-	lua_register(L, "getPlayerSpecialDescription", luaGetPlayerSpecialDescription);
-
-	// doPlayerSetSpecialDescription(cid, desc)
-	lua_register(L, "doPlayerSetSpecialDescription", luaDoPlayerSetSpecialDescription);
-
-	// getPlayerAccountId(cid)
-	lua_register(L, "getPlayerAccountId", luaGetPlayerAccountId);
-
-	// getPlayerAccount(cid)
-	lua_register(L, "getPlayerAccount", luaGetPlayerAccount);
-
-	// getPlayerFlagValue(cid, flag)
-	lua_register(L, "getPlayerFlagValue", luaGetPlayerFlagValue);
-
-	// getPlayerCustomFlagValue(cid, flag)
-	lua_register(L, "getPlayerCustomFlagValue", luaGetPlayerCustomFlagValue);
-
-	// getPlayerPromotionLevel(cid)
-	lua_register(L, "getPlayerPromotionLevel", luaGetPlayerPromotionLevel);
-
-	// doPlayerSetPromotionLevel(cid, level)
-	lua_register(L, "doPlayerSetPromotionLevel", luaDoPlayerSetPromotionLevel);
-
-	// getPlayerGroupId(cid)
-	lua_register(L, "getPlayerGroupId", luaGetPlayerGroupId);
-
-	// doPlayerSetGroupId(cid, newGroupId)
-	lua_register(L, "doPlayerSetGroupId", luaDoPlayerSetGroupId);
-
-	// doPlayerSendOutfitWindow(cid)
-	lua_register(L, "doPlayerSendOutfitWindow", luaDoPlayerSendOutfitWindow);
-
-	// doPlayerLearnInstantSpell(cid, name)
-	lua_register(L, "doPlayerLearnInstantSpell", luaDoPlayerLearnInstantSpell);
-
-	// doPlayerUnlearnInstantSpell(cid, name)
-	lua_register(L, "doPlayerUnlearnInstantSpell", luaDoPlayerUnlearnInstantSpell);
-
-	// getPlayerLearnedInstantSpell(cid, name)
-	lua_register(L, "getPlayerLearnedInstantSpell", luaGetPlayerLearnedInstantSpell);
-
-	// getPlayerInstantSpellCount(cid)
-	lua_register(L, "getPlayerInstantSpellCount", luaGetPlayerInstantSpellCount);
-
-	// getPlayerInstantSpellInfo(cid, index)
-	lua_register(L, "getPlayerInstantSpellInfo", luaGetPlayerInstantSpellInfo);
-
-	// getInstantSpellInfo(cid, name)
 	lua_register(L, "getInstantSpellInfo", luaGetInstantSpellInfo);
-
-	// doCreatureCastSpell(uid, spell)
-	lua_register(L, "doCreatureCastSpell", luaDoCreatureCastSpell);
-
-	// getCreatureStorageList(cid)
-	lua_register(L, "getCreatureStorageList", luaGetCreatureStorageList);
-
-	// getCreatureStorage(uid, key)
-	lua_register(L, "getCreatureStorage", luaGetCreatureStorage);
-
-	// doCreatureSetStorage(uid, key, value)
-	lua_register(L, "doCreatureSetStorage", luaDoCreatureSetStorage);
-
-	// getPlayerSpectators(cid)
-	lua_register(L, "getPlayerSpectators", luaGetPlayerSpectators);
-
-	// doPlayerSetSpectators(cid, data)
-	lua_register(L, "doPlayerSetSpectators", luaDoPlayerSetSpectators);
-
-	// getStorageList()
 	lua_register(L, "getStorageList", luaGetStorageList);
-
-	// getStorage(key)
 	lua_register(L, "getStorage", luaGetStorage);
-
-	// doSetStorage(key, value)
 	lua_register(L, "doSetStorage", luaDoSetStorage);
-
-	// getChannelUsers(channelId)
 	lua_register(L, "getChannelUsers", luaGetChannelUsers);
-
-	// getPlayersOnline()
 	lua_register(L, "getPlayersOnline", luaGetPlayersOnline);
-
-	// getTileInfo(pos)
 	lua_register(L, "getTileInfo", luaGetTileInfo);
-
-	// getThingFromPosition(pos)
 	lua_register(L, "getThingFromPosition", luaGetThingFromPosition);
-
-	// getThing(uid[, recursive = RECURSE_FIRST])
-	lua_register(L, "getThing", luaGetThing);
-
-	// doTileQueryAdd(uid, pos[, flags[, displayError = true]])
 	lua_register(L, "doTileQueryAdd", luaDoTileQueryAdd);
-
-	// doItemRaidUnref(uid)
-	lua_register(L, "doItemRaidUnref", luaDoItemRaidUnref);
-
-	// getThingPosition(uid)
-	lua_register(L, "getThingPosition", luaGetThingPosition);
-
-	// getTileItemById(pos, itemId[, subType = -1])
 	lua_register(L, "getTileItemById", luaGetTileItemById);
-
-	// getTileItemByType(pos, type)
 	lua_register(L, "getTileItemByType", luaGetTileItemByType);
-
-	// getTileThingByPos(pos)
 	lua_register(L, "getTileThingByPos", luaGetTileThingByPos);
-
-	// getTopCreature(pos)
 	lua_register(L, "getTopCreature", luaGetTopCreature);
-
-	// doRemoveItem(uid[, count = -1])
 	lua_register(L, "doRemoveItem", luaDoRemoveItem);
-
-	// doPlayerFeed(cid, food)
-	lua_register(L, "doPlayerFeed", luaDoPlayerFeed);
-
-	// doPlayerSendCancel(cid, text)
-	lua_register(L, "doPlayerSendCancel", luaDoPlayerSendCancel);
-
-	// doPlayerSendCastList(cid)
-	lua_register(L, "doPlayerSendCastList", luaDoPlayerSendCastList);
-
-	// doPlayerSendDefaultCancel(cid, ReturnValue)
-	lua_register(L, "doPlayerSendDefaultCancel", luaDoSendDefaultCancel);
-
-	// getSearchString(fromPosition, toPosition[, fromIsCreature = false[, toIsCreature = false]])
 	lua_register(L, "getSearchString", luaGetSearchString);
-
-	// getClosestFreeTile(cid, targetpos[, extended = false[, ignoreHouse = true]])
 	lua_register(L, "getClosestFreeTile", luaGetClosestFreeTile);
-
-	// doTeleportThing(cid, destination[, pushmove = true[, fullTeleport = true]])
-	lua_register(L, "doTeleportThing", luaDoTeleportThing);
-
-	// doItemSetDestination(uid, destination)
-	lua_register(L, "doItemSetDestination", luaDoItemSetDestination);
-
-	// doTransformItem(uid, newId[, count/subType])
-	lua_register(L, "doTransformItem", luaDoTransformItem);
-
-	// doCreatureSay(uid, text[, type = SPEAK_SAY[, ghost = false[, cid = 0[, pos]]]])
-	lua_register(L, "doCreatureSay", luaDoCreatureSay);
-
-	// doSendCreatureSquare(cid, color[, player])
-	lua_register(L, "doSendCreatureSquare", luaDoSendCreatureSquare);
-
-	// doSendMagicEffect(pos, type[, player])
 	lua_register(L, "doSendMagicEffect", luaDoSendMagicEffect);
-
-	// doSendDistanceShoot(fromPos, toPos, type[, player])
 	lua_register(L, "doSendDistanceShoot", luaDoSendDistanceShoot);
-
-	// doSendAnimatedText(pos, text, color[, player])
 	lua_register(L, "doSendAnimatedText", luaDoSendAnimatedText);
-
-	// doPlayerAddSkillTry(cid, skillid, n[, useMultiplier = true])
-	lua_register(L, "doPlayerAddSkillTry", luaDoPlayerAddSkillTry);
-
-	// doCreatureAddHealth(cid, health[, hitEffect[, hitColor[, force]]])
-	lua_register(L, "doCreatureAddHealth", luaDoCreatureAddHealth);
-
-	// doCreatureAddMana(cid, mana)
-	lua_register(L, "doCreatureAddMana", luaDoCreatureAddMana);
-
-	// setCreatureMaxHealth(cid, health)
-	lua_register(L, "setCreatureMaxHealth", luaSetCreatureMaxHealth);
-
-	// setCreatureMaxMana(cid, mana)
-	lua_register(L, "setCreatureMaxMana", luaSetCreatureMaxMana);
-
-	// doPlayerSetMaxCapacity(cid, cap)
-	lua_register(L, "doPlayerSetMaxCapacity", luaDoPlayerSetMaxCapacity);
-
-	// doPlayerAddSpentMana(cid, amount[, useMultiplier = true])
-	lua_register(L, "doPlayerAddSpentMana", luaDoPlayerAddSpentMana);
-
-	// doPlayerAddSoul(cid, amount)
-	lua_register(L, "doPlayerAddSoul", luaDoPlayerAddSoul);
-
-	// doPlayerSetExtraAttackSpeed(cid, speed)
-	lua_register(L, "doPlayerSetExtraAttackSpeed", luaDoPlayerSetExtraAttackSpeed);
-
-	// doPlayerAddItem(cid, itemid[, count/subtype = 1[, canDropOnMap = true[, slot = 0]]])
-	// doPlayerAddItem(cid, itemid[, count = 1[, canDropOnMap = true[, subtype = 1[, slot = 0]]]])
-	// Returns uid of the created item
-	lua_register(L, "doPlayerAddItem", luaDoPlayerAddItem);
-
-	// doPlayerAddItemEx(cid, uid[, canDropOnMap = false[, slot = 0]])
-	lua_register(L, "doPlayerAddItemEx", luaDoPlayerAddItemEx);
-
-	// doPlayerSendTextMessage(cid, MessageClasses, message[, value[, color[, position]]])
-	lua_register(L, "doPlayerSendTextMessage", luaDoPlayerSendTextMessage);
-
-	// doPlayerSendChannelMessage(cid, author, message, MessageClasses, channel)
-	lua_register(L, "doPlayerSendChannelMessage", luaDoPlayerSendChannelMessage);
-
-	// doCreatureChannelSay(cid, targetId, MessageClasses, message, channel[, time])
-	lua_register(L, "doCreatureChannelSay", luaDoCreatureChannelSay);
-
-	// doPlayerOpenChannel(cid, channelId)
-	lua_register(L, "doPlayerOpenChannel", luaDoPlayerOpenChannel);
-
-	// doPlayerOpenPrivateChannel(cid)
-	lua_register(L, "doPlayerOpenPrivateChannel", luaDoPlayerOpenPrivateChannel);
-
-	// doPlayerSendChannels(cid[, list])
-	lua_register(L, "doPlayerSendChannels", luaDoPlayerSendChannels);
-
-	// doPlayerAddMoney(cid, money)
-	lua_register(L, "doPlayerAddMoney", luaDoPlayerAddMoney);
-
-	// doPlayerRemoveMoney(cid, money [, canDrop = true])
-	lua_register(L, "doPlayerRemoveMoney", luaDoPlayerRemoveMoney);
-
-	// doPlayerTransferMoneyTo(cid, target, money)
-	lua_register(L, "doPlayerTransferMoneyTo", luaDoPlayerTransferMoneyTo);
-
-	// doShowTextDialog(cid, itemid[, (text/canWrite)[, (canWrite/length)[, length]]])
-	lua_register(L, "doShowTextDialog", luaDoShowTextDialog);
-
-	// doDecayItem(uid)
-	lua_register(L, "doDecayItem", luaDoDecayItem);
-
-	// doCreateItem(itemid[, type/count], pos)
-	// Returns uid of the created item, only works on tiles.
-	lua_register(L, "doCreateItem", luaDoCreateItem);
-
-	// doCreateItemEx(itemid[, count/subType = -1])
-	lua_register(L, "doCreateItemEx", luaDoCreateItemEx);
-
-	// doTileAddItemEx(pos, uid)
-	lua_register(L, "doTileAddItemEx", luaDoTileAddItemEx);
-
-	// doAddContainerItemEx(uid, virtuid)
-	lua_register(L, "doAddContainerItemEx", luaDoAddContainerItemEx);
-
-	// doRelocate(pos, posTo[, creatures = true[, unmovable = true]])
-	// Moves all movable objects from pos to posTo
-	lua_register(L, "doRelocate", luaDoRelocate);
-
-	// doCleanTile(pos[, forceMapLoaded = false])
-	lua_register(L, "doCleanTile", luaDoCleanTile);
-
-	// doCreateTeleport(itemId, destination, position)
-	lua_register(L, "doCreateTeleport", luaDoCreateTeleport);
-
-	// doCreateMonster(name, pos[, extend = false[, force = false]])
-	lua_register(L, "doCreateMonster", luaDoCreateMonster);
-
-	// doCreateNpc(name, pos)
-	lua_register(L, "doCreateNpc", luaDoCreateNpc);
-
-	// doSummonMonster(cid, name)
-	lua_register(L, "doSummonMonster", luaDoSummonMonster);
-
-	// doConvinceCreature(cid, target)
-	lua_register(L, "doConvinceCreature", luaDoConvinceCreature);
-
-	// getMonsterTargetList(cid)
-	lua_register(L, "getMonsterTargetList", luaGetMonsterTargetList);
-
-	// getMonsterFriendList(cid)
-	lua_register(L, "getMonsterFriendList", luaGetMonsterFriendList);
-
-	// doMonsterSetTarget(cid, target)
-	lua_register(L, "doMonsterSetTarget", luaDoMonsterSetTarget);
-
-	// doMonsterChangeTarget(cid)
-	lua_register(L, "doMonsterChangeTarget", luaDoMonsterChangeTarget);
-
-	// getMonsterInfo(name)
-	lua_register(L, "getMonsterInfo", luaGetMonsterInfo);
-
-	// doAddCondition(cid, condition)
-	lua_register(L, "doAddCondition", luaDoAddCondition);
-
-	// doRemoveCondition(cid, type[, subId = 0])
-	lua_register(L, "doRemoveCondition", luaDoRemoveCondition);
-
-	// doRemoveConditions(cid[, onlyPersistent])
-	lua_register(L, "doRemoveConditions", luaDoRemoveConditions);
-
-	// doRemoveCreature(cid[, forceLogout = true])
-	lua_register(L, "doRemoveCreature", luaDoRemoveCreature);
-
-	// doMoveCreature(cid, direction[, flag = FLAG_NOLIMIT])
-	lua_register(L, "doMoveCreature", luaDoMoveCreature);
-
-	// doSteerCreature(cid, position[, maxNodes])
-	lua_register(L, "doSteerCreature", luaDoSteerCreature);
-
-	// doPlayerSetPzLocked(cid, locked)
-	lua_register(L, "doPlayerSetPzLocked", luaDoPlayerSetPzLocked);
-
-	// doPlayerSetTown(cid, townid)
-	lua_register(L, "doPlayerSetTown", luaDoPlayerSetTown);
-
-	// doPlayerSetVocation(cid,voc)
-	lua_register(L, "doPlayerSetVocation", luaDoPlayerSetVocation);
-
-	// doPlayerRemoveItem(cid, itemid[, count[, subType = -1[, ignoreEquipped = false]]])
-	lua_register(L, "doPlayerRemoveItem", luaDoPlayerRemoveItem);
-
-	// doPlayerAddExperience(cid, amount)
-	lua_register(L, "doPlayerAddExperience", luaDoPlayerAddExperience);
-
-	// doPlayerSetGuildId(cid, id)
-	lua_register(L, "doPlayerSetGuildId", luaDoPlayerSetGuildId);
-
-	// doPlayerSetGuildLevel(cid, level[, rank])
-	lua_register(L, "doPlayerSetGuildLevel", luaDoPlayerSetGuildLevel);
-
-	// doPlayerSetGuildNick(cid, nick)
-	lua_register(L, "doPlayerSetGuildNick", luaDoPlayerSetGuildNick);
-
-	// doPlayerAddOutfit(cid, looktype, addon)
-	lua_register(L, "doPlayerAddOutfit", luaDoPlayerAddOutfit);
-
-	// getOutfitIdByLooktype(looktype)
-	lua_register(L, "getOutfitIdByLooktype", luaGetOutfitIdByLooktype);
-
-	// doPlayerRemoveOutfit(cid, looktype[, addon = 0])
-	lua_register(L, "doPlayerRemoveOutfit", luaDoPlayerRemoveOutfit);
-
-	// doPlayerAddOutfitId(cid, outfitId, addon)
-	lua_register(L, "doPlayerAddOutfitId", luaDoPlayerAddOutfitId);
-
-	// doPlayerRemoveOutfitId(cid, outfitId[, addon = 0])
-	lua_register(L, "doPlayerRemoveOutfitId", luaDoPlayerRemoveOutfitId);
-
-	// canPlayerWearOutfit(cid, looktype[, addon = 0])
-	lua_register(L, "canPlayerWearOutfit", luaCanPlayerWearOutfit);
-
-	// canPlayerWearOutfitId(cid, outfitId[, addon = 0])
-	lua_register(L, "canPlayerWearOutfitId", luaCanPlayerWearOutfitId);
-
-	// hasCreatureCondition(cid, condition[, subId = 0[, conditionId = (both)]])
-	lua_register(L, "hasCreatureCondition", luaHasCreatureCondition);
-
-	// getCreatureConditionInfo(cid, condition[, subId = 0[, conditionId = CONDITIONID_COMBAT]])
-	lua_register(L, "getCreatureConditionInfo", luaGetCreatureConditionInfo);
-
-	// doCreatureSetDropLoot(cid, doDrop)
-	lua_register(L, "doCreatureSetDropLoot", luaDoCreatureSetDropLoot);
-
-	// getPlayerLossPercent(cid, lossType)
-	lua_register(L, "getPlayerLossPercent", luaGetPlayerLossPercent);
-
-	// doPlayerSetLossPercent(cid, lossType, newPercent)
-	lua_register(L, "doPlayerSetLossPercent", luaDoPlayerSetLossPercent);
-
-	// doPlayerSetLossSkill(cid, doLose)
-	lua_register(L, "doPlayerSetLossSkill", luaDoPlayerSetLossSkill);
-
-	// getPlayerLossSkill(cid)
-	lua_register(L, "getPlayerLossSkill", luaGetPlayerLossSkill);
-
-	// doPlayerSwitchSaving(cid)
-	lua_register(L, "doPlayerSwitchSaving", luaDoPlayerSwitchSaving);
-
-	// doPlayerSave(cid[, shallow = false])
-	lua_register(L, "doPlayerSave", luaDoPlayerSave);
-
-	// doPlayerSaveItems(cid)
-	lua_register(L, "doPlayerSaveItems", luaDoPlayerSaveItems);
-
-	// isPlayerPzLocked(cid)
-	lua_register(L, "isPlayerPzLocked", luaIsPlayerPzLocked);
-
-	// isPlayerSaving(cid)
-	lua_register(L, "isPlayerSaving", luaIsPlayerSaving);
-
-	// isPlayerProtected(cid)
-	lua_register(L, "isPlayerProtected", luaIsPlayerProtected);
-
-	// isCreature(cid)
-	lua_register(L, "isCreature", luaIsCreature);
-
-	// isMovable(uid)
-	lua_register(L, "isMovable", luaIsMovable);
-
-	// getCreatureByName(name)
 	lua_register(L, "getCreatureByName", luaGetCreatureByName);
-
-	// getPlayerByName(name)
-	lua_register(L, "getPlayerByName", luaGetPlayerByName);
-
-	// getPlayerByGUID(guid)
-	lua_register(L, "getPlayerByGUID", luaGetPlayerByGUID);
-
-	// getPlayerByNameWildcard(name~[, ret = false])
-	lua_register(L, "getPlayerByNameWildcard", luaGetPlayerByNameWildcard);
-
-	// getPlayerGUIDByName(name)
-	lua_register(L, "getPlayerGUIDByName", luaGetPlayerGUIDByName);
-
-	// getPlayerNameByGUID(guid)
-	lua_register(L, "getPlayerNameByGUID", luaGetPlayerNameByGUID);
-
-	// doPlayerChangeName(guid, oldName, newName)
-	lua_register(L, "doPlayerChangeName", luaDoPlayerChangeName);
-
-	// registerCreatureEvent(uid, name)
-	lua_register(L, "registerCreatureEvent", luaRegisterCreatureEvent);
-
-	// unregisterCreatureEvent(uid, name)
-	lua_register(L, "unregisterCreatureEvent", luaUnregisterCreatureEvent);
-
-	// unregisterCreatureEventType(uid, type)
-	lua_register(L, "unregisterCreatureEventType", luaUnregisterCreatureEventType);
-
-	// getContainerSize(uid)
-	lua_register(L, "getContainerSize", luaGetContainerSize);
-
-	// getContainerCap(uid)
-	lua_register(L, "getContainerCap", luaGetContainerCap);
-
-	// getContainerItem(uid, slot)
-	lua_register(L, "getContainerItem", luaGetContainerItem);
-
-	// doAddContainerItem(uid, itemid[, count/subType = 1])
-	lua_register(L, "doAddContainerItem", luaDoAddContainerItem);
-
-	// getHouseInfo(houseId[, full = true])
+	lua_register(L, "doCreateItem", luaDoCreateItem);
+	lua_register(L, "doCreateItemEx", luaDoCreateItemEx);
+	lua_register(L, "doTileAddItemEx", luaDoTileAddItemEx);
+	lua_register(L, "doAddContainerItemEx", luaDoAddContainerItemEx);
+	lua_register(L, "doRelocate", luaDoRelocate);
+	lua_register(L, "doCleanTile", luaDoCleanTile);
+	lua_register(L, "doCreateTeleport", luaDoCreateTeleport);
+	lua_register(L, "doCreateMonster", luaDoCreateMonster);
+	lua_register(L, "doCreateNpc", luaDoCreateNpc);
+	lua_register(L, "getMonsterInfo", luaGetMonsterInfo);
+	lua_register(L, "getOutfitIdByLooktype", luaGetOutfitIdByLooktype);
 	lua_register(L, "getHouseInfo", luaGetHouseInfo);
-
-	// getHouseAccessList(houseid, listId)
 	lua_register(L, "getHouseAccessList", luaGetHouseAccessList);
-
-	// getHouseByPlayerGUID(playerGUID)
 	lua_register(L, "getHouseByPlayerGUID", luaGetHouseByPlayerGUID);
-
-	// getHouseFromPosition(pos)
 	lua_register(L, "getHouseFromPosition", luaGetHouseFromPosition);
-
-	// setHouseAccessList(houseid, listid, listtext)
 	lua_register(L, "setHouseAccessList", luaSetHouseAccessList);
-
-	// setHouseOwner(houseId, owner[, clean = true])
 	lua_register(L, "setHouseOwner", luaSetHouseOwner);
-
-	// getWorldType()
 	lua_register(L, "getWorldType", luaGetWorldType);
-
-	// setWorldType(type)
 	lua_register(L, "setWorldType", luaSetWorldType);
-
-	// getWorldTime()
 	lua_register(L, "getWorldTime", luaGetWorldTime);
-
-	// getWorldLight()
 	lua_register(L, "getWorldLight", luaGetWorldLight);
-
-	// getWorldCreatures(type)
-	// 0 players, 1 monsters, 2 npcs, 3 all
 	lua_register(L, "getWorldCreatures", luaGetWorldCreatures);
-
-	// getWorldUpTime()
 	lua_register(L, "getWorldUpTime", luaGetWorldUpTime);
-
-	// getGuildId(guildName)
 	lua_register(L, "getGuildId", luaGetGuildId);
-
-	// getGuildMotd(guildId)
 	lua_register(L, "getGuildMotd", luaGetGuildMotd);
-
-	// getPlayerSex(cid[, full = false])
-	lua_register(L, "getPlayerSex", luaGetPlayerSex);
-
-	// doPlayerSetSex(cid, newSex)
-	lua_register(L, "doPlayerSetSex", luaDoPlayerSetSex);
-
-	// createCombatArea({area}[, {extArea}])
-	lua_register(L, "createCombatArea", luaCreateCombatArea);
-
-	// createConditionObject(type[, ticks = 0[, buff = false[, subId = 0[, conditionId = CONDITIONID_COMBAT]]]])
-	lua_register(L, "createConditionObject", luaCreateConditionObject);
-
-	// setCombatArea(combat, area)
-	lua_register(L, "setCombatArea", luaSetCombatArea);
-
-	// setCombatCondition(combat, condition)
-	lua_register(L, "setCombatCondition", luaSetCombatCondition);
-
-	// setCombatParam(combat, key, value)
-	lua_register(L, "setCombatParam", luaSetCombatParam);
-
-	// setConditionParam(condition, key, value)
-	lua_register(L, "setConditionParam", luaSetConditionParam);
-
-	// addDamageCondition(condition, rounds, time, value)
-	lua_register(L, "addDamageCondition", luaAddDamageCondition);
-
-	// addOutfitCondition(condition, outfit)
-	lua_register(L, "addOutfitCondition", luaAddOutfitCondition);
-
-	// setCombatCallBack(combat, key, function_name)
-	lua_register(L, "setCombatCallback", luaSetCombatCallback);
-
-	// setCombatFormula(combat, type, mina, minb, maxa, maxb[, minl, maxl[, minm, maxm[, minc[, maxc]]]])
-	lua_register(L, "setCombatFormula", luaSetCombatFormula);
-
-	// setConditionFormula(combat, mina, minb, maxa, maxb)
-	lua_register(L, "setConditionFormula", luaSetConditionFormula);
-
-	// doCombat(cid, combat, param)
-	lua_register(L, "doCombat", luaDoCombat);
-
-	// createCombatObject()
-	lua_register(L, "createCombatObject", luaCreateCombatObject);
-
-	// doCombatAreaHealth(cid, type, pos, area, min, max, effect)
 	lua_register(L, "doCombatAreaHealth", luaDoCombatAreaHealth);
-
-	// doTargetCombatHealth(cid, target, type, min, max, effect)
 	lua_register(L, "doTargetCombatHealth", luaDoTargetCombatHealth);
-
-	// doCombatAreaMana(cid, pos, area, min, max, effect)
 	lua_register(L, "doCombatAreaMana", luaDoCombatAreaMana);
-
-	// doTargetCombatMana(cid, target, min, max, effect)
 	lua_register(L, "doTargetCombatMana", luaDoTargetCombatMana);
-
-	// doCombatAreaCondition(cid, pos, area, condition, effect)
 	lua_register(L, "doCombatAreaCondition", luaDoCombatAreaCondition);
-
-	// doTargetCombatCondition(cid, target, condition, effect)
 	lua_register(L, "doTargetCombatCondition", luaDoTargetCombatCondition);
-
-	// doCombatAreaDispel(cid, pos, area, type, effect)
 	lua_register(L, "doCombatAreaDispel", luaDoCombatAreaDispel);
-
-	// doTargetCombatDispel(cid, target, type, effect)
 	lua_register(L, "doTargetCombatDispel", luaDoTargetCombatDispel);
-
-	// doChallengeCreature(cid, target)
-	lua_register(L, "doChallengeCreature", luaDoChallengeCreature);
-
-	// numberToVariant(number)
-	lua_register(L, "numberToVariant", luaNumberToVariant);
-
-	// stringToVariant(string)
-	lua_register(L, "stringToVariant", luaStringToVariant);
-
-	// positionToVariant(pos)
-	lua_register(L, "positionToVariant", luaPositionToVariant);
-
-	// targetPositionToVariant(pos)
-	lua_register(L, "targetPositionToVariant", luaTargetPositionToVariant);
-
-	// variantToNumber(var)
-	lua_register(L, "variantToNumber", luaVariantToNumber);
-
-	// variantToString(var)
-	lua_register(L, "variantToString", luaVariantToString);
-
-	// variantToPosition(var)
-	lua_register(L, "variantToPosition", luaVariantToPosition);
-
-	// doChangeSpeed(cid, delta)
-	lua_register(L, "doChangeSpeed", luaDoChangeSpeed);
-
-	// doCreatureChangeOutfit(cid, outfit)
-	lua_register(L, "doCreatureChangeOutfit", luaDoCreatureChangeOutfit);
-
-	// doSetMonsterOutfit(cid, name[, time = -1])
-	lua_register(L, "doSetMonsterOutfit", luaSetMonsterOutfit);
-
-	// doSetItemOutfit(cid, item[, time = -1])
-	lua_register(L, "doSetItemOutfit", luaSetItemOutfit);
-
-	// doSetCreatureOutfit(cid, outfit[, time = -1])
-	lua_register(L, "doSetCreatureOutfit", luaSetCreatureOutfit);
-
-	// getCreatureOutfit(cid)
-	lua_register(L, "getCreatureOutfit", luaGetCreatureOutfit);
-
-	// getCreatureLastPosition(cid)
-	lua_register(L, "getCreatureLastPosition", luaGetCreatureLastPosition);
-
-	// getCreatureName(cid)
-	lua_register(L, "getCreatureName", luaGetCreatureName);
-
-	// getCreatureSpeed(cid)
-	lua_register(L, "getCreatureSpeed", luaGetCreatureSpeed);
-
-	// setCreatureSpeed(cid)
-	lua_register(L, "setCreatureSpeed", luaSetCreatureSpeed);
-
-	// sendPlayerProgressBar(cid, duration, leftToRight)
-	lua_register(L, "sendPlayerProgressBar", luaSendProgressbar);
-
-	// getCreatureBaseSpeed(cid)
-	lua_register(L, "getCreatureBaseSpeed", luaGetCreatureBaseSpeed);
-
-	// getCreatureTarget(cid)
-	lua_register(L, "getCreatureTarget", luaGetCreatureTarget);
-
-	// isSightClear(fromPos, toPos, floorCheck)
 	lua_register(L, "isSightClear", luaIsSightClear);
-
-	// addEvent(callback, delay, ...)
 	lua_register(L, "addEvent", luaAddEvent);
-
-	// stopEvent(eventid)
 	lua_register(L, "stopEvent", luaStopEvent);
-
-	// getPlayersByAccountId(accId)
-	lua_register(L, "getPlayersByAccountId", luaGetPlayersByAccountId);
-
-	// getAccountIdByName(name)
 	lua_register(L, "getAccountIdByName", luaGetAccountIdByName);
-
-	// getAccountByName(name)
 	lua_register(L, "getAccountByName", luaGetAccountByName);
-
-	// getAccountIdByAccount(accName)
 	lua_register(L, "getAccountIdByAccount", luaGetAccountIdByAccount);
-
-	// getAccountByAccountId(accId)
 	lua_register(L, "getAccountByAccountId", luaGetAccountByAccountId);
-
-	// getAccountFlagValue(name/id)
 	lua_register(L, "getAccountFlagValue", luaGetAccountFlagValue);
-
-	// getAccountCustomFlagValue(name/id)
 	lua_register(L, "getAccountCustomFlagValue", luaGetAccountCustomFlagValue);
-
-	// getIpByName(name)
 	lua_register(L, "getIpByName", luaGetIpByName);
-
-	// getPlayersByIp(ip[, mask = 0xFFFFFFFF])
 	lua_register(L, "getPlayersByIp", luaGetPlayersByIp);
+	lua_register(L, "getTownId", luaGetTownId);
+	lua_register(L, "getTownName", luaGetTownName);
+	lua_register(L, "getTownTemplePosition", luaGetTownTemplePosition);
+	lua_register(L, "getTownHouses", luaGetTownHouses);
+	lua_register(L, "getSpectators", luaGetSpectators);
+	lua_register(L, "getVocationInfo", luaGetVocationInfo);
+	lua_register(L, "getGroupInfo", luaGetGroupInfo);
+	lua_register(L, "getVocationList", luaGetVocationList);
+	lua_register(L, "getGroupList", luaGetGroupList);
+	lua_register(L, "getChannelList", luaGetChannelList);
+	lua_register(L, "getTownList", luaGetTownList);
+	lua_register(L, "getWaypointList", luaGetWaypointList);
+	lua_register(L, "getTalkActionList", luaGetTalkActionList);
+	lua_register(L, "getExperienceStageList", luaGetExperienceStageList);
+	lua_register(L, "getItemIdByName", luaGetItemIdByName);
+	lua_register(L, "getItemInfo", luaGetItemInfo);
+	lua_register(L, "isIpBanished", luaIsIpBanished);
+	lua_register(L, "isPlayerBanished", luaIsPlayerBanished);
+	lua_register(L, "isAccountBanished", luaIsAccountBanished);
+	lua_register(L, "doAddIpBanishment", luaDoAddIpBanishment);
+	lua_register(L, "doAddPlayerBanishment", luaDoAddPlayerBanishment);
+	lua_register(L, "doAddAccountBanishment", luaDoAddAccountBanishment);
+	lua_register(L, "doAddAccountWarnings", luaDoAddAccountWarnings);
+	lua_register(L, "getAccountWarnings", luaGetAccountWarnings);
+	lua_register(L, "doAddNotation", luaDoAddNotation);
+	lua_register(L, "doAddStatement", luaDoAddStatement);
+	lua_register(L, "doRemoveIpBanishment", luaDoRemoveIpBanishment);
+	lua_register(L, "doRemovePlayerBanishment", luaDoRemovePlayerBanishment);
+	lua_register(L, "doRemoveAccountBanishment", luaDoRemoveAccountBanishment);
+	lua_register(L, "doRemoveNotations", luaDoRemoveNotations);
+	lua_register(L, "getNotationsCount", luaGetNotationsCount);
+	lua_register(L, "getBanData", luaGetBanData);
+	lua_register(L, "getBanList", luaGetBanList);
+	lua_register(L, "getExperienceStage", luaGetExperienceStage);
+	lua_register(L, "getDataDir", luaGetDataDir);
+	lua_register(L, "getLogsDir", luaGetLogsDir);
+	lua_register(L, "getConfigFile", luaGetConfigFile);
+	lua_register(L, "getConfigValue", luaGetConfigValue);
+	lua_register(L, "getHighscoreString", luaGetHighscoreString);
+	lua_register(L, "getWaypointPosition", luaGetWaypointPosition);
+	lua_register(L, "doWaypointAddTemporial", luaDoWaypointAddTemporial);
+	lua_register(L, "getGameState", luaGetGameState);
+	lua_register(L, "doSetGameState", luaDoSetGameState);
+	lua_register(L, "doExecuteRaid", luaDoExecuteRaid);
+	lua_register(L, "doReloadInfo", luaDoReloadInfo);
+	lua_register(L, "doSaveServer", luaDoSaveServer);
+	lua_register(L, "doSaveHouse", luaDoSaveHouse);
+	lua_register(L, "doCleanHouse", luaDoCleanHouse);
+	lua_register(L, "doCleanMap", luaDoCleanMap);
+	lua_register(L, "doRefreshMap", luaDoRefreshMap);
+	lua_register(L, "doGuildAddEnemy", luaDoGuildAddEnemy);
+	lua_register(L, "doGuildRemoveEnemy", luaDoGuildRemoveEnemy);
+	lua_register(L, "doUpdateHouseAuctions", luaDoUpdateHouseAuctions);
+	lua_register(L, "dodirectory", luaL_dodirectory);
+	lua_register(L, "errors", luaErrors);
 
-	// doPlayerPopupFYI(cid, message)
-	lua_register(L, "doPlayerPopupFYI", luaDoPlayerPopupFYI);
-
-	// doPlayerSendTutorial(cid, id)
-	lua_register(L, "doPlayerSendTutorial", luaDoPlayerSendTutorial);
-
-	// doPlayerSendMailByName(name, item[, town[, actor]])
-	lua_register(L, "doPlayerSendMailByName", luaDoPlayerSendMailByName);
-
-	// doPlayerAddMapMark(cid, pos, type[, description])
-	lua_register(L, "doPlayerAddMapMark", luaDoPlayerAddMapMark);
-
-	// doPlayerAddPremiumDays(cid, days)
-	lua_register(L, "doPlayerAddPremiumDays", luaDoPlayerAddPremiumDays);
-
-	// getPlayerPremiumDays(cid)
-	lua_register(L, "getPlayerPremiumDays", luaGetPlayerPremiumDays);
-
-	// doCreatureSetLookDirection(cid, dir)
+	// Creatures
+	lua_register(L, "getCreatureHealth", luaGetCreatureHealth);
+	lua_register(L, "getCreatureMaxHealth", luaGetCreatureMaxHealth);
+	lua_register(L, "getCreatureMana", luaGetCreatureMana);
+	lua_register(L, "getCreatureMaxMana", luaGetCreatureMaxMana);
+	lua_register(L, "getCreatureHideHealth", luaGetCreatureHideHealth);
+	lua_register(L, "doCreatureSetHideHealth", luaDoCreatureSetHideHealth);
+	lua_register(L, "getCreatureSpeakType", luaGetCreatureSpeakType);
+	lua_register(L, "doCreatureSetSpeakType", luaDoCreatureSetSpeakType);
+	lua_register(L, "getCreatureLookDirection", luaGetCreatureLookDirection);
+	lua_register(L, "doCreatureCastSpell", luaDoCreatureCastSpell);
+	lua_register(L, "getCreatureStorageList", luaGetCreatureStorageList);
+	lua_register(L, "getCreatureStorage", luaGetCreatureStorage);
+	lua_register(L, "doCreatureSetStorage", luaDoCreatureSetStorage);
+	lua_register(L, "doCreatureSay", luaDoCreatureSay);
+	lua_register(L, "setCreatureMaxMana", luaSetCreatureMaxMana);
+	lua_register(L, "doCreatureChannelSay", luaDoCreatureChannelSay);
+	lua_register(L, "doSummonMonster", luaDoSummonMonster);
+	lua_register(L, "doSendCreatureSquare", luaDoSendCreatureSquare);
+	lua_register(L, "doCreatureAddHealth", luaDoCreatureAddHealth);
+	lua_register(L, "doCreatureAddMana", luaDoCreatureAddMana);
+	lua_register(L, "setCreatureMaxHealth", luaSetCreatureMaxHealth);
+	lua_register(L, "doConvinceCreature", luaDoConvinceCreature);
+	lua_register(L, "doAddCondition", luaDoAddCondition);
+	lua_register(L, "doRemoveCondition", luaDoRemoveCondition);
+	lua_register(L, "doRemoveConditions", luaDoRemoveConditions);
+	lua_register(L, "doRemoveCreature", luaDoRemoveCreature);
+	lua_register(L, "doMoveCreature", luaDoMoveCreature);
+	lua_register(L, "doSteerCreature", luaDoSteerCreature);
+	lua_register(L, "hasCreatureCondition", luaHasCreatureCondition);
+	lua_register(L, "getCreatureConditionInfo", luaGetCreatureConditionInfo);
+	lua_register(L, "doCreatureSetDropLoot", luaDoCreatureSetDropLoot);
+	lua_register(L, "isCreature", luaIsCreature);
+	lua_register(L, "registerCreatureEvent", luaRegisterCreatureEvent);
+	lua_register(L, "unregisterCreatureEvent", luaUnregisterCreatureEvent);
+	lua_register(L, "unregisterCreatureEventType", luaUnregisterCreatureEventType);
+	lua_register(L, "doChallengeCreature", luaDoChallengeCreature);
+	lua_register(L, "doChangeSpeed", luaDoChangeSpeed);
+	lua_register(L, "doCreatureChangeOutfit", luaDoCreatureChangeOutfit);
+	lua_register(L, "doSetMonsterOutfit", luaSetMonsterOutfit);
+	lua_register(L, "doSetItemOutfit", luaSetItemOutfit);
+	lua_register(L, "doSetCreatureOutfit", luaSetCreatureOutfit);
+	lua_register(L, "getCreatureOutfit", luaGetCreatureOutfit);
+	lua_register(L, "getCreatureLastPosition", luaGetCreatureLastPosition);
+	lua_register(L, "getCreatureName", luaGetCreatureName);
+	lua_register(L, "getCreatureSpeed", luaGetCreatureSpeed);
+	lua_register(L, "setCreatureSpeed", luaSetCreatureSpeed);
+	lua_register(L, "getCreatureBaseSpeed", luaGetCreatureBaseSpeed);
+	lua_register(L, "getCreatureTarget", luaGetCreatureTarget);
+	lua_register(L, "doCreatureExecuteTalkAction", luaDoCreatureExecuteTalkAction);
 	lua_register(L, "doCreatureSetLookDirection", luaDoCreatureSetLookDir);
-
-	// getCreatureGuildEmblem(cid[, target])
 	lua_register(L, "getCreatureGuildEmblem", luaGetCreatureGuildEmblem);
-
-	// doCreatureSetGuildEmblem(cid, emblem)
 	lua_register(L, "doCreatureSetGuildEmblem", luaDoCreatureSetGuildEmblem);
-
-	// getCreaturePartyShield(cid[, target])
 	lua_register(L, "getCreaturePartyShield", luaGetCreaturePartyShield);
-
-	// doCreatureSetPartyShield(cid, shield)
 	lua_register(L, "doCreatureSetPartyShield", luaDoCreatureSetPartyShield);
-
-	// getCreatureSkullType(cid[, target])
 	lua_register(L, "getCreatureSkullType", luaGetCreatureSkullType);
-
-	// doCreatureSetSkullType(cid, skull)
 	lua_register(L, "doCreatureSetSkullType", luaDoCreatureSetSkullType);
-
-	// getPlayerSkullEnd(cid)
-	lua_register(L, "getPlayerSkullEnd", luaGetPlayerSkullEnd);
-
-	// doPlayerSetSkullEnd(cid, time, type)
-	lua_register(L, "doPlayerSetSkullEnd", luaDoPlayerSetSkullEnd);
-
-	// getPlayerBlessing(cid, blessing)
-	lua_register(L, "getPlayerBlessing", luaGetPlayerBlessing);
-
-	// doPlayerAddBlessing(cid, blessing)
-	lua_register(L, "doPlayerAddBlessing", luaDoPlayerAddBlessing);
-
-	// getPlayerPVPBlessing(cid)
-	lua_register(L, "getPlayerPVPBlessing", luaGetPlayerPVPBlessing);
-
-	// doPlayerSetPVPBlessing(cid[, value])
-	lua_register(L, "doPlayerSetPVPBlessing", luaDoPlayerSetPVPBlessing);
-
-	// getPlayerStamina(cid)
-	lua_register(L, "getPlayerStamina", luaGetPlayerStamina);
-
-	// doPlayerSetStamina(cid, minutes)
-	lua_register(L, "doPlayerSetStamina", luaDoPlayerSetStamina);
-
-	// getPlayerBalance(cid)
-	lua_register(L, "getPlayerBalance", luaGetPlayerBalance);
-
-	// doPlayerSetBalance(cid, balance)
-	lua_register(L, "doPlayerSetBalance", luaDoPlayerSetBalance);
-
-	// getCreatureNoMove(cid)
 	lua_register(L, "getCreatureNoMove", luaGetCreatureNoMove);
-
-	// doUpdatePlayerStats(cid)
-	lua_register(L, "doUpdatePlayerStats", luaUpdatePlayerStats);
-
-	lua_register(L, "getPlayerDamageMultiplier", luaGetPlayerDamageMultiplier);
-	lua_register(L, "setPlayerDamageMultiplier", luaSetPlayerDamageMultiplier);
-
-	// doCreatureSetNoMove(cid, block)
 	lua_register(L, "doCreatureSetNoMove", luaDoCreatureSetNoMove);
-
-	// getPlayerIdleTime(cid)
-	lua_register(L, "getPlayerIdleTime", luaGetPlayerIdleTime);
-
-	// doPlayerSetIdleTime(cid, amount)
-	lua_register(L, "doPlayerSetIdleTime", luaDoPlayerSetIdleTime);
-
-	// getPlayerLastLoad(cid)
-	lua_register(L, "getPlayerLastLoad", luaGetPlayerLastLoad);
-
-	// getPlayerLastLogin(cid)
-	lua_register(L, "getPlayerLastLogin", luaGetPlayerLastLogin);
-
-	// getPlayerAccountManager(cid)
-	lua_register(L, "getPlayerAccountManager", luaGetPlayerAccountManager);
-
-	// getPlayerTradeState(cid)
-	lua_register(L, "getPlayerTradeState", luaGetPlayerTradeState);
-
-	// getPlayerOperatingSystem(cid)
-	lua_register(L, "getPlayerOperatingSystem", luaGetPlayerOperatingSystem);
-
-	// getPlayerClientVersion(cid)
-	lua_register(L, "getPlayerClientVersion", luaGetPlayerClientVersion);
-
-	// getPlayerModes(cid)
-	lua_register(L, "getPlayerModes", luaGetPlayerModes);
-
-	// getPlayerRates(cid)
-	lua_register(L, "getPlayerRates", luaGetPlayerRates);
-
-	// doPlayerSetRate(cid, type, value)
-	lua_register(L, "doPlayerSetRate", luaDoPlayerSetRate);
-
-	// getPlayerPartner(cid)
-	lua_register(L, "getPlayerPartner", luaGetPlayerPartner);
-
-	// doPlayerSetPartner(cid, guid)
-	lua_register(L, "doPlayerSetPartner", luaDoPlayerSetPartner);
-
-	// doPlayerFollowCreature(cid, target)
-	lua_register(L, "doPlayerFollowCreature", luaDoPlayerFollowCreature);
-
-	// getPlayerParty(cid)
-	lua_register(L, "getPlayerParty", luaGetPlayerParty);
-
-	// doPlayerJoinParty(cid, lid)
-	lua_register(L, "doPlayerJoinParty", luaDoPlayerJoinParty);
-
-	// doPlayerLeaveParty(cid[, forced = false])
-	lua_register(L, "doPlayerLeaveParty", luaDoPlayerLeaveParty);
-
-	// getPartyMembers(lid)
-	lua_register(L, "getPartyMembers", luaGetPartyMembers);
-
-	// getCreatureMaster(cid)
 	lua_register(L, "getCreatureMaster", luaGetCreatureMaster);
-
-	// getCreatureSummons(cid)
 	lua_register(L, "getCreatureSummons", luaGetCreatureSummons);
 
-	// getTownId(townName)
-	lua_register(L, "getTownId", luaGetTownId);
-
-	// getTownName(townId)
-	lua_register(L, "getTownName", luaGetTownName);
-
-	// getTownTemplePosition(townId)
-	lua_register(L, "getTownTemplePosition", luaGetTownTemplePosition);
-
-	// getTownHouses(townId)
-	lua_register(L, "getTownHouses", luaGetTownHouses);
-
-	// getSpectators(centerPos, rangex, rangey[, multifloor = false])
-	lua_register(L, "getSpectators", luaGetSpectators);
-
-	// getVocationInfo(id)
-	lua_register(L, "getVocationInfo", luaGetVocationInfo);
-
-	// getGroupInfo(id[, premium = false])
-	lua_register(L, "getGroupInfo", luaGetGroupInfo);
-
-	// getVocationList()
-	lua_register(L, "getVocationList", luaGetVocationList);
-
-	// getGroupList()
-	lua_register(L, "getGroupList", luaGetGroupList);
-
-	// getChannelList()
-	lua_register(L, "getChannelList", luaGetChannelList);
-
-	// getTownList()
-	lua_register(L, "getTownList", luaGetTownList);
-
-	// getWaypointList()
-	lua_register(L, "getWaypointList", luaGetWaypointList);
-
-	// getTalkActionList()
-	lua_register(L, "getTalkActionList", luaGetTalkActionList);
-
-	// getExperienceStageList()
-	lua_register(L, "getExperienceStageList", luaGetExperienceStageList);
-
-	// getItemIdByName(name)
-	lua_register(L, "getItemIdByName", luaGetItemIdByName);
-
-	// getItemInfo(itemid)
-	lua_register(L, "getItemInfo", luaGetItemInfo);
-
-	// isItemDoor(itemid) //make by feetads
-	lua_register(L, "isItemDoor", luaisItemDoor);
-
-	// getItemAttribute(uid, key)
-	lua_register(L, "getItemAttribute", luaGetItemAttribute);
-
-	// doItemSetAttribute(uid, key, value)
-	lua_register(L, "doItemSetAttribute", luaDoItemSetAttribute);
-
-	// doItemEraseAttribute(uid, key)
-	lua_register(L, "doItemEraseAttribute", luaDoItemEraseAttribute);
-
-	// doItemSetDuration(uid, duration)
-	lua_register(L, "doItemSetDuration", luaDoItemSetDuration);
-
-	// getItemDurationTime(uid)
-	lua_register(L, "getItemDurationTime", luaGetItemDurationTime);
-
-	// getItemWeight(uid[, precise = true])
-	lua_register(L, "getItemWeight", luaGetItemWeight);
-
-	// getItemParent(uid)
-	lua_register(L, "getItemParent", luaGetItemParent);
-
-	// hasItemProperty(uid, prop)
-	lua_register(L, "hasItemProperty", luaHasItemProperty);
-
-	// hasPlayerClient(cid)
+	// Player
+	lua_register(L, "getPlayerLevel", luaGetPlayerLevel);
+	lua_register(L, "getPlayerExperience", luaGetPlayerExperience);
+	lua_register(L, "getPlayerMagLevel", luaGetPlayerMagLevel);
+	lua_register(L, "getPlayerSpentMana", luaGetPlayerSpentMana);
+	lua_register(L, "getPlayerFood", luaGetPlayerFood);
+	lua_register(L, "getPlayerAccess", luaGetPlayerAccess);
+	lua_register(L, "getPlayerGhostAccess", luaGetPlayerGhostAccess);
+	lua_register(L, "getPlayerSkillLevel", luaGetPlayerSkillLevel);
+	lua_register(L, "getPlayerSkillTries", luaGetPlayerSkillTries);
+	lua_register(L, "doPlayerSetOfflineTrainingSkill", luaDoPlayerSetOfflineTrainingSkill);
+	lua_register(L, "getPlayerTown", luaGetPlayerTown);
+	lua_register(L, "getPlayerVocation", luaGetPlayerVocation);
+	lua_register(L, "getPlayerIp", luaGetPlayerIp);
+	lua_register(L, "getPlayerRequiredMana", luaGetPlayerRequiredMana);
+	lua_register(L, "getPlayerRequiredSkillTries", luaGetPlayerRequiredSkillTries);
+	lua_register(L, "getPlayerItemCount", luaGetPlayerItemCount);
+	lua_register(L, "getPlayerMoney", luaGetPlayerMoney);
+	lua_register(L, "getPlayerSoul", luaGetPlayerSoul);
+	lua_register(L, "getPlayerFreeCap", luaGetPlayerFreeCap);
+	lua_register(L, "getPlayerLight", luaGetPlayerLight);
+	lua_register(L, "getPlayerSlotItem", luaGetPlayerSlotItem);
+	lua_register(L, "getPlayerWeapon", luaGetPlayerWeapon);
+	lua_register(L, "getPlayerItemById", luaGetPlayerItemById);
+	lua_register(L, "getPlayerDepotItems", luaGetPlayerDepotItems);
+	lua_register(L, "getPlayerGuildId", luaGetPlayerGuildId);
+	lua_register(L, "getPlayerGuildName", luaGetPlayerGuildName);
+	lua_register(L, "getPlayerGuildRankId", luaGetPlayerGuildRankId);
+	lua_register(L, "getPlayerGuildRank", luaGetPlayerGuildRank);
+	lua_register(L, "getPlayerGuildNick", luaGetPlayerGuildNick);
+	lua_register(L, "getPlayerGuildLevel", luaGetPlayerGuildLevel);
+	lua_register(L, "getPlayerGUID", luaGetPlayerGUID);
+	lua_register(L, "getPlayerNameDescription", luaGetPlayerNameDescription);
+	lua_register(L, "doPlayerSetNameDescription", luaDoPlayerSetNameDescription);
+	lua_register(L, "getPlayerSpecialDescription", luaGetPlayerSpecialDescription);
+	lua_register(L, "doPlayerSetSpecialDescription", luaDoPlayerSetSpecialDescription);
+	lua_register(L, "getPlayerAccountId", luaGetPlayerAccountId);
+	lua_register(L, "getPlayerAccount", luaGetPlayerAccount);
+	lua_register(L, "getPlayerFlagValue", luaGetPlayerFlagValue);
+	lua_register(L, "getPlayerCustomFlagValue", luaGetPlayerCustomFlagValue);
+	lua_register(L, "getPlayerPromotionLevel", luaGetPlayerPromotionLevel);
+	lua_register(L, "doPlayerSetPromotionLevel", luaDoPlayerSetPromotionLevel);
+	lua_register(L, "getPlayerGroupId", luaGetPlayerGroupId);
+	lua_register(L, "doPlayerSetGroupId", luaDoPlayerSetGroupId);
+	lua_register(L, "doPlayerSendOutfitWindow", luaDoPlayerSendOutfitWindow);
+	lua_register(L, "doPlayerLearnInstantSpell", luaDoPlayerLearnInstantSpell);
+	lua_register(L, "doPlayerUnlearnInstantSpell", luaDoPlayerUnlearnInstantSpell);
+	lua_register(L, "getPlayerLearnedInstantSpell", luaGetPlayerLearnedInstantSpell);
+	lua_register(L, "getPlayerInstantSpellCount", luaGetPlayerInstantSpellCount);
+	lua_register(L, "getPlayerInstantSpellInfo", luaGetPlayerInstantSpellInfo);
+	lua_register(L, "getPlayerSpectators", luaGetPlayerSpectators);
+	lua_register(L, "doPlayerSetSpectators", luaDoPlayerSetSpectators);
+	lua_register(L, "doPlayerAddSkillTry", luaDoPlayerAddSkillTry);
+	lua_register(L, "doPlayerFeed", luaDoPlayerFeed);
+	lua_register(L, "doPlayerSendCancel", luaDoPlayerSendCancel);
+	lua_register(L, "doPlayerSendCastList", luaDoPlayerSendCastList);
+	lua_register(L, "doPlayerSendDefaultCancel", luaDoSendDefaultCancel);
+	lua_register(L, "doPlayerSetMaxCapacity", luaDoPlayerSetMaxCapacity);
+	lua_register(L, "doPlayerAddSpentMana", luaDoPlayerAddSpentMana);
+	lua_register(L, "doPlayerAddSoul", luaDoPlayerAddSoul);
+	lua_register(L, "doPlayerSetExtraAttackSpeed", luaDoPlayerSetExtraAttackSpeed);
+	lua_register(L, "doPlayerAddItem", luaDoPlayerAddItem);
+	lua_register(L, "doPlayerAddItemEx", luaDoPlayerAddItemEx);
+	lua_register(L, "doPlayerSendTextMessage", luaDoPlayerSendTextMessage);
+	lua_register(L, "doPlayerSendChannelMessage", luaDoPlayerSendChannelMessage);
+	lua_register(L, "doPlayerOpenChannel", luaDoPlayerOpenChannel);
+	lua_register(L, "doPlayerOpenPrivateChannel", luaDoPlayerOpenPrivateChannel);
+	lua_register(L, "doPlayerSendChannels", luaDoPlayerSendChannels);
+	lua_register(L, "doPlayerAddMoney", luaDoPlayerAddMoney);
+	lua_register(L, "doPlayerRemoveMoney", luaDoPlayerRemoveMoney);
+	lua_register(L, "doPlayerTransferMoneyTo", luaDoPlayerTransferMoneyTo);
+	lua_register(L, "doShowTextDialog", luaDoShowTextDialog);
+	lua_register(L, "doPlayerSetPzLocked", luaDoPlayerSetPzLocked);
+	lua_register(L, "doPlayerSetTown", luaDoPlayerSetTown);
+	lua_register(L, "doPlayerSetVocation", luaDoPlayerSetVocation);
+	lua_register(L, "doPlayerRemoveItem", luaDoPlayerRemoveItem);
+	lua_register(L, "doPlayerAddExperience", luaDoPlayerAddExperience);
+	lua_register(L, "doPlayerSetGuildId", luaDoPlayerSetGuildId);
+	lua_register(L, "doPlayerSetGuildLevel", luaDoPlayerSetGuildLevel);
+	lua_register(L, "doPlayerSetGuildNick", luaDoPlayerSetGuildNick);
+	lua_register(L, "doPlayerAddOutfit", luaDoPlayerAddOutfit);
+	lua_register(L, "doPlayerRemoveOutfit", luaDoPlayerRemoveOutfit);
+	lua_register(L, "doPlayerAddOutfitId", luaDoPlayerAddOutfitId);
+	lua_register(L, "doPlayerRemoveOutfitId", luaDoPlayerRemoveOutfitId);
+	lua_register(L, "canPlayerWearOutfit", luaCanPlayerWearOutfit);
+	lua_register(L, "canPlayerWearOutfitId", luaCanPlayerWearOutfitId);
+	lua_register(L, "getPlayerLossPercent", luaGetPlayerLossPercent);
+	lua_register(L, "doPlayerSetLossPercent", luaDoPlayerSetLossPercent);
+	lua_register(L, "doPlayerSetLossSkill", luaDoPlayerSetLossSkill);
+	lua_register(L, "getPlayerLossSkill", luaGetPlayerLossSkill);
+	lua_register(L, "doPlayerSwitchSaving", luaDoPlayerSwitchSaving);
+	lua_register(L, "doPlayerSave", luaDoPlayerSave);
+	lua_register(L, "doPlayerSaveItems", luaDoPlayerSaveItems);
+	lua_register(L, "isPlayerPzLocked", luaIsPlayerPzLocked);
+	lua_register(L, "isPlayerSaving", luaIsPlayerSaving);
+	lua_register(L, "isPlayerProtected", luaIsPlayerProtected);
+	lua_register(L, "getPlayerByName", luaGetPlayerByName);
+	lua_register(L, "getPlayerByGUID", luaGetPlayerByGUID);
+	lua_register(L, "getPlayerByNameWildcard", luaGetPlayerByNameWildcard);
+	lua_register(L, "getPlayerGUIDByName", luaGetPlayerGUIDByName);
+	lua_register(L, "getPlayerNameByGUID", luaGetPlayerNameByGUID);
+	lua_register(L, "doPlayerChangeName", luaDoPlayerChangeName);
+	lua_register(L, "getPlayerSex", luaGetPlayerSex);
+	lua_register(L, "doPlayerSetSex", luaDoPlayerSetSex);
+	lua_register(L, "getPlayerSkullEnd", luaGetPlayerSkullEnd);
+	lua_register(L, "doPlayerSetSkullEnd", luaDoPlayerSetSkullEnd);
+	lua_register(L, "sendPlayerProgressBar", luaSendProgressbar);
+	lua_register(L, "getPlayersByAccountId", luaGetPlayersByAccountId);
+	lua_register(L, "doPlayerPopupFYI", luaDoPlayerPopupFYI);
+	lua_register(L, "doPlayerSendTutorial", luaDoPlayerSendTutorial);
+	lua_register(L, "doPlayerSendMailByName", luaDoPlayerSendMailByName);
+	lua_register(L, "doPlayerAddMapMark", luaDoPlayerAddMapMark);
+	lua_register(L, "doPlayerAddPremiumDays", luaDoPlayerAddPremiumDays);
+	lua_register(L, "getPlayerPremiumDays", luaGetPlayerPremiumDays);
+	lua_register(L, "getPlayerBlessing", luaGetPlayerBlessing);
+	lua_register(L, "doPlayerAddBlessing", luaDoPlayerAddBlessing);
+	lua_register(L, "getPlayerPVPBlessing", luaGetPlayerPVPBlessing);
+	lua_register(L, "doPlayerSetPVPBlessing", luaDoPlayerSetPVPBlessing);
+	lua_register(L, "getPlayerStamina", luaGetPlayerStamina);
+	lua_register(L, "doPlayerSetStamina", luaDoPlayerSetStamina);
+	lua_register(L, "getPlayerBalance", luaGetPlayerBalance);
+	lua_register(L, "doPlayerSetBalance", luaDoPlayerSetBalance);
+	lua_register(L, "doUpdatePlayerStats", luaUpdatePlayerStats);
+	lua_register(L, "getPlayerDamageMultiplier", luaGetPlayerDamageMultiplier);
+	lua_register(L, "setPlayerDamageMultiplier", luaSetPlayerDamageMultiplier);
+	lua_register(L, "getPlayerIdleTime", luaGetPlayerIdleTime);
+	lua_register(L, "doPlayerSetIdleTime", luaDoPlayerSetIdleTime);
+	lua_register(L, "getPlayerLastLoad", luaGetPlayerLastLoad);
+	lua_register(L, "getPlayerLastLogin", luaGetPlayerLastLogin);
+	lua_register(L, "getPlayerAccountManager", luaGetPlayerAccountManager);
+	lua_register(L, "getPlayerTradeState", luaGetPlayerTradeState);
+	lua_register(L, "getPlayerOperatingSystem", luaGetPlayerOperatingSystem);
+	lua_register(L, "getPlayerClientVersion", luaGetPlayerClientVersion);
+	lua_register(L, "getPlayerModes", luaGetPlayerModes);
+	lua_register(L, "getPlayerRates", luaGetPlayerRates);
+	lua_register(L, "doPlayerSetRate", luaDoPlayerSetRate);
+	lua_register(L, "getPlayerPartner", luaGetPlayerPartner);
+	lua_register(L, "doPlayerSetPartner", luaDoPlayerSetPartner);
+	lua_register(L, "doPlayerFollowCreature", luaDoPlayerFollowCreature);
+	lua_register(L, "getPlayerParty", luaGetPlayerParty);
+	lua_register(L, "doPlayerJoinParty", luaDoPlayerJoinParty);
+	lua_register(L, "doPlayerLeaveParty", luaDoPlayerLeaveParty);
+	lua_register(L, "getPartyMembers", luaGetPartyMembers);
 	lua_register(L, "hasPlayerClient", luaHasPlayerClient);
-
-	// hasMonsterRaid(cid)
-	lua_register(L, "hasMonsterRaid", luaHasMonsterRaid);
-
-	// isIpBanished(ip[, mask])
-	lua_register(L, "isIpBanished", luaIsIpBanished);
-
-	// isPlayerBanished(name/guid, type)
-	lua_register(L, "isPlayerBanished", luaIsPlayerBanished);
-
-	// isAccountBanished(accountId[, playerId])
-	lua_register(L, "isAccountBanished", luaIsAccountBanished);
-
-	// doAddIpBanishment(...)
-	lua_register(L, "doAddIpBanishment", luaDoAddIpBanishment);
-
-	// doAddPlayerBanishment(...)
-	lua_register(L, "doAddPlayerBanishment", luaDoAddPlayerBanishment);
-
-	// doAddAccountBanishment(...)
-	lua_register(L, "doAddAccountBanishment", luaDoAddAccountBanishment);
-
-	// doAddAccountWarnings(...)
-	lua_register(L, "doAddAccountWarnings", luaDoAddAccountWarnings);
-
-	// getAccountWarnings(accountId)
-	lua_register(L, "getAccountWarnings", luaGetAccountWarnings);
-
-	// doAddNotation(...)
-	lua_register(L, "doAddNotation", luaDoAddNotation);
-
-	// doAddStatement(...)
-	lua_register(L, "doAddStatement", luaDoAddStatement);
-
-	// doRemoveIpBanishment(ip[, mask])
-	lua_register(L, "doRemoveIpBanishment", luaDoRemoveIpBanishment);
-
-	// doRemovePlayerBanishment(name/guid, type)
-	lua_register(L, "doRemovePlayerBanishment", luaDoRemovePlayerBanishment);
-
-	// doRemoveAccountBanishment(accountId[, playerId])
-	lua_register(L, "doRemoveAccountBanishment", luaDoRemoveAccountBanishment);
-
-	// doRemoveNotations(accountId[, playerId])
-	lua_register(L, "doRemoveNotations", luaDoRemoveNotations);
-
-	// getNotationsCount(accountId[, playerId])
-	lua_register(L, "getNotationsCount", luaGetNotationsCount);
-
-	// getBanData(value[, type[, param]])
-	lua_register(L, "getBanData", luaGetBanData);
-
-	// getBanList(type[, value[, param]])
-	lua_register(L, "getBanList", luaGetBanList);
-
-	// getExperienceStage(level)
-	lua_register(L, "getExperienceStage", luaGetExperienceStage);
-
-	// getDataDir()
-	lua_register(L, "getDataDir", luaGetDataDir);
-
-	// getLogsDir()
-	lua_register(L, "getLogsDir", luaGetLogsDir);
-
-	// getConfigFile()
-	lua_register(L, "getConfigFile", luaGetConfigFile);
-
-	// isPlayerUsingOtclient(cid)
 	lua_register(L, "isPlayerUsingOtclient", luaIsPlayerUsingOtclient);
-
-	// doSendPlayerExtendedOpcode(cid, opcode, buffer)
 	lua_register(L, "doSendPlayerExtendedOpcode", luaDoSendPlayerExtendedOpcode);
-
-	// getConfigValue(key)
-	lua_register(L, "getConfigValue", luaGetConfigValue);
-
-	// getHighscoreString(skillId)
-	lua_register(L, "getHighscoreString", luaGetHighscoreString);
-
-	// getWaypointPosition(name)
-	lua_register(L, "getWaypointPosition", luaGetWaypointPosition);
-
-	// doWaypointAddTemporial(name, pos)
-	lua_register(L, "doWaypointAddTemporial", luaDoWaypointAddTemporial);
-
-	// getGameState()
-	lua_register(L, "getGameState", luaGetGameState);
-
-	// doSetGameState(id)
-	lua_register(L, "doSetGameState", luaDoSetGameState);
-
-	// doExecuteRaid(name)
-	lua_register(L, "doExecuteRaid", luaDoExecuteRaid);
-
-	// doCreatureExecuteTalkAction(cid, text[, ignoreAccess = false[, channelId = CHANNEL_DEFAULT]])
-	lua_register(L, "doCreatureExecuteTalkAction", luaDoCreatureExecuteTalkAction);
-
-	// doReloadInfo(id[, cid])
-	lua_register(L, "doReloadInfo", luaDoReloadInfo);
-
-	// doSaveServer([flags = 13])
-	lua_register(L, "doSaveServer", luaDoSaveServer);
-
-	// doSaveHouse({list})
-	lua_register(L, "doSaveHouse", luaDoSaveHouse);
-
-	// doCleanHouse(houseId)
-	lua_register(L, "doCleanHouse", luaDoCleanHouse);
-
-	// doCleanMap()
-	lua_register(L, "doCleanMap", luaDoCleanMap);
-
-	// doRefreshMap()
-	lua_register(L, "doRefreshMap", luaDoRefreshMap);
-
-	// doPlayerSetWalkthrough(cid, uid, walkthrough)
 	lua_register(L, "doPlayerSetWalkthrough", luaDoPlayerSetWalkthrough);
 
-	// doGuildAddEnemy(guild, enemy, war, type)
-	lua_register(L, "doGuildAddEnemy", luaDoGuildAddEnemy);
+	// Monster
+	lua_register(L, "getMonsterTargetList", luaGetMonsterTargetList);
+	lua_register(L, "getMonsterFriendList", luaGetMonsterFriendList);
+	lua_register(L, "doMonsterSetTarget", luaDoMonsterSetTarget);
+	lua_register(L, "doMonsterChangeTarget", luaDoMonsterChangeTarget);
+	lua_register(L, "hasMonsterRaid", luaHasMonsterRaid);
 
-	// doGuildRemoveEnemy(guild, enemy)
-	lua_register(L, "doGuildRemoveEnemy", luaDoGuildRemoveEnemy);
+	// Item
+	lua_register(L, "doItemRaidUnref", luaDoItemRaidUnref);
+	lua_register(L, "doItemSetDestination", luaDoItemSetDestination);
+	lua_register(L, "doTransformItem", luaDoTransformItem);
+	lua_register(L, "doDecayItem", luaDoDecayItem);
+	lua_register(L, "getContainerSize", luaGetContainerSize);
+	lua_register(L, "getContainerCap", luaGetContainerCap);
+	lua_register(L, "getContainerItem", luaGetContainerItem);
+	lua_register(L, "doAddContainerItem", luaDoAddContainerItem);
+	lua_register(L, "isItemDoor", luaisItemDoor);
+	lua_register(L, "getItemAttribute", luaGetItemAttribute);
+	lua_register(L, "doItemSetAttribute", luaDoItemSetAttribute);
+	lua_register(L, "doItemEraseAttribute", luaDoItemEraseAttribute);
+	lua_register(L, "doItemSetDuration", luaDoItemSetDuration);
+	lua_register(L, "getItemDurationTime", luaGetItemDurationTime);
+	lua_register(L, "getItemWeight", luaGetItemWeight);
+	lua_register(L, "getItemParent", luaGetItemParent);
+	lua_register(L, "hasItemProperty", luaHasItemProperty);
 
-	// doUpdateHouseAuctions()
-	lua_register(L, "doUpdateHouseAuctions", luaDoUpdateHouseAuctions);
+	// Thing
+	lua_register(L, "isMovable", luaIsMovable);
+	lua_register(L, "getThing", luaGetThing);
+	lua_register(L, "getThingPosition", luaGetThingPosition);
+	lua_register(L, "doTeleportThing", luaDoTeleportThing);
 
-	// dodirectory(dir[, recursively = false])
-	lua_register(L, "dodirectory", luaL_dodirectory);
+	// Combat
+	lua_register(L, "createCombatObject", luaCreateCombatObject);
+	lua_register(L, "createCombatArea", luaCreateCombatArea);
+	lua_register(L, "setCombatArea", luaSetCombatArea);
+	lua_register(L, "setCombatCondition", luaSetCombatCondition);
+	lua_register(L, "setCombatParam", luaSetCombatParam);
+	lua_register(L, "setCombatCallback", luaSetCombatCallback);
+	lua_register(L, "setCombatFormula", luaSetCombatFormula);
+	lua_register(L, "doCombat", luaDoCombat);
 
-	// errors(var)
-	lua_register(L, "errors", luaErrors);
+	// Condition
+	lua_register(L, "createConditionObject", luaCreateConditionObject);
+	lua_register(L, "setConditionParam", luaSetConditionParam);
+	lua_register(L, "addDamageCondition", luaAddDamageCondition);
+	lua_register(L, "addOutfitCondition", luaAddOutfitCondition);
+	lua_register(L, "setConditionFormula", luaSetConditionFormula);
+
+	// Variant
+	lua_register(L, "numberToVariant", luaNumberToVariant);
+	lua_register(L, "stringToVariant", luaStringToVariant);
+	lua_register(L, "positionToVariant", luaPositionToVariant);
+	lua_register(L, "targetPositionToVariant", luaTargetPositionToVariant);
+	lua_register(L, "variantToNumber", luaVariantToNumber);
+	lua_register(L, "variantToString", luaVariantToString);
+	lua_register(L, "variantToPosition", luaVariantToPosition);
 
 	// os table
 	luaL_register(L, "os", luaSystemTable);
