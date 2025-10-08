@@ -179,13 +179,8 @@ Item::Item(const uint16_t type, uint16_t amount /* = 0*/) :
 	ItemAttributes(),
 	id(type)
 {
-	duration = 0;
-	raid = nullptr;
-	loadedFromMap = false;
-
 	setItemCount(1);
 	setDefaultDuration();
-	itemUid = -1;
 
 	const ItemType& it = items[type];
 	if (it.isFluidContainer() || it.isSplash()) {
@@ -405,7 +400,6 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 				return ATTR_READ_ERROR;
 			}
 
-			itemUid = uid;
 			setUniqueId(uid);
 			break;
 		}
@@ -1801,11 +1795,6 @@ bool Item::canDecay()
 	if (it.decayTo < 0 || it.decayTime == 0) {
 		return false;
 	}
-
-	if (itemUid != -1) {
-		return false;
-	}
-
 	return true;
 }
 

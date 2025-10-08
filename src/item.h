@@ -355,13 +355,11 @@ public:
 	static uint32_t countByType(const Item* item, int32_t checkType);
 
 protected:
+	Raid* raid = nullptr;
+	int32_t duration = 0;
 	uint16_t id;
 	uint8_t count;
-	int32_t itemUid;
-	int32_t duration;
-
-	Raid* raid;
-	bool loadedFromMap;
+	bool loadedFromMap = false;
 };
 
 inline std::string Item::getName() const
