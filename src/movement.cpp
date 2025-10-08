@@ -144,22 +144,21 @@ void MoveEvents::clear()
 	m_lastCacheItemVector.clear();
 }
 
-Event* MoveEvents::getEvent(const std::string& nodeName)
+EventPtr MoveEvents::getEvent(const std::string& nodeName)
 {
-	std::string tmpNodeName = otx::util::as_lower_string(nodeName);
+	const std::string tmpNodeName = otx::util::as_lower_string(nodeName);
 	if (tmpNodeName == "movevent" || tmpNodeName == "moveevent" || tmpNodeName == "movement") {
-		return new MoveEvent(getInterface());
+		return EventPtr(new MoveEvent(getInterface()));
 	}
 	return nullptr;
 }
 
-bool MoveEvents::registerEvent(Event* event, xmlNodePtr p)
+void MoveEvents::registerEvent(EventPtr event, xmlNodePtr p)
 {
-	// it is guaranteed to be a MoveEvent
-	MoveEvent* moveEvent = static_cast<MoveEvent*>(event);
+	// it is guaranteed to be a moveevent
+	auto moveEvent = static_cast<MoveEvent*>(event.get());
 
 	std::string strValue, endStrValue;
-
 	const MoveEvent_t eventType = moveEvent->getEventType();
 	if ((eventType == MOVE_EVENT_ADD_ITEM || eventType == MOVE_EVENT_REMOVE_ITEM) && readXMLString(p, "tileitem", strValue) && booleanString(strValue)) {
 		switch (eventType) {
@@ -169,12 +168,12 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p)
 			case MOVE_EVENT_REMOVE_ITEM:
 				moveEvent->setEventType(MOVE_EVENT_REMOVE_TILEITEM);
 				break;
+
 			default:
 				break;
 		}
 	}
 
-	bool success = true;
 	if (readXMLString(p, "itemid", strValue)) {
 		for (const std::string& s : explodeString(strValue, ";")) {
 			auto intVector = vectorAtoi(explodeString(s, "-"));
@@ -303,16 +302,9 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p)
 			auto intVector = vectorAtoi(explodeString(s, ","));
 			if (intVector.size() > 2) {
 				addEvent(*moveEvent, Position(intVector[0], intVector[1], intVector[2]), m_positionMap);
-			} else {
-				success = false;
 			}
 		}
 	}
-
-	if (success) {
-		delete moveEvent;
-	}
-	return success;
 }
 
 void MoveEvents::addEvent(MoveEvent moveEvent, uint16_t id, MoveIdListMap& map)
@@ -464,7 +456,7 @@ bool MoveEvents::hasTileEvent(Item* item)
 		   getEvent(item, MOVE_EVENT_REMOVE_TILEITEM);
 }
 
-uint32_t MoveEvents::onCreatureMove(Creature* actor, Creature* creature,
+void MoveEvents::onCreatureMove(Creature* actor, Creature* creature,
 	const Tile* fromTile, const Tile* toTile, bool isStepping)
 {
 	MoveEvent_t eventType = MOVE_EVENT_STEP_OUT;
@@ -485,52 +477,53 @@ uint32_t MoveEvents::onCreatureMove(Creature* actor, Creature* creature,
 		toPos = toTile->getPosition();
 	}
 
-	uint32_t ret = 1;
 	MoveEvent* moveEvent = nullptr;
 	if ((moveEvent = getEvent(tile, eventType))) {
-		ret &= moveEvent->fireStepEvent(actor, creature, nullptr, Position(), fromPos, toPos);
+		moveEvent->fireStepEvent(actor, creature, nullptr, Position(), fromPos, toPos);
 	}
 
 	if (!tile) {
-		return ret;
+		return;
 	}
 
 	Item* tileItem = nullptr;
 	if (m_lastCacheTile == tile) {
 		if (m_lastCacheItemVector.empty()) {
-			return ret;
+			return;
 		}
 
 		// We cannot use iterators here since the scripts can invalidate the iterator
 		for (uint32_t i = 0; i < m_lastCacheItemVector.size(); ++i) {
 			if ((tileItem = m_lastCacheItemVector[i]) && (moveEvent = getEvent(tileItem, eventType))) {
-				ret &= moveEvent->fireStepEvent(actor, creature, tileItem, tile->getPosition(), fromPos, toPos);
+				moveEvent->fireStepEvent(actor, creature, tileItem, tile->getPosition(), fromPos, toPos);
 			}
 		}
-
-		return ret;
+		return;
 	}
 
 	m_lastCacheTile = tile;
 	m_lastCacheItemVector.clear();
 
 	// We cannot use iterators here since the scripts can invalidate the iterator
-	Thing* thing = nullptr;
-	for (int32_t i = tile->__getFirstIndex(), j = tile->__getLastIndex(); i < j; ++i) // already checked the ground
-	{
-		if (!(thing = tile->__getThing(i)) || !(tileItem = thing->getItem())) {
+	for (int32_t i = tile->__getFirstIndex(), j = tile->__getLastIndex(); i < j; ++i) {
+		// already checked the ground
+		Thing* thing = tile->__getThing(i);
+		if (!thing) {
+			continue;
+		}
+
+		Item* tileItem = thing->getItem();
+		if (!tileItem) {
 			continue;
 		}
 
 		if ((moveEvent = getEvent(tileItem, eventType))) {
 			m_lastCacheItemVector.push_back(tileItem);
-			ret &= moveEvent->fireStepEvent(actor, creature, tileItem, tile->getPosition(), fromPos, toPos);
+			moveEvent->fireStepEvent(actor, creature, tileItem, tile->getPosition(), fromPos, toPos);
 		} else if (hasTileEvent(tileItem)) {
 			m_lastCacheItemVector.push_back(tileItem);
 		}
 	}
-
-	return ret;
 }
 
 bool MoveEvents::onPlayerEquip(Player* player, Item* item, slots_t slot, bool isCheck)
@@ -617,7 +610,7 @@ void MoveEvents::onAddTileItem(const Tile* tile, Item* item)
 		return;
 	}
 
-	std::vector<Item*>::iterator it = std::find(m_lastCacheItemVector.begin(), m_lastCacheItemVector.end(), item);
+	auto it = std::find(m_lastCacheItemVector.begin(), m_lastCacheItemVector.end(), item);
 	if (it == m_lastCacheItemVector.end() && hasTileEvent(item)) {
 		m_lastCacheItemVector.push_back(item);
 	}

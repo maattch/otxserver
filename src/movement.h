@@ -64,7 +64,7 @@ public:
 	void init();
 	void terminate();
 
-	uint32_t onCreatureMove(Creature* actor, Creature* creature, const Tile* fromTile, const Tile* toTile, bool isStepping);
+	void onCreatureMove(Creature* actor, Creature* creature, const Tile* fromTile, const Tile* toTile, bool isStepping);
 	bool onPlayerEquip(Player* player, Item* item, slots_t slot, bool isCheck);
 	bool onPlayerDeEquip(Player* player, Item* item, slots_t slot, bool isRemoval);
 	uint32_t onItemMove(Creature* actor, Item* item, Tile* tile, bool isAdd);
@@ -85,8 +85,8 @@ private:
 	std::string getScriptBaseName() const override { return "movements"; }
 	void clear() override;
 
-	Event* getEvent(const std::string& nodeName) override;
-	bool registerEvent(Event* event, xmlNodePtr p) override;
+	EventPtr getEvent(const std::string& nodeName) override;
+	void registerEvent(EventPtr event, xmlNodePtr p) override;
 
 	using MoveIdListMap = std::map<uint16_t, MoveEventList>;
 	void addEvent(MoveEvent moveEvent, uint16_t id, MoveIdListMap& map);

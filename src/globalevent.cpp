@@ -34,69 +34,55 @@ void GlobalEvents::init()
 
 void GlobalEvents::terminate()
 {
-	clearMap(thinkMap);
-	clearMap(serverMap);
-	clearMap(timerMap);
+	thinkMap.clear();
+	serverMap.clear();
+	timerMap.clear();
 
 	g_lua.removeScriptInterface(m_interface.get());
 	m_interface.reset();
 }
 
-void GlobalEvents::clearMap(GlobalEventMap& map)
-{
-	GlobalEventMap::iterator it;
-	for (it = map.begin(); it != map.end(); ++it) {
-		delete it->second;
-	}
-
-	map.clear();
-}
-
 void GlobalEvents::clear()
 {
-	clearMap(thinkMap);
-	clearMap(serverMap);
-	clearMap(timerMap);
+	thinkMap.clear();
+	serverMap.clear();
+	timerMap.clear();
 
 	m_interface->reInitState();
 }
 
-Event* GlobalEvents::getEvent(const std::string& nodeName)
+EventPtr GlobalEvents::getEvent(const std::string& nodeName)
 {
 	if (otx::util::as_lower_string(nodeName) == "globalevent") {
-		return new GlobalEvent(getInterface());
+		return EventPtr(new GlobalEvent(getInterface()));
 	}
 	return nullptr;
 }
 
-bool GlobalEvents::registerEvent(Event* event, xmlNodePtr)
+void GlobalEvents::registerEvent(EventPtr event, xmlNodePtr)
 {
-	GlobalEvent* globalEvent = dynamic_cast<GlobalEvent*>(event);
-	if (!globalEvent) {
-		return false;
-	}
+	// event is guaranteed to be globalevent
+	auto globalEvent = static_cast<GlobalEvent*>(event.get());
 
-	GlobalEventMap* map = &thinkMap;
+	GlobalEventMap* map;
 	if (globalEvent->getEventType() == GLOBALEVENT_TIMER) {
 		map = &timerMap;
 	} else if (globalEvent->getEventType() != GLOBALEVENT_NONE) {
 		map = &serverMap;
+	} else {
+		map = &thinkMap;
 	}
 
-	GlobalEventMap::iterator it = map->find(globalEvent->getName());
-	if (it == map->end()) {
-		map->insert(std::make_pair(globalEvent->getName(), globalEvent));
-		return true;
+	const std::string eventName = globalEvent->getName();
+	if (!map->emplace(eventName, std::move(*globalEvent)).second) {
+		std::clog << "[Warning - GlobalEvents::configureEvent] Duplicate registered globalevent with name: " << eventName << std::endl;
 	}
-
-	std::clog << "[Warning - GlobalEvents::configureEvent] Duplicate registered globalevent with name: " << globalEvent->getName() << std::endl;
-	return false;
 }
 
 void GlobalEvents::startup()
 {
 	execute(GLOBALEVENT_STARTUP);
-	addSchedulerTask(TIMER_INTERVAL, [this]() { timer(); });
+	addSchedulerTask(1000, [this]() { timer(); });
 	addSchedulerTask(SCHEDULER_MINTICKS, [this]() { think(); });
 }
 
@@ -104,33 +90,34 @@ void GlobalEvents::timer()
 {
 	time_t now = time(nullptr);
 	tm* ts = localtime(&now);
-	for (GlobalEventMap::iterator it = timerMap.begin(); it != timerMap.end(); ++it) {
-		int32_t tmp = it->second->getInterval(), h = tmp >> 16, m = (tmp >> 8) & 0xFF, s = tmp & 0xFF;
+	for (auto& it : timerMap) {
+		const uint32_t interval = it.second.getInterval();
+		int32_t h = interval >> 16;
+		int32_t m = (interval >> 8) & 0xFF;
+		int32_t s = interval & 0xFF;
 		if (h != ts->tm_hour || m != ts->tm_min || s != ts->tm_sec) {
 			continue;
 		}
 
-		if (!it->second->executeEvent()) {
-			std::clog << "[Error - GlobalEvents::timer] Couldn't execute event: "
-					  << it->second->getName() << std::endl;
+		if (!it.second.executeEvent()) {
+			std::clog << "[Error - GlobalEvents::timer] Couldn't execute event: " << it.second.getName() << std::endl;
 		}
 	}
 
-	addSchedulerTask(TIMER_INTERVAL, [this]() { timer(); });
+	addSchedulerTask(1000, [this]() { timer(); });
 }
 
 void GlobalEvents::think()
 {
-	int64_t now = otx::util::mstime();
-	for (GlobalEventMap::iterator it = thinkMap.begin(); it != thinkMap.end(); ++it) {
-		if ((it->second->getLastExecution() + it->second->getInterval()) > now) {
+	const int64_t now = otx::util::mstime();
+	for (auto& it : thinkMap) {
+		if ((it.second.getLastExecution() + it.second.getInterval()) > now) {
 			continue;
 		}
 
-		it->second->setLastExecution(now);
-		if (!it->second->executeEvent()) {
-			std::clog << "[Error - GlobalEvents::think] Couldn't execute event: "
-					  << it->second->getName() << std::endl;
+		it.second.setLastExecution(now);
+		if (!it.second.executeEvent()) {
+			std::clog << "[Error - GlobalEvents::think] Couldn't execute event: " << it.second.getName() << std::endl;
 		}
 	}
 
@@ -139,48 +126,18 @@ void GlobalEvents::think()
 
 void GlobalEvents::execute(GlobalEvent_t type)
 {
-	for (GlobalEventMap::iterator it = serverMap.begin(); it != serverMap.end(); ++it) {
-		if (it->second->getEventType() == type) {
-			it->second->executeEvent();
+	for (auto& it : serverMap) {
+		if (it.second.getEventType() == type) {
+			it.second.executeEvent();
 		}
 	}
 }
 
-GlobalEventMap GlobalEvents::getEventMap(GlobalEvent_t type)
+GlobalEvent::GlobalEvent(LuaInterface* luaInterface) :
+	Event(luaInterface),
+	m_lastExecution(otx::util::mstime())
 {
-	switch (type) {
-		case GLOBALEVENT_NONE:
-			return thinkMap;
-
-		case GLOBALEVENT_TIMER:
-			return timerMap;
-
-		case GLOBALEVENT_STARTUP:
-		case GLOBALEVENT_SHUTDOWN:
-		case GLOBALEVENT_GLOBALSAVE:
-		case GLOBALEVENT_RECORD: {
-			GlobalEventMap retMap;
-			for (GlobalEventMap::iterator it = serverMap.begin(); it != serverMap.end(); ++it) {
-				if (it->second->getEventType() == type) {
-					retMap[it->first] = it->second;
-				}
-			}
-
-			return retMap;
-		}
-
-		default:
-			break;
-	}
-
-	return GlobalEventMap();
-}
-
-GlobalEvent::GlobalEvent(LuaInterface* _interface) :
-	Event(_interface)
-{
-	m_lastExecution = otx::util::mstime();
-	m_interval = 0;
+	//
 }
 
 bool GlobalEvent::configureEvent(xmlNodePtr p)
@@ -194,7 +151,7 @@ bool GlobalEvent::configureEvent(xmlNodePtr p)
 	m_name = strValue;
 	m_eventType = GLOBALEVENT_NONE;
 	if (readXMLString(p, "type", strValue)) {
-		std::string tmpStrValue = otx::util::as_lower_string(strValue);
+		const std::string tmpStrValue = otx::util::as_lower_string(strValue);
 		if (tmpStrValue == "startup" || tmpStrValue == "start" || tmpStrValue == "load") {
 			m_eventType = GLOBALEVENT_STARTUP;
 		} else if (tmpStrValue == "shutdown" || tmpStrValue == "quit" || tmpStrValue == "exit") {
@@ -207,30 +164,37 @@ bool GlobalEvent::configureEvent(xmlNodePtr p)
 			std::clog << "[Error - GlobalEvent::configureEvent] No valid type \"" << strValue << "\" for globalevent with name " << m_name << std::endl;
 			return false;
 		}
-
 		return true;
 	} else if (readXMLString(p, "time", strValue) || readXMLString(p, "at", strValue)) {
-		IntegerVec params = vectorAtoi(explodeString(strValue, ":"));
-		if (params[0] < 0 || params[0] > 23) {
+		auto params = vectorAtoi(explodeString(strValue, ":"));
+		if (params.empty()) {
+			std::clog << "[Error - GlobalEvent::configureEvent] Invalid time \"" << strValue << "\" for globalevent with name " << m_name << std::endl;
+			return false;
+		}
+
+		const int32_t hour = params[0];
+		if (hour < 0 || hour > 23) {
 			std::clog << "[Error - GlobalEvent::configureEvent] No valid hour \"" << strValue << "\" for globalevent with name " << m_name << std::endl;
 			return false;
 		}
 
-		m_interval |= params[0] << 16;
+		m_interval |= hour << 16;
 		if (params.size() > 1) {
-			if (params[1] < 0 || params[1] > 59) {
+			const int32_t minute = params[1];
+			if (minute < 0 || minute > 59) {
 				std::clog << "[Error - GlobalEvent::configureEvent] No valid minute \"" << strValue << "\" for globalevent with name " << m_name << std::endl;
 				return false;
 			}
 
 			m_interval |= params[1] << 8;
 			if (params.size() > 2) {
-				if (params[2] < 0 || params[2] > 59) {
+				const int32_t second = params[2];
+				if (second < 0 || second > 59) {
 					std::clog << "[Error - GlobalEvent::configureEvent] No valid second \"" << strValue << "\" for globalevent with name " << m_name << std::endl;
 					return false;
 				}
 
-				m_interval |= params[2];
+				m_interval |= second;
 			}
 		}
 
@@ -240,7 +204,7 @@ bool GlobalEvent::configureEvent(xmlNodePtr p)
 
 	int32_t intValue;
 	if (readXMLInteger(p, "interval", intValue)) {
-		m_interval = std::max((int32_t)SCHEDULER_MINTICKS, intValue);
+		m_interval = std::max<int32_t>(SCHEDULER_MINTICKS, intValue);
 		return true;
 	}
 
@@ -251,29 +215,22 @@ bool GlobalEvent::configureEvent(xmlNodePtr p)
 std::string GlobalEvent::getScriptEventName() const
 {
 	switch (m_eventType) {
-		case GLOBALEVENT_STARTUP:
-			return "onStartup";
-		case GLOBALEVENT_SHUTDOWN:
-			return "onShutdown";
-		case GLOBALEVENT_GLOBALSAVE:
-			return "onGlobalSave";
-		case GLOBALEVENT_RECORD:
-			return "onRecord";
-		case GLOBALEVENT_TIMER:
-			return "onTime";
+		case GLOBALEVENT_STARTUP:    return "onStartup";
+		case GLOBALEVENT_SHUTDOWN:   return "onShutdown";
+		case GLOBALEVENT_GLOBALSAVE: return "onGlobalSave";
+		case GLOBALEVENT_RECORD:     return "onRecord";
+		case GLOBALEVENT_TIMER:      return "onTime";
 		default:
-			break;
+			return "onThink";
 	}
-
-	return "onThink";
 }
 
-int32_t GlobalEvent::executeRecord(uint32_t current, uint32_t old, Player* player)
+void GlobalEvent::executeRecord(uint32_t current, uint32_t old, Player* player)
 {
 	// onRecord(current, old, cid)
 	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - GlobalEvent::executeRecord] Call stack overflow." << std::endl;
-		return 0;
+		return;
 	}
 
 	ScriptEnvironment& env = otx::lua::getScriptEnv();
@@ -285,16 +242,16 @@ int32_t GlobalEvent::executeRecord(uint32_t current, uint32_t old, Player* playe
 	lua_pushnumber(L, current);
 	lua_pushnumber(L, old);
 	lua_pushnumber(L, env.addThing(player));
-	return otx::lua::callFunction(L, 3);
+	otx::lua::callVoidFunction(L, 3);
 }
 
-int32_t GlobalEvent::executeEvent()
+bool GlobalEvent::executeEvent()
 {
 	// onThink(interval)
 	// onTime(interval)
 	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - GlobalEvent::executeEvent] Call stack overflow." << std::endl;
-		return 0;
+		return false;
 	}
 
 	ScriptEnvironment& env = otx::lua::getScriptEnv();

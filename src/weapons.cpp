@@ -99,32 +99,28 @@ void Weapons::loadDefaults()
 	}
 }
 
-Event* Weapons::getEvent(const std::string& nodeName)
+EventPtr Weapons::getEvent(const std::string& nodeName)
 {
-	std::string tmpNodeName = otx::util::as_lower_string(nodeName);
+	const std::string tmpNodeName = otx::util::as_lower_string(nodeName);
 	if (tmpNodeName == "melee") {
-		return new WeaponMelee(getInterface());
+		return EventPtr(new WeaponMelee(getInterface()));
 	} else if (tmpNodeName == "distance" || tmpNodeName == "ammunition" || tmpNodeName == "ammo") {
-		return new WeaponDistance(getInterface());
+		return EventPtr(new WeaponDistance(getInterface()));
 	} else if (tmpNodeName == "wand" || tmpNodeName == "rod") {
-		return new WeaponWand(getInterface());
+		return EventPtr(new WeaponWand(getInterface()));
 	}
 	return nullptr;
 }
 
-bool Weapons::registerEvent(Event* event, xmlNodePtr)
+void Weapons::registerEvent(EventPtr event, xmlNodePtr)
 {
-	// it is guaranteed to be a weapon
-	Weapon* weapon = static_cast<Weapon*>(event);
+	// it is guaranteed to be weapon
+	auto weapon = static_cast<Weapon*>(event.release());
 
-	auto it = weapons.find(weapon->getID());
-	if (it == weapons.end()) {
-		weapons[weapon->getID()] = WeaponPtr(weapon);
-		return true;
+	const uint16_t weaponID = weapon->getID();
+	if (!weapons.emplace(weaponID, WeaponPtr(weapon)).second) {
+		std::clog << "[Warning - Weapons::registerEvent] Duplicate registered item with id: " << weaponID << std::endl;
 	}
-
-	std::clog << "[Warning - Weapons::registerEvent] Duplicate registered item with id: " << weapon->getID() << std::endl;
-	return false;
 }
 
 int32_t Weapons::getMaxMeleeDamage(int32_t attackSkill, int32_t attackValue)

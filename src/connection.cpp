@@ -141,7 +141,7 @@ void Connection::accept()
 		// Read size of the first packet
 		boost::asio::async_read(m_socket,
 			boost::asio::buffer(m_msg.getBuffer(), NetworkMessage::HEADER_LENGTH),
-			[thisPtr = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
+			[thisPtr = shared_from_this()](const boost::system::error_code& error, size_t /*bytes_transferred*/) {
 			thisPtr->parseHeader(error);
 		});
 	} catch (boost::system::system_error& e) {
@@ -193,7 +193,7 @@ void Connection::parseHeader(const boost::system::error_code& error)
 		boost::asio::async_read(
 			m_socket,
 			boost::asio::buffer(m_msg.getBodyBuffer(), size),
-			[thisPtr = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
+			[thisPtr = shared_from_this()](const boost::system::error_code& error, size_t /*bytes_transferred*/) {
 			thisPtr->parsePacket(error);
 		});
 	} catch (boost::system::system_error& e) {
@@ -258,7 +258,7 @@ void Connection::parsePacket(const boost::system::error_code& error)
 		// Wait to the next packet
 		boost::asio::async_read(m_socket,
 			boost::asio::buffer(m_msg.getBuffer(), NetworkMessage::HEADER_LENGTH),
-			[thisPtr = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
+			[thisPtr = shared_from_this()](const boost::system::error_code& error, size_t /*bytes_transferred*/) {
 			thisPtr->parseHeader(error);
 		});
 	} catch (boost::system::system_error& e) {
@@ -312,7 +312,7 @@ void Connection::internalSend(const OutputMessage_ptr& msg)
 
 		boost::asio::async_write(m_socket,
 			boost::asio::buffer(msg->getOutputBuffer(), msg->getLength()),
-			[thisPtr = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
+			[thisPtr = shared_from_this()](const boost::system::error_code& error, size_t /*bytes_transferred*/) {
 			thisPtr->onWriteOperation(error);
 		});
 	} catch (boost::system::system_error& e) {

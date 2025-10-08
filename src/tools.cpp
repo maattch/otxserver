@@ -100,6 +100,13 @@ bool caseInsensitiveEqual(std::string_view str1, std::string_view str2)
 	});
 }
 
+bool caseInsensitiveStartsWith(std::string_view str, std::string_view prefix)
+{
+	return str.size() >= prefix.size() && std::equal(prefix.begin(), prefix.end(), str.begin(), [](char a, char b) {
+		return tolower(a) == tolower(b);
+	});
+}
+
 std::string transformToSHA1(const std::string& input)
 {
 	uint32_t H[] = {
@@ -955,12 +962,6 @@ struct FluidTypeNames
 	FluidTypes_t fluidType;
 };
 
-struct SkillIdNames
-{
-	const char* name;
-	skills_t skillId;
-};
-
 struct WeaponTypeNames
 {
 	const char* name;
@@ -1165,23 +1166,6 @@ FluidTypeNames fluidTypeNames[] = {
 	{ "mead", FLUID_MEAD }
 };
 
-SkillIdNames skillIdNames[] = {
-	{ "fist", SKILL_FIST },
-	{ "club", SKILL_CLUB },
-	{ "sword", SKILL_SWORD },
-	{ "axe", SKILL_AXE },
-	{ "distance", SKILL_DIST },
-	{ "dist", SKILL_DIST },
-	{ "shielding", SKILL_SHIELD },
-	{ "shield", SKILL_SHIELD },
-	{ "fishing", SKILL_FISH },
-	{ "fish", SKILL_FISH },
-	{ "level", SKILL__LEVEL },
-	{ "magiclevel", SKILL__MAGLEVEL },
-	{ "magic level", SKILL__MAGLEVEL },
-	{ "experience", SKILL__EXPERIENCE }
-};
-
 WeaponTypeNames weaponTypeNames[] = {
 	{ "", WEAPON_NONE },
 	{ "sword", WEAPON_SWORD },
@@ -1256,17 +1240,6 @@ FluidTypes_t getFluidType(const std::string& strValue)
 	}
 
 	return FLUID_NONE;
-}
-
-skills_t getSkillId(const std::string& strValue)
-{
-	for (uint32_t i = 0; i < sizeof(skillIdNames) / sizeof(SkillIdNames); ++i) {
-		if (caseInsensitiveEqual(strValue, skillIdNames[i].name)) {
-			return skillIdNames[i].skillId;
-		}
-	}
-
-	return SKILL_FIST;
 }
 
 WeaponType_t getWeaponType(const std::string& strValue)

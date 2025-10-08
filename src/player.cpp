@@ -658,7 +658,6 @@ int32_t Player::getSkill(skills_t skilltype, skillsid_t skillinfo) const
 	if (skillinfo == SKILL_LEVEL) {
 		ret += varSkills[skilltype];
 	}
-
 	return std::max((int32_t)0, ret);
 }
 

@@ -67,30 +67,31 @@ void TalkActions::clear()
 	m_interface->reInitState();
 }
 
-Event* TalkActions::getEvent(const std::string& nodeName)
+EventPtr TalkActions::getEvent(const std::string& nodeName)
 {
 	if (otx::util::as_lower_string(nodeName) == "talkaction") {
-		return new TalkAction(getInterface());
+		return EventPtr(new TalkAction(getInterface()));
 	}
 	return nullptr;
 }
 
-bool TalkActions::registerEvent(Event* event, xmlNodePtr p)
+void TalkActions::registerEvent(EventPtr event, xmlNodePtr p)
 {
 	// it is guaranteed to be a TalkAction
-	TalkAction* talkAction = static_cast<TalkAction*>(event);
+	auto talkAction = static_cast<TalkAction*>(event.get());
 
 	std::string strValue;
 	if (readXMLString(p, "default", strValue) && booleanString(strValue)) {
 		if (!defaultTalkAction) {
+			event.release();
 			defaultTalkAction.reset(talkAction);
 		} else {
 			std::clog << "[Warning - TalkAction::registerEvent] You cannot define more than one default talkAction." << std::endl;
 		}
-		return true;
+		return;
 	}
 
-	if (!readXMLString(p, "separator", strValue) || strValue.empty()) {
+	if (!readXMLString(p, "separator", strValue)) {
 		strValue = ";";
 	}
 
@@ -102,9 +103,6 @@ bool TalkActions::registerEvent(Event* event, xmlNodePtr p)
 			std::clog << "[Warning - TalkAction::registerEvent] Duplicate registered talkaction with words: " << s << std::endl;
 		}
 	}
-
-	delete talkAction;
-	return true;
 }
 
 bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std::string& words, bool ignoreAccess)
@@ -162,7 +160,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 			return false;
 		}
 
-		StringVec exceptions = talkAction->getExceptions();
+		const auto& exceptions = talkAction->getExceptions();
 		if ((!ignoreAccess && std::find(exceptions.begin(), exceptions.end(), otx::util::as_lower_string(player->getName())) == exceptions.end() && (talkAction->getAccess() > player->getAccess() || (talkAction->hasGroups() && !talkAction->hasGroup(player->getGroupId()))))
 			|| player->isAccountManager()) {
 			if (player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges)) {
@@ -187,30 +185,19 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 	}
 
 	if (Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST, 2000, 0, false, EXHAUST_TALKACTION)) {
-		if (!player->hasFlag(PlayerFlag_HasNoExhaustion)) {
+		if (player && !player->hasFlag(PlayerFlag_HasNoExhaustion)) {
 			player->addCondition(condition);
 		}
 	}
 
 	if (talkAction->isScripted()) {
-		return (talkAction->executeSay(creature, cmd[talkAction->getFilter()], param[talkAction->getFilter()], channelId) != 0);
+		return talkAction->executeSay(creature, cmd[talkAction->getFilter()], param[talkAction->getFilter()], channelId);
 	}
 
-	if (TalkFunction* function = talkAction->getFunction()) {
-		return function(creature, cmd[talkAction->getFilter()], param[talkAction->getFilter()]);
+	if (TalkFuncPtr function = talkAction->getFunction()) {
+		return function(creature, param[talkAction->getFilter()]);
 	}
 	return false;
-}
-
-TalkAction::TalkAction(LuaInterface* _interface) :
-	Event(_interface)
-{
-	m_function = nullptr;
-	m_filter = TALKFILTER_WORD;
-	m_access = 0;
-	m_channel = -1;
-	m_logged = m_hidden = false;
-	m_sensitive = true;
 }
 
 bool TalkAction::configureEvent(xmlNodePtr p)
@@ -309,15 +296,14 @@ bool TalkAction::loadFunction(const std::string& functionName)
 	return true;
 }
 
-int32_t TalkAction::executeSay(Creature* creature, const std::string& words, std::string param, uint16_t channel)
+bool TalkAction::executeSay(Creature* creature, const std::string& words, const std::string& param, uint16_t channel)
 {
 	// onSay(cid, words, param, channel)
 	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - TalkAction::executeSay] Call stack overflow." << std::endl;
-		return 0;
+		return false;
 	}
 
-	otx::util::trim_string(param);
 	ScriptEnvironment& env = otx::lua::getScriptEnv();
 	env.setScriptId(m_scriptId, m_interface);
 
@@ -331,7 +317,7 @@ int32_t TalkAction::executeSay(Creature* creature, const std::string& words, std
 	return otx::lua::callFunction(L, 4);
 }
 
-bool TalkAction::houseBuy(Creature* creature, const std::string&, const std::string&)
+bool TalkAction::houseBuy(Creature* creature, const std::string&)
 {
 	Player* player = creature->getPlayer();
 	if (!player || !g_config.getBool(ConfigManager::HOUSE_BUY_AND_SELL)) {
@@ -471,7 +457,7 @@ bool TalkAction::houseBuy(Creature* creature, const std::string&, const std::str
 	return false;
 }
 
-bool TalkAction::houseSell(Creature* creature, const std::string&, const std::string& param)
+bool TalkAction::houseSell(Creature* creature, const std::string& param)
 {
 	Player* player = creature->getPlayer();
 	if (!player || !g_config.getBool(ConfigManager::HOUSE_BUY_AND_SELL)) {
@@ -584,7 +570,7 @@ bool TalkAction::houseSell(Creature* creature, const std::string&, const std::st
 	return false;
 }
 
-bool TalkAction::houseKick(Creature* creature, const std::string&, const std::string& param)
+bool TalkAction::houseKick(Creature* creature, const std::string& param)
 {
 	Player* player = creature->getPlayer();
 	if (!player) {
@@ -607,7 +593,7 @@ bool TalkAction::houseKick(Creature* creature, const std::string&, const std::st
 	return false;
 }
 
-bool TalkAction::houseDoorList(Creature* creature, const std::string&, const std::string&)
+bool TalkAction::houseDoorList(Creature* creature, const std::string&)
 {
 	Player* player = creature->getPlayer();
 	if (!player) {
@@ -634,7 +620,7 @@ bool TalkAction::houseDoorList(Creature* creature, const std::string&, const std
 	return false;
 }
 
-bool TalkAction::houseGuestList(Creature* creature, const std::string&, const std::string&)
+bool TalkAction::houseGuestList(Creature* creature, const std::string&)
 {
 	Player* player = creature->getPlayer();
 	if (!player) {
@@ -654,7 +640,7 @@ bool TalkAction::houseGuestList(Creature* creature, const std::string&, const st
 	return false;
 }
 
-bool TalkAction::houseSubOwnerList(Creature* creature, const std::string&, const std::string&)
+bool TalkAction::houseSubOwnerList(Creature* creature, const std::string&)
 {
 	Player* player = creature->getPlayer();
 	if (!player) {
@@ -674,7 +660,7 @@ bool TalkAction::houseSubOwnerList(Creature* creature, const std::string&, const
 	return false;
 }
 
-bool TalkAction::guildJoin(Creature* creature, const std::string&, const std::string& param)
+bool TalkAction::guildJoin(Creature* creature, const std::string& param)
 {
 	Player* player = creature->getPlayer();
 	if (!player || !g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)) {
@@ -708,7 +694,7 @@ bool TalkAction::guildJoin(Creature* creature, const std::string&, const std::st
 	return true;
 }
 
-bool TalkAction::guildCreate(Creature* creature, const std::string&, const std::string& param)
+bool TalkAction::guildCreate(Creature* creature, const std::string& param)
 {
 	Player* player = creature->getPlayer();
 	if (!player || !g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)) {
@@ -770,7 +756,7 @@ bool TalkAction::guildCreate(Creature* creature, const std::string&, const std::
 	return true;
 }
 
-bool TalkAction::thingProporties(Creature* creature, const std::string&, const std::string& param)
+bool TalkAction::thingProporties(Creature* creature, const std::string& param)
 {
 	Player* player = creature->getPlayer();
 	if (!player) {
@@ -959,7 +945,7 @@ bool TalkAction::thingProporties(Creature* creature, const std::string&, const s
 	return true;
 }
 
-bool TalkAction::banishmentInfo(Creature* creature, const std::string&, const std::string& param)
+bool TalkAction::banishmentInfo(Creature* creature, const std::string& param)
 {
 	Player* player = creature->getPlayer();
 	if (!player) {
@@ -1039,14 +1025,13 @@ bool TalkAction::banishmentInfo(Creature* creature, const std::string&, const st
 	return true;
 }
 
-bool TalkAction::diagnostics(Creature* creature, const std::string&, const std::string&)
+bool TalkAction::diagnostics(Creature* creature, const std::string&)
 {
 	Player* player = creature->getPlayer();
 	if (!player) {
 		return false;
 	}
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
-
 	std::ostringstream s;
 	s << "Server diagonostic:" << std::endl;
 	player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, s.str());
@@ -1088,7 +1073,7 @@ bool TalkAction::diagnostics(Creature* creature, const std::string&, const std::
 	return true;
 }
 
-bool TalkAction::ghost(Creature* creature, const std::string&, const std::string&)
+bool TalkAction::ghost(Creature* creature, const std::string&)
 {
 	Player* player = creature->getPlayer();
 	if (!player) {
@@ -1153,7 +1138,7 @@ bool TalkAction::ghost(Creature* creature, const std::string&, const std::string
 	return true;
 }
 
-bool TalkAction::software(Creature* creature, const std::string&, const std::string&)
+bool TalkAction::software(Creature* creature, const std::string&)
 {
 	Player* player = creature->getPlayer();
 	if (!player) {

@@ -167,6 +167,8 @@ public:
 	uint32_t worth = 0;
 	uint32_t levelDoor = 0;
 	uint32_t date = 0;
+	uint32_t runeLevel = 0;
+	uint32_t runeMagLevel = 0;
 
 	int32_t attack = 0;
 	int32_t reduceSkillLoss = 0;
@@ -178,8 +180,6 @@ public:
 	int32_t breakChance = -1;
 	int32_t hitChance = -1;
 	int32_t maxHitChance = -1;
-	int32_t runeLevel = 0;
-	int32_t runeMagLevel = 0;
 	int32_t lightLevel = 0;
 	int32_t lightColor = 0;
 	int32_t decayTo = -1;

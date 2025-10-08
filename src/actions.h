@@ -21,6 +21,9 @@
 #include "const.h"
 #include "lua_definitions.h"
 
+class Action;
+using ActionPtr = std::unique_ptr<Action>;
+
 class Action : public Event
 {
 public:
@@ -79,8 +82,8 @@ private:
 	std::string getScriptBaseName() const override { return "actions"; }
 	void clear() override;
 
-	Event* getEvent(const std::string& nodeName) override;
-	bool registerEvent(Event* event, xmlNodePtr p) override;
+	EventPtr getEvent(const std::string& nodeName) override;
+	void registerEvent(EventPtr event, xmlNodePtr p) override;
 
 	bool executeUse(Action* action, Player* player, Item* item, const PositionEx& posEx, uint32_t creatureId);
 	ReturnValue internalUseItem(Player* player, const Position& pos, uint8_t index, Item* item, uint32_t creatureId);
@@ -94,7 +97,7 @@ private:
 
 	LuaInterfacePtr m_interface;
 
-	std::unique_ptr<Action> defaultAction;
+	ActionPtr defaultAction;
 	std::map<uint16_t, Action> useItemMap;
 	std::map<uint16_t, Action> uniqueItemMap;
 	std::map<uint16_t, Action> actionItemMap;

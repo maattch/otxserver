@@ -53,62 +53,44 @@ bool BaseEvents::loadFromXml()
 	}
 
 	path = getFilePath(FILE_TYPE_OTHER, scriptsName + "/scripts/");
+	std::string strValue;
 	for (xmlNodePtr p = root->children; p; p = p->next) {
-		parseEventNode(p, path);
+		EventPtr event = getEvent((const char*)p->name);
+		if (!event) {
+			continue;
+		}
+
+		if (!event->configureEvent(p)) {
+			std::clog << "[Warning - BaseEvents::loadFromXml] Cannot configure an event." << std::endl;
+			continue;
+		}
+
+		bool success = false;
+		if (readXMLString(p, "event", strValue)) {
+			const std::string tmpStrValue = otx::util::as_lower_string(strValue);
+			if (tmpStrValue == "script") {
+				if (readXMLString(p, "value", strValue)) {
+					success = event->loadScript(path + strValue);
+				}
+			} else if (tmpStrValue == "function") {
+				if (readXMLString(p, "value", strValue)) {
+					success = event->loadFunction(strValue);
+				}
+			}
+		} else if (readXMLString(p, "script", strValue)) {
+			success = event->loadScript(path + strValue);
+		} else if (readXMLString(p, "function", strValue)) {
+			success = event->loadFunction(strValue);
+		}
+
+		if (success) {
+			registerEvent(std::move(event), p);
+		}
 	}
 
 	xmlFreeDoc(doc);
 	m_loaded = true;
 	return m_loaded;
-}
-
-bool BaseEvents::parseEventNode(xmlNodePtr p, const std::string& scriptsPath)
-{
-	Event* event = getEvent((const char*)p->name);
-	if (!event) {
-		return false;
-	}
-
-	if (!event->configureEvent(p)) {
-		std::clog << "[Warning - BaseEvents::loadFromXml] Cannot configure an event" << std::endl;
-		delete event;
-		return false;
-	}
-
-	bool success = false;
-	std::string strValue;
-	if (readXMLString(p, "event", strValue)) {
-		const std::string tmpStrValue = otx::util::as_lower_string(strValue);
-		if (tmpStrValue == "script") {
-			if (readXMLString(p, "value", strValue)) {
-				success = event->loadScript(scriptsPath + strValue);
-			}
-		} else if (tmpStrValue == "function") {
-			if (readXMLString(p, "value", strValue)) {
-				success = event->loadFunction(strValue);
-			}
-		}
-	} else if (readXMLString(p, "script", strValue)) {
-		success = event->loadScript(scriptsPath + strValue);
-	} else if (readXMLString(p, "function", strValue)) {
-		success = event->loadFunction(strValue);
-	}
-
-	if (!success) {
-		delete event;
-		return false;
-	}
-
-	if (registerEvent(event, p)) {
-		return true;
-	}
-
-	if (!event) {
-		return false;
-	}
-
-	delete event;
-	return false;
 }
 
 bool BaseEvents::reload()

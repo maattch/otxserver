@@ -7600,8 +7600,6 @@ const luaL_Reg luaStdTable[] = {
 void otx::lua::registerFunctions()
 {
 	lua_State* L = g_lua.getLuaState();
-	// example(...)
-	// lua_register(L, "name", C_function);
 
 	// getCreatureHealth(cid)
 	lua_register(L, "getCreatureHealth", luaGetCreatureHealth);

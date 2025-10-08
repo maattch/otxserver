@@ -6783,14 +6783,13 @@ void Game::loadMotd()
 
 void Game::checkPlayersRecord(Player* player)
 {
-	uint32_t count = getPlayersOnline();
+	const uint32_t count = getPlayersOnline();
 	if (count <= playersRecord) {
 		return;
 	}
 
-	GlobalEventMap recordEvents = g_globalEvents.getEventMap(GLOBALEVENT_RECORD);
-	for (GlobalEventMap::iterator it = recordEvents.begin(); it != recordEvents.end(); ++it) {
-		it->second->executeRecord(count, playersRecord, player);
+	for (auto& it : g_globalEvents.getServerMap()) {
+		it.second.executeRecord(count, playersRecord, player);
 	}
 
 	playersRecord = count;
@@ -7043,6 +7042,7 @@ void Game::shutdown()
 	}
 
 	ConnectionManager::getInstance().closeAll();
+
 	g_lua.collectGarbage();
 
 	std::clog << "(done)." << std::endl;

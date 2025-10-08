@@ -20,6 +20,8 @@
 #include "lua_definitions.h"
 
 class Event;
+using EventPtr = std::unique_ptr<Event>;
+
 class BaseEvents
 {
 public:
@@ -29,15 +31,14 @@ public:
 	bool loadFromXml();
 	bool reload();
 
-	bool parseEventNode(xmlNodePtr p, const std::string& scriptsPath);
 	bool isLoaded() const { return m_loaded; }
 
 protected:
 	virtual std::string getScriptBaseName() const = 0;
 	virtual void clear() = 0;
 
-	virtual bool registerEvent(Event* event, xmlNodePtr p) = 0;
-	virtual Event* getEvent(const std::string& nodeName) = 0;
+	virtual void registerEvent(EventPtr event, xmlNodePtr p) = 0;
+	virtual EventPtr getEvent(const std::string& nodeName) = 0;
 
 	virtual LuaInterface* getInterface() = 0;
 

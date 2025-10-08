@@ -47,6 +47,7 @@ enum DistributionType_t
 std::mt19937& getRandomGenerator();
 
 bool caseInsensitiveEqual(std::string_view str1, std::string_view str2);
+bool caseInsensitiveStartsWith(std::string_view str1, std::string_view str2);
 
 bool booleanString(const std::string& input);
 
@@ -116,7 +117,6 @@ Ammo_t getAmmoType(const std::string& strValue);
 AmmoAction_t getAmmoAction(const std::string& strValue);
 CombatType_t getCombatType(const std::string& strValue);
 FluidTypes_t getFluidType(const std::string& strValue);
-skills_t getSkillId(const std::string& strValue);
 WeaponType_t getWeaponType(const std::string& strValue);
 void getCombatDetails(CombatType_t combatType, MagicEffect_t& magicEffect, Color_t& textColor);
 

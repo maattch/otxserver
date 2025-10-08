@@ -63,43 +63,41 @@ void Actions::clear()
 	m_interface->reInitState();
 }
 
-Event* Actions::getEvent(const std::string& nodeName)
+EventPtr Actions::getEvent(const std::string& nodeName)
 {
 	if (otx::util::as_lower_string(nodeName) == "action") {
-		return new Action(getInterface());
+		return EventPtr(new Action(getInterface()));
 	}
 	return nullptr;
 }
 
-bool Actions::registerEvent(Event* event, xmlNodePtr p)
+void Actions::registerEvent(EventPtr event, xmlNodePtr p)
 {
 	// event is guaranteed to be action
-	Action* action = static_cast<Action*>(event);
+	auto action = static_cast<Action*>(event.get());
 
 	std::string strValue;
 	if (readXMLString(p, "default", strValue) && booleanString(strValue)) {
 		if (!defaultAction) {
-			defaultAction = std::unique_ptr<Action>(action);
+			event.release();
+			defaultAction.reset(action);
 		} else {
 			std::clog << "[Warning - Actions::registerEvent] You cannot define more than one default action, if you want to do so please define \"override\"." << std::endl;
-			delete action;
 		}
-		return true;
+		return;
 	}
 
-	bool success = true;
 	std::string endValue;
 	if (readXMLString(p, "itemid", strValue)) {
 		auto intVector = parseStringInts(strValue);
 		if (intVector.empty()) {
 			std::clog << "[Warning - Actions::registerEvent] Invalid itemid - '" << strValue << "'" << std::endl;
-			return false;
+			return;
 		}
 
 		for (const int32_t id : intVector) {
 			if (!useItemMap.emplace(id, *action).second) {
 				std::clog << "[Warning - Actions::registerEvent] Duplicate registered item id: " << id << std::endl;
-				success = false;
 			}
 		}
 	} else if (readXMLString(p, "fromid", strValue) && readXMLString(p, "toid", endValue)) {
@@ -124,13 +122,12 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p)
 		auto intVector = parseStringInts(strValue);
 		if (intVector.empty()) {
 			std::clog << "[Warning - Actions::registerEvent] Invalid uniqueid - '" << strValue << "'" << std::endl;
-			return false;
+			return;
 		}
 
 		for (const int32_t id : intVector) {
 			if (!uniqueItemMap.emplace(id, *action).second) {
 				std::clog << "[Warning - Actions::registerEvent] Duplicate registered item uid: " << id << std::endl;
-				success = false;
 			}
 		}
 	} else if (readXMLString(p, "fromuid", strValue) && readXMLString(p, "touid", endValue)) {
@@ -155,13 +152,12 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p)
 		auto intVector = parseStringInts(strValue);
 		if (intVector.empty()) {
 			std::clog << "[Warning - Actions::registerEvent] Invalid actionid - '" << strValue << "'" << std::endl;
-			return false;
+			return;
 		}
 
 		for (const int32_t id : intVector) {
 			if (!actionItemMap.emplace(id, *action).second) {
 				std::clog << "[Warning - Actions::registerEvent] Duplicate registered item aid: " << id << std::endl;
-				success = false;
 			}
 		}
 	} else if (readXMLString(p, "fromaid", strValue) && readXMLString(p, "toaid", endValue)) {
@@ -181,11 +177,6 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p)
 			std::clog << "[Warning - Actions::registerEvent] Malformed entry (from action: \"" << strValue << "\", to action: \"" << endValue << "\")" << std::endl;
 		}
 	}
-
-	if (success) {
-		delete action;
-	}
-	return success;
 }
 
 ReturnValue Actions::canUse(const Player* player, const Position& pos)

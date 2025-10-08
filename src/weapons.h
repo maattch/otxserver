@@ -45,18 +45,17 @@ public:
 	static int32_t getMaxMeleeDamage(int32_t attackSkill, int32_t attackValue);
 	static int32_t getMaxWeaponDamage(int32_t level, int32_t attackSkill, int32_t attackValue, float attackFactor);
 
-protected:
+private:
 	std::string getScriptBaseName() const override { return "weapons"; }
 	void clear() override;
 
-	Event* getEvent(const std::string& nodeName) override;
-	bool registerEvent(Event* event, xmlNodePtr p) override;
+	EventPtr getEvent(const std::string& nodeName) override;
+	void registerEvent(EventPtr event, xmlNodePtr p) override;
 
 	LuaInterface* getInterface() override { return m_interface.get(); }
 
-	LuaInterfacePtr m_interface;
-
 	std::map<uint16_t, WeaponPtr> weapons;
+	LuaInterfacePtr m_interface;
 };
 
 extern Weapons g_weapons;

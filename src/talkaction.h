@@ -29,6 +29,8 @@ enum TalkActionFilter : uint8_t
 	TALKFILTER_LAST
 };
 
+using TalkFuncPtr = bool(*)(Creature* creature, const std::string& param);
+
 class TalkActions final : public BaseEvents
 {
 public:
@@ -49,33 +51,31 @@ private:
 	std::string getScriptBaseName() const override { return "talkactions"; }
 	void clear() override;
 
-	Event* getEvent(const std::string& nodeName) override;
-	bool registerEvent(Event* event, xmlNodePtr p) override;
+	EventPtr getEvent(const std::string& nodeName) override;
+	void registerEvent(EventPtr event, xmlNodePtr p) override;
 
 	LuaInterface* getInterface() override { return m_interface.get(); }
 
-	LuaInterfacePtr m_interface;
-
 	std::map<std::string, TalkAction> talkactions;
+	LuaInterfacePtr m_interface;
 	std::unique_ptr<TalkAction> defaultTalkAction;
 };
 
 extern TalkActions g_talkActions;
 
-typedef bool(TalkFunction)(Creature* creature, const std::string& words, const std::string& param);
 class TalkAction : public Event
 {
 public:
-	TalkAction(LuaInterface* _interface);
-	virtual ~TalkAction() {}
+	TalkAction(LuaInterface* luaInterface) : Event(luaInterface) {}
+	virtual ~TalkAction() = default;
 
-	virtual bool configureEvent(xmlNodePtr p);
-	virtual bool loadFunction(const std::string& functionName);
+	bool configureEvent(xmlNodePtr p) override;
+	bool loadFunction(const std::string& functionName) override;
 
-	int32_t executeSay(Creature* creature, const std::string& words, std::string param, uint16_t channel);
+	bool executeSay(Creature* creature, const std::string& words, const std::string& param, uint16_t channel);
 
-	std::string getFunctionName() const { return m_functionName; }
-	std::string getWords() const { return m_words; }
+	const std::string& getFunctionName() const { return m_functionName; }
+	const std::string& getWords() const { return m_words; }
 	void setWords(const std::string& words) { m_words = words; }
 
 	TalkActionFilter getFilter() const { return m_filter; }
@@ -83,7 +83,7 @@ public:
 	int32_t getChannel() const { return m_channel; }
 
 	const auto& getExceptions() { return m_exceptions; }
-	TalkFunction* getFunction() { return m_function; }
+	TalkFuncPtr getFunction() const { return m_function; }
 
 	bool isLogged() const { return m_logged; }
 	bool isHidden() const { return m_hidden; }
@@ -94,29 +94,32 @@ public:
 
 	const auto& getGroups() const { return m_groups; }
 
-protected:
-	virtual std::string getScriptEventName() const { return "onSay"; }
+private:
+	std::string getScriptEventName() const override { return "onSay"; }
 
-	static TalkFunction houseBuy;
-	static TalkFunction houseSell;
-	static TalkFunction houseKick;
-	static TalkFunction houseDoorList;
-	static TalkFunction houseGuestList;
-	static TalkFunction houseSubOwnerList;
-	static TalkFunction guildJoin;
-	static TalkFunction guildCreate;
-	static TalkFunction thingProporties;
-	static TalkFunction banishmentInfo;
-	static TalkFunction diagnostics;
-	static TalkFunction ghost;
-	static TalkFunction software;
+	static bool houseBuy(Creature* creature, const std::string& param);
+	static bool houseSell(Creature* creature, const std::string& param);
+	static bool houseKick(Creature* creature, const std::string& param);
+	static bool houseDoorList(Creature* creature, const std::string& param);
+	static bool houseGuestList(Creature* creature, const std::string& param);
+	static bool houseSubOwnerList(Creature* creature, const std::string& param);
+	static bool guildJoin(Creature* creature, const std::string& param);
+	static bool guildCreate(Creature* creature, const std::string& param);
+	static bool thingProporties(Creature* creature, const std::string& param);
+	static bool banishmentInfo(Creature* creature, const std::string& param);
+	static bool diagnostics(Creature* creature, const std::string& param);
+	static bool ghost(Creature* creature, const std::string& param);
+	static bool software(Creature* creature, const std::string& param);
 
-	std::string m_words, m_functionName;
-	TalkFunction* m_function;
-	TalkActionFilter m_filter;
-	uint32_t m_access;
-	int32_t m_channel;
-	bool m_logged, m_hidden, m_sensitive;
-	std::vector<std::string> m_exceptions;
+	std::string m_words;
+	std::string m_functionName;
 	std::vector<int32_t> m_groups;
+	std::vector<std::string> m_exceptions;
+	TalkFuncPtr m_function = nullptr;
+	uint32_t m_access = 0;
+	int32_t m_channel = -1;
+	TalkActionFilter m_filter = TALKFILTER_WORD;
+	bool m_logged = false;
+	bool m_hidden = false;
+	bool m_sensitive = true;
 };
