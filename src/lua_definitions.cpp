@@ -611,11 +611,6 @@ void otx::lua::callVoidFunction(lua_State* L, int nargs, bool releaseEnv/* = tru
 //
 // ScriptEnvironment
 //
-ScriptEnvironment::~ScriptEnvironment()
-{
-	reset();
-}
-
 void ScriptEnvironment::reset()
 {
 	m_scriptId = -1;

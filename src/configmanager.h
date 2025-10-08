@@ -17,11 +17,10 @@
 
 #pragma once
 
-class ConfigManager
+class ConfigManager final
 {
 public:
 	ConfigManager();
-	virtual ~ConfigManager() {}
 
 	enum string_config_t
 	{
@@ -342,13 +341,18 @@ public:
 	bool setNumber(uint32_t _what, int64_t _value);
 	bool setBool(uint32_t _what, bool _value);
 
-private:
-	bool m_loaded, m_startup;
+	uint32_t getIPNumber() const { return IP_NUMBER; }
 
+private:
 	std::string m_confString[LAST_STRING_CONFIG];
-	bool m_confBool[LAST_BOOL_CONFIG];
-	int64_t m_confNumber[LAST_NUMBER_CONFIG];
-	double m_confDouble[LAST_DOUBLE_CONFIG];
+	double m_confDouble[LAST_DOUBLE_CONFIG] = {};
+	int64_t m_confNumber[LAST_NUMBER_CONFIG] = {};
+	bool m_confBool[LAST_BOOL_CONFIG] = {};
+
+	uint32_t IP_NUMBER = 0;
+
+	bool m_loaded = false;
+	bool m_startup = true;
 };
 
 extern ConfigManager g_config;

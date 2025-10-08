@@ -44,7 +44,6 @@ RSA g_RSA;
 std::mutex g_loaderLock;
 std::condition_variable g_loaderSignal;
 std::unique_lock<std::mutex> g_loaderUniqueLock(g_loaderLock);
-std::list<std::pair<uint32_t, uint32_t>> serverIps;
 
 #ifndef _WIN32
 __attribute__((used)) void saveServer()
@@ -190,22 +189,22 @@ void otserv(ServiceManager* services);
 
 int main(int argc, char* argv[])
 {
-	std::srand((uint32_t)otx::util::mstime());
 	StringVec args = StringVec(argv, argv + argc);
 	if (argc > 1 && !argumentsHandler(args)) {
 		return 0;
 	}
 
-	std::set_new_handler(allocationHandler);
+	std::srand((uint32_t)otx::util::mstime());
+	OutputHandler::getInstance();
 
-	g_lua.init();
-	otx::scriptmanager::init();
+	std::set_new_handler(allocationHandler);
 
 	g_dispatcher.start();
 	g_scheduler.start();
 
-	ServiceManager servicer;
+	g_lua.init();
 	g_config.startup();
+	otx::scriptmanager::init();
 
 #ifndef _WIN32
 	// ignore sigpipe...
@@ -227,8 +226,7 @@ int main(int argc, char* argv[])
 	signal(SIGTERM, signalHandler); // shutdown
 #endif
 
-	OutputHandler::getInstance();
-
+	ServiceManager servicer;
 	addDispatcherTask([services = &servicer]() { otserv(services); });
 
 	g_loaderSignal.wait(g_loaderUniqueLock);
@@ -627,45 +625,7 @@ void otserv(ServiceManager* services)
 		break; // CRITICAL: more ports are causing crashes- either find the issue or drop the "feature"
 	}
 
-	std::pair<uint32_t, uint32_t> IpNetMask;
-	IpNetMask.first = inet_addr("127.0.0.1");
-	IpNetMask.second = 0xFFFFFFFF;
-	serverIps.push_back(IpNetMask);
-
-	char szHostName[128];
-	if (gethostname(szHostName, 128) == 0) {
-		hostent* he = gethostbyname(szHostName);
-		if (he) {
-			unsigned char** addr = (unsigned char**)he->h_addr_list;
-			while (addr[0] != nullptr) {
-				IpNetMask.first = *(uint32_t*)(*addr);
-				IpNetMask.second = 0xFFFFFFFF;
-				serverIps.push_back(IpNetMask);
-				addr++;
-			}
-		}
-	}
-
-	std::string ip = g_config.getString(ConfigManager::IP);
-
-	uint32_t resolvedIp = inet_addr(ip.c_str());
-	if (resolvedIp == INADDR_NONE) {
-		struct hostent* he = gethostbyname(ip.c_str());
-		if (!he) {
-			std::ostringstream ss;
-			ss << "ERROR: Cannot resolve " << ip << "!" << std::endl;
-			startupErrorMessage(ss.str());
-			return;
-		}
-		resolvedIp = *(uint32_t*)he->h_addr;
-	}
-
-	IpNetMask.first = resolvedIp;
-	IpNetMask.second = 0;
-	serverIps.push_back(IpNetMask);
-
-	std::clog << std::endl
-			  << ">> Everything smells good, server is starting up..." << std::endl;
+	std::clog << std::endl << ">> Everything smells good, server is starting up..." << std::endl;
 	g_game.start(services);
 	g_game.setGameState(g_config.getBool(ConfigManager::START_CLOSED) ? GAMESTATE_CLOSED : GAMESTATE_NORMAL);
 	g_loaderSignal.notify_all();

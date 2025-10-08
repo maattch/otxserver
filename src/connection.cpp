@@ -20,52 +20,20 @@
 #include "connection.h"
 
 #include "configmanager.h"
+#include "dispatcher.h"
 #include "outputmessage.h"
 #include "protocol.h"
-#include "scheduler.h"
 #include "server.h"
+#include "tools.h"
 
-#include "otx/util.hpp"
+constexpr uint32_t CONNECTION_READ_TIMEOUT = 30;
+constexpr uint32_t CONNECTION_WRITE_TIMEOUT = 30;
 
-bool ConnectionManager::acceptConnection(uint32_t clientip)
-{
-	std::lock_guard<std::recursive_mutex> lockClass(lock);
-
-	uint64_t currentTime = otx::util::mstime();
-
-	auto it = ipConnectMap.find(clientip);
-	if (it == ipConnectMap.end()) {
-		ipConnectMap.emplace(clientip, ConnectBlock(currentTime, 0, 1));
-		return true;
-	}
-
-	ConnectBlock& connectBlock = it->second;
-	if (connectBlock.blockTime > currentTime) {
-		connectBlock.blockTime += 250;
-		return false;
-	}
-
-	int64_t timeDiff = currentTime - connectBlock.lastAttempt;
-	connectBlock.lastAttempt = currentTime;
-	if (timeDiff <= 5000) {
-		if (++connectBlock.count > 5) {
-			connectBlock.count = 0;
-			if (timeDiff <= 500) {
-				connectBlock.blockTime = currentTime + 3000;
-				return false;
-			}
-		}
-	} else {
-		connectBlock.count = 1;
-	}
-	return true;
-}
-
-Connection_ptr ConnectionManager::createConnection(boost::asio::io_service& io_service, ConstServicePort_ptr servicePort)
+Connection_ptr ConnectionManager::createConnection(boost::asio::io_context& io_context, ConstServicePort_ptr servicePort)
 {
 	std::lock_guard<std::mutex> lockClass(connectionManagerLock);
 
-	auto connection = std::make_shared<Connection>(io_service, servicePort);
+	auto connection = std::make_shared<Connection>(io_context, servicePort);
 	connections.insert(connection);
 	return connection;
 }
@@ -84,32 +52,48 @@ void ConnectionManager::closeAll()
 	for (const auto& connection : connections) {
 		try {
 			boost::system::error_code error;
-			connection->socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
-			connection->socket.close(error);
+			connection->m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
+			connection->m_socket.close(error);
 		} catch (boost::system::system_error&) {
+			//
 		}
 	}
 	connections.clear();
 }
 
 // Connection
+Connection::Connection(boost::asio::io_context& io_context, ConstServicePort_ptr service_port) :
+	m_readTimer(io_context),
+	m_writeTimer(io_context),
+	m_socket(io_context),
+	m_service_port(std::move(service_port)),
+	m_timeConnected(time(nullptr))
+{
+	//
+}
+
+Connection::~Connection()
+{
+	closeSocket();
+}
 
 void Connection::close(bool force)
 {
 	// any thread
 	ConnectionManager::getInstance().releaseConnection(shared_from_this());
 
-	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);
-	if (connectionState != CONNECTION_STATE_OPEN) {
+	std::lock_guard<std::recursive_mutex> lockClass(m_connectionLock);
+	if (m_closed) {
 		return;
 	}
-	connectionState = CONNECTION_STATE_CLOSED;
 
-	if (protocol) {
-		addDispatcherTask([protocol = protocol]() { protocol->release(); });
+	m_closed = true;
+
+	if (m_protocol) {
+		addDispatcherTask([protocol = m_protocol]() { protocol->release(); });
 	}
 
-	if (messageQueue.empty() || force) {
+	if (m_messageQueue.empty() || force) {
 		closeSocket();
 	} else {
 		// will be closed by the destructor or onWriteOperation
@@ -118,232 +102,240 @@ void Connection::close(bool force)
 
 void Connection::closeSocket()
 {
-	if (socket.is_open()) {
+	if (m_socket.is_open()) {
 		try {
-			readTimer.cancel();
-			writeTimer.cancel();
+			m_readTimer.cancel();
+			m_writeTimer.cancel();
 			boost::system::error_code error;
-			socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
-			socket.close(error);
+			m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
+			m_socket.close(error);
 		} catch (boost::system::system_error& e) {
-			std::clog << "[Network error - Connection::closeSocket] " << e.what() << std::endl;
+			std::cout << "[Network error - Connection::closeSocket] " << e.what() << std::endl;
 		}
 	}
 }
 
-Connection::~Connection()
-{
-	closeSocket();
-}
-
 void Connection::accept(Protocol_ptr protocol)
 {
-	this->protocol = protocol;
-	addDispatcherTask([protocol]() { protocol->onConnect(); });
+	m_protocol = protocol;
+	addDispatcherTask([=]() { protocol->onConnect(); });
 	accept();
 }
 
 void Connection::accept()
 {
-	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);
+	std::lock_guard<std::recursive_mutex> lockClass(m_connectionLock);
+
+	boost::system::error_code error;
+	if (auto endpoint = m_socket.remote_endpoint(error); !error) {
+		m_ipAddress = htonl(endpoint.address().to_v4().to_uint());
+	}
+
 	try {
-		readTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_READ_TIMEOUT));
-		readTimer.async_wait(
-			[connection = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
-			Connection::handleTimeout(connection, error);
+		m_readTimer.expires_after(std::chrono::seconds(CONNECTION_READ_TIMEOUT));
+		m_readTimer.async_wait(
+			[thisPtr = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
+			Connection::handleTimeout(thisPtr, error);
 		});
 
 		// Read size of the first packet
-		boost::asio::async_read(socket,
-			boost::asio::buffer(msg.getBuffer(), NetworkMessage::HEADER_LENGTH),
-			[self = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
-			self->parseHeader(error);
+		boost::asio::async_read(m_socket,
+			boost::asio::buffer(m_msg.getBuffer(), NetworkMessage::HEADER_LENGTH),
+			[thisPtr = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
+			thisPtr->parseHeader(error);
 		});
 	} catch (boost::system::system_error& e) {
-		std::clog << "[Network error - Connection::accept] " << e.what() << std::endl;
+		std::cout << "[Network error - Connection::accept] " << e.what() << std::endl;
 		close(FORCE_CLOSE);
 	}
 }
 
 void Connection::parseHeader(const boost::system::error_code& error)
 {
-	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);
-	readTimer.cancel();
+	std::lock_guard<std::recursive_mutex> lockClass(m_connectionLock);
+	m_readTimer.cancel();
 
 	if (error) {
 		close(FORCE_CLOSE);
 		return;
-	} else if (connectionState != CONNECTION_STATE_OPEN) {
+	} else if (m_closed) {
 		return;
 	}
 
-	uint32_t timePassed = std::max<uint32_t>(1, (time(nullptr) - timeConnected) + 1);
-	if ((++packetsSent / timePassed) > static_cast<uint32_t>(g_config.getNumber(ConfigManager::MAX_PACKETS_PER_SECOND))) {
-		std::clog << convertIPAddress(getIP()) << " disconnected for exceeding packet per second limit, increase 'packetsPerSecond' on config.lua to prevent this." << std::endl;
+	const time_t timeNow = time(nullptr);
+	const uint32_t timePassed = std::max<uint32_t>(1, (timeNow - m_timeConnected) + 1);
+	if ((++m_packetsSent / timePassed) > static_cast<uint32_t>(g_config.getNumber(ConfigManager::MAX_PACKETS_PER_SECOND))) {
+		std::cout << convertIPAddress(getIP()) << " disconnected for exceeding packet per second limit." << std::endl;
 		close();
 		return;
 	}
 
 	if (timePassed > 2) {
-		timeConnected = time(nullptr);
-		packetsSent = 0;
+		m_timeConnected = timeNow;
+		m_packetsSent = 0;
 	}
 
-	uint16_t size = msg.getLengthHeader();
+	const uint16_t size = m_msg.getLengthHeader();
 	if (size == 0 || size >= NETWORKMESSAGE_MAXSIZE - 16) {
 		close(FORCE_CLOSE);
 		return;
 	}
 
 	try {
-		readTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_READ_TIMEOUT));
-		readTimer.async_wait(
-			[connection = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
-			Connection::handleTimeout(connection, error);
+		m_readTimer.expires_after(std::chrono::seconds(CONNECTION_READ_TIMEOUT));
+		m_readTimer.async_wait(
+			[thisPtr = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
+			Connection::handleTimeout(thisPtr, error);
 		});
 
 		// Read packet content
-		msg.setLength(size + NetworkMessage::HEADER_LENGTH);
-		boost::asio::async_read(socket, boost::asio::buffer(msg.getBodyBuffer(), size),
-			[self = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
-			self->parsePacket(error);
+		m_msg.setLength(size + NetworkMessage::HEADER_LENGTH);
+		boost::asio::async_read(
+			m_socket,
+			boost::asio::buffer(m_msg.getBodyBuffer(), size),
+			[thisPtr = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
+			thisPtr->parsePacket(error);
 		});
 	} catch (boost::system::system_error& e) {
-		std::clog << "[Network error - Connection::parseHeader] " << e.what() << std::endl;
+		std::cout << "[Network error - Connection::parseHeader] " << e.what() << std::endl;
 		close(FORCE_CLOSE);
 	}
 }
 
 void Connection::parsePacket(const boost::system::error_code& error)
 {
-	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);
-	readTimer.cancel();
+	std::lock_guard<std::recursive_mutex> lockClass(m_connectionLock);
+	m_readTimer.cancel();
 
 	if (error) {
 		close(FORCE_CLOSE);
 		return;
-	} else if (connectionState != CONNECTION_STATE_OPEN) {
+	} else if (m_closed) {
 		return;
 	}
 
 	// Check packet checksum
 	uint32_t checksum;
-	int32_t len = msg.getLength() - msg.getBufferPosition() - NetworkMessage::CHECKSUM_LENGTH;
+	const int32_t len = m_msg.getLength() - m_msg.getBufferPosition() - NetworkMessage::CHECKSUM_LENGTH;
 	if (len > 0) {
-		checksum = adlerChecksum(msg.getBuffer() + msg.getBufferPosition() + NetworkMessage::CHECKSUM_LENGTH, len);
+		checksum = adlerChecksum(m_msg.getBuffer() + m_msg.getBufferPosition() + NetworkMessage::CHECKSUM_LENGTH, len);
 	} else {
 		checksum = 0;
 	}
 
-	uint32_t recvChecksum = msg.get<uint32_t>();
+	const auto recvChecksum = m_msg.get<uint32_t>();
 	if (recvChecksum != checksum) {
 		// it might not have been the checksum, step back
-		msg.skipBytes(-NetworkMessage::CHECKSUM_LENGTH);
+		m_msg.skipBytes(-NetworkMessage::CHECKSUM_LENGTH);
 	}
 
-	if (!receivedFirst) {
-		// First message received
-		receivedFirst = true;
+	if (!m_receivedFirst) {
+		m_receivedFirst = true;
 
-		if (!protocol) {
+		if (!m_protocol) {
 			// Game protocol has already been created at this point
-			protocol = service_port->make_protocol(recvChecksum == checksum, msg, shared_from_this());
-			if (!protocol) {
+			m_protocol = m_service_port->make_protocol(m_msg, shared_from_this(), recvChecksum == checksum);
+			if (!m_protocol) {
 				close(FORCE_CLOSE);
 				return;
 			}
 		} else {
-			msg.skipBytes(1); // Skip protocol ID
+			m_msg.skipBytes(1); // Skip protocol ID
 		}
 
-		protocol->onRecvFirstMessage(msg);
+		m_protocol->onRecvFirstMessage(m_msg);
 	} else {
-		protocol->onRecvMessage(msg); // Send the packet to the current protocol
+		m_protocol->onRecvMessage(m_msg); // Send the packet to the current protocol
 	}
 
 	try {
-		readTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_READ_TIMEOUT));
-		readTimer.async_wait(
-			[connection = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
-			Connection::handleTimeout(connection, error);
+		m_readTimer.expires_after(std::chrono::seconds(CONNECTION_READ_TIMEOUT));
+		m_readTimer.async_wait(
+			[thisPtr = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
+			Connection::handleTimeout(thisPtr, error);
 		});
 
 		// Wait to the next packet
-		boost::asio::async_read(socket,
-			boost::asio::buffer(msg.getBuffer(), NetworkMessage::HEADER_LENGTH),
-			[self = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
-			self->parseHeader(error);
+		boost::asio::async_read(m_socket,
+			boost::asio::buffer(m_msg.getBuffer(), NetworkMessage::HEADER_LENGTH),
+			[thisPtr = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
+			thisPtr->parseHeader(error);
 		});
 	} catch (boost::system::system_error& e) {
-		std::clog << "[Network error - Connection::parsePacket] " << e.what() << std::endl;
+		std::cout << "[Network error - Connection::parsePacket] " << e.what() << std::endl;
 		close(FORCE_CLOSE);
 	}
 }
 
 void Connection::send(const OutputMessage_ptr& msg)
 {
-	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);
-	if (connectionState != CONNECTION_STATE_OPEN) {
+	std::lock_guard<std::recursive_mutex> lockClass(m_connectionLock);
+	if (m_closed) {
 		return;
 	}
 
-	bool noPendingWrite = messageQueue.empty();
-	messageQueue.emplace_back(msg);
+	bool noPendingWrite = m_messageQueue.empty();
+	m_messageQueue.emplace_back(msg);
 	if (noPendingWrite) {
 		internalSend(msg);
 	}
 }
 
-void Connection::internalSend(const OutputMessage_ptr& msg)
-{
-	protocol->onSendMessage(msg);
-	try {
-		writeTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_WRITE_TIMEOUT));
-		writeTimer.async_wait(
-			[connection = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
-			Connection::handleTimeout(connection, error);
-		});
-
-		boost::asio::async_write(socket,
-			boost::asio::buffer(msg->getOutputBuffer(), msg->getLength()),
-			[self = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
-			self->onWriteOperation(error);
-		});
-	} catch (boost::system::system_error& e) {
-		std::clog << "[Network error - Connection::internalSend] " << e.what() << std::endl;
-		close(FORCE_CLOSE);
-	}
-}
-
 uint32_t Connection::getIP()
 {
-	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);
+	if (m_ipAddress != 0) {
+		return m_ipAddress;
+	}
+
+	std::lock_guard<std::recursive_mutex> lockClass(m_connectionLock);
 
 	// IP-address is expressed in network byte order
-	boost::system::error_code error;
-	const boost::asio::ip::tcp::endpoint endpoint = socket.remote_endpoint(error);
-	if (error) {
+	boost::system::error_code ec;
+	const auto endpoint = m_socket.remote_endpoint(ec);
+	if (ec) {
 		return 0;
 	}
 
-	return htonl(endpoint.address().to_v4().to_ulong());
+	m_ipAddress = htonl(endpoint.address().to_v4().to_uint());
+	return m_ipAddress;
+}
+
+void Connection::internalSend(const OutputMessage_ptr& msg)
+{
+	m_protocol->onSendMessage(msg);
+	try {
+		m_writeTimer.expires_after(std::chrono::seconds(CONNECTION_WRITE_TIMEOUT));
+		m_writeTimer.async_wait(
+			[thisPtr = std::weak_ptr<Connection>(shared_from_this())](const boost::system::error_code& error) {
+			Connection::handleTimeout(thisPtr, error);
+		});
+
+		boost::asio::async_write(m_socket,
+			boost::asio::buffer(msg->getOutputBuffer(), msg->getLength()),
+			[thisPtr = shared_from_this()](const boost::system::error_code& error, auto /*bytes_transferred*/) {
+			thisPtr->onWriteOperation(error);
+		});
+	} catch (boost::system::system_error& e) {
+		std::cout << "[Network error - Connection::internalSend] " << e.what() << std::endl;
+		close(FORCE_CLOSE);
+	}
 }
 
 void Connection::onWriteOperation(const boost::system::error_code& error)
 {
-	std::lock_guard<std::recursive_mutex> lockClass(connectionLock);
-	writeTimer.cancel();
-	messageQueue.pop_front();
+	std::lock_guard<std::recursive_mutex> lockClass(m_connectionLock);
+	m_writeTimer.cancel();
+	m_messageQueue.pop_front();
 
 	if (error) {
-		messageQueue.clear();
+		m_messageQueue.clear();
 		close(FORCE_CLOSE);
 		return;
 	}
 
-	if (!messageQueue.empty()) {
-		internalSend(messageQueue.front());
-	} else if (connectionState == CONNECTION_STATE_CLOSED) {
+	if (!m_messageQueue.empty()) {
+		internalSend(m_messageQueue.front());
+	} else if (m_closed) {
 		closeSocket();
 	}
 }

@@ -274,7 +274,6 @@ class ScriptEnvironment final
 {
 public:
 	ScriptEnvironment() = default;
-	~ScriptEnvironment();
 
 	int getScriptId() const { return m_scriptId; };
 	void setScriptId(int scriptId, LuaInterface* interface)

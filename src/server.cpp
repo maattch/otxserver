@@ -21,29 +21,82 @@
 
 #include "configmanager.h"
 #include "scheduler.h"
+#include "otx/util.hpp"
 
-ServiceManager::ServiceManager() :
-	death_timer(io_service),
-	running(false)
+namespace
 {
-	//
-}
 
-ServiceManager::~ServiceManager()
-{
-	stop();
-}
+	struct ConnectBlock
+	{
+		ConnectBlock(int64_t lastAttempt) : lastAttempt(lastAttempt) {}
+
+		int64_t lastAttempt;
+		int64_t blockTime = 0;
+		uint32_t count = 1;
+	};
+
+	bool acceptConnection(uint32_t clientIP)
+	{
+		static std::recursive_mutex mu;
+		static std::map<uint32_t, ConnectBlock> ipConnectMap;
+
+		std::lock_guard lock{ mu };
+
+		const int64_t currentTime = otx::util::mstime();
+
+		auto it = ipConnectMap.find(clientIP);
+		if (it == ipConnectMap.end()) {
+			ipConnectMap.emplace(clientIP, currentTime);
+			return true;
+		}
+
+		ConnectBlock& connectBlock = it->second;
+		if (connectBlock.blockTime > currentTime) {
+			connectBlock.blockTime += 250;
+			return false;
+		}
+
+		const int64_t timeDiff = currentTime - connectBlock.lastAttempt;
+		connectBlock.lastAttempt = currentTime;
+		if (timeDiff <= 5000) {
+			if (++connectBlock.count > 5) {
+				connectBlock.count = 0;
+				if (timeDiff <= 500) {
+					connectBlock.blockTime = currentTime + 3000;
+					return false;
+				}
+			}
+		} else {
+			connectBlock.count = 1;
+		}
+		return true;
+	}
+
+	void openAcceptor(std::weak_ptr<ServicePort> weak_service, uint16_t port)
+	{
+		if (auto service = weak_service.lock()) {
+			service->open(port);
+		}
+	}
+
+} // namespace
+
 
 void ServiceManager::die()
 {
-	io_service.stop();
+	io_context.stop();
 }
 
 void ServiceManager::run()
 {
 	assert(!running);
-	running = true;
-	io_service.run();
+	try {
+		running = true;
+		io_context.run();
+	} catch (...) {
+		running = false;
+		std::cout << "[ServiceManager::run] Exception throw!" << std::endl;
+	}
 }
 
 void ServiceManager::stop()
@@ -56,24 +109,16 @@ void ServiceManager::stop()
 
 	for (auto& servicePortIt : acceptors) {
 		try {
-			io_service.post([servicePort = servicePortIt.second]() { servicePort->onStopServer(); });
+			boost::asio::post(io_context, [servicePort = servicePortIt.second]() { servicePort->onStopServer(); });
 		} catch (boost::system::system_error& e) {
-			std::clog << "[ServiceManager::stop] Network Error: " << e.what() << std::endl;
+			std::cout << "[ServiceManager::stop] Network Error: " << e.what() << std::endl;
 		}
 	}
 
 	acceptors.clear();
 
-	death_timer.expires_from_now(boost::posix_time::seconds(3));
+	death_timer.expires_after(std::chrono::seconds(3));
 	death_timer.async_wait([this](const boost::system::error_code&) { die(); });
-}
-
-ServicePort::ServicePort(boost::asio::io_service& io_service) :
-	io_service(io_service),
-	serverPort(0),
-	pendingStart(false)
-{
-	//
 }
 
 ServicePort::~ServicePort()
@@ -107,10 +152,9 @@ void ServicePort::accept()
 		return;
 	}
 
-	auto connection = ConnectionManager::getInstance().createConnection(io_service, shared_from_this());
-	acceptor->async_accept(connection->getSocket(), ([self = shared_from_this(), connection](const boost::system::error_code& error) {
-		self->onAccept(connection, error);
-	}));
+	auto connection = ConnectionManager::getInstance().createConnection(io_context, shared_from_this());
+	acceptor->async_accept(connection->getSocket(),
+		[connection, thisPtr = shared_from_this()](const boost::system::error_code& error) { thisPtr->onAccept(connection, error); });
 }
 
 void ServicePort::onAccept(Connection_ptr connection, const boost::system::error_code& error)
@@ -120,8 +164,8 @@ void ServicePort::onAccept(Connection_ptr connection, const boost::system::error
 			return;
 		}
 
-		auto remote_ip = connection->getIP();
-		if (remote_ip != 0 && ConnectionManager::getInstance().acceptConnection(remote_ip)) {
+		uint32_t remote_ip = connection->getIP();
+		if (remote_ip != 0 && acceptConnection(remote_ip)) {
 			Service_ptr service = services.front();
 			if (service->is_single_socket()) {
 				connection->accept(service->make_protocol(connection));
@@ -137,16 +181,15 @@ void ServicePort::onAccept(Connection_ptr connection, const boost::system::error
 		if (!pendingStart) {
 			close();
 			pendingStart = true;
-			addSchedulerTask(15000, ([service = std::weak_ptr<ServicePort>(shared_from_this()), port = serverPort]() {
-				ServicePort::openAcceptor(service, port);
-			}));
+			g_scheduler.addEvent(createSchedulerTask(15000,
+				([port = serverPort, service = std::weak_ptr<ServicePort>(shared_from_this())]() { ::openAcceptor(service, port); })));
 		}
 	}
 }
 
-Protocol_ptr ServicePort::make_protocol(bool checksummed, NetworkMessage& msg, const Connection_ptr& connection) const
+Protocol_ptr ServicePort::make_protocol(NetworkMessage& msg, const Connection_ptr& connection, bool checksummed) const
 {
-	uint8_t protocolID = msg.getByte();
+	const uint8_t protocolID = msg.getByte();
 	for (auto& service : services) {
 		if (protocolID != service->get_protocol_identifier()) {
 			continue;
@@ -164,15 +207,10 @@ void ServicePort::onStopServer()
 	close();
 }
 
-void ServicePort::openAcceptor(std::weak_ptr<ServicePort> weak_service, uint16_t port)
-{
-	if (auto service = weak_service.lock()) {
-		service->open(port);
-	}
-}
-
 void ServicePort::open(uint16_t port)
 {
+	namespace ip = boost::asio::ip;
+
 	close();
 
 	serverPort = port;
@@ -180,22 +218,20 @@ void ServicePort::open(uint16_t port)
 
 	try {
 		if (g_config.getBool(ConfigManager::BIND_ONLY_GLOBAL_ADDRESS)) {
-			acceptor.reset(new boost::asio::ip::tcp::acceptor(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::address(boost::asio::ip::address_v4::from_string(g_config.getString(ConfigManager::IP))), serverPort)));
+			acceptor.reset(new ip::tcp::acceptor(io_context, ip::tcp::endpoint(ip::make_address_v4(g_config.getString(ConfigManager::IP)), serverPort)));
 		} else {
-			acceptor.reset(new boost::asio::ip::tcp::acceptor(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::address(boost::asio::ip::address_v4(INADDR_ANY)), serverPort)));
+			acceptor.reset(new ip::tcp::acceptor(io_context, ip::tcp::endpoint(ip::make_address_v4(INADDR_ANY), serverPort)));
 		}
 
-		acceptor->set_option(boost::asio::ip::tcp::no_delay(true));
+		acceptor->set_option(ip::tcp::no_delay(true));
 
 		accept();
 	} catch (boost::system::system_error& e) {
-		std::clog << "[ServicePort::open] Error: " << e.what() << std::endl;
-		std::clog << "if bind adress already in use, send cmd 'killall -9 theotxserver'." << std::endl;
+		std::cout << "[ServicePort::open] Error: " << e.what() << std::endl;
 
 		pendingStart = true;
-		addSchedulerTask(15000, ([service = std::weak_ptr<ServicePort>(shared_from_this()), port]() {
-			ServicePort::openAcceptor(service, port);
-		}));
+		g_scheduler.addEvent(createSchedulerTask(15000,
+			([port, service = std::weak_ptr<ServicePort>(shared_from_this())]() { ::openAcceptor(service, port); })));
 	}
 }
 

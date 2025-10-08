@@ -48,10 +48,11 @@ typedef std::list<MonsterSpawn*> MonsterSpawnList;
 #define MAX_ITEM_CHANCE 100000
 #define RAID_MINTICKS 100
 
-class Raids
+class Raids final
 {
 public:
-	virtual ~Raids() { clear(); }
+	~Raids();
+
 	static Raids* getInstance()
 	{
 		static Raids instance;

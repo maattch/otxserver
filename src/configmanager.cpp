@@ -111,14 +111,7 @@ namespace
 
 ConfigManager::ConfigManager()
 {
-	m_loaded = false;
-	m_startup = true;
-
 	m_confString[CONFIG_FILE] = getFilePath(FILE_TYPE_CONFIG, "config.lua");
-
-	m_confNumber[LOGIN_PORT] = m_confNumber[STATUS_PORT] = 0;
-	m_confString[DATA_DIRECTORY] = m_confString[LOGS_DIRECTORY] = m_confString[IP] = m_confString[RUNFILE] = m_confString[OUTPUT_LOG] = "";
-	m_confBool[LOGIN_ONLY_LOGINSERVER] = m_confBool[START_CLOSED] = m_confBool[DAEMONIZE] = false;
 }
 
 bool ConfigManager::load()
@@ -142,16 +135,31 @@ bool ConfigManager::load()
 
 	if (!m_loaded) {
 		// info that must be loaded one time- unless we reset the modules involved
+		if (m_confString[IP] == "") {
+			m_confString[IP] = getConfigString(L, "ip", "127.0.0.1");
+		}
+
+		// Convert ip string to number
+		std::string ipString = m_confString[IP];
+		IP_NUMBER = inet_addr(ipString.data());
+		if (IP_NUMBER == INADDR_NONE) {
+			if (hostent* hostname = gethostbyname(ipString.data())) {
+				ipString = std::string(inet_ntoa(**reinterpret_cast<in_addr**>(hostname->h_addr_list)));
+				IP_NUMBER = inet_addr(ipString.data());
+			}
+		}
+
+		if (IP_NUMBER == INADDR_NONE) {
+			std::cout << "[Error - ConfigManager::load] Cannot resolve given ip address, make sure you typed correct IP or hostname." << std::endl;
+			return false;
+		}
+
 		if (m_confString[DATA_DIRECTORY] == "") {
 			m_confString[DATA_DIRECTORY] = getConfigString(L, "dataDirectory", "data/");
 		}
 
 		if (m_confString[LOGS_DIRECTORY] == "") {
 			m_confString[LOGS_DIRECTORY] = getConfigString(L, "logsDirectory", "logs/");
-		}
-
-		if (m_confString[IP] == "") {
-			m_confString[IP] = getConfigString(L, "ip", "127.0.0.1");
 		}
 
 		if (m_confNumber[LOGIN_PORT] == 0) {
@@ -507,7 +515,6 @@ const std::string& ConfigManager::getString(uint32_t _what) const
 	if (!m_startup) {
 		std::clog << "[Warning - ConfigManager::getString] " << _what << std::endl;
 	}
-
 	return m_confString[DUMMY_STR];
 }
 
@@ -520,7 +527,6 @@ bool ConfigManager::getBool(uint32_t _what) const
 	if (!m_startup) {
 		std::clog << "[Warning - ConfigManager::getBool] " << _what << std::endl;
 	}
-
 	return false;
 }
 
@@ -533,7 +539,6 @@ int64_t ConfigManager::getNumber(uint32_t _what) const
 	if (!m_startup) {
 		std::clog << "[Warning - ConfigManager::getNumber] " << _what << std::endl;
 	}
-
 	return 0;
 }
 
@@ -546,7 +551,6 @@ double ConfigManager::getDouble(uint32_t _what) const
 	if (!m_startup) {
 		std::clog << "[Warning - ConfigManager::getDouble] " << _what << std::endl;
 	}
-
 	return 0;
 }
 

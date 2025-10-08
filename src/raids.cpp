@@ -51,6 +51,20 @@ Raids::Raids()
 	lastRaidEnd = checkRaidsEvent = 0;
 }
 
+Raids::~Raids()
+{
+	g_scheduler.stopEvent(checkRaidsEvent);
+	checkRaidsEvent = lastRaidEnd = 0;
+	loaded = started = false;
+
+	running = nullptr;
+	for (RaidList::iterator it = raidList.begin(); it != raidList.end(); ++it) {
+		delete (*it);
+	}
+
+	raidList.clear();
+}
+
 bool Raids::parseRaidNode(xmlNodePtr raidNode, bool checkDuplicate, FileType_t pathing)
 {
 	if (xmlStrcmp(raidNode->name, (const xmlChar*)"raid")) {

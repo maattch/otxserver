@@ -7042,6 +7042,9 @@ void Game::shutdown()
 		services->stop();
 	}
 
+	ConnectionManager::getInstance().closeAll();
+	g_lua.collectGarbage();
+
 	std::clog << "(done)." << std::endl;
 }
 

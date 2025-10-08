@@ -27,11 +27,8 @@
 #include "iologindata.h"
 #include "outputmessage.h"
 
-extern std::list<std::pair<uint32_t, uint32_t>> serverIps;
-
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 uint32_t ProtocolLogin::protocolLoginCount = 0;
-
 #endif
 
 void ProtocolLogin::disconnectClient(uint8_t error, const char* message)
@@ -138,17 +135,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	OutputMessage_ptr output = OutputMessagePool::getOutputMessage();
-
 	output->addByte(0x14);
-	uint32_t serverIp = serverIps.front().first;
-	for (std::list<std::pair<uint32_t, uint32_t>>::iterator it = serverIps.begin(); it != serverIps.end(); ++it) {
-		if ((it->first & it->second) != (clientIp & it->second)) {
-			continue;
-		}
-
-		serverIp = it->first;
-		break;
-	}
 
 	char motd[1300];
 	if (account.name == "10" && account.name != "0") {
@@ -189,7 +176,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 				output->addString(player->getName());
 				output->addString(s.str());
-				output->add<uint32_t>(serverIp);
+				output->add<uint32_t>(g_config.getIPNumber());
 
 				IntegerVec games = vectorAtoi(explodeString(g_config.getString(ConfigManager::GAME_PORT), ","));
 				output->add<uint16_t>(games[random_range(0, games.size() - 1)]);
@@ -201,7 +188,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 			output->addString("Account Manager");
 
 			output->addString(g_config.getString(ConfigManager::SERVER_NAME));
-			output->add<uint32_t>(serverIp);
+			output->add<uint32_t>(g_config.getIPNumber());
 
 			IntegerVec games = vectorAtoi(explodeString(g_config.getString(ConfigManager::GAME_PORT), ","));
 			output->add<uint16_t>(games[random_range(0, games.size() - 1)]);
@@ -221,7 +208,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 				output->addString(g_config.getString(ConfigManager::SERVER_NAME));
 			}
 
-			output->add<uint32_t>(serverIp);
+			output->add<uint32_t>(g_config.getIPNumber());
 			IntegerVec games = vectorAtoi(explodeString(g_config.getString(ConfigManager::GAME_PORT), ","));
 			output->add<uint16_t>(games[random_range(0, games.size() - 1)]);
 		}
