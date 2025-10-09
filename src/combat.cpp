@@ -218,7 +218,7 @@ ConditionType_t Combat::DamageToConditionType(CombatType_t type)
 	return CONDITION_NONE;
 }
 
-ReturnValue Combat::canDoCombat(const Creature* caster, const Tile* tile, bool isAggressive, bool createItem)
+ReturnValue Combat::canDoCombat(const Creature* caster, const Tile* tile, bool isAggressive)
 {
 	if (tile->hasProperty(BLOCKPROJECTILE) || tile->floorChange() || tile->getTeleportItem()) {
 		return RET_NOTENOUGHROOM;
@@ -862,7 +862,7 @@ void Combat::CombatFunc(Creature* caster, const Position& pos, const CombatArea*
 
 	Tile* tile = nullptr;
 	for (std::list<Tile*>::iterator it = tileList.begin(); it != tileList.end(); ++it) {
-		if (!(tile = (*it)) || canDoCombat(caster, (*it), params.isAggressive, params.itemId != 0) != RET_NOERROR) {
+		if (!(tile = (*it)) || canDoCombat(caster, (*it), params.isAggressive) != RET_NOERROR) {
 			continue;
 		}
 
@@ -1345,7 +1345,6 @@ void CombatArea::copyArea(const MatrixArea* input, MatrixArea* output, MatrixOpe
 		output->setCenter((input->getCols() - 1) - centerY, centerX);
 	} else // rotation
 	{
-		uint16_t centerX, centerY;
 		input->getCenter(centerY, centerX);
 
 		int32_t rotateCenterX = (output->getCols() / 2) - 1, rotateCenterY = (output->getRows() / 2) - 1, angle = 0;
@@ -1565,7 +1564,7 @@ void MagicField::onStepInField(Creature* creature)
 	}
 
 	// remove magic walls/wild growth
-	if (isUnstepable() || id == ITEM_MAGICWALL || id == ITEM_WILDGROWTH || id == ITEM_MAGICWALL_SAFE || id == ITEM_WILDGROWTH_SAFE || isBlocking(creature)) {
+	if (isUnstepable() || m_id == ITEM_MAGICWALL || m_id == ITEM_WILDGROWTH || m_id == ITEM_MAGICWALL_SAFE || m_id == ITEM_WILDGROWTH_SAFE || isBlocking(creature)) {
 		if (!creature->isGhost()) {
 			g_game.internalRemoveItem(creature, this, 1);
 		}
@@ -1573,7 +1572,7 @@ void MagicField::onStepInField(Creature* creature)
 		return;
 	}
 
-	const ItemType& it = items[id];
+	const ItemType& it = items[m_id];
 	if (!it.condition) {
 		return;
 	}

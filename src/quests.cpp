@@ -28,8 +28,8 @@ bool Mission::isStarted(Player* player)
 	}
 
 	std::string value;
-	player->getStorage(storageId, value);
-	return atoi(value.c_str()) >= startValue;
+	player->getStorage(m_storageId, value);
+	return atoi(value.c_str()) >= m_startValue;
 }
 
 bool Mission::isCompleted(Player* player)
@@ -39,8 +39,8 @@ bool Mission::isCompleted(Player* player)
 	}
 
 	std::string value;
-	player->getStorage(storageId, value);
-	return atoi(value.c_str()) >= endValue;
+	player->getStorage(m_storageId, value);
+	return atoi(value.c_str()) >= m_endValue;
 }
 
 std::string Mission::parseStorages(std::string state, std::string value, Player* player)
@@ -53,9 +53,9 @@ std::string Mission::parseStorages(std::string state, std::string value, Player*
 		}
 
 		length = end - nStart;
-		std::string value, storage = state.substr(nStart, length);
-		player->getStorage(storage, value);
-		state.replace(start, (end - start + 1), value);
+		std::string svalue, storage = state.substr(nStart, length);
+		player->getStorage(storage, svalue);
+		state.replace(start, (end - start + 1), svalue);
 	}
 
 	otx::util::replace_all(state, "|STATE|", value);
@@ -70,27 +70,27 @@ std::string Mission::getDescription(Player* player)
 	}
 
 	std::string value;
-	player->getStorage(storageId, value);
-	if (!states.empty()) {
+	player->getStorage(m_storageId, value);
+	if (!m_states.empty()) {
 		int32_t cmp = atoi(value.c_str());
-		if (cmp >= endValue) {
-			return parseStorages(states.rbegin()->second, value, player);
+		if (cmp >= m_endValue) {
+			return parseStorages(m_states.rbegin()->second, value, player);
 		}
 
-		for (int32_t i = (endValue - 1); i >= startValue; --i) {
+		for (int32_t i = (m_endValue - 1); i >= m_startValue; --i) {
 			if (cmp != i) {
 				continue;
 			}
 
-			std::string tmp = states[i];
+			std::string tmp = m_states[i];
 			if (!tmp.empty()) {
 				return parseStorages(tmp, value, player);
 			}
 		}
 	}
 
-	if (state.size()) {
-		return parseStorages(state, value, player);
+	if (m_state.size()) {
+		return parseStorages(m_state, value, player);
 	}
 
 	return "Couldn't retrieve any mission description, please report to a gamemaster.";
@@ -98,11 +98,11 @@ std::string Mission::getDescription(Player* player)
 
 Quest::~Quest()
 {
-	for (MissionList::iterator it = missions.begin(); it != missions.end(); ++it) {
+	for (MissionList::iterator it = m_missions.begin(); it != m_missions.end(); ++it) {
 		delete (*it);
 	}
 
-	missions.clear();
+	m_missions.clear();
 }
 
 bool Quest::isStarted(Player* player)
@@ -111,15 +111,15 @@ bool Quest::isStarted(Player* player)
 		return false;
 	}
 
-	for (MissionList::const_iterator it = missions.begin(); it != missions.end(); ++it) {
+	for (MissionList::const_iterator it = m_missions.begin(); it != m_missions.end(); ++it) {
 		if ((*it)->isStarted(player)) {
 			return true;
 		}
 	}
 
 	std::string value;
-	player->getStorage(storageId, value);
-	return atoi(value.c_str()) >= storageValue;
+	player->getStorage(m_storageId, value);
+	return atoi(value.c_str()) >= m_storageValue;
 }
 
 bool Quest::isCompleted(Player* player) const
@@ -128,7 +128,7 @@ bool Quest::isCompleted(Player* player) const
 		return false;
 	}
 
-	for (MissionList::const_iterator it = missions.begin(); it != missions.end(); ++it) {
+	for (MissionList::const_iterator it = m_missions.begin(); it != m_missions.end(); ++it) {
 		if (!(*it)->isCompleted(player)) {
 			return false;
 		}
@@ -144,7 +144,7 @@ uint16_t Quest::getMissionCount(Player* player)
 	}
 
 	uint16_t count = 0;
-	for (MissionList::iterator it = missions.begin(); it != missions.end(); ++it) {
+	for (MissionList::iterator it = m_missions.begin(); it != m_missions.end(); ++it) {
 		if ((*it)->isStarted(player)) {
 			count++;
 		}
@@ -155,11 +155,11 @@ uint16_t Quest::getMissionCount(Player* player)
 
 void Quests::clear()
 {
-	for (QuestList::iterator it = quests.begin(); it != quests.end(); ++it) {
+	for (QuestList::iterator it = m_quests.begin(); it != m_quests.end(); ++it) {
 		delete (*it);
 	}
 
-	quests.clear();
+	m_quests.clear();
 }
 
 bool Quests::reload()
@@ -300,7 +300,7 @@ bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 	}
 
 	if (checkDuplicate) {
-		for (QuestList::iterator it = quests.begin(); it != quests.end(); ++it) {
+		for (QuestList::iterator it = m_quests.begin(); it != m_quests.end(); ++it) {
 			if ((*it)->getName() == name) {
 				delete *it;
 			}
@@ -308,14 +308,14 @@ bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 	}
 
 	m_lastId++;
-	quests.push_back(quest);
+	m_quests.push_back(quest);
 	return true;
 }
 
 bool Quests::isQuestStorage(const std::string& key, const std::string& value, bool notification) const
 {
 	int32_t _value = atoi(value.c_str());
-	for (QuestList::const_iterator it = quests.begin(); it != quests.end(); ++it) {
+	for (QuestList::const_iterator it = m_quests.begin(); it != m_quests.end(); ++it) {
 		if (value.empty()) {
 			if ((*it)->getStorageId() == key) {
 				return true;
@@ -349,7 +349,7 @@ uint16_t Quests::getQuestCount(Player* player)
 	}
 
 	uint16_t count = 0;
-	for (QuestList::iterator it = quests.begin(); it != quests.end(); ++it) {
+	for (QuestList::iterator it = m_quests.begin(); it != m_quests.end(); ++it) {
 		if ((*it)->isStarted(player)) {
 			count++;
 		}
@@ -360,7 +360,7 @@ uint16_t Quests::getQuestCount(Player* player)
 
 Quest* Quests::getQuestById(uint16_t id) const
 {
-	for (QuestList::const_iterator it = quests.begin(); it != quests.end(); ++it) {
+	for (QuestList::const_iterator it = m_quests.begin(); it != m_quests.end(); ++it) {
 		if ((*it)->getId() == id) {
 			return (*it);
 		}

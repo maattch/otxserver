@@ -163,7 +163,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	if (account.name == "10" && account.name != "0") {
 		std::vector<Player*> players;
 		for (const auto& it : g_game.getPlayers()) {
-			if (it.second->client->isBroadcasting()) {
+			if (it.second->m_client->isBroadcasting()) {
 				players.push_back(it.second);
 			}
 		}
@@ -179,8 +179,8 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 			output->addByte(players.size());
 			for (Player* player : players) {
 				std::ostringstream s;
-				s << "L." << player->getLevel() << " | " << player->client->list().size() << "/50";
-				if (!player->client->check(password)) {
+				s << "L." << player->getLevel() << " | " << player->m_client->list().size() << "/50";
+				if (!player->m_client->check(password)) {
 					s << " *";
 				}
 

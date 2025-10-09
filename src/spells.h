@@ -106,8 +106,8 @@ private:
 	std::string getScriptEventName() const override { return "onCastSpell"; }
 
 	Combat* combat;
-	bool needDirection;
 	bool needTarget;
+	bool needDirection;
 };
 
 class Spell : public BaseSpell

@@ -705,7 +705,7 @@ std::string formatDateEx(time_t _time /* = 0*/, std::string format /* = "%d %b %
 	return buffer;
 }
 
-std::string formatTime(time_t _time /* = 0*/, bool ms /* = false*/)
+std::string formatTime()
 {
 	using namespace std::chrono;
 

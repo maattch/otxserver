@@ -28,27 +28,27 @@ class Thing
 {
 protected:
 	Thing() :
-		parent(nullptr),
-		refCount(0) {}
+		m_parent(nullptr),
+		m_refCount(0) {}
 
 public:
 	virtual ~Thing() {}
 
-	void addRef() { ++refCount; }
+	void addRef() { ++m_refCount; }
 	void unRef()
 	{
-		--refCount;
-		if (!refCount) {
+		--m_refCount;
+		if (!m_refCount) {
 			delete this;
 		}
 	}
 
 	virtual std::string getDescription(int32_t lookDistance) const = 0;
 
-	Cylinder* getParent() { return parent; }
-	const Cylinder* getParent() const { return parent; }
+	Cylinder* getParent() { return m_parent; }
+	const Cylinder* getParent() const { return m_parent; }
 
-	virtual void setParent(Cylinder* cylinder) { parent = cylinder; }
+	virtual void setParent(Cylinder* cylinder) { m_parent = cylinder; }
 
 	Cylinder* getTopParent();
 	const Cylinder* getTopParent() const;
@@ -68,6 +68,6 @@ public:
 	virtual bool isRemoved() const;
 
 private:
-	Cylinder* parent;
-	int16_t refCount;
+	Cylinder* m_parent;
+	int16_t m_refCount;
 };

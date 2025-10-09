@@ -177,8 +177,8 @@ public:
 	Creature* getBottomVisibleCreature(const Creature* creature);
 	const Creature* getBottomVisibleCreature(const Creature* creature) const;
 
-	uint32_t getThingCount() const { return thingCount; }
-	void updateThingCount(int32_t amount) { thingCount += amount; }
+	uint32_t getThingCount() const { return m_thingCount; }
+	void updateThingCount(int32_t amount) { m_thingCount += amount; }
 
 	uint32_t getCreatureCount() const;
 	uint32_t getItemCount() const;
@@ -251,7 +251,7 @@ public:
 	virtual Cylinder* getParent() { return nullptr; }
 	virtual const Cylinder* getParent() const { return nullptr; }
 	virtual bool isRemoved() const { return false; }
-	virtual Position getPosition() const { return pos; }
+	virtual Position getPosition() const { return m_pos; }
 	virtual Tile* getTile() { return this; }
 	virtual const Tile* getTile() const { return this; }
 	virtual Item* getItem() { return nullptr; }
@@ -277,7 +277,7 @@ public:
 
 	virtual int32_t __getIndexOfThing(const Thing* thing) const;
 	virtual int32_t __getFirstIndex() const { return 0; }
-	virtual int32_t __getLastIndex() const { return thingCount; }
+	virtual int32_t __getLastIndex() const { return m_thingCount; }
 
 	virtual Thing* __getThing(uint32_t index) const;
 	virtual uint32_t __getItemTypeCount(uint16_t itemId, int32_t subType = -1) const;
@@ -306,8 +306,8 @@ public:
 	Item* ground;
 
 protected:
-	Position pos;
-	uint32_t m_flags, thingCount;
+	Position m_pos;
+	uint32_t m_flags, m_thingCount;
 };
 
 // Used for walkable tiles, where there is high likeliness of
@@ -354,9 +354,9 @@ public:
 inline Tile::Tile(uint16_t x, uint16_t y, uint16_t z) :
 	qt_node(nullptr),
 	ground(nullptr),
-	pos(x, y, z),
+	m_pos(x, y, z),
 	m_flags(0),
-	thingCount(0)
+	m_thingCount(0)
 {}
 
 inline Tile::~Tile()

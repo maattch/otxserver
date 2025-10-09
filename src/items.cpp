@@ -118,7 +118,6 @@ bool Items::loadFromOtb(const std::string& file)
 	}
 
 	for (node = f.getChildNode(node, type); node != NO_NODE; node = f.getNextNode(node, type)) {
-		PropStream props;
 		if (!f.getProps(node, props)) {
 			return false;
 		}
@@ -308,8 +307,6 @@ bool Items::loadFromXml()
 	}
 
 	std::string strValue, endValue;
-
-	int32_t id = 0, endId = 0, fromId = 0, toId = 0;
 	for (xmlNodePtr node = root->children; node; node = node->next) {
 		if (xmlStrcmp(node->name, (const xmlChar*)"item")) {
 			continue;
@@ -1367,8 +1364,8 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 								if (start > 0) {
 									std::list<int32_t> damageList;
 									ConditionDamage::generateDamageList(damage, start, damageList);
-									for (std::list<int32_t>::iterator it = damageList.begin(); it != damageList.end(); ++it) {
-										conditionDamage->addDamage(1, ticks, -*it);
+									for (int32_t value : damageList) {
+										conditionDamage->addDamage(1, ticks, -value);
 									}
 
 									start = 0;

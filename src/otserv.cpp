@@ -426,7 +426,6 @@ void otserv(ServiceManager* services)
 	std::clog << ">> Checking for duplicated items" << std::endl;
 	std::ostringstream query;
 	query << "SELECT unitedItems.serial, COUNT(1) AS duplicatesCount FROM (SELECT serial FROM `player_items` UNION ALL SELECT serial FROM `player_depotitems` UNION ALL SELECT serial FROM `tile_items`) unitedItems GROUP BY unitedItems.serial HAVING COUNT(1) > 1;";
-	std::string logText = "";
 
 	DBResultPtr result;
 	bool duplicated = false;

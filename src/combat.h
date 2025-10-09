@@ -311,7 +311,7 @@ public:
 	static ConditionType_t DamageToConditionType(CombatType_t type);
 
 	static ReturnValue canTargetCreature(const Player* attacker, const Creature* target);
-	static ReturnValue canDoCombat(const Creature* caster, const Tile* tile, bool isAggressive, bool createItem);
+	static ReturnValue canDoCombat(const Creature* caster, const Tile* tile, bool isAggressive);
 	static ReturnValue canDoCombat(const Creature* attacker, const Creature* target, bool isAggressive);
 
 	static void postCombatEffects(Creature* caster, const Position& pos, const CombatParams& params);
@@ -378,11 +378,11 @@ public:
 
 	virtual bool isBlocking(const Creature* creature) const;
 
-	bool isReplacable() const { return Item::items[id].replacable; }
-	bool isUnstepable() const { return id == ITEM_MAGICWALL_SAFE || id == ITEM_WILDGROWTH_SAFE; }
+	bool isReplacable() const { return Item::items[m_id].replacable; }
+	bool isUnstepable() const { return m_id == ITEM_MAGICWALL_SAFE || m_id == ITEM_WILDGROWTH_SAFE; }
 	CombatType_t getCombatType() const
 	{
-		const ItemType& it = items[id];
+		const ItemType& it = items[m_id];
 		return it.combatType;
 	}
 

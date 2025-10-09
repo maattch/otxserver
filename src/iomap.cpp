@@ -274,7 +274,6 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 					}
 
 					// read tile attributes
-					uint8_t attribute = 0;
 					while (propStream.getByte(attribute)) {
 						switch (attribute) {
 							case OTBM_ATTR_TILE_FLAGS: {
@@ -395,7 +394,6 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 					NODE nodeItem = f.getChildNode(nodeTile, type);
 					while (nodeItem) {
 						if (type == OTBM_ITEM) {
-							PropStream propStream;
 							f.getProps(nodeItem, propStream);
 
 							Item* item = Item::CreateItem(propStream);

@@ -177,7 +177,7 @@ bool Item::loadContainer(xmlNodePtr parentNode, Container* parent)
 
 Item::Item(const uint16_t type, uint16_t amount /* = 0*/) :
 	ItemAttributes(),
-	id(type)
+	m_id(type)
 {
 	setItemCount(1);
 	setDefaultDuration();
@@ -228,7 +228,7 @@ Item::Item(const uint16_t type, uint16_t amount /* = 0*/) :
 
 Item* Item::clone() const
 {
-	Item* tmp = Item::CreateItem(id, count);
+	Item* tmp = Item::CreateItem(m_id, m_count);
 	if (!tmp) {
 		return nullptr;
 	}
@@ -252,7 +252,7 @@ void Item::copyAttributes(Item* item)
 	}
 
 	eraseAttribute("decaying");
-	duration = 0;
+	m_duration = 0;
 }
 
 void Item::makeUnique(Item* parent)
@@ -273,9 +273,9 @@ void Item::makeUnique(Item* parent)
 
 void Item::onRemoved()
 {
-	if (raid) {
-		raid->unRef();
-		raid = nullptr;
+	if (m_raid) {
+		m_raid->unRef();
+		m_raid = nullptr;
 	}
 
 	otx::lua::removeTempItem(this);
@@ -289,7 +289,7 @@ void Item::onRemoved()
 void Item::setDefaultSubtype()
 {
 	setItemCount(1);
-	const ItemType& it = items[id];
+	const ItemType& it = items[m_id];
 	if (it.charges) {
 		setCharges(it.charges);
 	}
@@ -298,17 +298,17 @@ void Item::setDefaultSubtype()
 void Item::setID(uint16_t newId)
 {
 	const ItemType& it = Item::items[newId];
-	const ItemType& pit = Item::items[id];
-	id = newId;
+	const ItemType& pit = Item::items[m_id];
+	m_id = newId;
 
 	uint32_t newDuration = it.decayTime * 1000;
 	if (!newDuration && !it.stopTime && it.decayTo == -1) {
 		eraseAttribute("decaying");
-		duration = -1;
+		m_duration = -1;
 	}
 
 	eraseAttribute("corpseowner");
-	if (newDuration > 0 && (!pit.stopTime || duration == 0)) {
+	if (newDuration > 0 && (!pit.stopTime || m_duration == 0)) {
 		setDecaying(DECAYING_FALSE);
 		setDuration(newDuration);
 	}
@@ -317,11 +317,11 @@ void Item::setID(uint16_t newId)
 bool Item::floorChange(FloorChange_t change /* = CHANGE_NONE*/) const
 {
 	if (change < CHANGE_NONE) {
-		return Item::items[id].floorChange[change];
+		return Item::items[m_id].floorChange[change];
 	}
 
 	for (int32_t i = CHANGE_PRE_FIRST; i < CHANGE_LAST; ++i) {
-		if (Item::items[id].floorChange[i]) {
+		if (Item::items[m_id].floorChange[i]) {
 			return true;
 		}
 	}
@@ -347,7 +347,7 @@ const Player* Item::getHoldingPlayer() const
 
 uint16_t Item::getSubType() const
 {
-	const ItemType& it = items[id];
+	const ItemType& it = items[m_id];
 	if (it.isFluidContainer() || it.isSplash()) {
 		return getFluidType();
 	}
@@ -356,18 +356,18 @@ uint16_t Item::getSubType() const
 		return getCharges();
 	}
 
-	return count;
+	return m_count;
 }
 
 void Item::setSubType(uint16_t n)
 {
-	const ItemType& it = items[id];
+	const ItemType& it = items[m_id];
 	if (it.isFluidContainer() || it.isSplash()) {
 		setFluidType(n);
 	} else if (it.charges) {
 		setCharges(n);
 	} else {
-		count = n;
+		m_count = n;
 	}
 }
 
@@ -611,7 +611,7 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			}
 
 			// setAttribute("duration", duration);
-			this->duration = duration;
+			m_duration = duration;
 			break;
 		}
 
@@ -739,9 +739,9 @@ bool Item::serializeAttr(PropWriteStream& propWriteStream) const
 		propWriteStream.addByte((uint8_t)getSubType());
 	}
 
-	if (duration != 0) {
+	if (m_duration != 0) {
 		propWriteStream.addByte(ATTR_DURATION);
-		propWriteStream.addType(duration);
+		propWriteStream.addType(m_duration);
 	}
 
 	if (attributes && !attributes->empty()) {
@@ -754,7 +754,7 @@ bool Item::serializeAttr(PropWriteStream& propWriteStream) const
 
 bool Item::hasProperty(enum ITEMPROPERTY prop) const
 {
-	const ItemType& it = items[id];
+	const ItemType& it = items[m_id];
 	switch (prop) {
 		case BLOCKSOLID:
 			if (it.blockSolid) {
@@ -764,7 +764,7 @@ bool Item::hasProperty(enum ITEMPROPERTY prop) const
 			break;
 
 		case MOVABLE:
-			if (it.movable && (!loadedFromMap || (!getUniqueId() && (!getActionId() || !getContainer())))) {
+			if (it.movable && (!m_loadedFromMap || (!getUniqueId() && (!getActionId() || !getContainer())))) {
 				return true;
 			}
 
@@ -806,14 +806,14 @@ bool Item::hasProperty(enum ITEMPROPERTY prop) const
 			break;
 
 		case IMMOVABLEBLOCKSOLID:
-			if (it.blockSolid && (!it.movable || (loadedFromMap && (getUniqueId() || (getActionId() && getContainer()))))) {
+			if (it.blockSolid && (!it.movable || (m_loadedFromMap && (getUniqueId() || (getActionId() && getContainer()))))) {
 				return true;
 			}
 
 			break;
 
 		case IMMOVABLEBLOCKPATH:
-			if (it.blockPathFind && (!it.movable || (loadedFromMap && (getUniqueId() || (getActionId() && getContainer()))))) {
+			if (it.blockPathFind && (!it.movable || (m_loadedFromMap && (getUniqueId() || (getActionId() && getContainer()))))) {
 				return true;
 			}
 
@@ -827,7 +827,7 @@ bool Item::hasProperty(enum ITEMPROPERTY prop) const
 			break;
 
 		case IMMOVABLENOFIELDBLOCKPATH:
-			if (!it.isMagicField() && it.blockPathFind && (!it.movable || (loadedFromMap && (getUniqueId() || (getActionId() && getContainer()))))) {
+			if (!it.isMagicField() && it.blockPathFind && (!it.movable || (m_loadedFromMap && (getUniqueId() || (getActionId() && getContainer()))))) {
 				return true;
 			}
 
@@ -866,10 +866,10 @@ bool Item::hasProperty(enum ITEMPROPERTY prop) const
 double Item::getWeight() const
 {
 	if (isStackable()) {
-		return items[id].weight * std::max((int32_t)1, (int32_t)count);
+		return items[m_id].weight * std::max((int32_t)1, (int32_t)m_count);
 	}
 
-	return items[id].weight;
+	return items[m_id].weight;
 }
 
 std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const Item* item /* = nullptr*/,
@@ -1309,14 +1309,14 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 
 			int32_t show = it.abilities->absorb[COMBAT_ALL];
 			if (!show) {
-				bool tmp = true;
+				bool tmp2 = true;
 				for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {
 					if (!it.abilities->absorb[i]) {
 						continue;
 					}
 
-					if (tmp) {
-						tmp = false;
+					if (tmp2) {
+						tmp2 = false;
 						if (begin) {
 							begin = false;
 							s << " (";
@@ -1344,14 +1344,14 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 
 			show = it.abilities->reflect[REFLECT_CHANCE][COMBAT_ALL];
 			if (!show) {
-				bool tmp = true;
+				bool tmp2 = true;
 				for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {
 					if (!it.abilities->reflect[REFLECT_CHANCE][i] || !it.abilities->reflect[REFLECT_PERCENT][i]) {
 						continue;
 					}
 
-					if (tmp) {
-						tmp = false;
+					if (tmp2) {
+						tmp2 = false;
 						if (begin) {
 							begin = false;
 							s << " (";
@@ -1380,7 +1380,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 					s << getCombatName((CombatType_t)i);
 				}
 
-				if (!tmp) {
+				if (!tmp2) {
 					s << " damage";
 				}
 			} else {
@@ -1391,7 +1391,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 					s << ", ";
 				}
 
-				int32_t tmp = it.abilities->reflect[REFLECT_PERCENT][COMBAT_ALL];
+				tmp = it.abilities->reflect[REFLECT_PERCENT][COMBAT_ALL];
 				s << "reflect: " << show << "% for ";
 				if (tmp) {
 					if (tmp > 99) {
@@ -1791,7 +1791,7 @@ bool Item::canDecay()
 		return false;
 	}
 
-	const ItemType& it = Item::items[id];
+	const ItemType& it = Item::items[m_id];
 	if (it.decayTo < 0 || it.decayTime == 0) {
 		return false;
 	}
@@ -1800,7 +1800,7 @@ bool Item::canDecay()
 
 void Item::getLight(LightInfo& lightInfo)
 {
-	const ItemType& it = items[id];
+	const ItemType& it = items[m_id];
 	lightInfo.color = it.lightColor;
 	lightInfo.level = it.lightLevel;
 }

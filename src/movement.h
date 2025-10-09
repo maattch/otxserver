@@ -132,14 +132,14 @@ public:
 	bool executeEquip(Player* player, Item* item, slots_t slot, bool boolean);
 	uint32_t executeAddRemItem(Creature* actor, Item* item, Item* tileItem, const Position& pos);
 
-	uint32_t getWieldInfo() const { return wieldInfo; }
-	uint32_t getSlot() const { return slot; }
-	int32_t getReqLevel() const { return reqLevel; }
-	int32_t getReqMagLv() const { return reqMagLevel; }
-	bool isPremium() const { return premium; }
+	uint32_t getWieldInfo() const { return m_wieldInfo; }
+	uint32_t getSlot() const { return m_slot; }
+	int32_t getReqLevel() const { return m_reqLevel; }
+	int32_t getReqMagLv() const { return m_reqMagLevel; }
+	bool isPremium() const { return m_premium; }
 
-	const VocationMap& getVocEquipMap() const { return vocEquipMap; }
-	const std::string& getVocationString() const { return vocationString; }
+	const VocationMap& getVocEquipMap() const { return m_vocEquipMap; }
+	const std::string& getVocationString() const { return m_vocationString; }
 
 	static uint32_t StepInField(Creature* creature, Item* item);
 	static uint32_t AddItemField(Item* item);
@@ -147,18 +147,18 @@ public:
 	static bool DeEquipItem(MoveEvent*, Player* player, Item* item, slots_t slot, bool isRemoval);
 
 protected:
-	MoveEvent_t m_eventType;
-
 	virtual std::string getScriptEventName() const;
 
-	MoveFunctionPtr moveFunction = nullptr;
-	StepFunctionPtr stepFunction = nullptr;
-	EquipFunctionPtr equipFunction = nullptr;
+	MoveEvent_t m_eventType;
 
-	uint32_t wieldInfo, slot;
-	int32_t reqLevel, reqMagLevel;
-	bool premium;
+	MoveFunctionPtr m_moveFunction = nullptr;
+	StepFunctionPtr m_stepFunction = nullptr;
+	EquipFunctionPtr m_equipFunction = nullptr;
 
-	VocationMap vocEquipMap;
-	std::string vocationString;
+	uint32_t m_wieldInfo, m_slot;
+	int32_t m_reqLevel, m_reqMagLevel;
+	bool m_premium;
+
+	VocationMap m_vocEquipMap;
+	std::string m_vocationString;
 };

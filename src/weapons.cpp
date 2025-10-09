@@ -830,6 +830,8 @@ void WeaponDistance::onUsedAmmo(Player* player, Item* item, Tile* destTile) cons
 
 int32_t WeaponDistance::getWeaponDamage(const Player* player, const Creature* target, const Item* item, bool& isCritical, bool maxDamage /*= false*/) const
 {
+	UNUSED(target);
+
 	int32_t attackValue = attack;
 	if (item->getWeaponType() == WEAPON_AMMO) {
 		if (Item* bow = const_cast<Player*>(player)->getWeapon(true)) {
@@ -920,6 +922,8 @@ bool WeaponWand::configureWeapon(const ItemType& it)
 
 int32_t WeaponWand::getWeaponDamage(const Player* player, const Creature*, const Item*, bool& isCritical, bool maxDamage /* = false*/) const
 {
+	UNUSED(isCritical);
+
 	float multiplier = 1.0f;
 	if (Vocation* vocation = player->getVocation()) {
 		multiplier = vocation->getMultiplier(MULTIPLIER_WAND);

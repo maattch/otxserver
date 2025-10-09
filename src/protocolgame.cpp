@@ -50,17 +50,17 @@ void ProtocolGame::setPlayer(Player* p)
 
 void ProtocolGame::release()
 {
-	if (player && player->client) {
+	if (player && player->m_client) {
 		if (!m_spectator) {
-			if (player->client->isBroadcasting() || spy) {
-				player->client->clear(true);
+			if (player->m_client->isBroadcasting() || spy) {
+				player->m_client->clear(true);
 			}
 
-			if (player->client->getOwner() == shared_from_this()) {
-				player->client->resetOwner();
+			if (player->m_client->getOwner() == shared_from_this()) {
+				player->m_client->resetOwner();
 			}
-		} else if (player->client->isBroadcasting() || spy) {
-			player->client->removeSpectator(this, spy);
+		} else if (player->m_client->isBroadcasting() || spy) {
+			player->m_client->removeSpectator(this, spy);
 		}
 
 		player->unRef();
@@ -74,17 +74,17 @@ void ProtocolGame::release()
 void ProtocolGame::spectate(const std::string& name, const std::string& password)
 {
 	Player* foundPlayer = g_game.getPlayerByName(name);
-	if (!foundPlayer || foundPlayer->isRemoved() || !foundPlayer->client->isBroadcasting() || !foundPlayer->client->getOwner()) {
+	if (!foundPlayer || foundPlayer->isRemoved() || !foundPlayer->m_client->isBroadcasting() || !foundPlayer->m_client->getOwner()) {
 		disconnectClient(0x14, "Cast unavailable.");
 		return;
 	}
 
-	if (foundPlayer->client->banned(getIP())) {
+	if (foundPlayer->m_client->banned(getIP())) {
 		disconnectClient(0x14, "You are banned from this cast.");
 		return;
 	}
 
-	if (!foundPlayer->client->check(password)) {
+	if (!foundPlayer->m_client->check(password)) {
 		disconnectClient(0x14, "This cast is protected! Invalid password.");
 		return;
 	}
@@ -100,7 +100,7 @@ void ProtocolGame::sendSpectatorAppear(Player* p)
 {
 	player = p;
 	player->addRef();
-	player->client->addSpectator(this, twatchername, spy);
+	player->m_client->addSpectator(this, twatchername, spy);
 
 	player->sendCreatureAppear(player, this);
 	player->sendContainers(this);
@@ -112,13 +112,13 @@ void ProtocolGame::sendSpectatorAppear(Player* p)
 	sendMagicEffect(player->getPosition(), MAGIC_EFFECT_TELEPORT);
 
 	std::ostringstream s;
-	int64_t seconds = player->client->getBroadcastTime() / 1000;
+	int64_t seconds = player->m_client->getBroadcastTime() / 1000;
 
 	uint32_t hour = floor(seconds / 60 / 60 % 24);
 	uint32_t minute = floor(seconds / 60 % 60);
 	uint32_t second = floor(seconds % 60);
 
-	s << "[" << (player->client->list().size()) << "] Players watching " << player->getName() << ".\nBroadcast time: ";
+	s << "[" << (player->m_client->list().size()) << "] Players watching " << player->getName() << ".\nBroadcast time: ";
 	if (hour > 0 && minute == 0 && second == 0) {
 		s << hour << (hour > 1 ? " hours." : " hour.");
 	} else if (minute > 0 && second == 0) {
@@ -143,8 +143,8 @@ void ProtocolGame::castNavigation(uint16_t direction)
 
 	StringVec castNames;
 	for (const auto& it : g_game.getPlayers()) {
-		if (it.second->client->isBroadcasting()) {
-			if (it.second->client->getPassword() != "" || it.second->client->banned(getIP())) {
+		if (it.second->m_client->isBroadcasting()) {
+			if (it.second->m_client->getPassword() != "" || it.second->m_client->banned(getIP())) {
 				continue;
 			}
 
@@ -225,7 +225,7 @@ void ProtocolGame::castNavigation(uint16_t direction)
 	}
 
 	player->unRef();
-	player->client->removeSpectator(this, spy);
+	player->m_client->removeSpectator(this, spy);
 	knownCreatureSet.clear();
 
 	sendSpectatorAppear(_player);
@@ -313,11 +313,11 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 
 		if (IOBan::getInstance()->isPlayerBanished(player->getGUID(), PLAYERBAN_LOCK) && id != 1) {
 			if (g_config.getBool(ConfigManager::NAMELOCK_MANAGER)) {
-				player->name = "Account Manager";
-				player->accountManager = MANAGER_NAMELOCK;
+				player->m_name = "Account Manager";
+				player->m_accountManager = MANAGER_NAMELOCK;
 
-				player->managerNumber = id;
-				player->managerString2 = name;
+				player->m_managerNumber = id;
+				player->m_managerString2 = name;
 			} else {
 				disconnectClient(0x14, "Your character has been namelocked.");
 				return;
@@ -329,10 +329,10 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 			}
 
 			if (id != 1) {
-				player->accountManager = MANAGER_ACCOUNT;
-				player->managerNumber = id;
+				player->m_accountManager = MANAGER_ACCOUNT;
+				player->m_managerNumber = id;
 			} else {
-				player->accountManager = MANAGER_NEW;
+				player->m_accountManager = MANAGER_NEW;
 			}
 		}
 
@@ -424,9 +424,9 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 			player->registerCreatureEvent("ExtendedOpcode");
 		}
 
-		player->lastIP = player->getIP();
-		player->lastLoad = otx::util::mstime();
-		player->lastLogin = std::max(time(nullptr), player->lastLogin + 1);
+		player->m_lastIP = player->getIP();
+		player->m_lastLoad = otx::util::mstime();
+		player->m_lastLogin = std::max(time(nullptr), player->m_lastLogin + 1);
 
 		acceptPackets = true;
 	} else {
@@ -436,9 +436,9 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 			return;
 		}
 
-		if (foundPlayer->client) {
-			foundPlayer->client->disconnect();
-			foundPlayer->isConnecting = true;
+		if (foundPlayer->m_client) {
+			foundPlayer->m_client->disconnect();
+			foundPlayer->m_isConnecting = true;
 			foundPlayer->setClientVersion(version);
 			eventConnect = addSchedulerTask(1000, ([self = getThis(), playerID = foundPlayer->getID(), operatingSystem, version]() {
 				self->connect(playerID, operatingSystem, version, true);
@@ -512,7 +512,7 @@ bool ProtocolGame::logout(bool displayEffect, bool forceLogout)
 		}
 	}
 
-	player->client->clear(true);
+	player->m_client->clear(true);
 	disconnect();
 	if (player->isRemoved()) {
 		return true;
@@ -563,21 +563,21 @@ bool ProtocolGame::connect(uint32_t playerId, OperatingSystem_t operatingSystem,
 
 	player = _player;
 	if (replace) {
-		player->client->clear(true);
-		player->client->setBroadcast(false);
+		player->m_client->clear(true);
+		player->m_client->setBroadcast(false);
 		// player->setCastOn(false);
 	}
 	player->addRef();
-	player->client->setOwner(getThis());
-	player->isConnecting = false;
+	player->m_client->setOwner(getThis());
+	player->m_isConnecting = false;
 
 	player->sendCreatureAppear(player, this);
 	player->setOperatingSystem(operatingSystem);
 	player->setClientVersion(version);
 
-	player->lastIP = player->getIP();
+	player->m_lastIP = player->getIP();
 	if (!replace) {
-		player->lastLoad = otx::util::mstime();
+		player->m_lastLoad = otx::util::mstime();
 	}
 	g_chat.reOpenChannels(player);
 	acceptPackets = true;
@@ -1428,7 +1428,7 @@ void ProtocolGame::parseRequestOutfit(NetworkMessage&)
 
 void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 {
-	Outfit_t newOutfit = player->defaultOutfit;
+	Outfit_t newOutfit = player->m_defaultOutfit;
 	if (g_config.getBool(ConfigManager::ALLOW_CHANGEOUTFIT)) {
 		newOutfit.lookType = msg.get<uint16_t>();
 	} else {
@@ -1548,7 +1548,7 @@ void ProtocolGame::parseLookAt(NetworkMessage& msg)
 	if (m_spectator) {
 		// TODO: fix this, it can cause a crash!
 		addDispatcherTask([=]() {
-			player->client->sendLook(this, pos, spriteId, stackpos);
+			player->m_client->sendLook(this, pos, spriteId, stackpos);
 		});
 		return;
 	}
@@ -1594,7 +1594,7 @@ void ProtocolGame::parseSay(NetworkMessage& msg)
 	if (m_spectator) {
 		// TODO: fix this, it can cause a crash!
 		addDispatcherTask(([=, text = std::move(text)]() {
-			player->client->handle(this, text, channelId);
+			player->m_client->handle(this, text, channelId);
 		}));
 		return;
 	}
@@ -2662,7 +2662,7 @@ void ProtocolGame::sendAddCreature(const Creature* creature, const Position& pos
 		return;
 	}
 
-	for (VIPSet::iterator it = player->VIPList.begin(); it != player->VIPList.end(); ++it) {
+	for (VIPSet::iterator it = player->m_VIPList.begin(); it != player->m_VIPList.end(); ++it) {
 		std::string vipName;
 		if (IOLoginData::getInstance()->getNameByGuid((*it), vipName)) {
 			Player* tmpPlayer = g_game.getPlayerByName(vipName);
@@ -2937,7 +2937,7 @@ void ProtocolGame::sendOutfitWindow()
 		AddCreatureOutfit(msg, player, player->getDefaultOutfit(), true);
 
 		std::vector<Outfit> outfitList;
-		for (OutfitMap::iterator it = player->outfits.begin(); it != player->outfits.end(); ++it) {
+		for (OutfitMap::iterator it = player->m_outfits.begin(); it != player->m_outfits.end(); ++it) {
 			if (player->canWearOutfit(it->first, it->second.addons)) {
 				outfitList.push_back(it->second);
 			}
@@ -3631,7 +3631,7 @@ void ProtocolGame::telescopeGo(std::string playername, uint16_t guid)
 		return;
 	}
 
-	player->client->clear(true);
+	player->m_client->clear(true);
 	twatchername = player->getName();
 
 	player->unRef();
@@ -3666,7 +3666,7 @@ void ProtocolGame::telescopeBack(bool lostConnection)
 	ownerPlayer->unRef();
 	if (!lostConnection) {
 		ProtocolGame_ptr ownerClient = ownerPlayer->getClient();
-		ownerPlayer->client->removeSpectator(this, spy);
+		ownerPlayer->m_client->removeSpectator(this, spy);
 	}
 
 	if (!IOLoginData::getInstance()->loadPlayer(player, player->getName(), true)) {
@@ -3733,7 +3733,7 @@ void ProtocolGame::sendCastList()
 
 	for (auto it : players) {
 		msg->add<uint16_t>(static_cast<uint16_t>(it->getGUID()));
-		msg->addString(it->getName() + " (Spectators: " + std::to_string(it->client->list().size()) + ")");
+		msg->addString(it->getName() + " (Spectators: " + std::to_string(it->m_client->list().size()) + ")");
 	}
 
 	castlistopen = true;
@@ -3741,15 +3741,15 @@ void ProtocolGame::sendCastList()
 
 bool ProtocolGame::canWatch(Player* foundPlayer) const
 {
-	if (!foundPlayer || foundPlayer->isRemoved() || !foundPlayer->hasClient() || (!spy && !foundPlayer->client->isBroadcasting())) {
+	if (!foundPlayer || foundPlayer->isRemoved() || !foundPlayer->hasClient() || (!spy && !foundPlayer->m_client->isBroadcasting())) {
 		return false;
 	}
 
-	if (foundPlayer->client->banned(getIP())) {
+	if (foundPlayer->m_client->banned(getIP())) {
 		return false;
 	}
 
-	if (!foundPlayer->client->check(std::string())) {
+	if (!foundPlayer->m_client->check(std::string())) {
 		return false;
 	}
 

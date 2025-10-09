@@ -254,7 +254,7 @@ void Game::saveGameState(uint8_t flags)
 	if (hasBitSet(SAVE_PLAYERS, flags)) {
 		IOLoginData* io = IOLoginData::getInstance();
 		for (const auto& it : players) {
-			it.second->loginPosition = it.second->getPosition();
+			it.second->m_loginPosition = it.second->getPosition();
 			io->savePlayer(it.second, false, hasBitSet(SAVE_PLAYERS_SHALLOW, flags));
 		}
 	}
@@ -489,18 +489,18 @@ void Game::refreshMap(RefreshTiles::iterator* it /* = nullptr*/, uint32_t limit 
 
 		cleanup();
 		TileItemVector list = (*it)->second.list;
-		for (ItemVector::reverse_iterator it = list.rbegin(); it != list.rend(); ++it) {
-			Item* item = (*it)->clone();
-			if (internalAddItem(nullptr, tile, item, INDEX_WHEREEVER, FLAG_NOLIMIT) == RET_NOERROR) {
-				const uint16_t uniqueId = item->getUniqueId();
+		for (auto rit = list.rbegin(); rit != list.rend(); ++rit) {
+			Item* tileItem = (*rit)->clone();
+			if (internalAddItem(nullptr, tile, tileItem, INDEX_WHEREEVER, FLAG_NOLIMIT) == RET_NOERROR) {
+				const uint16_t uniqueId = tileItem->getUniqueId();
 				if (uniqueId != 0) {
-					addUniqueItem(uniqueId, item);
+					addUniqueItem(uniqueId, tileItem);
 				}
 
-				startDecay(item);
+				startDecay(tileItem);
 			} else {
-				std::clog << "> WARNING: Could not refresh item: " << item->getID() << " at position: " << tile->getPosition() << std::endl;
-				delete item;
+				std::clog << "> WARNING: Could not refresh item: " << tileItem->getID() << " at position: " << tile->getPosition() << std::endl;
+				delete tileItem;
 			}
 		}
 	}
@@ -942,8 +942,8 @@ bool Game::placeCreature(Creature* creature, const Position& pos, const bool ext
 	}
 
 	Player* tmpPlayer = nullptr;
-	if ((tmpPlayer = creature->getPlayer()) && !tmpPlayer->storedConditionList.empty()) {
-		for (ConditionList::iterator it = tmpPlayer->storedConditionList.begin(); it != tmpPlayer->storedConditionList.end(); ++it) {
+	if ((tmpPlayer = creature->getPlayer()) && !tmpPlayer->m_storedConditionList.empty()) {
+		for (ConditionList::iterator it = tmpPlayer->m_storedConditionList.begin(); it != tmpPlayer->m_storedConditionList.end(); ++it) {
 			if ((*it)->getType() == CONDITION_MUTED && (*it)->getTicks() != -1 && (*it)->getTicks() - ((time(nullptr) - tmpPlayer->getLastLogout()) * 1000) <= 0) {
 				continue;
 			}
@@ -951,7 +951,7 @@ bool Game::placeCreature(Creature* creature, const Position& pos, const bool ext
 			tmpPlayer->addCondition(*it);
 		}
 
-		tmpPlayer->storedConditionList.clear();
+		tmpPlayer->m_storedConditionList.clear();
 	}
 
 	SpectatorVec::iterator it;
@@ -1056,8 +1056,8 @@ bool Game::removeCreature(Creature* creature, const bool isLogout /*= true*/)
 	freeThing(creature);
 
 	removeCreatureCheck(creature);
-	for (std::list<Creature*>::iterator it = creature->summons.begin(); it != creature->summons.end(); ++it) {
-		removeCreature(*it);
+	for (Creature* summon : creature->m_summons) {
+		removeCreature(summon);
 	}
 	return true;
 }
@@ -1242,9 +1242,9 @@ bool Game::playerMoveCreature(const uint32_t playerId, const uint32_t movingCrea
 
 		internalTeleport(movingCreature, toTile->getPosition(), false);
 	} else if (Player* movingPlayer = movingCreature->getPlayer()) {
-		uint64_t delay = otx::util::mstime() + movingPlayer->getStepDuration();
-		if (delay > movingPlayer->getNextActionTime(false)) {
-			movingPlayer->setNextAction(delay);
+		const uint64_t stepDelay = otx::util::mstime() + movingPlayer->getStepDuration();
+		if (stepDelay > movingPlayer->getNextActionTime(false)) {
+			movingPlayer->setNextAction(stepDelay);
 		}
 	}
 
@@ -1439,11 +1439,11 @@ bool Game::playerMoveItem(const uint32_t playerId, const Position& fromPos,
 		if (!Position::areInRange<1, 1, 0>(playerPos, mapToPos) && !player->hasCustomFlag(PlayerCustomFlag_CanMoveFromFar)) {
 			Position walkPos = mapToPos;
 			if (toCylinder->getTile()->hasProperty(ISVERTICAL)) {
-				walkPos.x -= -1;
+				++walkPos.x;
 			}
 
 			if (toCylinder->getTile()->hasProperty(ISHORIZONTAL)) {
-				walkPos.y -= -1;
+				++walkPos.y;
 			}
 
 			Position itemPos = fromPos;
@@ -2185,7 +2185,7 @@ uint64_t Game::getMoney(const Cylinder* cylinder)
 
 	// CUSTOM: Discount Money to Bank
 	if (const Player* p = dynamic_cast<const Player*>(cylinder)) {
-		moneyCount += p->balance;
+		moneyCount += p->m_balance;
 	}
 
 	return moneyCount;
@@ -2228,12 +2228,12 @@ bool Game::removeMoney(Cylinder* cylinder, int64_t money, uint32_t flags /*= 0*/
 		Container* container = listContainer.front();
 		listContainer.pop_front();
 		for (int32_t i = 0; i < (int32_t)container->size(); ++i) {
-			Item* item = container->getItem(i);
-			if ((tmpContainer = item->getContainer())) {
+			Item* containerItem = container->getItem(i);
+			if ((tmpContainer = containerItem->getContainer())) {
 				listContainer.push_back(tmpContainer);
-			} else if (item->getWorth()) {
-				moneyCount += item->getWorth();
-				moneyMap.insert(std::make_pair(item->getWorth(), item));
+			} else if (containerItem->getWorth()) {
+				moneyCount += containerItem->getWorth();
+				moneyMap.insert(std::make_pair(containerItem->getWorth(), containerItem));
 			}
 		}
 	}
@@ -2241,7 +2241,7 @@ bool Game::removeMoney(Cylinder* cylinder, int64_t money, uint32_t flags /*= 0*/
 	// CUSTOM: Discount Money to Bank
 	Player* p = dynamic_cast<Player*>(cylinder);
 	if (p) {
-		moneyCount += p->balance;
+		moneyCount += p->m_balance;
 	}
 
 	// Not enough money
@@ -2280,11 +2280,11 @@ bool Game::removeMoney(Cylinder* cylinder, int64_t money, uint32_t flags /*= 0*/
 
 	moneyMap.clear();
 	// CUSTOM: Discount Money to Bank
-	if (money > 0 && p && (int64_t)p->balance >= money) {
-		p->balance -= money;
+	if (money > 0 && p && (int64_t)p->m_balance >= money) {
+		p->m_balance -= money;
 		std::ostringstream ss;
 		ss.imbue(std::locale(""));
-		ss << "Paid " << money << " gold from bank account. Your account balance is now " << p->balance << " gold.";
+		ss << "Paid " << money << " gold from bank account. Your account balance is now " << p->m_balance << " gold.";
 		p->sendTextMessage(MSG_INFO_DESCR, ss.str());
 		return true;
 	}
@@ -2610,7 +2610,7 @@ bool Game::playerCloseChannel(const uint32_t playerId, const uint16_t channelId)
 	}
 
 	g_chat.removeUserFromChannel(player, channelId);
-	player->client->chat(channelId);
+	player->m_client->chat(channelId);
 	return true;
 }
 
@@ -3191,9 +3191,9 @@ bool Game::playerWriteItem(const uint32_t playerId, const uint32_t windowTextId,
 	}
 
 	player->setWriteItem(nullptr);
-	if ((Container*)writeItem->getParent() == &player->transferContainer) {
-		player->transferContainer.setParent(nullptr);
-		player->transferContainer.__removeThing(writeItem, writeItem->getItemCount());
+	if ((Container*)writeItem->getParent() == &player->m_transferContainer) {
+		player->m_transferContainer.setParent(nullptr);
+		player->m_transferContainer.__removeThing(writeItem, writeItem->getItemCount());
 
 		freeThing(writeItem);
 		return true;
@@ -3362,31 +3362,31 @@ bool Game::playerRequestTrade(const uint32_t playerId, const Position& pos, cons
 
 bool Game::internalStartTrade(Player* player, Player* tradePartner, Item* tradeItem)
 {
-	if (player->tradeState != TRADE_NONE && !(player->tradeState == TRADE_ACKNOWLEDGE && player->tradePartner == tradePartner)) {
+	if (player->m_tradeState != TRADE_NONE && !(player->m_tradeState == TRADE_ACKNOWLEDGE && player->m_tradePartner == tradePartner)) {
 		player->sendCancelMessage(RET_YOUAREALREADYTRADING);
 		return false;
-	} else if (tradePartner->tradeState != TRADE_NONE && tradePartner->tradePartner != player) {
+	} else if (tradePartner->m_tradeState != TRADE_NONE && tradePartner->m_tradePartner != player) {
 		player->sendCancelMessage(RET_THISPLAYERISALREADYTRADING);
 		return false;
 	}
 
-	player->tradePartner = tradePartner;
-	player->tradeItem = tradeItem;
-	player->tradeState = TRADE_INITIATED;
+	player->m_tradePartner = tradePartner;
+	player->m_tradeItem = tradeItem;
+	player->m_tradeState = TRADE_INITIATED;
 
 	tradeItem->addRef();
 	tradeItems[tradeItem] = player->getID();
 
 	player->sendTradeItemRequest(player, tradeItem, true);
-	if (tradePartner->tradeState == TRADE_NONE) {
+	if (tradePartner->m_tradeState == TRADE_NONE) {
 		char buffer[100];
 		sprintf(buffer, "%s wants to trade with you", player->getName().c_str());
 		tradePartner->sendTextMessage(MSG_EVENT_ADVANCE, buffer);
 
-		tradePartner->tradeState = TRADE_ACKNOWLEDGE;
-		tradePartner->tradePartner = player;
+		tradePartner->m_tradeState = TRADE_ACKNOWLEDGE;
+		tradePartner->m_tradePartner = player;
 	} else {
-		Item* counterItem = tradePartner->tradeItem;
+		Item* counterItem = tradePartner->m_tradeItem;
 		player->sendTradeItemRequest(tradePartner, counterItem, false);
 		tradePartner->sendTradeItemRequest(player, tradeItem, false);
 	}
@@ -3405,7 +3405,7 @@ void Game::playerAcceptTrade(const uint32_t playerId)
 		return;
 	}
 
-	Player* tradePartner = player->tradePartner;
+	Player* tradePartner = player->m_tradePartner;
 	if (!tradePartner) {
 		return;
 	}
@@ -3418,8 +3418,8 @@ void Game::playerAcceptTrade(const uint32_t playerId)
 	player->setTradeState(TRADE_ACCEPT);
 
 	if (tradePartner->getTradeState() == TRADE_ACCEPT) {
-		Item* tradeItem1 = player->tradeItem;
-		Item* tradeItem2 = tradePartner->tradeItem;
+		Item* tradeItem1 = player->m_tradeItem;
+		Item* tradeItem2 = tradePartner->m_tradeItem;
 
 		bool deny = false;
 		CreatureEventList tradeEvents = player->getCreatureEvents(CREATURE_EVENT_TRADE_ACCEPT);
@@ -3477,13 +3477,13 @@ void Game::playerAcceptTrade(const uint32_t playerId)
 		if (!isSuccess) {
 			std::string errorDescription;
 
-			if (tradePartner->tradeItem) {
+			if (tradePartner->m_tradeItem) {
 				errorDescription = getTradeErrorDescription(ret1, tradeItem1);
 				tradePartner->sendTextMessage(MSG_EVENT_ADVANCE, errorDescription);
 				tradeItem2->onTradeEvent(ON_TRADE_CANCEL, tradePartner, player);
 			}
 
-			if (player->tradeItem) {
+			if (player->m_tradeItem) {
 				errorDescription = getTradeErrorDescription(ret2, tradeItem2);
 				player->sendTextMessage(MSG_EVENT_ADVANCE, errorDescription);
 				tradeItem1->onTradeEvent(ON_TRADE_CANCEL, player, tradePartner);
@@ -3491,13 +3491,13 @@ void Game::playerAcceptTrade(const uint32_t playerId)
 		}
 
 		player->setTradeState(TRADE_NONE);
-		player->tradeItem = nullptr;
-		player->tradePartner = nullptr;
+		player->m_tradeItem = nullptr;
+		player->m_tradePartner = nullptr;
 		player->sendTradeClose();
 
 		tradePartner->setTradeState(TRADE_NONE);
-		tradePartner->tradeItem = nullptr;
-		tradePartner->tradePartner = nullptr;
+		tradePartner->m_tradeItem = nullptr;
+		tradePartner->m_tradePartner = nullptr;
 		tradePartner->sendTradeClose();
 	}
 }
@@ -3540,7 +3540,7 @@ bool Game::playerLookInTrade(const uint32_t playerId, const bool lookAtCounterOf
 		return false;
 	}
 
-	Player* tradePartner = player->tradePartner;
+	Player* tradePartner = player->m_tradePartner;
 	if (!tradePartner) {
 		return false;
 	}
@@ -3670,43 +3670,42 @@ bool Game::playerCloseTrade(const uint32_t playerId)
 
 bool Game::internalCloseTrade(Player* player)
 {
-	Player* tradePartner = player->tradePartner;
+	Player* tradePartner = player->m_tradePartner;
 	if ((tradePartner && tradePartner->getTradeState() == TRADE_TRANSFER) || player->getTradeState() == TRADE_TRANSFER) {
 		std::clog << "[Warning - Game::internalCloseTrade] TradeState == TRADE_TRANSFER, " << player->getName() << " " << player->getTradeState() << ", " << tradePartner->getName() << " " << tradePartner->getTradeState() << std::endl;
 		return true;
 	}
 
-	std::vector<Item*>::iterator it;
 	if (player->getTradeItem()) {
-		std::map<Item*, uint32_t>::iterator it = tradeItems.find(player->getTradeItem());
+		auto it = tradeItems.find(player->getTradeItem());
 		if (it != tradeItems.end()) {
 			freeThing(it->first);
 			tradeItems.erase(it);
 		}
 
-		player->tradeItem->onTradeEvent(ON_TRADE_CANCEL, player, tradePartner);
-		player->tradeItem = nullptr;
+		player->m_tradeItem->onTradeEvent(ON_TRADE_CANCEL, player, tradePartner);
+		player->m_tradeItem = nullptr;
 	}
 
 	player->setTradeState(TRADE_NONE);
-	player->tradePartner = nullptr;
+	player->m_tradePartner = nullptr;
 
 	player->sendTextMessage(MSG_STATUS_SMALL, "Trade cancelled.");
 	player->sendTradeClose();
 	if (tradePartner) {
 		if (tradePartner->getTradeItem()) {
-			std::map<Item*, uint32_t>::iterator it = tradeItems.find(tradePartner->getTradeItem());
+			auto it = tradeItems.find(tradePartner->getTradeItem());
 			if (it != tradeItems.end()) {
 				freeThing(it->first);
 				tradeItems.erase(it);
 			}
 
-			tradePartner->tradeItem->onTradeEvent(ON_TRADE_CANCEL, tradePartner, player);
-			tradePartner->tradeItem = nullptr;
+			tradePartner->m_tradeItem->onTradeEvent(ON_TRADE_CANCEL, tradePartner, player);
+			tradePartner->m_tradeItem = nullptr;
 		}
 
 		tradePartner->setTradeState(TRADE_NONE);
-		tradePartner->tradePartner = nullptr;
+		tradePartner->m_tradePartner = nullptr;
 
 		tradePartner->sendTextMessage(MSG_STATUS_SMALL, "Trade cancelled.");
 		tradePartner->sendTradeClose();
@@ -4677,7 +4676,7 @@ bool Game::internalCreatureTurn(Creature* creature, const Direction& dir)
 }
 
 bool Game::internalCreatureSay(Creature* creature, MessageClasses type, const std::string& text,
-	bool ghostMode, SpectatorVec* spectators /* = nullptr*/, Position* pos /* = nullptr*/, uint32_t statementId /* = 0*/, bool isSpell /* = false*/, bool fakeChat /*= false*/)
+	bool ghostMode, SpectatorVec* spectators /* = nullptr*/, Position* pos /* = nullptr*/, uint32_t statementId /* = 0*/, bool /*isSpell = false*/, bool fakeChat /*= false*/)
 {
 	Player* player = creature->getPlayer();
 	if (player && player->isAccountManager() && !ghostMode) {
@@ -4809,23 +4808,23 @@ void Game::addCreatureCheck(Creature* creature)
 		return;
 	}
 
-	creature->checked = true;
-	if (creature->checkVector >= 0) { // already in a vector, or about to be added
+	creature->m_checked = true;
+	if (creature->m_checkVector >= 0) { // already in a vector, or about to be added
 		return;
 	}
 
 	toAddCheckCreatureVector.push_back(creature);
-	creature->checkVector = random_range(0, EVENT_CREATURECOUNT - 1);
+	creature->m_checkVector = random_range(0, EVENT_CREATURECOUNT - 1);
 	creature->addRef();
 }
 
 void Game::removeCreatureCheck(Creature* creature)
 {
-	if (creature->checkVector == -1) { // not in any vector
+	if (creature->m_checkVector == -1) { // not in any vector
 		return;
 	}
 
-	creature->checked = false;
+	creature->m_checked = false;
 }
 
 void Game::checkCreatures()
@@ -4845,7 +4844,7 @@ void Game::checkCreatures()
 
 		creatureVector = checkCreatureVectors[i];
 		for (it = creatureVector.begin(); it != creatureVector.end(); ++it) {
-			if ((*it)->checked && (*it)->getHealth() > 0) {
+			if ((*it)->m_checked && (*it)->getHealth() > 0) {
 				(*it)->onAttacking(EVENT_CHECK_CREATURE_INTERVAL);
 			}
 		}
@@ -4853,20 +4852,20 @@ void Game::checkCreatures()
 #endif
 
 	for (it = toAddCheckCreatureVector.begin(); it != toAddCheckCreatureVector.end(); ++it) {
-		checkCreatureVectors[(*it)->checkVector].push_back(*it);
+		checkCreatureVectors[(*it)->m_checkVector].push_back(*it);
 	}
 
 	toAddCheckCreatureVector.clear();
 	std::vector<Creature*>& checkCreatureVector = checkCreatureVectors[checkCreatureLastIndex];
 	for (it = checkCreatureVector.begin(); it != checkCreatureVector.end();) {
-		if ((*it)->checked) {
+		if ((*it)->m_checked) {
 			if ((*it)->getHealth() > 0 || !(*it)->onDeath()) {
 				(*it)->onThink(EVENT_CREATURE_THINK_INTERVAL);
 			}
 
 			++it;
 		} else {
-			(*it)->checkVector = -1;
+			(*it)->m_checkVector = -1;
 			freeThing(*it);
 			it = checkCreatureVector.erase(it);
 		}

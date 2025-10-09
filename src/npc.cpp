@@ -301,7 +301,7 @@ bool Npc::load()
 	}
 
 	loaded = loadFromXml();
-	defaultOutfit = currentOutfit = nType->outfit;
+	m_defaultOutfit = m_currentOutfit = nType->outfit;
 	return isLoaded();
 }
 
@@ -356,16 +356,16 @@ bool Npc::loadFromXml()
 	}
 
 	if (readXMLString(root, "hidename", strValue) || readXMLString(root, "hideName", strValue)) {
-		hideName = booleanString(strValue);
+		m_hideName = booleanString(strValue);
 	}
 
 	if (readXMLString(root, "hidehealth", strValue) || readXMLString(root, "hideHealth", strValue)) {
-		hideHealth = booleanString(strValue);
+		m_hideHealth = booleanString(strValue);
 	}
 
-	baseSpeed = 100;
+	m_baseSpeed = 100;
 	if (readXMLInteger(root, "speed", intValue)) {
-		baseSpeed = intValue;
+		m_baseSpeed = intValue;
 	}
 
 	if (readXMLString(root, "attackable", strValue)) {
@@ -385,8 +385,8 @@ bool Npc::loadFromXml()
 	}
 
 	if (readXMLInteger(root, "direction", intValue) && intValue >= NORTH && intValue <= WEST) {
-		direction = (Direction)intValue;
-		baseDirection = direction;
+		m_direction = (Direction)intValue;
+		baseDirection = m_direction;
 	}
 
 	if (readXMLString(root, "floorchange", strValue)) {
@@ -408,15 +408,15 @@ bool Npc::loadFromXml()
 	for (xmlNodePtr p = root->children; p; p = p->next) {
 		if (!xmlStrcmp(p->name, (const xmlChar*)"health")) {
 			if (readXMLInteger(p, "now", intValue)) {
-				health = intValue;
+				m_health = intValue;
 			} else {
-				health = 100;
+				m_health = 100;
 			}
 
 			if (readXMLInteger(p, "max", intValue)) {
-				healthMax = intValue;
+				m_healthMax = intValue;
 			} else {
-				healthMax = 100;
+				m_healthMax = 100;
 			}
 		} else if (!xmlStrcmp(p->name, (const xmlChar*)"look")) {
 			if (readXMLInteger(p, "type", intValue)) {
@@ -577,7 +577,7 @@ void Npc::onPlayerCloseChannel(const Player* player)
 	}
 }
 
-void Npc::onPlayerLeave(Player* player, NpcState* state)
+void Npc::onPlayerLeave(Player* player)
 {
 	if (player->getShopOwner() == this) {
 		player->closeShopWindow();
@@ -690,12 +690,12 @@ bool Npc::getNextStep(Direction& dir, uint32_t& flags)
 
 bool Npc::canWalkTo(const Position& fromPos, Direction dir)
 {
-	if (cannotMove) {
+	if (m_cannotMove) {
 		return false;
 	}
 
 	Position toPos = getNextPosition(dir, fromPos);
-	if (!Spawns::getInstance()->isInZone(masterPosition, masterRadius, toPos)) {
+	if (!Spawns::getInstance()->isInZone(m_masterPosition, m_masterRadius, toPos)) {
 		return false;
 	}
 
@@ -995,7 +995,6 @@ int32_t NpcScript::luaOpenShopWindow(lua_State* L)
 int32_t NpcScript::luaCloseShopWindow(lua_State* L)
 {
 	// closeShopWindow(cid)
-	ScriptEnvironment& env = otx::lua::getScriptEnv();
 	Player* player = otx::lua::getPlayer(L, otx::lua::popNumber(L));
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));

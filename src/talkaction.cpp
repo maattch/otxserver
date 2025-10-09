@@ -557,9 +557,9 @@ bool TalkAction::houseSell(Creature* creature, const std::string& param)
 	}
 
 	Item* transferItem = TransferItem::createTransferItem(house);
-	player->transferContainer.__addThing(nullptr, transferItem);
+	player->m_transferContainer.__addThing(nullptr, transferItem);
 
-	player->transferContainer.setParent(player);
+	player->m_transferContainer.setParent(player);
 	if (!g_game.internalStartTrade(player, tradePartner, transferItem)) {
 		transferItem->onTradeEvent(ON_TRADE_CANCEL, player, nullptr);
 	}
@@ -883,11 +883,11 @@ bool TalkAction::thingProporties(Creature* creature, const std::string& param)
 						_player->setTown(town->getID());
 					}
 				} else if (action == "marriage" || action == "partner") {
-					_player->marriage = atoi(parseParams(it, tokens.end()).c_str());
+					_player->m_marriage = atoi(parseParams(it, tokens.end()).c_str());
 				} else if (action == "balance") {
-					_player->balance = atoi(parseParams(it, tokens.end()).c_str());
+					_player->m_balance = atoi(parseParams(it, tokens.end()).c_str());
 				} else if (action == "rates") {
-					_player->rates[atoi(parseParams(it, tokens.end()).c_str())] = atof(
+					_player->m_rates[atoi(parseParams(it, tokens.end()).c_str())] = atof(
 						parseParams(it, tokens.end()).c_str());
 				} else if (action == "idle") {
 					_player->setIdleTime(atoi(parseParams(it, tokens.end()).c_str()));
@@ -1085,8 +1085,7 @@ bool TalkAction::ghost(Creature* creature, const std::string&)
 		return true;
 	}
 
-	SpectatorVec::iterator it;
-	SpectatorVec list = g_game.getSpectators(player->getPosition());
+	SpectatorVec spectators = g_game.getSpectators(player->getPosition());
 	Player* tmpPlayer = nullptr;
 
 	Condition* condition = nullptr;
@@ -1099,8 +1098,8 @@ bool TalkAction::ghost(Creature* creature, const std::string&)
 			}
 		}
 
-		for (it = list.begin(); it != list.end(); ++it) {
-			if ((tmpPlayer = (*it)->getPlayer()) && !tmpPlayer->canSeeCreature(player)) {
+		for (Creature* spectator : spectators) {
+			if ((tmpPlayer = spectator->getPlayer()) && !tmpPlayer->canSeeCreature(player)) {
 				tmpPlayer->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_TELEPORT);
 			}
 		}
@@ -1110,8 +1109,8 @@ bool TalkAction::ghost(Creature* creature, const std::string&)
 	} else if ((condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_GAMEMASTER, -1, 0, false, GAMEMASTER_INVISIBLE))) {
 		player->addCondition(condition);
 		g_game.internalCreatureChangeVisible(creature, VISIBLE_GHOST_DISAPPEAR);
-		for (it = list.begin(); it != list.end(); ++it) {
-			if ((tmpPlayer = (*it)->getPlayer()) && !tmpPlayer->canSeeCreature(player)) {
+		for (Creature* spectator : spectators) {
+			if ((tmpPlayer = spectator->getPlayer()) && !tmpPlayer->canSeeCreature(player)) {
 				tmpPlayer->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
 			}
 		}

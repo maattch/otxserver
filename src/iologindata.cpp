@@ -361,12 +361,12 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
 
 	Account account = loadAccount(accountId, true);
-	player->account = account.name;
-	player->accountId = accountId;
+	player->m_account = account.name;
+	player->m_accountId = accountId;
 
 	player->setGroup(group);
 	player->setGUID(result->getNumber<int32_t>("id"));
-	player->premiumDays = account.premiumDays;
+	player->m_premiumDays = account.premiumDays;
 
 	nameCacheMap[player->getGUID()] = name;
 	guidCacheMap[name] = player->getGUID();
@@ -375,33 +375,33 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		return true;
 	}
 
-	player->nameDescription += result->getString("description");
+	player->m_nameDescription += result->getString("description");
 	player->setSex(result->getNumber<int32_t>("sex"));
 	if (g_config.getBool(ConfigManager::STORE_DIRECTION)) {
 		player->setDirection((Direction)result->getNumber<int32_t>("direction"));
 	}
 
-	player->level = std::max((uint32_t)1, (uint32_t)result->getNumber<int32_t>("level"));
+	player->m_level = std::max((uint32_t)1, (uint32_t)result->getNumber<int32_t>("level"));
 
-	uint64_t currExpCount = Player::getExpForLevel(player->level), nextExpCount = Player::getExpForLevel(player->level + 1), experience = result->getNumber<uint64_t>("experience");
+	uint64_t currExpCount = Player::getExpForLevel(player->m_level), nextExpCount = Player::getExpForLevel(player->m_level + 1), experience = result->getNumber<uint64_t>("experience");
 	if (experience < currExpCount || experience > nextExpCount) {
 		experience = currExpCount;
 	}
 
-	player->experience = experience;
-	player->levelPercent = 0;
+	player->m_experience = experience;
+	player->m_levelPercent = 0;
 	if (currExpCount < nextExpCount) {
-		player->levelPercent = Player::getPercentLevel(player->experience - currExpCount, nextExpCount - currExpCount);
+		player->m_levelPercent = Player::getPercentLevel(player->m_experience - currExpCount, nextExpCount - currExpCount);
 	}
 
-	player->soul = result->getNumber<int32_t>("soul");
-	player->capacity = result->getNumber<int32_t>("cap");
+	player->m_soul = result->getNumber<int32_t>("soul");
+	player->m_capacity = result->getNumber<int32_t>("cap");
 	player->setStamina(result->getNumber<uint64_t>("stamina"));
-	player->marriage = result->getNumber<int32_t>("marriage");
+	player->m_marriage = result->getNumber<int32_t>("marriage");
 
-	player->balance = result->getNumber<uint64_t>("balance");
+	player->m_balance = result->getNumber<uint64_t>("balance");
 	if (g_config.getBool(ConfigManager::BLESSINGS) && (player->isPremium() || !g_config.getBool(ConfigManager::BLESSING_ONLY_PREMIUM))) {
-		player->blessings = result->getNumber<int32_t>("blessings");
+		player->m_blessings = result->getNumber<int32_t>("blessings");
 		player->setPVPBlessing(result->getNumber<int32_t>("pvp_blessing") != 0);
 	}
 
@@ -414,38 +414,38 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	Condition* condition;
 	while ((condition = Condition::createCondition(propStream))) {
 		if (condition->unserialize(propStream)) {
-			player->storedConditionList.push_back(condition);
+			player->m_storedConditionList.push_back(condition);
 		} else {
 			delete condition;
 		}
 	}
 
-	player->vocationId = result->getNumber<int32_t>("vocation");
+	player->m_vocationId = result->getNumber<int32_t>("vocation");
 	player->setPromotionLevel(result->getNumber<int32_t>("promotion"));
 
-	player->health = result->getNumber<int32_t>("health");
-	player->healthMax = result->getNumber<int32_t>("healthmax");
-	player->mana = result->getNumber<int32_t>("mana");
-	player->manaMax = result->getNumber<int32_t>("manamax");
+	player->m_health = result->getNumber<int32_t>("health");
+	player->m_healthMax = result->getNumber<int32_t>("healthmax");
+	player->m_mana = result->getNumber<int32_t>("mana");
+	player->m_manaMax = result->getNumber<int32_t>("manamax");
 
-	player->magLevel = result->getNumber<int32_t>("maglevel");
-	uint64_t nextManaCount = player->vocation->getReqMana(player->magLevel + 1), manaSpent = result->getNumber<uint64_t>("manaspent");
+	player->m_magLevel = result->getNumber<int32_t>("maglevel");
+	uint64_t nextManaCount = player->m_vocation->getReqMana(player->m_magLevel + 1), manaSpent = result->getNumber<uint64_t>("manaspent");
 	if (manaSpent > nextManaCount) {
 		manaSpent = 0;
 	}
 
-	player->manaSpent = manaSpent;
-	player->magLevelPercent = Player::getPercentLevel(player->manaSpent, nextManaCount);
+	player->m_manaSpent = manaSpent;
+	player->m_magLevelPercent = Player::getPercentLevel(player->m_manaSpent, nextManaCount);
 	if (!group || !group->getOutfit()) {
-		player->defaultOutfit.lookType = result->getNumber<int32_t>("looktype");
-		uint32_t outfitId = Outfits::getInstance()->getOutfitId(player->defaultOutfit.lookType);
+		player->m_defaultOutfit.lookType = result->getNumber<int32_t>("looktype");
+		uint32_t outfitId = Outfits::getInstance()->getOutfitId(player->m_defaultOutfit.lookType);
 
 		bool wearable = true;
 		if (outfitId > 0) {
 			Outfit outfit;
 			wearable = Outfits::getInstance()->getOutfit(outfitId, player->getSex(true), outfit);
-			if (wearable && player->defaultOutfit.lookType != outfit.lookType) {
-				player->defaultOutfit.lookType = outfit.lookType;
+			if (wearable && player->m_defaultOutfit.lookType != outfit.lookType) {
+				player->m_defaultOutfit.lookType = outfit.lookType;
 			}
 		}
 
@@ -454,30 +454,30 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 			const OutfitMap& defaultOutfits = Outfits::getInstance()->getOutfits(player->getSex(true));
 			if (!defaultOutfits.empty()) {
 				Outfit newOutfit = (*defaultOutfits.begin()).second;
-				player->defaultOutfit.lookType = newOutfit.lookType;
+				player->m_defaultOutfit.lookType = newOutfit.lookType;
 			}
 		}
 	} else {
-		player->defaultOutfit.lookType = group->getOutfit();
+		player->m_defaultOutfit.lookType = group->getOutfit();
 	}
 
-	player->defaultOutfit.lookHead = result->getNumber<int32_t>("lookhead");
-	player->defaultOutfit.lookBody = result->getNumber<int32_t>("lookbody");
-	player->defaultOutfit.lookLegs = result->getNumber<int32_t>("looklegs");
-	player->defaultOutfit.lookFeet = result->getNumber<int32_t>("lookfeet");
-	player->defaultOutfit.lookAddons = result->getNumber<int32_t>("lookaddons");
+	player->m_defaultOutfit.lookHead = result->getNumber<int32_t>("lookhead");
+	player->m_defaultOutfit.lookBody = result->getNumber<int32_t>("lookbody");
+	player->m_defaultOutfit.lookLegs = result->getNumber<int32_t>("looklegs");
+	player->m_defaultOutfit.lookFeet = result->getNumber<int32_t>("lookfeet");
+	player->m_defaultOutfit.lookAddons = result->getNumber<int32_t>("lookaddons");
 
-	player->currentOutfit = player->defaultOutfit;
+	player->m_currentOutfit = player->m_defaultOutfit;
 	Skulls_t skull = SKULL_RED;
 	if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
 		skull = (Skulls_t)result->getNumber<int32_t>("skull");
 	}
 
 	player->setSkullEnd((time_t)result->getNumber<int32_t>("skulltime"), true, skull);
-	player->saving = result->getNumber<int32_t>("save") != 0;
+	player->m_saving = result->getNumber<int32_t>("save") != 0;
 
-	player->town = result->getNumber<int32_t>("town_id");
-	if (Town* town = Towns::getInstance()->getTown(player->town)) {
+	player->m_town = result->getNumber<int32_t>("town_id");
+	if (Town* town = Towns::getInstance()->getTown(player->m_town)) {
 		player->setMasterPosition(town->getPosition());
 	}
 
@@ -487,16 +487,16 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	player->setLossPercent(LOSS_CONTAINERS, result->getNumber<int32_t>("loss_containers"));
 	player->setLossPercent(LOSS_ITEMS, result->getNumber<int32_t>("loss_items"));
 
-	player->lastLogin = result->getNumber<uint64_t>("lastlogin");
-	player->lastLogout = result->getNumber<uint64_t>("lastlogout");
-	player->lastIP = result->getNumber<int32_t>("lastip");
+	player->m_lastLogin = result->getNumber<uint64_t>("lastlogin");
+	player->m_lastLogout = result->getNumber<uint64_t>("lastlogout");
+	player->m_lastIP = result->getNumber<int32_t>("lastip");
 
-	player->offlineTrainingTime = result->getNumber<int32_t>("offlinetraining_time") * 1000;
-	player->offlineTrainingSkill = result->getNumber<int32_t>("offlinetraining_skill");
+	player->m_offlineTrainingTime = result->getNumber<int32_t>("offlinetraining_time") * 1000;
+	player->m_offlineTrainingSkill = result->getNumber<int32_t>("offlinetraining_skill");
 
-	player->loginPosition = Position(result->getNumber<int32_t>("posx"), result->getNumber<int32_t>("posy"), result->getNumber<int32_t>("posz"));
-	if (!player->loginPosition.x || !player->loginPosition.y) {
-		player->loginPosition = player->getMasterPosition();
+	player->m_loginPosition = Position(result->getNumber<int32_t>("posx"), result->getNumber<int32_t>("posy"), result->getNumber<int32_t>("posz"));
+	if (!player->m_loginPosition.x || !player->m_loginPosition.y) {
+		player->m_loginPosition = player->getMasterPosition();
 	}
 
 	const uint32_t rankId = result->getNumber<int32_t>("rank_id");
@@ -506,13 +506,13 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		query.str("");
 		query << "SELECT `guild_ranks`.`name` AS `rank`, `guild_ranks`.`guild_id` AS `guildid`, `guild_ranks`.`level` AS `level`, `guilds`.`name` AS `guildname` FROM `guild_ranks`, `guilds` WHERE `guild_ranks`.`id` = " << rankId << " AND `guild_ranks`.`guild_id` = `guilds`.`id` LIMIT 1";
 		if ((result = g_database.storeQuery(query.str()))) {
-			player->guildId = result->getNumber<int32_t>("guildid");
-			player->guildName = result->getString("guildname");
-			player->guildLevel = (GuildLevel_t)result->getNumber<int32_t>("level");
+			player->m_guildId = result->getNumber<int32_t>("guildid");
+			player->m_guildName = result->getString("guildname");
+			player->m_guildLevel = (GuildLevel_t)result->getNumber<int32_t>("level");
 
-			player->rankId = rankId;
-			player->rankName = result->getString("rank");
-			player->guildNick = nick;
+			player->m_rankId = rankId;
+			player->m_rankName = result->getString("rank");
+			player->m_guildNick = nick;
 
 			std::string tmpStatus = "AND `status` IN (1,4)";
 			if (g_config.getBool(ConfigManager::EXTERNAL_GUILD_WARS_MANAGEMENT)) {
@@ -521,12 +521,12 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 
 			query.str("");
 			query << "SELECT `id`, `guild_id`, `enemy_id` FROM `guild_wars` WHERE (`guild_id` = "
-				  << player->guildId << " OR `enemy_id` = " << player->guildId << ")" << tmpStatus;
+				  << player->m_guildId << " OR `enemy_id` = " << player->m_guildId << ")" << tmpStatus;
 			if ((result = g_database.storeQuery(query.str()))) {
 				War_t war;
 				do {
 					uint32_t guild = result->getNumber<int32_t>("guild_id");
-					if (player->guildId == guild) {
+					if (player->m_guildId == guild) {
 						war.type = WAR_ENEMY;
 						war.war = result->getNumber<int32_t>("id");
 						player->addEnemy(result->getNumber<int32_t>("enemy_id"), war);
@@ -543,7 +543,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		query << "SELECT `guild_id` FROM `guild_invites` WHERE `player_id` = " << player->getGUID();
 		if ((result = g_database.storeQuery(query.str()))) {
 			do {
-				player->invitationsList.push_back((uint32_t)result->getNumber<int32_t>("guild_id"));
+				player->m_invitationsList.push_back((uint32_t)result->getNumber<int32_t>("guild_id"));
 			} while (result->next());
 		}
 	}
@@ -554,7 +554,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		return false;
 	}
 
-	player->password = result->getString("password");
+	player->m_password = result->getString("password");
 
 	// we need to find out our skills
 	// so we query the skill table
@@ -569,16 +569,16 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 			}
 
 			uint32_t skillLevel = result->getNumber<int32_t>("value");
-			uint64_t nextSkillCount = player->vocation->getReqSkillTries(
+			uint64_t nextSkillCount = player->m_vocation->getReqSkillTries(
 						 skillId, skillLevel + 1),
 					 skillCount = result->getNumber<uint64_t>("count");
 			if (skillCount > nextSkillCount) {
 				skillCount = 0;
 			}
 
-			player->skills[skillId][SKILL_LEVEL] = skillLevel;
-			player->skills[skillId][SKILL_TRIES] = skillCount;
-			player->skills[skillId][SKILL_PERCENT] = Player::getPercentLevel(skillCount, nextSkillCount);
+			player->m_skills[skillId][SKILL_LEVEL] = skillLevel;
+			player->m_skills[skillId][SKILL_TRIES] = skillCount;
+			player->m_skills[skillId][SKILL_PERCENT] = Player::getPercentLevel(skillCount, nextSkillCount);
 		} while (result->next());
 	}
 
@@ -586,7 +586,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	query << "SELECT `player_id`, `name` FROM `player_spells` WHERE `player_id` = " << player->getGUID();
 	if ((result = g_database.storeQuery(query.str()))) {
 		do {
-			player->learnedInstantSpellList.push_back(result->getString("name"));
+			player->m_learnedInstantSpellList.push_back(result->getString("name"));
 		} while (result->next());
 	}
 
@@ -763,18 +763,18 @@ bool IOLoginData::deletePlayer(Player* player)
 
 bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shallow /* = false*/)
 {
-	if (preSave && player->health <= 0) {
+	if (preSave && player->m_health <= 0) {
 		if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
 			if (player->getSkull() == SKULL_BLACK) {
-				player->health = g_config.getNumber(ConfigManager::BLACK_SKULL_DEATH_HEALTH);
-				player->mana = g_config.getNumber(ConfigManager::BLACK_SKULL_DEATH_MANA);
+				player->m_health = g_config.getNumber(ConfigManager::BLACK_SKULL_DEATH_HEALTH);
+				player->m_mana = g_config.getNumber(ConfigManager::BLACK_SKULL_DEATH_MANA);
 			} else {
-				player->health = player->healthMax;
-				player->mana = player->manaMax;
+				player->m_health = player->m_healthMax;
+				player->m_mana = player->m_manaMax;
 			}
 		} else {
-			player->health = player->healthMax;
-			player->mana = player->manaMax;
+			player->m_health = player->m_healthMax;
+			player->m_mana = player->m_manaMax;
 		}
 	}
 	std::ostringstream query;
@@ -785,7 +785,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	}
 
 	query.str("");
-	query << "UPDATE `players` SET `lastlogin` = " << player->lastLogin << ", `lastip` = " << player->lastIP;
+	query << "UPDATE `players` SET `lastlogin` = " << player->m_lastLogin << ", `lastip` = " << player->m_lastIP;
 	if (!player->isSaving() || !g_config.getBool(ConfigManager::SAVE_PLAYER_DATA)) {
 		query << " WHERE `id` = " << player->getGUID() << " LIMIT 1;";
 		if (!g_database.executeQuery(query.str())) {
@@ -797,28 +797,28 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	query << ", ";
 	query << "`level` = " << std::max((uint32_t)1, player->getLevel()) << ", ";
-	query << "`group_id` = " << player->groupId << ", ";
-	query << "`health` = " << player->health << ", ";
-	query << "`healthmax` = " << player->healthMax << ", ";
+	query << "`group_id` = " << player->m_groupId << ", ";
+	query << "`health` = " << player->m_health << ", ";
+	query << "`healthmax` = " << player->m_healthMax << ", ";
 	query << "`experience` = " << player->getExperience() << ", ";
-	query << "`lookbody` = " << (uint32_t)player->defaultOutfit.lookBody << ", ";
-	query << "`lookfeet` = " << (uint32_t)player->defaultOutfit.lookFeet << ", ";
-	query << "`lookhead` = " << (uint32_t)player->defaultOutfit.lookHead << ", ";
-	query << "`looklegs` = " << (uint32_t)player->defaultOutfit.lookLegs << ", ";
-	query << "`looktype` = " << (uint32_t)player->defaultOutfit.lookType << ", ";
-	query << "`lookaddons` = " << (uint32_t)player->defaultOutfit.lookAddons << ", ";
-	query << "`maglevel` = " << player->magLevel << ", ";
-	query << "`mana` = " << player->mana << ", ";
-	query << "`manamax` = " << player->manaMax << ", ";
-	query << "`manaspent` = " << player->manaSpent << ", ";
-	query << "`soul` = " << player->soul << ", ";
-	query << "`town_id` = " << player->town << ", ";
+	query << "`lookbody` = " << (uint32_t)player->m_defaultOutfit.lookBody << ", ";
+	query << "`lookfeet` = " << (uint32_t)player->m_defaultOutfit.lookFeet << ", ";
+	query << "`lookhead` = " << (uint32_t)player->m_defaultOutfit.lookHead << ", ";
+	query << "`looklegs` = " << (uint32_t)player->m_defaultOutfit.lookLegs << ", ";
+	query << "`looktype` = " << (uint32_t)player->m_defaultOutfit.lookType << ", ";
+	query << "`lookaddons` = " << (uint32_t)player->m_defaultOutfit.lookAddons << ", ";
+	query << "`maglevel` = " << player->m_magLevel << ", ";
+	query << "`mana` = " << player->m_mana << ", ";
+	query << "`manamax` = " << player->m_manaMax << ", ";
+	query << "`manaspent` = " << player->m_manaSpent << ", ";
+	query << "`soul` = " << player->m_soul << ", ";
+	query << "`town_id` = " << player->m_town << ", ";
 	query << "`posx` = " << player->getLoginPosition().x << ", ";
 	query << "`posy` = " << player->getLoginPosition().y << ", ";
 	query << "`posz` = " << player->getLoginPosition().z << ", ";
 	query << "`cap` = " << player->getCapacity() << ", ";
-	query << "`sex` = " << player->sex << ", ";
-	query << "`balance` = " << player->balance << ", ";
+	query << "`sex` = " << player->m_sex << ", ";
+	query << "`balance` = " << player->m_balance << ", ";
 	query << "`stamina` = " << player->getStamina() << ", ";
 
 	Skulls_t skull = SKULL_RED;
@@ -828,7 +828,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	query << "`skull` = " << skull << ", ";
 	query << "`skulltime` = " << player->getSkullEnd() << ", ";
-	query << "`promotion` = " << player->promotionLevel << ", ";
+	query << "`promotion` = " << player->m_promotionLevel << ", ";
 	if (g_config.getBool(ConfigManager::STORE_DIRECTION)) {
 		query << "`direction` = " << (uint32_t)player->getDirection() << ", ";
 	}
@@ -842,7 +842,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	// serialize conditions
 	PropWriteStream propWriteStream;
-	for (ConditionList::const_iterator it = player->conditions.begin(); it != player->conditions.end(); ++it) {
+	for (ConditionList::const_iterator it = player->m_conditions.begin(); it != player->m_conditions.end(); ++it) {
 		if ((*it)->isPersistent() || (*it)->getType() == CONDITION_GAMEMASTER || (*it)->getType() == CONDITION_MUTED) {
 			if (!(*it)->serialize(propWriteStream)) {
 				return false;
@@ -864,21 +864,21 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	query << "`lastlogout` = " << player->getLastLogout() << ", ";
 	if (g_config.getBool(ConfigManager::BLESSINGS) && (player->isPremium() || !g_config.getBool(ConfigManager::BLESSING_ONLY_PREMIUM))) {
-		query << "`blessings` = " << player->blessings << ", ";
+		query << "`blessings` = " << player->m_blessings << ", ";
 		query << "`pvp_blessing` = " << (player->hasPVPBlessing() ? "1" : "0") << ", ";
 	}
 
 	query << "`offlinetraining_time` = " << player->getOfflineTrainingTime() / 1000 << ", ";
 	query << "`offlinetraining_skill` = " << player->getOfflineTrainingSkill() << ", ";
 
-	query << "`marriage` = " << player->marriage << ", ";
+	query << "`marriage` = " << player->m_marriage << ", ";
 	if (g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)) {
-		query << "`guildnick` = " << g_database.escapeString(player->guildNick) << ", ";
+		query << "`guildnick` = " << g_database.escapeString(player->m_guildNick) << ", ";
 		query << "`rank_id` = " << IOGuild::getInstance()->getRankIdByLevel(player->getGuildId(), player->getGuildLevel()) << ", ";
 	}
 
-	Vocation* tmpVoc = player->vocation;
-	for (uint32_t i = 0; i <= player->promotionLevel; ++i) {
+	Vocation* tmpVoc = player->m_vocation;
+	for (uint32_t i = 0; i <= player->m_promotionLevel; ++i) {
 		tmpVoc = Vocations::getInstance()->getVocation(tmpVoc->getFromVocation());
 	}
 
@@ -890,7 +890,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	// skills
 	for (int32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		query.str("");
-		query << "UPDATE `player_skills` SET `value` = " << player->skills[i][SKILL_LEVEL] << ", `count` = " << player->skills[i][SKILL_TRIES] << " WHERE `player_id` = " << player->getGUID() << " AND `skillid` = " << i << " LIMIT 1;";
+		query << "UPDATE `player_skills` SET `value` = " << player->m_skills[i][SKILL_LEVEL] << ", `count` = " << player->m_skills[i][SKILL_TRIES] << " WHERE `player_id` = " << player->getGUID() << " AND `skillid` = " << i << " LIMIT 1;";
 		if (!g_database.executeQuery(query.str())) {
 			return false;
 		}
@@ -908,10 +908,10 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	}
 
 	DBInsert stmt;
-	if (player->learnedInstantSpellList.size()) {
+	if (player->m_learnedInstantSpellList.size()) {
 		query.str("");
 		stmt.setQuery("INSERT INTO `player_spells` (`player_id`, `name`) VALUES ");
-		for (LearnedInstantSpellList::const_iterator it = player->learnedInstantSpellList.begin(); it != player->learnedInstantSpellList.end(); ++it) {
+		for (LearnedInstantSpellList::const_iterator it = player->m_learnedInstantSpellList.begin(); it != player->m_learnedInstantSpellList.end(); ++it) {
 			query << player->getGUID() << "," << g_database.escapeString(*it);
 			if (!stmt.addRow(query.str())) {
 				return false;
@@ -933,7 +933,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	ItemBlockList itemList;
 	for (int32_t slotId = 1; slotId < 11; ++slotId) {
-		if (Item* item = player->inventory[slotId]) {
+		if (Item* item = player->m_inventory[slotId]) {
 			itemList.push_back(itemBlock(slotId, item));
 		}
 	}
@@ -946,7 +946,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	itemList.clear();
 	// save depot items
 	// std::ostringstream ss;
-	for (DepotMap::iterator it = player->depots.begin(); it != player->depots.end(); ++it) {
+	for (DepotMap::iterator it = player->m_depots.begin(); it != player->m_depots.end(); ++it) {
 		/*if(it->second.second)
 		{
 			it->second.second = false;
@@ -1008,9 +1008,9 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 		query.str("");
 		stmt.setQuery("INSERT INTO `guild_invites` (`player_id`, `guild_id`) VALUES ");
-		for (InvitationsList::iterator it = player->invitationsList.begin(); it != player->invitationsList.end(); ++it) {
+		for (InvitationsList::iterator it = player->m_invitationsList.begin(); it != player->m_invitationsList.end(); ++it) {
 			if (!IOGuild::getInstance()->guildExists(*it)) {
-				it = player->invitationsList.erase(it);
+				it = player->m_invitationsList.erase(it);
 				continue;
 			}
 
@@ -1045,7 +1045,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	}
 
 	query.str("");
-	for (VIPSet::iterator it = player->VIPList.begin(); it != player->VIPList.end(); ++it) {
+	for (VIPSet::iterator it = player->m_VIPList.begin(); it != player->m_VIPList.end(); ++it) {
 		if (!playerExists(*it, false)) {
 			continue;
 		}
@@ -1093,7 +1093,7 @@ bool IOLoginData::savePlayerItems(Player* player)
 
 	ItemBlockList itemList;
 	for (int32_t slotId = 1; slotId < 11; ++slotId) {
-		if (Item* item = player->inventory[slotId]) {
+		if (Item* item = player->m_inventory[slotId]) {
 			itemList.push_back(itemBlock(slotId, item));
 		}
 	}
@@ -1106,7 +1106,7 @@ bool IOLoginData::savePlayerItems(Player* player)
 	itemList.clear();
 	// save depot items
 	// std::ostringstream ss;
-	for (DepotMap::iterator it = player->depots.begin(); it != player->depots.end(); ++it) {
+	for (DepotMap::iterator it = player->m_depots.begin(); it != player->m_depots.end(); ++it) {
 		/*if(it->second.second)
 		{
 		it->second.second = false;
@@ -1704,9 +1704,9 @@ DeleteCharacter_t IOLoginData::deleteCharacter(uint32_t accountId, const std::st
 	g_database.executeQuery(query.str());
 
 	for (const auto& it : g_game.getPlayers()) {
-		auto it_ = it.second->VIPList.find(id);
-		if (it_ != it.second->VIPList.end()) {
-			it.second->VIPList.erase(it_);
+		auto it_ = it.second->m_VIPList.find(id);
+		if (it_ != it.second->m_VIPList.end()) {
+			it.second->m_VIPList.erase(it_);
 		}
 	}
 

@@ -411,7 +411,7 @@ static int luaGetPlayerBalance(lua_State* L)
 	// getPlayerBalance(cid)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
 		if (g_config.getBool(ConfigManager::BANK_SYSTEM)) {
-			lua_pushnumber(L, player->balance);
+			lua_pushnumber(L, player->m_balance);
 		} else {
 			lua_pushnumber(L, 0);
 		}
@@ -450,7 +450,7 @@ static int luaGetPlayerPartner(lua_State* L)
 {
 	// getPlayerPartner(cid)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
-		lua_pushnumber(L, player->marriage);
+		lua_pushnumber(L, player->m_marriage);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
 		lua_pushnil(L);
@@ -1889,14 +1889,14 @@ static int luaDoShowTextDialog(lua_State* L)
 		length = item->getMaxWriteLength();
 	}
 
-	player->transferContainer.__addThing(nullptr, item);
+	player->m_transferContainer.__addThing(nullptr, item);
 	if (!text.empty()) {
 		item->setText(text);
 		length = std::max<int32_t>(text.size(), length);
 	}
 
 	player->setWriteItem(item, length);
-	player->transferContainer.setParent(player);
+	player->m_transferContainer.setParent(player);
 
 	player->sendTextWindow(item, length, canWrite);
 	lua_pushboolean(L, true);
@@ -2424,7 +2424,6 @@ static int luaGetTileInfo(lua_State* L)
 	// getTileInfo(pos)
 	Position pos = otx::lua::getPosition(L, 1);
 	if (Tile* tile = g_game.getMap()->getTile(pos)) {
-		ScriptEnvironment& env = otx::lua::getScriptEnv();
 		otx::lua::pushThing(L, tile->ground, 0, RECURSE_NONE, 0, 19);
 		otx::lua::setTableValue(L, "protection", tile->hasFlag(TILESTATE_PROTECTIONZONE));
 		otx::lua::setTableValue(L, "optional", tile->hasFlag(TILESTATE_OPTIONALZONE));
@@ -2588,7 +2587,7 @@ static int luaDoPlayerTransferMoneyTo(lua_State* L)
 	// doPlayerTransferMoneyTo(cid, target, money)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
 		const std::string target = otx::lua::getString(L, 2);
-		const bool money = otx::lua::getNumber<uint64_t>(L, 3);
+		const auto money = otx::lua::getNumber<uint64_t>(L, 3);
 		lua_pushboolean(L, player->transferMoneyTo(target, money));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
@@ -3264,7 +3263,7 @@ static int luaSetCombatCallback(lua_State* L)
 {
 	// setCombatCallback(combat, key, functionName)
 	ScriptEnvironment& env = otx::lua::getScriptEnv();
-	if (otx::lua::getScriptEnv().getScriptId() != EVENT_ID_LOADING) {
+	if (env.getScriptId() != EVENT_ID_LOADING) {
 		otx::lua::reportErrorEx(L, "This function can only be used while loading the script.");
 		lua_pushnil(L);
 		return 1;
@@ -3281,7 +3280,7 @@ static int luaSetCombatCallback(lua_State* L)
 		return 1;
 	}
 
-	LuaInterface* interface = otx::lua::getScriptEnv().getInterface();
+	LuaInterface* interface = env.getInterface();
 	combat->setCallback(key);
 
 	CallBack* callback = combat->getCallback(key);
@@ -4561,7 +4560,7 @@ static int luaGetPlayersByAccountId(lua_State* L)
 
 	int index = 0;
 	for (Player* player : players) {
-		lua_pushnumber(L, otx::lua::getScriptEnv().addThing(player));
+		lua_pushnumber(L, env.addThing(player));
 		lua_rawseti(L, -2, ++index);
 	}
 	return 1;
@@ -4593,7 +4592,7 @@ static int luaGetPlayersByIp(lua_State* L)
 
 	int index = 0;
 	for (Player* player : players) {
-		lua_pushnumber(L, otx::lua::getScriptEnv().addThing(player));
+		lua_pushnumber(L, env.addThing(player));
 		lua_rawseti(L, -2, ++index);
 	}
 	return 1;
@@ -4760,7 +4759,7 @@ static int luaDoAddContainerItemEx(lua_State* L)
 		const auto uid = otx::lua::getNumber<uint32_t>(L, 2);
 
 		ScriptEnvironment& env = otx::lua::getScriptEnv();
-		Item* item = otx::lua::getScriptEnv().getItemByUID(uid);
+		Item* item = env.getItemByUID(uid);
 		if (!item) {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
 			lua_pushnil(L);
@@ -4774,7 +4773,7 @@ static int luaDoAddContainerItemEx(lua_State* L)
 
 		ReturnValue ret = g_game.internalAddItem(nullptr, container, item);
 		if (ret == RET_NOERROR) {
-			otx::lua::getScriptEnv().removeItem(uid);
+			env.removeItem(uid);
 		}
 
 		lua_pushnumber(L, ret);
@@ -4838,9 +4837,9 @@ static int luaDoAddContainerItem(lua_State* L)
 
 		++ret;
 		if (newItem->getParent()) {
-			lua_pushnumber(L, otx::lua::getScriptEnv().addThing(newItem));
+			lua_pushnumber(L, env.addThing(newItem));
 		} else if (stackItem) {
-			lua_pushnumber(L, otx::lua::getScriptEnv().addThing(stackItem));
+			lua_pushnumber(L, env.addThing(stackItem));
 		} else { // stackable item stacked with existing object, newItem will be released
 			lua_pushnil(L);
 		}
@@ -5033,7 +5032,7 @@ static int luaDoPlayerSendMailByName(lua_State* L)
 	const auto actorId = otx::lua::getNumber<uint32_t>(L, 4, 0);
 
 	ScriptEnvironment& env = otx::lua::getScriptEnv();
-	Item* item = otx::lua::getScriptEnv().getItemByUID(uid);
+	Item* item = env.getItemByUID(uid);
 	if (!item) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
 		lua_pushnil(L);
@@ -5048,7 +5047,7 @@ static int luaDoPlayerSendMailByName(lua_State* L)
 	Creature* actor = g_game.getCreatureByID(actorId);
 	const bool result = IOLoginData::getInstance()->playerMail(actor, name, townId, item);
 	if (result) {
-		otx::lua::getScriptEnv().removeItem(uid);
+		env.removeItem(uid);
 	}
 
 	lua_pushboolean(L, result);
@@ -5402,8 +5401,8 @@ static int luaAddEvent(lua_State* L)
 	ScriptEnvironment& env = otx::lua::getScriptEnv();
 	event.funcRef = luaL_ref(L, LUA_REGISTRYINDEX);
 	event.script = otx::lua::getSource(L, 1);
-	event.scriptId = otx::lua::getScriptEnv().getScriptId();
-	event.npc = otx::lua::getScriptEnv().getNpc();
+	event.scriptId = env.getScriptId();
+	event.npc = env.getNpc();
 	lua_pushnumber(L, g_lua.addTimerEvent(std::move(event), delay));
 	return 1;
 }
@@ -5624,7 +5623,7 @@ static int luaDoPlayerSetStamina(lua_State* L)
 {
 	// doPlayerSetStamina(cid, minutes)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
-		const bool minutes = otx::lua::getNumber<uint32_t>(L, 2);
+		const auto minutes = otx::lua::getNumber<uint32_t>(L, 2);
 		player->setStaminaMinutes(minutes);
 		player->sendStats();
 		lua_pushboolean(L, true);
@@ -5639,8 +5638,8 @@ static int luaDoPlayerSetBalance(lua_State* L)
 {
 	// doPlayerSetBalance(cid, balance)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
-		const bool balance = otx::lua::getNumber<uint64_t>(L, 2);
-		player->balance = balance;
+		const auto balance = otx::lua::getNumber<uint64_t>(L, 2);
+		player->m_balance = balance;
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
@@ -5653,8 +5652,8 @@ static int luaDoPlayerSetPartner(lua_State* L)
 {
 	// doPlayerSetPartner(cid, guid)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
-		const bool guid = otx::lua::getNumber<uint32_t>(L, 2);
-		player->marriage = guid;
+		const auto guid = otx::lua::getNumber<uint32_t>(L, 2);
+		player->m_marriage = guid;
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
@@ -5857,7 +5856,7 @@ static int luaGetChannelUsers(lua_State* L)
 
 		int index = 0;
 		for (const auto& it : usersMap) {
-			lua_pushnumber(L, otx::lua::getScriptEnv().addThing(it.second));
+			lua_pushnumber(L, env.addThing(it.second));
 			lua_rawseti(L, -2, ++index);
 		}
 	} else {
@@ -5956,8 +5955,8 @@ static int luaGetCreatureSummons(lua_State* L)
 	lua_createtable(L, summons.size(), 0);
 
 	int index = 0;
-	for (Creature* creature : summons) {
-		lua_pushnumber(L, otx::lua::getScriptEnv().addThing(creature));
+	for (Creature* summon : summons) {
+		lua_pushnumber(L, env.addThing(summon));
 		lua_rawseti(L, -2, ++index);
 	}
 	return 1;
@@ -6021,7 +6020,7 @@ static int luaGetPlayerRates(lua_State* L)
 
 	lua_createtable(L, SKILL__LAST + 1, 0);
 	for (uint8_t i = SKILL_FIRST; i <= SKILL__LAST; ++i) {
-		lua_pushnumber(L, player->rates[i]);
+		lua_pushnumber(L, player->m_rates[i]);
 		lua_rawseti(L, -2, i + 1);
 	}
 	return 1;
@@ -6034,7 +6033,7 @@ static int luaDoPlayerSetRate(lua_State* L)
 		const auto skill = static_cast<skills_t>(otx::lua::getNumber<uint8_t>(L, 2));
 		const auto value = otx::lua::getNumber<double>(L, 3);
 		if (skill <= SKILL__LAST) {
-			player->rates[skill] = value;
+			player->m_rates[skill] = value;
 			lua_pushboolean(L, true);
 		} else {
 			otx::lua::reportErrorEx(L, "Invalid skill.");
@@ -6167,7 +6166,7 @@ static int luaGetSpectators(lua_State* L)
 
 	int index = 0;
 	for (Creature* spectator : spectators) {
-		lua_pushnumber(L, otx::lua::getScriptEnv().addThing(spectator));
+		lua_pushnumber(L, env.addThing(spectator));
 		lua_rawseti(L, -2, ++index);
 	}
 	return 1;
@@ -6446,6 +6445,7 @@ static int luaDoCleanMap(lua_State* L)
 static int luaDoRefreshMap(lua_State* L)
 {
 	// doRefreshMap()
+	UNUSED(L);
 	g_game.proceduralRefresh();
 	return 0;
 }

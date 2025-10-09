@@ -28,20 +28,20 @@
 
 namespace
 {
-	LuaInterfacePtr luaInterface;
+	LuaInterfacePtr scriptInterface;
 }
 
 void Raids::init()
 {
-	luaInterface = std::make_unique<LuaInterface>("Raids Interface");
-	luaInterface->initState();
-	g_lua.addScriptInterface(luaInterface.get());
+	scriptInterface = std::make_unique<LuaInterface>("Raids Interface");
+	scriptInterface->initState();
+	g_lua.addScriptInterface(scriptInterface.get());
 }
 
 void Raids::terminate()
 {
-	g_lua.removeScriptInterface(luaInterface.get());
-	luaInterface.reset();
+	g_lua.removeScriptInterface(scriptInterface.get());
+	scriptInterface.reset();
 }
 
 Raids::Raids()
@@ -212,7 +212,7 @@ void Raids::clear()
 	}
 
 	raidList.clear();
-	luaInterface->reInitState();
+	scriptInterface->reInitState();
 }
 
 bool Raids::reload()
@@ -899,7 +899,7 @@ bool AreaSpawnEvent::executeEvent(const std::string&) const
 
 ScriptEvent::ScriptEvent(Raid* raid, bool ref) :
 	RaidEvent(raid, ref),
-	Event(luaInterface.get())
+	Event(scriptInterface.get())
 {
 	//
 }
@@ -911,10 +911,10 @@ bool ScriptEvent::configureRaidEvent(xmlNodePtr eventNode)
 	}
 
 	std::string scriptsName = Raids::getInstance()->getScriptBaseName();
-	if (!luaInterface->getState()) {
-		luaInterface->initState();
+	if (!scriptInterface->getState()) {
+		scriptInterface->initState();
 		std::string path = getFilePath(FILE_TYPE_OTHER, scriptsName + "/lib/");
-		if (!luaInterface->loadDirectory(path, false, true)) {
+		if (!scriptInterface->loadDirectory(path, false, true)) {
 			std::clog << "[Warning - ScriptEvent::configureRaidEvent] Cannot load " << path << std::endl;
 		}
 	}
@@ -948,10 +948,10 @@ bool ScriptEvent::executeEvent(const std::string& name) const
 	}
 
 	ScriptEnvironment& env = otx::lua::getScriptEnv();
-	env.setScriptId(m_scriptId, luaInterface.get());
+	env.setScriptId(m_scriptId, scriptInterface.get());
 
-	lua_State* L = luaInterface->getState();
-	luaInterface->pushFunction(m_scriptId);
+	lua_State* L = scriptInterface->getState();
+	scriptInterface->pushFunction(m_scriptId);
 
 	otx::lua::pushString(L, name);
 	return otx::lua::callFunction(L, 1);

@@ -68,38 +68,40 @@ struct spawnBlock_t
 class Spawn
 {
 public:
-	Spawn(const Position& _pos, int32_t _radius);
+	Spawn(const Position& pos, int32_t radius) : m_centerPos(pos), m_radius(radius) {}
 	virtual ~Spawn();
 
 	bool addMonster(const std::string& _name, const Position& _pos, Direction _dir, uint32_t _interval);
 	void removeMonster(Monster* monster);
 
-	Position getPosition() const { return centerPos; }
-	uint32_t getInterval() const { return interval; }
+	Position getPosition() const { return m_centerPos; }
+	uint32_t getInterval() const { return m_interval; }
 
 	void startEvent(MonsterType* mType);
 	void stopEvent();
 
 	void startup();
-	bool isInSpawnZone(const Position& pos) { return Spawns::getInstance()->isInZone(centerPos, radius, pos); }
+
+	bool isInSpawnZone(const Position& pos) const { return Spawns::getInstance()->isInZone(m_centerPos, m_radius, pos); }
 
 private:
-	uint32_t interval, checkSpawnEvent;
-
-	Position centerPos;
-	int32_t radius, despawnRange, despawnRadius;
-
 	void checkSpawn();
 	bool spawnMonster(uint32_t spawnId, MonsterType* mType, const Position& pos, Direction dir, bool startup = false);
 
 	bool findPlayer(const Position& pos, bool blocked);
 
+	Position m_centerPos;
+	uint32_t m_interval = 60000;
+	uint32_t m_checkSpawnEvent = 0;
+	int32_t m_radius;
+	int32_t m_despawnRange;
+	int32_t m_despawnRadius;
+
 	// map of creatures in the spawn
-	typedef std::map<uint32_t, spawnBlock_t> SpawnMap;
-	SpawnMap spawnMap;
+	std::map<uint32_t, spawnBlock_t> m_spawnMap;
 
 	// map of the spawned creatures
 	typedef std::multimap<uint32_t, Monster*, std::less<uint32_t>> SpawnedMap;
 	typedef SpawnedMap::value_type SpawnedPair;
-	SpawnedMap spawnedMap;
+	SpawnedMap m_spawnedMap;
 };

@@ -143,7 +143,7 @@ std::streambuf::int_type OutputHandler::overflow(std::streambuf::int_type c /* =
 	}
 
 	if (m_cache.size() > 1) {
-		std::cout << "[" << formatTime(0, true) << "] ";
+		std::cout << "[" << formatTime() << "] ";
 	}
 
 	std::cout.write(m_cache.c_str(), m_cache.size());

@@ -933,6 +933,8 @@ void CreatureEvent::executeExtendedOpcode(Creature* creature, uint8_t opcode, co
 
 bool CreatureEvent::executeMoveItem(Creature* actor, Item* item, const Position& frompos, const Position& pos)
 {
+	UNUSED(actor);
+
 	// onMoveItem(moveItem, frompos, position, cid)
 	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - CreatureEvent::executeMoveItem] Call stack overflow." << std::endl;

@@ -355,7 +355,7 @@ AccessHouseLevel_t House::getHouseAccessLevel(const Player* player)
 					tmp = HOUSE_GUEST;
 			}
 		}
-	} else if (player->getGUID() == owner || player->marriage == owner) {
+	} else if (player->getGUID() == owner || player->m_marriage == owner) {
 		return HOUSE_OWNER;
 	}
 
@@ -453,13 +453,13 @@ bool TransferItem::onTradeEvent(TradeEvents_t event, Player* owner, Player* sell
 			}
 
 			g_game.internalRemoveItem(nullptr, this, getItemCount());
-			seller->transferContainer.setParent(nullptr);
+			seller->m_transferContainer.setParent(nullptr);
 			break;
 		}
 
 		case ON_TRADE_CANCEL: {
-			owner->transferContainer.setParent(nullptr);
-			owner->transferContainer.__removeThing(this, getItemCount());
+			owner->m_transferContainer.setParent(nullptr);
+			owner->m_transferContainer.__removeThing(this, getItemCount());
 			g_game.freeThing(this);
 			break;
 		}
@@ -799,8 +799,8 @@ bool Houses::payRent(Player* player, House* house, uint32_t bid, time_t _time /*
 
 	bool paid = false;
 	uint32_t amount = house->getRent() + bid;
-	if (g_config.getBool(ConfigManager::BANK_SYSTEM) && player->balance >= amount) {
-		player->balance -= amount;
+	if (g_config.getBool(ConfigManager::BANK_SYSTEM) && player->m_balance >= amount) {
+		player->m_balance -= amount;
 		paid = true;
 	} else if (Depot* depot = player->getDepot(town->getID(), true)) {
 		paid = g_game.removeMoney(depot, amount, FLAG_NOLIMIT);

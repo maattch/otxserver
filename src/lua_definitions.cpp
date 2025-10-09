@@ -391,8 +391,8 @@ void otx::lua::pushThing(lua_State* L, Thing* thing,
 
 				int index = 0;
 				lua_createtable(L, containerItems.size(), 0);
-				for (Item* item : containerItems) {
-					pushThing(L, item, 0, recursive);
+				for (Item* containerItem : containerItems) {
+					pushThing(L, containerItem, 0, recursive);
 					lua_rawseti(L, -2, ++index);
 				}
 				lua_setfield(L, -2, "items");
@@ -1032,6 +1032,8 @@ uint32_t LuaEnvironment::addTimerEvent(LuaTimerEvent&& timerEvent, uint32_t dela
 
 bool LuaEnvironment::stopTimerEvent(lua_State* L, uint32_t eventId)
 {
+	UNUSED(L);
+
 	auto it = m_timerEvents.find(eventId);
 	if (it != m_timerEvents.end()) {
 		g_scheduler.stopEvent(it->second.eventId);

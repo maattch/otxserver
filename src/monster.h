@@ -56,8 +56,8 @@ public:
 	static uint32_t monsterAutoID;
 	void setID() override
 	{
-		if (id == 0) {
-			id = monsterAutoID++;
+		if (m_id == 0) {
+			m_id = monsterAutoID++;
 		}
 	}
 
@@ -208,7 +208,7 @@ private:
 	bool isFriend(const Creature* creature);
 	bool isOpponent(const Creature* creature);
 
-	virtual uint64_t getLostExperience() const { return ((skillLoss ? mType->experience : 0)); }
+	virtual uint64_t getLostExperience() const { return ((m_skillLoss ? mType->experience : 0)); }
 	virtual void dropLoot(Container* corpse);
 	virtual uint32_t getDamageImmunities() const { return mType->damageImmunities; }
 	virtual uint32_t getConditionImmunities() const { return mType->conditionImmunities; }

@@ -336,7 +336,8 @@ bool IOMapSerialize::loadMapRelational(Map* map)
 
 		query.str("");
 		query << "SELECT * FROM `tiles` WHERE `house_id` = " << house->getId();
-		if (DBResultPtr result = g_database.storeQuery(query.str())) {
+		DBResultPtr result = g_database.storeQuery(query.str());
+		if (result) {
 			do {
 				query.str("");
 				query << "SELECT * FROM `tile_items` WHERE `tile_id` = " << result->getNumber<int32_t>("id") << " ORDER BY `sid` DESC";
@@ -367,7 +368,8 @@ bool IOMapSerialize::loadMapRelational(Map* map)
 				query.str("");
 				query << "SELECT `id` FROM `tiles` WHERE `x` = " << tile->getPosition().x << " AND `y` = "
 					  << tile->getPosition().y << " AND `z` = " << tile->getPosition().z << " LIMIT 1";
-				if (DBResultPtr result = g_database.storeQuery(query.str())) {
+				result = g_database.storeQuery(query.str());
+				if (result) {
 					query.str("");
 					query << "SELECT * FROM `tile_items` WHERE `tile_id` = " << result->getNumber<int32_t>("id") << " ORDER BY `sid` DESC";
 					if (DBResultPtr itemsResult = g_database.storeQuery(query.str())) {
@@ -723,7 +725,7 @@ bool IOMapSerialize::loadItems(DBResultPtr result, Cylinder* parent, bool depotT
 			continue;
 		}
 
-		int32_t pid = rit->second.second;
+		pid = rit->second.second;
 		it = itemMap.find(pid);
 		if (it == itemMap.end()) {
 			continue;

@@ -48,7 +48,6 @@ private:
 
 extern Npcs g_npcs;
 
-struct NpcState;
 class NpcScript : public LuaInterface
 {
 public:
@@ -122,8 +121,8 @@ public:
 	static uint32_t npcAutoID;
 	void setID() override
 	{
-		if (id == 0) {
-			id = npcAutoID++;
+		if (m_id == 0) {
+			m_id = npcAutoID++;
 		}
 	}
 
@@ -188,7 +187,7 @@ protected:
 	bool getRandomStep(Direction& dir);
 	bool canWalkTo(const Position& fromPos, Direction dir);
 
-	void onPlayerLeave(Player* player, NpcState* state);
+	void onPlayerLeave(Player* player);
 
 	void addShopPlayer(Player* player);
 	void removeShopPlayer(const Player* player);

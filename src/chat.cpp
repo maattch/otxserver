@@ -171,10 +171,9 @@ bool ChatChannel::removeUser(Player* player, bool /* exclude = false*/)
 
 	m_users.erase(it);
 	CreatureEventList leaveEvents = player->getCreatureEvents(CREATURE_EVENT_CHANNEL_LEAVE);
-	for (CreatureEventList::iterator it = leaveEvents.begin(); it != leaveEvents.end(); ++it) {
-		(*it)->executeChannel(player, m_id, m_users);
+	for (CreatureEvent* creatureEvent : leaveEvents) {
+		creatureEvent->executeChannel(player, m_id, m_users);
 	}
-
 	return true;
 }
 
@@ -535,8 +534,6 @@ bool Chat::deleteChannel(Player* player, uint16_t channelId)
 			return true;
 		}
 	}
-
-	return false;
 }
 
 ChatChannel* Chat::addUserToChannel(Player* player, uint16_t channelId)
@@ -725,7 +722,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 
 							sprintf(buffer, "%s has invited %s to the guild.", player->getName().c_str(), paramPlayer->getName().c_str());
 							channel->talk("", MSG_CHANNEL_HIGHLIGHT, buffer);
-							paramPlayer->invitationsList.push_back(player->getGuildId());
+							paramPlayer->m_invitationsList.push_back(player->getGuildId());
 						} else {
 							player->sendCancel("A player with that name has already been invited to your guild.");
 						}
@@ -780,15 +777,15 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 				Player* paramPlayer = nullptr;
 				if (g_game.getPlayerByNameWildcard(param, paramPlayer) == RET_NOERROR) {
 					if (paramPlayer->getGuildId() == 0) {
-						InvitationsList::iterator it = std::find(paramPlayer->invitationsList.begin(), paramPlayer->invitationsList.end(), player->getGuildId());
-						if (it != paramPlayer->invitationsList.end()) {
+						InvitationsList::iterator it = std::find(paramPlayer->m_invitationsList.begin(), paramPlayer->m_invitationsList.end(), player->getGuildId());
+						if (it != paramPlayer->m_invitationsList.end()) {
 							sprintf(buffer, "%s has revoked your invite to %s guild.", player->getName().c_str(), (player->getSex(false) ? "his" : "her"));
 							paramPlayer->sendTextMessage(MSG_EVENT_GUILD, buffer);
 
 							sprintf(buffer, "%s has revoked the guildinvite of %s.", player->getName().c_str(), paramPlayer->getName().c_str());
 							channel->talk("", MSG_CHANNEL_HIGHLIGHT, buffer);
 
-							paramPlayer->invitationsList.erase(it);
+							paramPlayer->m_invitationsList.erase(it);
 							return true;
 						} else {
 							player->sendCancel("A player with that name is not invited to your guild.");

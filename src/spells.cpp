@@ -748,7 +748,7 @@ bool Spell::checkInstantSpell(Player* player, Creature* creature)
 	}
 
 	ReturnValue ret;
-	if ((ret = Combat::canDoCombat(player, tile, isAggressive, false)) != RET_NOERROR) {
+	if ((ret = Combat::canDoCombat(player, tile, isAggressive)) != RET_NOERROR) {
 		player->sendCancelMessage(ret);
 		if (!player->isGhost()) {
 			player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -859,7 +859,7 @@ bool Spell::checkInstantSpell(Player* player, const Position& toPos)
 	}
 
 	ReturnValue ret;
-	if ((ret = Combat::canDoCombat(player, tile, isAggressive, false)) != RET_NOERROR) {
+	if ((ret = Combat::canDoCombat(player, tile, isAggressive)) != RET_NOERROR) {
 		player->sendCancelMessage(ret);
 		if (!player->isGhost()) {
 			player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -941,7 +941,7 @@ bool Spell::checkRuneSpell(Player* player, const Position& toPos)
 	}
 
 	ReturnValue ret;
-	if ((ret = Combat::canDoCombat(player, tile, isAggressive, false)) != RET_NOERROR) {
+	if ((ret = Combat::canDoCombat(player, tile, isAggressive)) != RET_NOERROR) {
 		player->sendCancelMessage(ret);
 		if (!player->isGhost()) {
 			player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -1953,6 +1953,8 @@ ReturnValue RuneSpell::canExecuteAction(const Player* player, const Position& to
 bool RuneSpell::executeUse(Player* player, Item* item, const PositionEx& posFrom,
 	const PositionEx& posTo, bool, uint32_t creatureId)
 {
+	UNUSED(posFrom);
+
 	if (!checkRuneSpell(player, posTo)) {
 		return false;
 	}

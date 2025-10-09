@@ -81,10 +81,10 @@ bool WaitingList::login(const Player* player)
 	Wait* wait = new Wait();
 	if (player->isPremium()) {
 		slot = 1;
-		WaitList::iterator it = waitList.end();
-		for (WaitList::iterator wit = waitList.begin(); wit != it; ++wit) {
+		auto it2 = waitList.end();
+		for (WaitList::iterator wit = waitList.begin(); wit != it2; ++wit) {
 			if (!(*wit)->premium) {
-				it = wit;
+				it2 = wit;
 				break;
 			}
 
