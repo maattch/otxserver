@@ -21,6 +21,7 @@
 
 #include "house.h"
 #include "lua_definitions.h"
+#include "otx/cast.hpp"
 
 ConfigManager g_config;
 
@@ -166,8 +167,10 @@ bool ConfigManager::load()
 			m_confNumber[LOGIN_PORT] = getConfigInteger(L, "loginPort", 7171);
 		}
 
-		if (m_confString[GAME_PORT] == "") {
-			m_confString[GAME_PORT] = getConfigString(L, "gamePort", "7172");
+		if (m_confNumber[GAME_PORT] == 0) {
+			// backwards-compatibility
+			std::string port = getConfigString(L, "gamePort", "7172");
+			m_confNumber[GAME_PORT] = otx::util::cast<int64_t>(port.data());
 		}
 
 		if (m_confNumber[STATUS_PORT] == 0) {

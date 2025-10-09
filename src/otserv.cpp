@@ -618,11 +618,7 @@ void otserv(ServiceManager* services)
 	}
 
 	services->add<ProtocolOld>(g_config.getNumber(ConfigManager::LOGIN_PORT));
-	IntegerVec games = vectorAtoi(explodeString(g_config.getString(ConfigManager::GAME_PORT), ","));
-	for (IntegerVec::const_iterator it = games.begin(); it != games.end(); ++it) {
-		services->add<ProtocolGame>(*it);
-		break; // CRITICAL: more ports are causing crashes- either find the issue or drop the "feature"
-	}
+	services->add<ProtocolGame>(g_config.getNumber(ConfigManager::GAME_PORT));
 
 	std::clog << std::endl << ">> Everything smells good, server is starting up..." << std::endl;
 	g_game.start(services);

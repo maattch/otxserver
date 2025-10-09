@@ -187,9 +187,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 				output->addString(player->getName());
 				output->addString(s.str());
 				output->add<uint32_t>(g_config.getIPNumber());
-
-				IntegerVec games = vectorAtoi(explodeString(g_config.getString(ConfigManager::GAME_PORT), ","));
-				output->add<uint16_t>(games[random_range(0, games.size() - 1)]);
+				output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
 			}
 		}
 	} else {
@@ -199,9 +197,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 			output->addString(g_config.getString(ConfigManager::SERVER_NAME));
 			output->add<uint32_t>(g_config.getIPNumber());
-
-			IntegerVec games = vectorAtoi(explodeString(g_config.getString(ConfigManager::GAME_PORT), ","));
-			output->add<uint16_t>(games[random_range(0, games.size() - 1)]);
+			output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
 		} else {
 			output->addByte((uint8_t)account.charList.size());
 		}
@@ -219,8 +215,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 			}
 
 			output->add<uint32_t>(g_config.getIPNumber());
-			IntegerVec games = vectorAtoi(explodeString(g_config.getString(ConfigManager::GAME_PORT), ","));
-			output->add<uint16_t>(games[random_range(0, games.size() - 1)]);
+			output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
 		}
 	}
 
