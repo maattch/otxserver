@@ -221,174 +221,174 @@ bool Vocations::loadFromXml()
 				}
 			} else if (!xmlStrcmp(configNode->name, (const xmlChar*)"absorb")) {
 				if (readXMLInteger(configNode, "percentAll", intValue)) {
-					for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {
+					for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 						vocation.absorb[i] = intValue;
 					}
 				}
 
 				if (readXMLInteger(configNode, "percentElements", intValue)) {
-					vocation.absorb[COMBAT_ENERGYDAMAGE] = intValue;
-					vocation.absorb[COMBAT_FIREDAMAGE] = intValue;
-					vocation.absorb[COMBAT_EARTHDAMAGE] = intValue;
-					vocation.absorb[COMBAT_ICEDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_ENERGYDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_FIREDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_EARTHDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_ICEDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentMagic", intValue)) {
-					vocation.absorb[COMBAT_ENERGYDAMAGE] = intValue;
-					vocation.absorb[COMBAT_FIREDAMAGE] = intValue;
-					vocation.absorb[COMBAT_EARTHDAMAGE] = intValue;
-					vocation.absorb[COMBAT_ICEDAMAGE] = intValue;
-					vocation.absorb[COMBAT_HOLYDAMAGE] = intValue;
-					vocation.absorb[COMBAT_DEATHDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_ENERGYDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_FIREDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_EARTHDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_ICEDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_HOLYDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_DEATHDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentEnergy", intValue)) {
-					vocation.absorb[COMBAT_ENERGYDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_ENERGYDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentFire", intValue)) {
-					vocation.absorb[COMBAT_FIREDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_FIREDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentPoison", intValue) || readXMLInteger(configNode, "percentEarth", intValue)) {
-					vocation.absorb[COMBAT_EARTHDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_EARTHDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentIce", intValue)) {
-					vocation.absorb[COMBAT_ICEDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_ICEDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentHoly", intValue)) {
-					vocation.absorb[COMBAT_HOLYDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_HOLYDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentDeath", intValue)) {
-					vocation.absorb[COMBAT_DEATHDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_DEATHDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentLifeDrain", intValue)) {
-					vocation.absorb[COMBAT_LIFEDRAIN] = intValue;
+					vocation.absorb[COMBATINDEX_LIFEDRAIN] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentManaDrain", intValue)) {
-					vocation.absorb[COMBAT_MANADRAIN] = intValue;
+					vocation.absorb[COMBATINDEX_MANADRAIN] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentDrown", intValue)) {
-					vocation.absorb[COMBAT_DROWNDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_DROWNDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentPhysical", intValue)) {
-					vocation.absorb[COMBAT_PHYSICALDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_PHYSICALDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentHealing", intValue)) {
-					vocation.absorb[COMBAT_HEALING] = intValue;
+					vocation.absorb[COMBATINDEX_HEALING] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentUndefined", intValue)) {
-					vocation.absorb[COMBAT_UNDEFINEDDAMAGE] = intValue;
+					vocation.absorb[COMBATINDEX_UNDEFINEDDAMAGE] = intValue;
 				}
 			} else if (!xmlStrcmp(configNode->name, (const xmlChar*)"reflect")) {
 				if (readXMLInteger(configNode, "percentAll", intValue)) {
-					for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {
+					for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 						vocation.reflect[REFLECT_PERCENT][i] = intValue;
 					}
 				}
 
 				if (readXMLInteger(configNode, "percentElements", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_ENERGYDAMAGE] = intValue;
-					vocation.reflect[REFLECT_PERCENT][COMBAT_FIREDAMAGE] = intValue;
-					vocation.reflect[REFLECT_PERCENT][COMBAT_EARTHDAMAGE] = intValue;
-					vocation.reflect[REFLECT_PERCENT][COMBAT_ICEDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_ENERGYDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_FIREDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_EARTHDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_ICEDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentMagic", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_ENERGYDAMAGE] = intValue;
-					vocation.reflect[REFLECT_PERCENT][COMBAT_FIREDAMAGE] = intValue;
-					vocation.reflect[REFLECT_PERCENT][COMBAT_EARTHDAMAGE] = intValue;
-					vocation.reflect[REFLECT_PERCENT][COMBAT_ICEDAMAGE] = intValue;
-					vocation.reflect[REFLECT_PERCENT][COMBAT_HOLYDAMAGE] = intValue;
-					vocation.reflect[REFLECT_PERCENT][COMBAT_DEATHDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_ENERGYDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_FIREDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_EARTHDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_ICEDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_HOLYDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_DEATHDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentEnergy", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_ENERGYDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_ENERGYDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentFire", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_FIREDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_FIREDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentPoison", intValue) || readXMLInteger(configNode, "percentEarth", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_EARTHDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_EARTHDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentIce", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_ICEDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_ICEDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentHoly", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_HOLYDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_HOLYDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentDeath", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_DEATHDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_DEATHDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentLifeDrain", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_LIFEDRAIN] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_LIFEDRAIN] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentManaDrain", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_MANADRAIN] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_MANADRAIN] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentDrown", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_DROWNDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_DROWNDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentPhysical", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_PHYSICALDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_PHYSICALDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentHealing", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_HEALING] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_HEALING] = intValue;
 				}
 				if (readXMLInteger(configNode, "percentUndefined", intValue)) {
-					vocation.reflect[REFLECT_PERCENT][COMBAT_UNDEFINEDDAMAGE] = intValue;
+					vocation.reflect[REFLECT_PERCENT][COMBATINDEX_UNDEFINEDDAMAGE] = intValue;
 				}
 
 				if (readXMLInteger(configNode, "chanceAll", intValue)) {
-					for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {
+					for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 						vocation.reflect[REFLECT_CHANCE][i] = intValue;
 					}
 				}
 
 				if (readXMLInteger(configNode, "chanceElements", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_ENERGYDAMAGE] = intValue;
-					vocation.reflect[REFLECT_CHANCE][COMBAT_FIREDAMAGE] = intValue;
-					vocation.reflect[REFLECT_CHANCE][COMBAT_EARTHDAMAGE] = intValue;
-					vocation.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_ENERGYDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_FIREDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_EARTHDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_ICEDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceMagic", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_ENERGYDAMAGE] = intValue;
-					vocation.reflect[REFLECT_CHANCE][COMBAT_FIREDAMAGE] = intValue;
-					vocation.reflect[REFLECT_CHANCE][COMBAT_EARTHDAMAGE] = intValue;
-					vocation.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] = intValue;
-					vocation.reflect[REFLECT_CHANCE][COMBAT_HOLYDAMAGE] = intValue;
-					vocation.reflect[REFLECT_CHANCE][COMBAT_DEATHDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_ENERGYDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_FIREDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_EARTHDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_ICEDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_HOLYDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_DEATHDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceEnergy", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_ENERGYDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_ENERGYDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceFire", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_FIREDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_FIREDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "chancePoison", intValue) || readXMLInteger(configNode, "chanceEarth", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_EARTHDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_EARTHDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceIce", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_ICEDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceHoly", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_HOLYDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_HOLYDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceDeath", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_DEATHDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_DEATHDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceLifeDrain", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_LIFEDRAIN] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_LIFEDRAIN] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceManaDrain", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_MANADRAIN] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_MANADRAIN] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceDrown", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_DROWNDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_DROWNDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "chancePhysical", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_PHYSICALDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_PHYSICALDAMAGE] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceHealing", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_HEALING] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_HEALING] = intValue;
 				}
 				if (readXMLInteger(configNode, "chanceUndefined", intValue)) {
-					vocation.reflect[REFLECT_CHANCE][COMBAT_UNDEFINEDDAMAGE] = intValue;
+					vocation.reflect[REFLECT_CHANCE][COMBATINDEX_UNDEFINEDDAMAGE] = intValue;
 				}
 			}
 		}
@@ -431,10 +431,11 @@ int32_t Vocations::getPromotedVocation(uint32_t vocationId)
 	return -1;
 }
 
-int16_t Vocation::getReflect(CombatType_t combat) const
+int16_t Vocation::getReflect(uint16_t index) const
 {
-	if (reflect[REFLECT_CHANCE][combat] >= random_range(1, 100)) {
-		return reflect[REFLECT_PERCENT][combat];
+	assert(index >= COMBATINDEX_FIRST && index <= COMBATINDEX_LAST);
+	if (reflect[REFLECT_CHANCE][index] >= random_range(1, 100)) {
+		return reflect[REFLECT_PERCENT][index];
 	}
 	return 0;
 }

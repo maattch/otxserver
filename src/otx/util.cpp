@@ -53,3 +53,45 @@ void otx::util::replace_all(std::string& str, std::string_view search, std::stri
 		pos = str.find(search, pos + rep.size());
 	}
 }
+
+uint16_t otx::util::combat_index(CombatType_t combat)
+{
+	switch (combat) {
+		case COMBAT_PHYSICALDAMAGE:  return COMBATINDEX_PHYSICALDAMAGE;
+		case COMBAT_ENERGYDAMAGE:    return COMBATINDEX_ENERGYDAMAGE;
+		case COMBAT_EARTHDAMAGE:     return COMBATINDEX_EARTHDAMAGE;
+		case COMBAT_FIREDAMAGE:      return COMBATINDEX_FIREDAMAGE;
+		case COMBAT_UNDEFINEDDAMAGE: return COMBATINDEX_UNDEFINEDDAMAGE;
+		case COMBAT_LIFEDRAIN:       return COMBATINDEX_LIFEDRAIN;
+		case COMBAT_MANADRAIN:       return COMBATINDEX_MANADRAIN;
+		case COMBAT_HEALING:         return COMBATINDEX_HEALING;
+		case COMBAT_DROWNDAMAGE:     return COMBATINDEX_DROWNDAMAGE;
+		case COMBAT_ICEDAMAGE:       return COMBATINDEX_ICEDAMAGE;
+		case COMBAT_HOLYDAMAGE:      return COMBATINDEX_HOLYDAMAGE;
+		case COMBAT_DEATHDAMAGE:     return COMBATINDEX_DEATHDAMAGE;
+
+		default:
+			return COMBAT_NONE;
+	}
+}
+
+CombatType_t otx::util::index_combat(uint16_t combat)
+{
+	switch (combat) {
+		case COMBATINDEX_PHYSICALDAMAGE:  return COMBAT_PHYSICALDAMAGE;
+		case COMBATINDEX_ENERGYDAMAGE:    return COMBAT_ENERGYDAMAGE;
+		case COMBATINDEX_EARTHDAMAGE:     return COMBAT_EARTHDAMAGE;
+		case COMBATINDEX_FIREDAMAGE:      return COMBAT_FIREDAMAGE;
+		case COMBATINDEX_UNDEFINEDDAMAGE: return COMBAT_UNDEFINEDDAMAGE;
+		case COMBATINDEX_LIFEDRAIN:       return COMBAT_LIFEDRAIN;
+		case COMBATINDEX_MANADRAIN:       return COMBAT_MANADRAIN;
+		case COMBATINDEX_HEALING:         return COMBAT_HEALING;
+		case COMBATINDEX_DROWNDAMAGE:     return COMBAT_DROWNDAMAGE;
+		case COMBATINDEX_ICEDAMAGE:       return COMBAT_ICEDAMAGE;
+		case COMBATINDEX_HOLYDAMAGE:      return COMBAT_HOLYDAMAGE;
+		case COMBATINDEX_DEATHDAMAGE:     return COMBAT_DEATHDAMAGE;
+
+		default:
+			return COMBAT_NONE;
+	}
+}

@@ -51,7 +51,8 @@ struct Outfit
 
 	bool isDefault, isPremium, manaShield, invisible, regeneration;
 	AddonRequirement_t requirement;
-	int16_t absorb[COMBAT_LAST + 1], reflect[REFLECT_LAST + 1][COMBAT_LAST + 1];
+	int16_t absorb[COMBATINDEX_LAST + 1];
+	int16_t reflect[REFLECT_LAST + 1][COMBATINDEX_LAST + 1];
 
 	uint16_t accessLevel, addons;
 	int32_t skills[SKILL_LAST + 1], skillsPercent[SKILL_LAST + 1], stats[STAT_LAST + 1], statsPercent[STAT_LAST + 1],
@@ -90,8 +91,8 @@ public:
 
 	const Outfit* getOutfitByLookType(uint16_t sex, uint16_t lookType);
 
-	int16_t getOutfitAbsorb(uint32_t lookType, uint16_t sex, CombatType_t combat);
-	int16_t getOutfitReflect(uint32_t lookType, uint16_t sex, CombatType_t combat);
+	int16_t getOutfitAbsorb(uint32_t lookType, uint16_t sex, uint16_t index);
+	int16_t getOutfitReflect(uint32_t lookType, uint16_t sex, uint16_t index);
 
 private:
 	Outfits() {}

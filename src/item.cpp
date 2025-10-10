@@ -1028,7 +1028,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			int32_t show = it.abilities->absorb[COMBAT_ALL];
 			if (!show) {
 				bool tmp = true;
-				for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {
+				for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 					if (!it.abilities->absorb[i]) {
 						continue;
 					}
@@ -1047,7 +1047,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 						s << ", ";
 					}
 
-					s << getCombatName((CombatType_t)i) << " " << std::showpos << it.abilities->absorb[i] << std::noshowpos << "%";
+					s << getCombatName(otx::util::index_combat(i)) << " " << std::showpos << it.abilities->absorb[i] << std::noshowpos << "%";
 				}
 			} else {
 				if (begin) {
@@ -1063,7 +1063,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			show = it.abilities->fieldAbsorb[COMBAT_ALL];
 			if (!show) {
 				bool tmp = true;
-				for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {
+				for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 					if (!it.abilities->fieldAbsorb[i]) {
 						continue;
 					}
@@ -1082,7 +1082,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 						s << ", ";
 					}
 
-					s << getCombatName((CombatType_t)i) << " field " << std::showpos << it.abilities->absorb[i] << std::noshowpos << "%";
+					s << getCombatName(otx::util::index_combat(i)) << " field " << std::showpos << it.abilities->absorb[i] << std::noshowpos << "%";
 				}
 			} else {
 				if (begin) {
@@ -1098,7 +1098,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			show = it.abilities->reflect[REFLECT_CHANCE][COMBAT_ALL];
 			if (!show) {
 				bool tmp = true;
-				for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {
+				for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 					if (!it.abilities->reflect[REFLECT_CHANCE][i] || !it.abilities->reflect[REFLECT_PERCENT][i]) {
 						continue;
 					}
@@ -1130,7 +1130,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 						s << "tiny";
 					}
 
-					s << getCombatName((CombatType_t)i);
+					s << getCombatName(otx::util::index_combat(i));
 				}
 
 				if (!tmp) {
@@ -1293,7 +1293,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 					s << ", ";
 				}
 
-				s << getSkillName(i) << " " << std::showpos << (int32_t)it.abilities->skills[i] << std::noshowpos;
+				s << getSkillName(i) << " " << std::showpos << it.abilities->skills[i] << std::noshowpos;
 			}
 
 			if (it.abilities->stats[STAT_MAGICLEVEL]) {
@@ -1304,13 +1304,13 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 					s << ", ";
 				}
 
-				s << "magic level " << std::showpos << (int32_t)it.abilities->stats[STAT_MAGICLEVEL] << std::noshowpos;
+				s << "magic level " << std::showpos << it.abilities->stats[STAT_MAGICLEVEL] << std::noshowpos;
 			}
 
 			int32_t show = it.abilities->absorb[COMBAT_ALL];
 			if (!show) {
 				bool tmp2 = true;
-				for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {
+				for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 					if (!it.abilities->absorb[i]) {
 						continue;
 					}
@@ -1329,7 +1329,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 						s << ", ";
 					}
 
-					s << getCombatName((CombatType_t)i) << " " << std::showpos << it.abilities->absorb[i] << std::noshowpos << "%";
+					s << getCombatName(otx::util::index_combat(i)) << " " << std::showpos << it.abilities->absorb[i] << std::noshowpos << "%";
 				}
 			} else {
 				if (begin) {
@@ -1345,7 +1345,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			show = it.abilities->reflect[REFLECT_CHANCE][COMBAT_ALL];
 			if (!show) {
 				bool tmp2 = true;
-				for (uint32_t i = (COMBAT_FIRST + 1); i <= COMBAT_LAST; i <<= 1) {
+				for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 					if (!it.abilities->reflect[REFLECT_CHANCE][i] || !it.abilities->reflect[REFLECT_PERCENT][i]) {
 						continue;
 					}
@@ -1377,7 +1377,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 						s << "tiny";
 					}
 
-					s << getCombatName((CombatType_t)i);
+					s << getCombatName(otx::util::index_combat(i));
 				}
 
 				if (!tmp2) {

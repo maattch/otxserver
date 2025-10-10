@@ -17,6 +17,8 @@
 
 #pragma once
 
+// TODO: rework this and move to item.h
+
 #include <boost/any.hpp>
 
 class PropWriteStream;

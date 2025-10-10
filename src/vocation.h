@@ -24,7 +24,7 @@ struct Vocation
 {
 	uint64_t getReqSkillTries(uint8_t skill, int32_t level) const;
 	uint64_t getReqMana(uint32_t magLevel) const;
-	int16_t getReflect(CombatType_t combat) const;
+	int16_t getReflect(uint16_t index) const;
 	double getExperienceMultiplier() const { return skillMultipliers[SKILL__LEVEL]; }
 
 	std::string name;
@@ -45,8 +45,8 @@ struct Vocation
 	float skillMultipliers[SKILL__LAST + 1] = { 1.5f, 2.f, 2.f, 2.f, 2.f, 2.f, 1.1f, 2.f, 1.0f, 2.f };
 	float formulaMultipliers[MULTIPLIER_LAST + 1] = { 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 4.f };
 
-	int16_t absorb[COMBAT_LAST + 1] = {};
-	int16_t reflect[REFLECT_LAST + 1][COMBAT_LAST + 1] = {};
+	int16_t absorb[COMBATINDEX_LAST + 1] = {};
+	int16_t reflect[REFLECT_LAST + 1][COMBATINDEX_LAST + 1] = {};
 
 	bool attackable = true;
 	bool needPremium = false;

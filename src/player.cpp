@@ -2394,6 +2394,8 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 		reflect = attacker && !attacker->isRemoved() && attacker->getHealth() > 0;
 	}
 
+	const uint16_t combatIndex = otx::util::combat_index(combatType);
+
 	Item* item = nullptr;
 	for (int32_t slot = SLOT_FIRST; slot < SLOT_LAST; ++slot) {
 		if (!(item = getInventoryItem((slots_t)slot)) || item->isRemoved() || (g_moveEvents.hasEquipEvent(item) && !isItemAbilityEnabled((slots_t)slot))) {
@@ -2406,22 +2408,22 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 		}
 
 		bool transform = false;
-		if (it.abilities->absorb[combatType]) {
-			blocked += (int32_t)std::ceil((double)(damage * it.abilities->absorb[combatType]) / 100.);
+		if (it.abilities->absorb[combatIndex]) {
+			blocked += (int32_t)std::ceil((double)(damage * it.abilities->absorb[combatIndex]) / 100.);
 			if (item->hasCharges()) {
 				transform = true;
 			}
 		}
 
-		if (field && it.abilities->fieldAbsorb[combatType]) {
-			blocked += (int32_t)std::ceil((double)(damage * it.abilities->fieldAbsorb[combatType]) / 100.);
+		if (field && it.abilities->fieldAbsorb[combatIndex]) {
+			blocked += (int32_t)std::ceil((double)(damage * it.abilities->fieldAbsorb[combatIndex]) / 100.);
 			if (item->hasCharges()) {
 				transform = true;
 			}
 		}
 
-		if (reflect && it.abilities->reflect[REFLECT_PERCENT][combatType] && it.abilities->reflect[REFLECT_CHANCE][combatType] >= random_range(1, 100)) {
-			reflected += (int32_t)std::ceil((double)(damage * it.abilities->reflect[REFLECT_PERCENT][combatType]) / 100.);
+		if (reflect && it.abilities->reflect[REFLECT_PERCENT][combatIndex] && it.abilities->reflect[REFLECT_CHANCE][combatIndex] >= random_range(1, 100)) {
+			reflected += (int32_t)std::ceil((double)(damage * it.abilities->reflect[REFLECT_PERCENT][combatIndex]) / 100.);
 			if (item->hasCharges()) {
 				transform = true;
 			}
@@ -2446,12 +2448,12 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 			}
 		}
 	*/
-	if (m_vocation->absorb[combatType]) {
-		blocked += (int32_t)std::ceil((double)(damage * m_vocation->absorb[combatType]) / 100.);
+	if (m_vocation->absorb[combatIndex]) {
+		blocked += (int32_t)std::ceil((double)(damage * m_vocation->absorb[combatIndex]) / 100.);
 	}
 
-	if (reflect && m_vocation->getReflect(combatType)) {
-		reflected += (int32_t)std::ceil((double)(damage * m_vocation->getReflect(combatType)) / 100.);
+	if (reflect && m_vocation->getReflect(combatIndex)) {
+		reflected += (int32_t)std::ceil((double)(damage * m_vocation->getReflect(combatIndex)) / 100.);
 	}
 
 	if (g_config.getBool(ConfigManager::USE_MAX_ABSORBALL)) {
