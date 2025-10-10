@@ -117,12 +117,12 @@ private:
 	RuleViolation(const RuleViolation&);
 };
 
-enum SaveFlag_t
+enum SaveFlag_t : uint8_t
 {
-	SAVE_PLAYERS = 1 << 0,
+	SAVE_PLAYERS         = 1 << 0,
 	SAVE_PLAYERS_SHALLOW = 1 << 1,
-	SAVE_MAP = 1 << 2,
-	SAVE_STATE = 1 << 3
+	SAVE_MAP             = 1 << 2,
+	SAVE_STATE           = 1 << 3
 };
 
 struct RefreshBlock_t
@@ -137,16 +137,8 @@ typedef std::vector<std::pair<std::string, uint32_t>> Highscore;
 typedef std::list<Position> Trash;
 typedef std::map<int32_t, float> StageList;
 
-#define EVENT_LIGHTINTERVAL 10000
-#define EVENT_DECAYINTERVAL 250
-#define EVENT_DECAYBUCKETS 4
-#define STATE_DELAY 1000
-#define EVENT_WARSINTERVAL 450000
-
-/**
- * Main Game class.
- * This class is responsible to control everything that happens
- */
+static constexpr uint32_t EVENT_DECAYBUCKETS = 4;
+static constexpr uint32_t EVENT_WARSINTERVAL = 450000;
 
 class Game final
 {
@@ -616,6 +608,7 @@ public:
 	void checkCreatures();
 	void checkLight();
 	void checkWars();
+	void collectLuaGarbage();
 
 	bool combatBlockHit(const CombatType_t& combatType, Creature* attacker, Creature* target,
 		int32_t& healthChange, const bool checkDefense, const bool checkArmor, const bool field = false, const bool element = false);
@@ -756,8 +749,13 @@ protected:
 	std::string lastMotd;
 	int32_t lastMotdId;
 	uint32_t playersRecord;
-	uint32_t checkLightEvent, checkCreatureEvent, checkDecayEvent, saveEvent;
-	uint32_t checkWarsEvent;
+	// events
+	uint32_t checkLightEventId = 0;
+	uint32_t checkCreatureEventId = 0;
+	uint32_t checkDecayEventId = 0;
+	uint32_t saveEventId = 0;
+	uint32_t checkWarsEventId = 0;
+	uint32_t luaCollectGarbageEventId = 0;
 	bool checkEndingWars;
 
 	RefreshTiles refreshTiles;

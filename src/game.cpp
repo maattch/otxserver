@@ -38,7 +38,6 @@
 #include "movement.h"
 #include "quests.h"
 #include "raids.h"
-#include "scriptmanager.h"
 #include "server.h"
 #include "spawn.h"
 #include "spells.h"
@@ -54,6 +53,15 @@
 
 Game g_game;
 
+namespace
+{
+	constexpr uint32_t EVENT_LIGHTINTERVAL = 10000;
+	constexpr uint32_t EVENT_DECAYINTERVAL = 250;
+	constexpr uint32_t STATE_DELAY = 1000;
+	constexpr uint32_t LUA_COLLECT_GARBAGE_INTERVAL = 5 * 60000; // (5m)
+
+} // namespace
+
 Game::Game()
 {
 	gameState = GAMESTATE_NORMAL;
@@ -67,8 +75,7 @@ Game::Game()
 	lightLevel = LIGHT_LEVEL_DAY;
 	lightState = LIGHT_STATE_DAY;
 
-	lastBucket = checkCreatureLastIndex = checkLightEvent = checkCreatureEvent = checkDecayEvent = saveEvent = 0;
-	checkWarsEvent = 0;
+	lastBucket = checkCreatureLastIndex = 0;
 	checkEndingWars = false;
 }
 
@@ -84,10 +91,11 @@ WorldType_t Game::getWorldType() const
 
 void Game::start(ServiceManager* servicer)
 {
-	checkDecayEvent = addSchedulerTask(EVENT_DECAYINTERVAL, [this]() { checkDecay(); });
-	checkCreatureEvent = addSchedulerTask(EVENT_CREATURE_THINK_INTERVAL, [this]() { checkCreatures(); });
-	checkLightEvent = addSchedulerTask(EVENT_LIGHTINTERVAL, [this]() { checkLight(); });
-	checkWarsEvent = addSchedulerTask(EVENT_WARSINTERVAL, [this]() { checkWars(); });
+	checkDecayEventId = addSchedulerTask(EVENT_DECAYINTERVAL, [this]() { checkDecay(); });
+	checkCreatureEventId = addSchedulerTask(EVENT_CREATURE_THINK_INTERVAL, [this]() { checkCreatures(); });
+	checkLightEventId = addSchedulerTask(EVENT_LIGHTINTERVAL, [this]() { checkLight(); });
+	checkWarsEventId = addSchedulerTask(EVENT_WARSINTERVAL, [this]() { checkWars(); });
+	luaCollectGarbageEventId = addSchedulerTask(LUA_COLLECT_GARBAGE_INTERVAL, [this]() { collectLuaGarbage(); });
 
 	services = servicer;
 	if (!g_config.getBool(ConfigManager::GLOBALSAVE_ENABLED)) {
@@ -158,7 +166,7 @@ void Game::start(ServiceManager* servicer)
 	uint32_t timeLeft = (hoursLeft * 60 * 60 * 1000) + (minutesLeft * 60 * 1000);
 	if (timeLeft > 0) {
 		timeLeft -= second * 1000;
-		saveEvent = addSchedulerTask(timeLeft, ([this, broadcast]() { prepareGlobalSave(broadcast); }));
+		saveEventId = addSchedulerTask(timeLeft, ([this, broadcast]() { prepareGlobalSave(broadcast); }));
 	}
 }
 
@@ -4838,7 +4846,7 @@ void Game::removeCreatureCheck(Creature* creature)
 
 void Game::checkCreatures()
 {
-	checkCreatureEvent = addSchedulerTask(EVENT_CHECK_CREATURE_INTERVAL, [this]() { checkCreatures(); });
+	checkCreatureEventId = addSchedulerTask(EVENT_CHECK_CREATURE_INTERVAL, [this]() { checkCreatures(); });
 	if (++checkCreatureLastIndex == EVENT_CREATURECOUNT) {
 		checkCreatureLastIndex = 0;
 	}
@@ -5629,7 +5637,7 @@ void Game::internalDecayItem(Item* item)
 
 void Game::checkDecay()
 {
-	checkDecayEvent = addSchedulerTask(EVENT_DECAYINTERVAL, [this]() { checkDecay(); });
+	checkDecayEventId = addSchedulerTask(EVENT_DECAYINTERVAL, [this]() { checkDecay(); });
 
 	size_t bucket = (lastBucket + 1) % EVENT_DECAYBUCKETS;
 	for (DecayList::iterator it = decayItems[bucket].begin(); it != decayItems[bucket].end();) {
@@ -5681,7 +5689,7 @@ void Game::checkDecay()
 
 void Game::checkLight()
 {
-	checkLightEvent = addSchedulerTask(EVENT_LIGHTINTERVAL, [this]() { checkLight(); });
+	checkLightEventId = addSchedulerTask(EVENT_LIGHTINTERVAL, [this]() { checkLight(); });
 
 	lightHour = lightHour + lightHourDelta;
 	if (lightHour > 1440) {
@@ -5744,7 +5752,13 @@ void Game::checkWars()
 		checkEndingWars = true;
 	}
 
-	checkWarsEvent = addSchedulerTask(EVENT_WARSINTERVAL, [this]() { checkWars(); });
+	checkWarsEventId = addSchedulerTask(EVENT_WARSINTERVAL, [this]() { checkWars(); });
+}
+
+void Game::collectLuaGarbage()
+{
+	luaCollectGarbageEventId = addSchedulerTask(LUA_COLLECT_GARBAGE_INTERVAL, [this]() { collectLuaGarbage(); });
+	g_lua.collectGarbage();
 }
 
 void Game::getWorldLightInfo(LightInfo& lightInfo)

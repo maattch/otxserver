@@ -6354,6 +6354,7 @@ static int luaDoReloadInfo(lua_State* L)
 	if (reloadId == RELOAD_GLOBAL) {
 		LuaInterface* mainInterface = g_lua.getMainInterface();
 		lua_pushboolean(L, mainInterface->loadFile("data/global.lua"));
+		g_lua.collectGarbage();
 	} else {
 		lua_pushboolean(L, g_game.reloadInfo(reloadId));
 	}
