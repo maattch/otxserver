@@ -1334,22 +1334,30 @@ bool IOLoginData::playerMail(Creature* actor, std::string name, uint32_t townId,
 		return false;
 	}
 
-	if (!townId) {
+	if (townId == 0) {
 		townId = player->getTown();
 	}
 
 	Depot* depot = player->getDepot(townId, true);
-	if (g_game.internalMoveItem(actor, item->getParent(), depot, INDEX_WHEREEVER,
-			item, item->getItemCount(), nullptr, FLAG_NOLIMIT)
-		!= RET_NOERROR) {
+	if (g_game.internalMoveItem(actor, item->getParent(), depot, INDEX_WHEREEVER, item, item->getItemCount(), nullptr, FLAG_NOLIMIT) != RET_NOERROR) {
 		if (player->isVirtual()) {
 			delete player;
 		}
-
 		return false;
 	}
 
-	g_game.transformItem(item, item->getID() == ITEM_PARCEL ? ITEM_PARCEL_STAMPED : ITEM_LETTER_STAMPED);
+	switch (item->getID()) {
+		case ITEM_PARCEL:
+			g_game.transformItem(item, ITEM_PARCEL_STAMPED);
+			break;
+		case ITEM_LETTER:
+			g_game.transformItem(item, ITEM_LETTER_STAMPED);
+			break;
+
+		default:
+			break;
+	}
+
 	bool result = true, opened = player->getContainerID(depot) != -1;
 
 	Player* tmp = nullptr;
