@@ -1357,18 +1357,20 @@ bool IOLoginData::playerMail(Creature* actor, std::string name, uint32_t townId,
 		tmp = actor->getPlayer();
 	}
 
-	CreatureEventList mailEvents = player->getCreatureEvents(CREATURE_EVENT_MAIL_RECEIVE);
-	for (CreatureEventList::iterator it = mailEvents.begin(); it != mailEvents.end(); ++it) {
-		if (!(*it)->executeMail(player, tmp, item, opened) && result) {
-			result = false;
+	if (player->hasEventRegistered(CREATURE_EVENT_MAIL_RECEIVE)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_MAIL_RECEIVE)) {
+			if (!it->executeMail(player, tmp, item, opened)) {
+				result = false;
+			}
 		}
 	}
 
 	if (tmp) {
-		mailEvents = tmp->getCreatureEvents(CREATURE_EVENT_MAIL_SEND);
-		for (CreatureEventList::iterator it = mailEvents.begin(); it != mailEvents.end(); ++it) {
-			if (!(*it)->executeMail(tmp, player, item, opened) && result) {
-				result = false;
+		if (tmp->hasEventRegistered(CREATURE_EVENT_MAIL_SEND)) {
+			for (CreatureEvent* it : tmp->getCreatureEvents(CREATURE_EVENT_MAIL_SEND)) {
+				if (!it->executeMail(tmp, player, item, opened)) {
+					result = false;
+				}
 			}
 		}
 	}

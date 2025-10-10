@@ -226,10 +226,11 @@ ReturnValue Combat::canDoCombat(const Creature* caster, const Tile* tile, bool i
 
 	if (caster) {
 		bool success = true;
-		CreatureEventList combatAreaEvents = const_cast<Creature*>(caster)->getCreatureEvents(CREATURE_EVENT_COMBAT_AREA);
-		for (CreatureEventList::iterator it = combatAreaEvents.begin(); it != combatAreaEvents.end(); ++it) {
-			if (!(*it)->executeCombatArea(const_cast<Creature*>(caster), const_cast<Tile*>(tile), isAggressive) && success) {
-				success = false;
+		if (const_cast<Creature*>(caster)->hasEventRegistered(CREATURE_EVENT_COMBAT_AREA)) {
+			for (CreatureEvent* it : const_cast<Creature*>(caster)->getCreatureEvents(CREATURE_EVENT_COMBAT_AREA)) {
+				if (!it->executeCombatArea(const_cast<Creature*>(caster), const_cast<Tile*>(tile), isAggressive)) {
+					success = false;
+				}
 			}
 		}
 
@@ -265,10 +266,11 @@ ReturnValue Combat::canDoCombat(const Creature* attacker, const Creature* target
 	}
 
 	bool success = true;
-	CreatureEventList combatEvents = const_cast<Creature*>(attacker)->getCreatureEvents(CREATURE_EVENT_COMBAT);
-	for (CreatureEventList::iterator it = combatEvents.begin(); it != combatEvents.end(); ++it) {
-		if (!(*it)->executeCombat(const_cast<Creature*>(attacker), const_cast<Creature*>(target), isAggressive) && success) {
-			success = false;
+	if (const_cast<Creature*>(attacker)->hasEventRegistered(CREATURE_EVENT_COMBAT)) {
+		for (CreatureEvent* it : const_cast<Creature*>(attacker)->getCreatureEvents(CREATURE_EVENT_COMBAT)) {
+			if (!it->executeCombat(const_cast<Creature*>(attacker), const_cast<Creature*>(target), isAggressive)) {
+				success = false;
+			}
 		}
 	}
 
@@ -356,10 +358,11 @@ ReturnValue Combat::canTargetCreature(const Player* player, const Creature* targ
 	Player* tmpPlayer = const_cast<Player*>(player);
 	bool deny = false;
 
-	CreatureEventList targetEvents = tmpPlayer->getCreatureEvents(CREATURE_EVENT_TARGET);
-	for (CreatureEventList::iterator it = targetEvents.begin(); it != targetEvents.end(); ++it) {
-		if (!(*it)->executeAction(tmpPlayer, const_cast<Creature*>(target)) && !deny) {
-			deny = true;
+	if (tmpPlayer->hasEventRegistered(CREATURE_EVENT_TARGET)) {
+		for (CreatureEvent* it : tmpPlayer->getCreatureEvents(CREATURE_EVENT_TARGET)) {
+			if (!it->executeAction(tmpPlayer, const_cast<Creature*>(target))) {
+				deny = true;
+			}
 		}
 	}
 

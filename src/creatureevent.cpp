@@ -236,6 +236,28 @@ CreatureEventType_t CreatureEvents::getType(const std::string& eventName)
 	return CREATURE_EVENT_NONE;
 }
 
+std::vector<CreatureEvent*> CreatureEvents::getInvalidEvents()
+{
+	std::vector<CreatureEvent*> invalidEvents;
+	for (auto& it : m_creatureEvents) {
+		if (!it.second.isScripted()) {
+			invalidEvents.push_back(&it.second);
+		}
+	}
+	return invalidEvents;
+}
+
+void CreatureEvents::removeInvalidEvents()
+{
+	for (auto it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ) {
+		if (!it->second.isScripted()) {
+			it = m_creatureEvents.erase(it);
+		} else {
+			++it;
+		}
+	}
+}
+
 bool CreatureEvent::configureEvent(xmlNodePtr p)
 {
 	std::string strValue;

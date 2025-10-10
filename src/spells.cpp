@@ -325,10 +325,11 @@ bool BaseSpell::castSpell(Creature* creature)
 	}
 
 	bool success = true;
-	CreatureEventList castEvents = creature->getCreatureEvents(CREATURE_EVENT_CAST);
-	for (CreatureEventList::iterator it = castEvents.begin(); it != castEvents.end(); ++it) {
-		if (!(*it)->executeCast(creature) && success) {
-			success = false;
+	if (creature->hasEventRegistered(CREATURE_EVENT_CAST)) {
+		for (CreatureEvent* it : creature->getCreatureEvents(CREATURE_EVENT_CAST)) {
+			if (!it->executeCast(creature)) {
+				success = false;
+			}
 		}
 	}
 	return success;
@@ -341,10 +342,11 @@ bool BaseSpell::castSpell(Creature* creature, Creature* target)
 	}
 
 	bool success = true;
-	CreatureEventList castEvents = creature->getCreatureEvents(CREATURE_EVENT_CAST);
-	for (CreatureEventList::iterator it = castEvents.begin(); it != castEvents.end(); ++it) {
-		if (!(*it)->executeCast(creature, target) && success) {
-			success = false;
+	if (creature->hasEventRegistered(CREATURE_EVENT_CAST)) {
+		for (CreatureEvent* it : creature->getCreatureEvents(CREATURE_EVENT_CAST)) {
+			if (!it->executeCast(creature, target)) {
+				success = false;
+			}
 		}
 	}
 	return success;

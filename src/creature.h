@@ -433,9 +433,15 @@ public:
 
 	// creature script events
 	bool registerCreatureEvent(const std::string& name);
+	bool registerCreatureEvent(CreatureEvent* event);
 	bool unregisterCreatureEvent(const std::string& name);
 	void unregisterCreatureEvent(CreatureEventType_t type);
-	CreatureEventList getCreatureEvents(CreatureEventType_t type);
+	bool unregisterCreatureEvent(CreatureEvent* event);
+	void unregisterCreatureEvents(const std::vector<CreatureEvent*>& events);
+	std::vector<CreatureEvent*> getCreatureEvents(CreatureEventType_t type);
+	bool hasEventRegistered(CreatureEventType_t eventType) const {
+		return (m_scriptEventsBitField & static_cast<uint64_t>(eventType)) != 0;
+	}
 
 	virtual void setParent(Cylinder* cylinder)
 	{
@@ -498,6 +504,7 @@ protected:
 	int32_t m_checkVector;
 	int32_t m_health, m_healthMax;
 	int64_t m_lastFailedFollow;
+	uint64_t m_scriptEventsBitField = 0;
 
 	bool m_hideName, m_hideHealth, m_cannotMove;
 	MessageClasses m_speakType;
@@ -549,7 +556,7 @@ protected:
 	CountMap m_damageMap;
 	CountMap m_healMap;
 
-	std::unordered_map<CreatureEventType_t, CreatureEventList> m_eventsList;
+	std::list<CreatureEvent*> m_eventsList;
 	uint32_t m_blockCount, m_blockTicks, m_lastHitCreature;
 	CombatType_t m_lastDamageSource;
 

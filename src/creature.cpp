@@ -216,9 +216,10 @@ void Creature::onThink(uint32_t interval)
 #endif
 	executeConditions(interval);
 
-	CreatureEventList thinkEvents = getCreatureEvents(CREATURE_EVENT_THINK);
-	for (CreatureEventList::iterator it = thinkEvents.begin(); it != thinkEvents.end(); ++it) {
-		(*it)->executeThink(this, interval);
+	if (hasEventRegistered(CREATURE_EVENT_THINK)) {
+		for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_THINK)) {
+			it->executeThink(this, interval);
+		}
 	}
 }
 
@@ -229,10 +230,11 @@ void Creature::onAttacking(uint32_t interval)
 	}
 
 	bool deny = false;
-	CreatureEventList attackEvents = getCreatureEvents(CREATURE_EVENT_ATTACK);
-	for (CreatureEventList::iterator it = attackEvents.begin(); it != attackEvents.end(); ++it) {
-		if (!(*it)->executeAction(this, m_attackedCreature) && !deny) {
-			deny = true;
+	if (hasEventRegistered(CREATURE_EVENT_ATTACK)) {
+		for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_ATTACK)) {
+			if (!it->executeAction(this, m_attackedCreature)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -707,10 +709,11 @@ bool Creature::onDeath()
 	DeathList deathList = getKillers();
 	bool deny = false;
 
-	CreatureEventList prepareDeathEvents = getCreatureEvents(CREATURE_EVENT_PREPAREDEATH);
-	for (CreatureEventList::iterator it = prepareDeathEvents.begin(); it != prepareDeathEvents.end(); ++it) {
-		if (!(*it)->executePrepareDeath(this, deathList) && !deny) {
-			deny = true;
+	if (hasEventRegistered(CREATURE_EVENT_PREPAREDEATH)) {
+		for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_PREPAREDEATH)) {
+			if (!it->executePrepareDeath(this, deathList)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -783,10 +786,11 @@ void Creature::dropCorpse(DeathList deathList)
 	}
 
 	bool deny = false;
-	CreatureEventList deathEvents = getCreatureEvents(CREATURE_EVENT_DEATH);
-	for (CreatureEventList::iterator it = deathEvents.begin(); it != deathEvents.end(); ++it) {
-		if (!(*it)->executeDeath(this, corpse, deathList) && !deny) {
-			deny = true;
+	if (hasEventRegistered(CREATURE_EVENT_DEATH)) {
+		for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_DEATH)) {
+			if (!it->executeDeath(this, corpse, deathList)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -1323,21 +1327,22 @@ bool Creature::onKilledCreature(Creature* target, DeathEntry& entry)
 		ret = m_master->onKilledCreature(target, entry);
 	}
 
-	CreatureEventList killEvents = getCreatureEvents(CREATURE_EVENT_KILL);
 	if (!entry.isLast()) {
-		for (CreatureEventList::iterator it = killEvents.begin(); it != killEvents.end(); ++it) {
-			(*it)->executeKill(this, target, entry);
+		if (hasEventRegistered(CREATURE_EVENT_KILL)) {
+			for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_KILL)) {
+				it->executeKill(this, target, entry);
+			}
 		}
-
 		return true;
 	}
 
-	for (CreatureEventList::iterator it = killEvents.begin(); it != killEvents.end(); ++it) {
-		if (!(*it)->executeKill(this, target, entry) && ret) {
-			ret = false;
+	if (hasEventRegistered(CREATURE_EVENT_KILL)) {
+		for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_KILL)) {
+			if (!it->executeKill(this, target, entry)) {
+				ret = false;
+			}
 		}
 	}
-
 	return ret;
 }
 
@@ -1751,51 +1756,96 @@ void Creature::resetLight()
 
 bool Creature::registerCreatureEvent(const std::string& name)
 {
-	CreatureEvent* newEvent = g_creatureEvents.getEventByName(name);
-	if (!newEvent || !newEvent->isLoaded()) { // check for existance
+	CreatureEvent* event = g_creatureEvents.getEventByName(name);
+	if (!event) {
 		return false;
 	}
+	return registerCreatureEvent(event);
+}
 
-	for (const auto& creatureEventType : m_eventsList) {
-		for (const auto& creatureEvent : creatureEventType.second) {
-			if (creatureEvent == newEvent) {
+bool Creature::registerCreatureEvent(CreatureEvent* event)
+{
+	CreatureEventType_t type = event->getEventType();
+	if (hasEventRegistered(type)) {
+		for (CreatureEvent* it : m_eventsList) {
+			if (it == event) {
 				return false;
 			}
 		}
+	} else {
+		m_scriptEventsBitField |= static_cast<uint64_t>(type);
 	}
 
-	m_eventsList[newEvent->getEventType()].push_back(newEvent);
+	m_eventsList.push_back(event);
 	return true;
 }
 
 bool Creature::unregisterCreatureEvent(const std::string& name)
 {
 	CreatureEvent* event = g_creatureEvents.getEventByName(name);
-	if (!event || !event->isLoaded()) { // check for existance
+	if (!event) {
 		return false;
 	}
-
-	for (auto& creatureEventType : m_eventsList) {
-		for (CreatureEventList::iterator it = creatureEventType.second.begin(); it != creatureEventType.second.end(); ++it) {
-			if ((*it) != event) {
-				continue;
-			}
-			creatureEventType.second.erase(it);
-			return true; // we shouldn't have a duplicate
-		}
-	}
-
-	return false;
+	return unregisterCreatureEvent(event);
 }
 
 void Creature::unregisterCreatureEvent(CreatureEventType_t type)
 {
-	m_eventsList.erase(type);
+	for (auto it = m_eventsList.begin(), end = m_eventsList.end(); it != end; ) {
+		if ((*it)->getEventType() == type) {
+			it = m_eventsList.erase(it);
+		} else {
+			++it;
+		}
+	}
+	m_scriptEventsBitField &= ~(static_cast<uint64_t>(type));
 }
 
-CreatureEventList Creature::getCreatureEvents(CreatureEventType_t type)
+bool Creature::unregisterCreatureEvent(CreatureEvent* event)
 {
-	return m_eventsList[type];
+	CreatureEventType_t type = event->getEventType();
+	if (!hasEventRegistered(type)) {
+		return false;
+	}
+
+	bool resetTypeBit = true;
+
+	auto it = m_eventsList.begin(), end = m_eventsList.end();
+	while (it != end) {
+		CreatureEvent* curEvent = *it;
+		if (curEvent == event) {
+			it = m_eventsList.erase(it);
+			continue;
+		}
+
+		if (curEvent->getEventType() == type) {
+			resetTypeBit = false;
+		}
+		++it;
+	}
+
+	if (resetTypeBit) {
+		m_scriptEventsBitField &= ~(static_cast<uint64_t>(type));
+	}
+	return true;
+}
+
+void Creature::unregisterCreatureEvents(const std::vector<CreatureEvent*>& events)
+{
+	for (CreatureEvent* it : events) {
+		unregisterCreatureEvent(it);
+	}
+}
+
+std::vector<CreatureEvent*> Creature::getCreatureEvents(CreatureEventType_t type)
+{
+	std::vector<CreatureEvent*> vec;
+	for (CreatureEvent* it : m_eventsList) {
+		if (it->isLoaded() && it->getEventType() == type) {
+			vec.push_back(it);
+		}
+	}
+	return vec;
 }
 
 FrozenPathingConditionCall::FrozenPathingConditionCall(const Position& _targetPos)

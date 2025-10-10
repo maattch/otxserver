@@ -1217,10 +1217,11 @@ bool Game::playerMoveCreature(const uint32_t playerId, const uint32_t movingCrea
 	}
 
 	bool deny = false;
-	CreatureEventList pushEvents = player->getCreatureEvents(CREATURE_EVENT_PUSH);
-	for (CreatureEventList::iterator it = pushEvents.begin(); it != pushEvents.end(); ++it) {
-		if (!(*it)->executePush(player, movingCreature, toTile) && !deny) {
-			deny = true;
+	if (player->hasEventRegistered(CREATURE_EVENT_PUSH)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_PUSH)) {
+			if (!it->executePush(player, movingCreature, toTile)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -1496,10 +1497,11 @@ bool Game::playerMoveItem(const uint32_t playerId, const Position& fromPos,
 	}
 
 	bool deny = false;
-	CreatureEventList throwEvents = player->getCreatureEvents(CREATURE_EVENT_THROW);
-	for (CreatureEventList::iterator it = throwEvents.begin(); it != throwEvents.end(); ++it) {
-		if (!(*it)->executeThrow(player, item, fromPos, toPos) && !deny) {
-			deny = true;
+	if (player->hasEventRegistered(CREATURE_EVENT_THROW)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_THROW)) {
+			if (!it->executeThrow(player, item, fromPos, toPos)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -2288,7 +2290,6 @@ bool Game::removeMoney(Cylinder* cylinder, int64_t money, uint32_t flags /*= 0*/
 		p->sendTextMessage(MSG_INFO_DESCR, ss.str());
 		return true;
 	}
-
 	return !money;
 }
 
@@ -2573,10 +2574,11 @@ bool Game::playerOpenChannel(const uint32_t playerId, const uint16_t channelId)
 	}
 
 	bool deny = false;
-	CreatureEventList openEvents = player->getCreatureEvents(CREATURE_EVENT_CHANNEL_REQUEST);
-	for (CreatureEventList::iterator it = openEvents.begin(); it != openEvents.end(); ++it) {
-		if (!(*it)->executeChannelRequest(player, std::to_string(channelId), false, !player->hasSentChat()) && !deny) {
-			deny = true;
+	if (player->hasEventRegistered(CREATURE_EVENT_CHANNEL_REQUEST)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_CHANNEL_REQUEST)) {
+			if (!it->executeChannelRequest(player, std::to_string(channelId), false, !player->hasSentChat())) {
+				deny = true;
+			}
 		}
 	}
 
@@ -2694,10 +2696,11 @@ bool Game::playerOpenPrivateChannel(const uint32_t playerId, const std::string& 
 	}
 
 	bool deny = false;
-	CreatureEventList openEvents = player->getCreatureEvents(CREATURE_EVENT_CHANNEL_REQUEST);
-	for (CreatureEventList::iterator it = openEvents.begin(); it != openEvents.end(); ++it) {
-		if (!(*it)->executeChannelRequest(player, receiver, true, !player->hasSentChat()) && !deny) {
-			deny = true;
+	if (player->hasEventRegistered(CREATURE_EVENT_CHANNEL_REQUEST)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_CHANNEL_REQUEST)) {
+			if (!it->executeChannelRequest(player, receiver, true, !player->hasSentChat())) {
+				deny = true;
+			}
 		}
 	}
 
@@ -3183,10 +3186,11 @@ bool Game::playerWriteItem(const uint32_t playerId, const uint32_t windowTextId,
 	}
 
 	bool deny = false;
-	CreatureEventList textEditEvents = player->getCreatureEvents(CREATURE_EVENT_TEXTEDIT);
-	for (CreatureEventList::iterator it = textEditEvents.begin(); it != textEditEvents.end(); ++it) {
-		if (!(*it)->executeTextEdit(player, writeItem, text)) {
-			deny = true;
+	if (player->hasEventRegistered(CREATURE_EVENT_TEXTEDIT)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_TEXTEDIT)) {
+			if (!it->executeTextEdit(player, writeItem, text)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -3237,10 +3241,11 @@ bool Game::playerUpdateHouseWindow(const uint32_t playerId, const uint8_t listId
 	}
 
 	bool deny = false;
-	CreatureEventList houseEditEvents = player->getCreatureEvents(CREATURE_EVENT_HOUSEEDIT);
-	for (CreatureEventList::iterator it = houseEditEvents.begin(); it != houseEditEvents.end(); ++it) {
-		if (!(*it)->executeHouseEdit(player, house->getId(), internalListId, text)) {
-			deny = true;
+	if (player->hasEventRegistered(CREATURE_EVENT_HOUSEEDIT)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_HOUSEEDIT)) {
+			if (!it->executeHouseEdit(player, house->getId(), internalListId, text)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -3346,10 +3351,11 @@ bool Game::playerRequestTrade(const uint32_t playerId, const Position& pos, cons
 	}
 
 	bool deny = false;
-	CreatureEventList tradeEvents = player->getCreatureEvents(CREATURE_EVENT_TRADE_REQUEST);
-	for (CreatureEventList::iterator it = tradeEvents.begin(); it != tradeEvents.end(); ++it) {
-		if (!(*it)->executeTradeRequest(player, tradePartner, tradeItem)) {
-			deny = true;
+	if (player->hasEventRegistered(CREATURE_EVENT_TRADE_REQUEST)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_TRADE_REQUEST)) {
+			if (!it->executeTradeRequest(player, tradePartner, tradeItem)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -3422,10 +3428,11 @@ void Game::playerAcceptTrade(const uint32_t playerId)
 		Item* tradeItem2 = tradePartner->m_tradeItem;
 
 		bool deny = false;
-		CreatureEventList tradeEvents = player->getCreatureEvents(CREATURE_EVENT_TRADE_ACCEPT);
-		for (CreatureEventList::iterator it = tradeEvents.begin(); it != tradeEvents.end(); ++it) {
-			if (!(*it)->executeTradeAccept(player, tradePartner, tradeItem1, tradeItem2)) {
-				deny = true;
+		if (player->hasEventRegistered(CREATURE_EVENT_TRADE_ACCEPT)) {
+			for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_TRADE_ACCEPT)) {
+				if (!it->executeTradeAccept(player, tradePartner, tradeItem1, tradeItem2)) {
+					deny = true;
+				}
 			}
 		}
 
@@ -3891,10 +3898,11 @@ bool Game::playerLookAt(const uint32_t playerId, const Position& pos, const uint
 	}
 
 	bool deny = false;
-	CreatureEventList lookEvents = player->getCreatureEvents(CREATURE_EVENT_LOOK);
-	for (CreatureEventList::iterator it = lookEvents.begin(); it != lookEvents.end(); ++it) {
-		if (!(*it)->executeLook(player, thing, thingPos, stackpos, lookDistance)) {
-			deny = true;
+	if (player->hasEventRegistered(CREATURE_EVENT_LOOK)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_LOOK)) {
+			if (!it->executeLook(player, thing, thingPos, stackpos, lookDistance)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -4654,10 +4662,11 @@ bool Game::internalCreatureTurn(Creature* creature, const Direction& dir)
 	}
 
 	bool deny = false;
-	CreatureEventList directionEvents = creature->getCreatureEvents(CREATURE_EVENT_DIRECTION);
-	for (CreatureEventList::iterator it = directionEvents.begin(); it != directionEvents.end(); ++it) {
-		if (!(*it)->executeDirection(creature, creature->getDirection(), dir) && !deny) {
-			deny = true;
+	if (creature->hasEventRegistered(CREATURE_EVENT_DIRECTION)) {
+		for (CreatureEvent* it : creature->getCreatureEvents(CREATURE_EVENT_DIRECTION)) {
+			if (!it->executeDirection(creature, creature->getDirection(), dir)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -4894,10 +4903,11 @@ void Game::internalCreatureChangeOutfit(Creature* creature, const Outfit_t& outf
 {
 	if (!forced) {
 		bool deny = false;
-		CreatureEventList outfitEvents = creature->getCreatureEvents(CREATURE_EVENT_OUTFIT);
-		for (CreatureEventList::iterator it = outfitEvents.begin(); it != outfitEvents.end(); ++it) {
-			if (!(*it)->executeOutfit(creature, creature->getCurrentOutfit(), outfit) && !deny) {
-				deny = true;
+		if (creature->hasEventRegistered(CREATURE_EVENT_OUTFIT)) {
+			for (CreatureEvent* it : creature->getCreatureEvents(CREATURE_EVENT_OUTFIT)) {
+				if (!it->executeOutfit(creature, creature->getCurrentOutfit(), outfit)) {
+					deny = true;
+				}
 			}
 		}
 
@@ -5033,10 +5043,11 @@ bool Game::combatChangeHealth(const CombatParams& params, Creature* attacker, Cr
 		}
 
 		bool deny = false;
-		CreatureEventList statsChangeEvents = target->getCreatureEvents(CREATURE_EVENT_STATSCHANGE);
-		for (CreatureEventList::iterator it = statsChangeEvents.begin(); it != statsChangeEvents.end(); ++it) {
-			if (!(*it)->executeStatsChange(target, attacker, STATSCHANGE_HEALTHGAIN, params.combatType, healthChange)) {
-				deny = true;
+		if (target->hasEventRegistered(CREATURE_EVENT_STATSCHANGE)) {
+			for (CreatureEvent* it : target->getCreatureEvents(CREATURE_EVENT_STATSCHANGE)) {
+				if (!it->executeStatsChange(target, attacker, STATSCHANGE_HEALTHGAIN, params.combatType, healthChange)) {
+					deny = true;
+				}
 			}
 		}
 
@@ -5140,10 +5151,11 @@ bool Game::combatChangeHealth(const CombatParams& params, Creature* attacker, Cr
 			if (damage > 0) {
 				bool deny = false;
 				Position creaturePos = target->getPosition();
-				CreatureEventList statsChangeEvents = target->getCreatureEvents(CREATURE_EVENT_STATSCHANGE);
-				for (CreatureEventList::iterator it = statsChangeEvents.begin(); it != statsChangeEvents.end(); ++it) {
-					if (!(*it)->executeStatsChange(target, attacker, STATSCHANGE_HEALTHLOSS, params.combatType, damage)) {
-						deny = true;
+				if (target->hasEventRegistered(CREATURE_EVENT_STATSCHANGE)) {
+					for (CreatureEvent* it : target->getCreatureEvents(CREATURE_EVENT_STATSCHANGE)) {
+						if (!it->executeStatsChange(target, attacker, STATSCHANGE_HEALTHLOSS, params.combatType, damage)) {
+							deny = true;
+						}
 					}
 				}
 
@@ -5320,10 +5332,11 @@ bool Game::combatChangeMana(Creature* attacker, Creature* target, int32_t manaCh
 	const Position& targetPos = target->getPosition();
 	if (manaChange > 0) {
 		bool deny = false;
-		CreatureEventList statsChangeEvents = target->getCreatureEvents(CREATURE_EVENT_STATSCHANGE);
-		for (CreatureEventList::iterator it = statsChangeEvents.begin(); it != statsChangeEvents.end(); ++it) {
-			if (!(*it)->executeStatsChange(target, attacker, STATSCHANGE_MANAGAIN, COMBAT_HEALING, manaChange)) {
-				deny = true;
+		if (target->hasEventRegistered(CREATURE_EVENT_STATSCHANGE)) {
+			for (CreatureEvent* it : target->getCreatureEvents(CREATURE_EVENT_STATSCHANGE)) {
+				if (!it->executeStatsChange(target, attacker, STATSCHANGE_MANAGAIN, COMBAT_HEALING, manaChange)) {
+					deny = true;
+				}
 			}
 		}
 
@@ -5404,10 +5417,11 @@ bool Game::combatChangeMana(Creature* attacker, Creature* target, int32_t manaCh
 		int32_t manaLoss = std::min(target->getMana(), -manaChange);
 		if (manaLoss > 0) {
 			bool deny = false;
-			CreatureEventList statsChangeEvents = target->getCreatureEvents(CREATURE_EVENT_STATSCHANGE);
-			for (CreatureEventList::iterator it = statsChangeEvents.begin(); it != statsChangeEvents.end(); ++it) {
-				if (!(*it)->executeStatsChange(target, attacker, STATSCHANGE_MANALOSS, combatType, manaLoss)) {
-					deny = true;
+			if (target->hasEventRegistered(CREATURE_EVENT_STATSCHANGE)) {
+				for (CreatureEvent* it : target->getCreatureEvents(CREATURE_EVENT_STATSCHANGE)) {
+					if (!it->executeStatsChange(target, attacker, STATSCHANGE_MANALOSS, combatType, manaLoss)) {
+						deny = true;
+					}
 				}
 			}
 
@@ -5968,11 +5982,11 @@ bool Game::playerReportBug(const uint32_t playerId, std::string comment)
 		return false;
 	}
 
-	CreatureEventList reportBugEvents = player->getCreatureEvents(CREATURE_EVENT_REPORTBUG);
-	for (CreatureEventList::iterator it = reportBugEvents.begin(); it != reportBugEvents.end(); ++it) {
-		(*it)->executeReportBug(player, comment);
+	if (player->hasEventRegistered(CREATURE_EVENT_REPORTBUG)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_REPORTBUG)) {
+			it->executeReportBug(player, comment);
+		}
 	}
-
 	return true;
 }
 
@@ -5984,11 +5998,11 @@ bool Game::playerReportViolation(const uint32_t playerId, const ReportType_t& ty
 		return false;
 	}
 
-	CreatureEventList reportViolationEvents = player->getCreatureEvents(CREATURE_EVENT_REPORTVIOLATION);
-	for (CreatureEventList::iterator it = reportViolationEvents.begin(); it != reportViolationEvents.end(); ++it) {
-		(*it)->executeReportViolation(player, type, reason, name, comment, translation, statementId);
+	if (player->hasEventRegistered(CREATURE_EVENT_REPORTVIOLATION)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_REPORTVIOLATION)) {
+			it->executeReportViolation(player, type, reason, name, comment, translation, statementId);
+		}
 	}
-
 	return true;
 }
 
@@ -6830,6 +6844,22 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 		}
 		case RELOAD_CREATUREEVENTS: {
 			done = g_creatureEvents.reload();
+
+			auto invalidEvents = g_creatureEvents.getInvalidEvents();
+			if (!invalidEvents.empty()) {
+				for (const auto& it : players) {
+					it.second->unregisterCreatureEvents(invalidEvents);
+				}
+				for (const auto& it : monsters) {
+					it.second->unregisterCreatureEvents(invalidEvents);
+				}
+				for (const auto& it : npcs) {
+					it.second->unregisterCreatureEvents(invalidEvents);
+				}
+
+				g_creatureEvents.removeInvalidEvents();
+			}
+
 			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload creatureevents." << std::endl;
 			}
@@ -7096,9 +7126,10 @@ void Game::parsePlayerExtendedOpcode(const uint32_t playerId, const uint8_t opco
 		return;
 	}
 
-	CreatureEventList extendedOpcodeEvents = player->getCreatureEvents(CREATURE_EVENT_EXTENDED_OPCODE);
-	for (CreatureEventList::iterator it = extendedOpcodeEvents.begin(); it != extendedOpcodeEvents.end(); ++it) {
-		(*it)->executeExtendedOpcode(player, opcode, buffer);
+	if (player->hasEventRegistered(CREATURE_EVENT_EXTENDED_OPCODE)) {
+		for (CreatureEvent* it : player->getCreatureEvents(CREATURE_EVENT_EXTENDED_OPCODE)) {
+			it->executeExtendedOpcode(player, opcode, buffer);
+		}
 	}
 }
 

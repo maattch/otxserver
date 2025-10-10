@@ -451,8 +451,6 @@ bool TalkAction::houseBuy(Creature* creature, const std::string&)
 	ret += "depot of this town for rent.\n\nUse command !protecthouse to remove or add a protection for this house. It is enabled by default!\nAll characters in your account have access to your house.";
 	player->sendTextMessage(MSG_INFO_DESCR, ret);
 
-	// CUSTOM: Protect House
-	// house->setProtected(false);
 	g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_WRAPS_BLUE);
 	return false;
 }
@@ -564,8 +562,6 @@ bool TalkAction::houseSell(Creature* creature, const std::string& param)
 		transferItem->onTradeEvent(ON_TRADE_CANCEL, player, nullptr);
 	}
 
-	// CUSTOM: Protect House
-	// house->setProtected(false);
 	g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_WRAPS_BLUE);
 	return false;
 }

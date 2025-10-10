@@ -687,9 +687,10 @@ void Player::addSkillAdvance(skills_t skill, uint64_t count, bool useMultiplier 
 		s << "You advanced to " << getSkillName(skill) << " m_level " << m_skills[skill][SKILL_LEVEL] << ".";
 		sendTextMessage(MSG_EVENT_ADVANCE, s.str().c_str());
 
-		CreatureEventList advanceEvents = getCreatureEvents(CREATURE_EVENT_ADVANCE);
-		for (CreatureEventList::iterator it = advanceEvents.begin(); it != advanceEvents.end(); ++it) {
-			(*it)->executeAdvance(this, skill, (m_skills[skill][SKILL_LEVEL] - 1), m_skills[skill][SKILL_LEVEL]);
+		if (hasEventRegistered(CREATURE_EVENT_ADVANCE)) {
+			for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_ADVANCE)) {
+				it->executeAdvance(this, skill, (m_skills[skill][SKILL_LEVEL] - 1), m_skills[skill][SKILL_LEVEL]);
+			}
 		}
 
 		currReqTries = nextReqTries;
@@ -2167,9 +2168,10 @@ void Player::addManaSpent(uint64_t amount, bool useMultiplier /* = true*/)
 		s << "You advanced to magic m_level " << ++m_magLevel << ".";
 		sendTextMessage(MSG_EVENT_ADVANCE, s.str());
 
-		CreatureEventList advanceEvents = getCreatureEvents(CREATURE_EVENT_ADVANCE);
-		for (CreatureEventList::iterator it = advanceEvents.begin(); it != advanceEvents.end(); ++it) {
-			(*it)->executeAdvance(this, SKILL__MAGLEVEL, (m_magLevel - 1), m_magLevel);
+		if (hasEventRegistered(CREATURE_EVENT_ADVANCE)) {
+			for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_ADVANCE)) {
+				it->executeAdvance(this, SKILL__MAGLEVEL, (m_magLevel - 1), m_magLevel);
+			}
 		}
 
 		currReqMana = nextReqMana;
@@ -2228,9 +2230,10 @@ void Player::addExperience(uint64_t exp)
 			m_party->updateSharedExperience();
 		}
 
-		CreatureEventList advanceEvents = getCreatureEvents(CREATURE_EVENT_ADVANCE);
-		for (CreatureEventList::iterator it = advanceEvents.begin(); it != advanceEvents.end(); ++it) {
-			(*it)->executeAdvance(this, SKILL__LEVEL, prevLevel, m_level);
+		if (hasEventRegistered(CREATURE_EVENT_ADVANCE)) {
+			for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_ADVANCE)) {
+				it->executeAdvance(this, SKILL__LEVEL, prevLevel, m_level);
+			}
 		}
 
 		std::ostringstream s;
@@ -2272,9 +2275,10 @@ void Player::removeExperience(uint64_t exp, bool updateStats /* = true*/)
 			g_game.addCreatureHealth(this);
 		}
 
-		CreatureEventList advanceEvents = getCreatureEvents(CREATURE_EVENT_ADVANCE);
-		for (CreatureEventList::iterator it = advanceEvents.begin(); it != advanceEvents.end(); ++it) {
-			(*it)->executeAdvance(this, SKILL__LEVEL, prevLevel, m_level);
+		if (hasEventRegistered(CREATURE_EVENT_ADVANCE)) {
+			for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_ADVANCE)) {
+				it->executeAdvance(this, SKILL__LEVEL, prevLevel, m_level);
+			}
 		}
 
 		std::ostringstream s;
@@ -3731,10 +3735,11 @@ void Player::__internalAddThing(uint32_t index, Thing* thing)
 bool Player::setFollowCreature(Creature* creature, bool fullPathSearch /*= false*/)
 {
 	bool deny = false;
-	CreatureEventList followEvents = getCreatureEvents(CREATURE_EVENT_FOLLOW);
-	for (CreatureEventList::iterator it = followEvents.begin(); it != followEvents.end(); ++it) {
-		if (!(*it)->executeAction(this, creature) && !deny) {
-			deny = true;
+	if (hasEventRegistered(CREATURE_EVENT_FOLLOW)) {
+		for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_FOLLOW)) {
+			if (!it->executeAction(this, creature)) {
+				deny = true;
+			}
 		}
 	}
 
@@ -4286,12 +4291,14 @@ bool Player::onKilledCreature(Creature* target, DeathEntry& entry)
 	}
 
 	if (targetPlayer) {
-		CreatureEventList killEvents = getCreatureEvents(CREATURE_EVENT_NOCOUNTFRAG);
-		for (const auto& event : killEvents) {
-			if (!event->executeNoCountFragArea(this, target)) {
-				return true;
+		if (hasEventRegistered(CREATURE_EVENT_NOCOUNTFRAG)) {
+			for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_NOCOUNTFRAG)) {
+				if (!it->executeNoCountFragArea(this, target)) {
+					return true;
+				}
 			}
 		}
+
 		if (!g_config.getBool(ConfigManager::ADD_FRAG_SAMEIP)) {
 			if (this->getIP() == targetPlayer->getIP()) {
 				return true;
@@ -4386,9 +4393,10 @@ void Player::onGainExperience(double& gainExp, Creature* target, bool multiplied
 		Creature::onGainExperience(gainExp, target, true);
 	}
 
-	CreatureEventList advanceEvents = getCreatureEvents(CREATURE_EVENT_ADVANCE);
-	for (CreatureEventList::iterator it = advanceEvents.begin(); it != advanceEvents.end(); ++it) {
-		(*it)->executeAdvance(this, SKILL__EXPERIENCE, tmp, m_experience);
+	if (hasEventRegistered(CREATURE_EVENT_ADVANCE)) {
+		for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_ADVANCE)) {
+			it->executeAdvance(this, SKILL__EXPERIENCE, tmp, m_experience);
+		}
 	}
 }
 
@@ -5628,9 +5636,10 @@ bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)
 			m_manaSpent = 0;
 			m_magLevel++;
 
-			CreatureEventList advanceEvents = getCreatureEvents(CREATURE_EVENT_ADVANCE);
-			for (CreatureEventList::iterator it = advanceEvents.begin(); it != advanceEvents.end(); ++it) {
-				(*it)->executeAdvance(this, SKILL__MAGLEVEL, (m_magLevel - 1), m_magLevel);
+			if (hasEventRegistered(CREATURE_EVENT_ADVANCE)) {
+				for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_ADVANCE)) {
+					it->executeAdvance(this, SKILL__MAGLEVEL, (m_magLevel - 1), m_magLevel);
+				}
 			}
 
 			currReqMana = nextReqMana;
@@ -5678,9 +5687,10 @@ bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)
 			m_skills[skill][SKILL_LEVEL]++;
 			m_skills[skill][SKILL_TRIES] = m_skills[skill][SKILL_PERCENT] = 0;
 
-			CreatureEventList advanceEvents = getCreatureEvents(CREATURE_EVENT_ADVANCE);
-			for (CreatureEventList::iterator it = advanceEvents.begin(); it != advanceEvents.end(); ++it) {
-				(*it)->executeAdvance(this, skill, (m_skills[skill][SKILL_LEVEL] - 1), m_skills[skill][SKILL_LEVEL]);
+			if (hasEventRegistered(CREATURE_EVENT_ADVANCE)) {
+				for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_ADVANCE)) {
+					it->executeAdvance(this, skill, (m_skills[skill][SKILL_LEVEL] - 1), m_skills[skill][SKILL_LEVEL]);
+				}
 			}
 
 			currReqTries = nextReqTries;

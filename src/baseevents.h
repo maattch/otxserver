@@ -53,6 +53,7 @@ public:
 
 	virtual bool configureEvent(xmlNodePtr p) = 0;
 	virtual bool isScripted() const { return m_scripted; }
+	int getScriptId() const { return m_scriptId; }
 
 	bool loadScript(const std::string& script);
 

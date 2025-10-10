@@ -161,9 +161,10 @@ void Monster::onCreatureAppear(const Creature* creature)
 {
 	Creature::onCreatureAppear(creature);
 	if (creature == this) {
-		CreatureEventList spawnEvents = getCreatureEvents(CREATURE_EVENT_SPAWN_SINGLE);
-		for (CreatureEventList::iterator it = spawnEvents.begin(); it != spawnEvents.end(); ++it) {
-			(*it)->executeSpawn(this);
+		if (hasEventRegistered(CREATURE_EVENT_SPAWN_SINGLE)) {
+			for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_SPAWN_SINGLE)) {
+				it->executeSpawn(this);
+			}
 		}
 
 		g_creatureEvents.monsterSpawn(this);
