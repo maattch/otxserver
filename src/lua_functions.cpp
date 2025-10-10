@@ -1422,14 +1422,14 @@ static int luaDoPlayerAddItemEx(lua_State* L)
 static int luaDoTileAddItemEx(lua_State* L)
 {
 	// doTileAddItemEx(pos, uid)
-	Item* item = otx::lua::getItem(L, 1);
+	const Position pos = otx::lua::getPosition(L, 1);
+	Item* item = otx::lua::getItem(L, 2);
 	if (!item) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_ITEM_NOT_FOUND));
 		lua_pushnil(L);
 		return 1;
 	}
 
-	const Position pos = otx::lua::getPosition(L, 2);
 	Tile* tile = g_game.getTile(pos);
 	if (!tile) {
 		if (item->isGroundTile()) {
@@ -2830,6 +2830,7 @@ static int luaSetHouseOwner(lua_State* L)
 
 static int luaGetWorldType(lua_State* L)
 {
+	// getWorldType()
 	lua_pushnumber(L, g_game.getWorldType());
 	return 1;
 }
@@ -3007,20 +3008,20 @@ static int luaDoTileQueryAdd(lua_State* L)
 	const auto flags = otx::lua::getNumber<uint32_t>(L, 3, 0);
 	const bool displayError = otx::lua::getBoolean(L, 4, true);
 
-	Tile* tile = g_game.getTile(pos);
-	if (!tile) {
+	Thing* thing = otx::lua::getThing(L, 1);
+	if (!thing) {
 		if (displayError) {
-			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_TILE_NOT_FOUND));
+			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_THING_NOT_FOUND));
 		}
 
 		lua_pushnumber(L, RET_NOTPOSSIBLE);
 		return 1;
 	}
 
-	Thing* thing = otx::lua::getThing(L, 1);
-	if (!thing) {
+	Tile* tile = g_game.getTile(pos);
+	if (!tile) {
 		if (displayError) {
-			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_THING_NOT_FOUND));
+			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_TILE_NOT_FOUND));
 		}
 
 		lua_pushnumber(L, RET_NOTPOSSIBLE);
@@ -4857,7 +4858,7 @@ static int luaDoAddContainerItem(lua_State* L)
 
 static int luaGetOutfitIdByLooktype(lua_State* L)
 {
-	// getOutfitIdByLooktype(looktype)
+	// getOutfitIdByLooktype(lookType)
 	const auto lookType = otx::lua::getNumber<uint32_t>(L, 1);
 	lua_pushnumber(L, Outfits::getInstance()->getOutfitId(lookType));
 	return 1;
@@ -5409,7 +5410,7 @@ static int luaAddEvent(lua_State* L)
 
 static int luaStopEvent(lua_State* L)
 {
-	// stopEvent(eventid)
+	// stopEvent(eventId)
 	const auto eventId = otx::lua::getNumber<uint32_t>(L, 1);
 	lua_pushboolean(L, g_lua.stopTimerEvent(L, eventId));
 	return 1;
@@ -7627,9 +7628,7 @@ void otx::lua::registerFunctions()
 	lua_register(L, "getTileItemByType", luaGetTileItemByType);
 	lua_register(L, "getTileThingByPos", luaGetTileThingByPos);
 	lua_register(L, "getTopCreature", luaGetTopCreature);
-	lua_register(L, "doRemoveItem", luaDoRemoveItem);
 	lua_register(L, "getSearchString", luaGetSearchString);
-	lua_register(L, "getClosestFreeTile", luaGetClosestFreeTile);
 	lua_register(L, "doSendMagicEffect", luaDoSendMagicEffect);
 	lua_register(L, "doSendDistanceShoot", luaDoSendDistanceShoot);
 	lua_register(L, "doSendAnimatedText", luaDoSendAnimatedText);
@@ -7637,7 +7636,6 @@ void otx::lua::registerFunctions()
 	lua_register(L, "doCreateItem", luaDoCreateItem);
 	lua_register(L, "doCreateItemEx", luaDoCreateItemEx);
 	lua_register(L, "doTileAddItemEx", luaDoTileAddItemEx);
-	lua_register(L, "doAddContainerItemEx", luaDoAddContainerItemEx);
 	lua_register(L, "doRelocate", luaDoRelocate);
 	lua_register(L, "doCleanTile", luaDoCleanTile);
 	lua_register(L, "doCreateTeleport", luaDoCreateTeleport);
@@ -7735,6 +7733,7 @@ void otx::lua::registerFunctions()
 	lua_register(L, "errors", luaErrors);
 
 	// Creatures
+	lua_register(L, "getClosestFreeTile", luaGetClosestFreeTile);
 	lua_register(L, "getCreatureHealth", luaGetCreatureHealth);
 	lua_register(L, "getCreatureMaxHealth", luaGetCreatureMaxHealth);
 	lua_register(L, "getCreatureMana", luaGetCreatureMana);
@@ -7952,6 +7951,7 @@ void otx::lua::registerFunctions()
 	lua_register(L, "hasMonsterRaid", luaHasMonsterRaid);
 
 	// Item
+	lua_register(L, "doRemoveItem", luaDoRemoveItem);
 	lua_register(L, "doItemRaidUnref", luaDoItemRaidUnref);
 	lua_register(L, "doItemSetDestination", luaDoItemSetDestination);
 	lua_register(L, "doTransformItem", luaDoTransformItem);
@@ -7969,6 +7969,7 @@ void otx::lua::registerFunctions()
 	lua_register(L, "getItemWeight", luaGetItemWeight);
 	lua_register(L, "getItemParent", luaGetItemParent);
 	lua_register(L, "hasItemProperty", luaHasItemProperty);
+	lua_register(L, "doAddContainerItemEx", luaDoAddContainerItemEx);
 
 	// Thing
 	lua_register(L, "isMovable", luaIsMovable);
