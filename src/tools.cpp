@@ -1569,10 +1569,10 @@ bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, String
 	int32_t vocationId = -1;
 	std::string strValue, tmpStrValue;
 	if (readXMLString(vocationNode, "name", strValue)) {
-		vocationId = Vocations::getInstance()->getVocationId(strValue);
+		vocationId = g_vocations.getVocationId(strValue);
 		if (vocationId != -1) {
 			vocationMap[vocationId] = true;
-			int32_t promotedVocation = Vocations::getInstance()->getPromotedVocation(vocationId);
+			int32_t promotedVocation = g_vocations.getPromotedVocation(vocationId);
 			if (promotedVocation != -1) {
 				vocationMap[promotedVocation] = true;
 			}
@@ -1589,13 +1589,13 @@ bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, String
 
 		size_t size = intVector.size();
 		for (size_t i = 0; i < size; ++i) {
-			Vocation* vocation = Vocations::getInstance()->getVocation(intVector[i]);
-			if (vocation && vocation->getName() != "") {
-				vocationId = vocation->getId();
-				strValue = vocation->getName();
+			Vocation* vocation = g_vocations.getVocation(intVector[i]);
+			if (vocation && !vocation->name.empty()) {
+				vocationId = vocation->id;
+				strValue = vocation->name;
 
 				vocationMap[vocationId] = true;
-				int32_t promotedVocation = Vocations::getInstance()->getPromotedVocation(vocationId);
+				int32_t promotedVocation = g_vocations.getPromotedVocation(vocationId);
 				if (promotedVocation != -1) {
 					vocationMap[promotedVocation] = true;
 				}

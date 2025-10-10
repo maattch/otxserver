@@ -5791,32 +5791,32 @@ static int luaGetVocationInfo(lua_State* L)
 {
 	// getVocationInfo(vocationId)
 	const auto vocationId = otx::lua::getNumber<uint32_t>(L, 1);
-	Vocation* voc = Vocations::getInstance()->getVocation(vocationId);
+	Vocation* voc = g_vocations.getVocation(vocationId);
 	if (!voc) {
 		lua_pushnil(L);
 		return 1;
 	}
 
 	lua_createtable(L, 0, 20);
-	otx::lua::setTableValue(L, "id", voc->getId());
-	otx::lua::setTableValue(L, "name", voc->getName());
-	otx::lua::setTableValue(L, "description", voc->getDescription());
-	otx::lua::setTableValue(L, "healthGain", voc->getGain(GAIN_HEALTH));
-	otx::lua::setTableValue(L, "healthGainTicks", voc->getGainTicks(GAIN_HEALTH));
-	otx::lua::setTableValue(L, "healthGainAmount", voc->getGainAmount(GAIN_HEALTH));
-	otx::lua::setTableValue(L, "manaGain", voc->getGain(GAIN_MANA));
-	otx::lua::setTableValue(L, "manaGainTicks", voc->getGainTicks(GAIN_MANA));
-	otx::lua::setTableValue(L, "manaGainAmount", voc->getGainAmount(GAIN_MANA));
-	otx::lua::setTableValue(L, "attackSpeed", voc->getAttackSpeed());
-	otx::lua::setTableValue(L, "baseSpeed", voc->getBaseSpeed());
-	otx::lua::setTableValue(L, "fromVocation", voc->getFromVocation());
-	otx::lua::setTableValue(L, "promotedVocation", Vocations::getInstance()->getPromotedVocation(vocationId));
-	otx::lua::setTableValue(L, "soul", voc->getGain(GAIN_SOUL));
-	otx::lua::setTableValue(L, "soulAmount", voc->getGainAmount(GAIN_SOUL));
-	otx::lua::setTableValue(L, "soulTicks", voc->getGainTicks(GAIN_SOUL));
-	otx::lua::setTableValue(L, "capacity", voc->getGainCap());
-	otx::lua::setTableValue(L, "attackable", voc->isAttackable());
-	otx::lua::setTableValue(L, "needPremium", voc->isPremiumNeeded());
+	otx::lua::setTableValue(L, "id", voc->id);
+	otx::lua::setTableValue(L, "name", voc->name);
+	otx::lua::setTableValue(L, "description", voc->description);
+	otx::lua::setTableValue(L, "healthGain", voc->gain[GAIN_HEALTH]);
+	otx::lua::setTableValue(L, "healthGainTicks", voc->gainTicks[GAIN_HEALTH]);
+	otx::lua::setTableValue(L, "healthGainAmount", voc->gainAmount[GAIN_HEALTH]);
+	otx::lua::setTableValue(L, "manaGain", voc->gain[GAIN_MANA]);
+	otx::lua::setTableValue(L, "manaGainTicks", voc->gainTicks[GAIN_MANA]);
+	otx::lua::setTableValue(L, "manaGainAmount", voc->gainAmount[GAIN_MANA]);
+	otx::lua::setTableValue(L, "attackSpeed", voc->attackSpeed);
+	otx::lua::setTableValue(L, "baseSpeed", voc->baseSpeed);
+	otx::lua::setTableValue(L, "fromVocation", voc->fromVocationId);
+	otx::lua::setTableValue(L, "soul", voc->gain[GAIN_SOUL]);
+	otx::lua::setTableValue(L, "soulAmount", voc->gainAmount[GAIN_SOUL]);
+	otx::lua::setTableValue(L, "soulTicks", voc->gainTicks[GAIN_SOUL]);
+	otx::lua::setTableValue(L, "capacity", voc->capGain);
+	otx::lua::setTableValue(L, "attackable", voc->attackable);
+	otx::lua::setTableValue(L, "needPremium", voc->needPremium);
+	otx::lua::setTableValue(L, "promotedVocation", g_vocations.getPromotedVocation(vocationId));
 	otx::lua::setTableValue(L, "experienceMultiplier", voc->getExperienceMultiplier());
 	return 1;
 }
@@ -6188,14 +6188,14 @@ static int luaGetHighscoreString(lua_State* L)
 static int luaGetVocationList(lua_State* L)
 {
 	// getVocationList()
-	const auto& vocations = Vocations::getInstance()->getVocations();
+	const auto& vocations = g_vocations.getVocations();
 	lua_createtable(L, vocations.size(), 0);
 
 	int index = 0;
 	for (const auto& it : vocations) {
 		lua_createtable(L, 0, 2);
 		otx::lua::setTableValue(L, "id", it.first);
-		otx::lua::setTableValue(L, "name", it.second->getName());
+		otx::lua::setTableValue(L, "name", it.second.name);
 		lua_rawseti(L, -2, ++index);
 	}
 	return 1;

@@ -340,7 +340,6 @@ bool Weapon::useWeapon(Player* player, Item* item, Creature* target) const
 	if (!modifier) {
 		return false;
 	}
-
 	return internalUseWeapon(player, item, target, modifier);
 }
 
@@ -363,9 +362,9 @@ bool Weapon::useFist(Player* player, Creature* target)
 		isCritical = true;
 	}
 
-	Vocation* vocation = player->getVocation();
-	if (vocation && vocation->getMultiplier(MULTIPLIER_MELEE) != 1.0) {
-		maxDamage *= vocation->getMultiplier(MULTIPLIER_MELEE);
+	const Vocation* vocation = player->getVocation();
+	if (vocation && vocation->formulaMultipliers[MULTIPLIER_MELEE] != 1.0) {
+		maxDamage *= vocation->formulaMultipliers[MULTIPLIER_MELEE];
 	}
 
 	maxDamage = std::floor(maxDamage);
@@ -584,9 +583,9 @@ int32_t WeaponMelee::getWeaponDamage(const Player* player, const Creature*, cons
 		player->sendCritical();
 	}
 
-	Vocation* vocation = player->getVocation();
-	if (vocation && vocation->getMultiplier(MULTIPLIER_MELEE) != 1.0) {
-		maxValue *= vocation->getMultiplier(MULTIPLIER_MELEE);
+	const Vocation* vocation = player->getVocation();
+	if (vocation && vocation->formulaMultipliers[MULTIPLIER_MELEE] != 1.0) {
+		maxValue *= vocation->formulaMultipliers[MULTIPLIER_MELEE];
 	}
 
 	int32_t ret = (int32_t)std::floor(maxValue);
@@ -604,16 +603,15 @@ int32_t WeaponMelee::getWeaponElementDamage(const Player* player, const Item* it
 
 	double maxValue = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
 
-	Vocation* vocation = player->getVocation();
-	if (vocation && vocation->getMultiplier(MULTIPLIER_MELEE) != 1.0) {
-		maxValue *= vocation->getMultiplier(MULTIPLIER_MELEE);
+	const Vocation* vocation = player->getVocation();
+	if (vocation && vocation->formulaMultipliers[MULTIPLIER_MELEE] != 1.0) {
+		maxValue *= vocation->formulaMultipliers[MULTIPLIER_MELEE];
 	}
 
 	int32_t ret = (int32_t)std::floor(maxValue);
 	if (maxDamage) {
 		return -ret;
 	}
-
 	return -random_range(0, ret, DISTRO_NORMAL);
 }
 
@@ -850,9 +848,9 @@ int32_t WeaponDistance::getWeaponDamage(const Player* player, const Creature* ta
 		player->sendCritical();
 	}
 
-	Vocation* vocation = player->getVocation();
-	if (vocation && vocation->getMultiplier(MULTIPLIER_DISTANCE) != 1.0) {
-		maxValue *= vocation->getMultiplier(MULTIPLIER_DISTANCE);
+	const Vocation* vocation = player->getVocation();
+	if (vocation && vocation->formulaMultipliers[MULTIPLIER_DISTANCE] != 1.0) {
+		maxValue *= vocation->formulaMultipliers[MULTIPLIER_DISTANCE];
 	}
 
 	int32_t ret = (int32_t)std::floor(maxValue);
@@ -925,8 +923,8 @@ int32_t WeaponWand::getWeaponDamage(const Player* player, const Creature*, const
 	UNUSED(isCritical);
 
 	float multiplier = 1.0f;
-	if (Vocation* vocation = player->getVocation()) {
-		multiplier = vocation->getMultiplier(MULTIPLIER_WAND);
+	if (const Vocation* vocation = player->getVocation()) {
+		multiplier = vocation->formulaMultipliers[MULTIPLIER_WAND];
 	}
 
 	int32_t maxValue = (int32_t)(maxChange * multiplier);

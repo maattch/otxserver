@@ -194,7 +194,7 @@ public:
 	bool changeOutfit(Outfit_t outfit, bool checkList);
 	void hasRequestedOutfit(bool v) { m_requestedOutfit = v; }
 
-	Vocation* getVocation() const { return m_vocation; }
+	const Vocation* getVocation() const { return m_vocation; }
 	int32_t getPlayerInfo(playerinfo_t playerinfo) const;
 
 	void setParty(Party* _party) { m_party = _party; }
@@ -332,7 +332,7 @@ public:
 	void removeEnemy(uint32_t guild) { m_warMap.erase(guild); }
 
 	uint32_t getVocationId() const { return m_vocationId; }
-	void setVocation(uint32_t id);
+	bool setVocation(uint32_t id);
 	uint16_t getSex(bool full) const { return full ? m_sex : m_sex % 2; }
 	void setSex(uint16_t);
 
@@ -1094,7 +1094,7 @@ private:
 	void updateBaseSpeed()
 	{
 		if (!hasFlag(PlayerFlag_SetMaxSpeed)) {
-			m_baseSpeed = m_vocation->getBaseSpeed() + (2 * (m_level - 1));
+			m_baseSpeed = m_vocation->baseSpeed + (2 * (m_level - 1));
 		} else {
 			m_baseSpeed = SPEED_MAX;
 		}
@@ -1133,9 +1133,8 @@ private:
 	virtual void __internalAddThing(Thing* thing);
 	virtual void __internalAddThing(uint32_t index, Thing* thing);
 
-	uint32_t getVocAttackSpeed() const { return m_vocation->getAttackSpeed() - getPlayer()->getExtraAttackSpeed(); }
-	int32_t getStepSpeed() const override
-	{
+	uint32_t getVocAttackSpeed() const { return m_vocation->attackSpeed - getPlayer()->getExtraAttackSpeed(); }
+	int32_t getStepSpeed() const override {
 		return std::max<int32_t>(SPEED_MIN, std::min<int32_t>(SPEED_MAX, getSpeed()));
 	}
 
@@ -1255,17 +1254,17 @@ private:
 	std::pair<Container*, int32_t> m_backpack;
 
 	SchedulerTaskPtr m_walkTask;
-	Vocation* m_vocation;
-	Spectators* m_client;
-	Party* m_party;
-	Group* m_group;
-	Item* m_inventory[SLOT_LAST];
-	Player* m_tradePartner;
-	Item* m_tradeItem;
-	Item* m_writeItem;
-	House* m_editHouse;
-	Npc* m_shopOwner;
-	Item* m_weapon;
+	const Vocation* m_vocation = nullptr;
+	Spectators* m_client = nullptr;
+	Party* m_party = nullptr;
+	Group* m_group = nullptr;
+	Player* m_tradePartner = nullptr;
+	Item* m_tradeItem = nullptr;
+	Item* m_writeItem = nullptr;
+	House* m_editHouse = nullptr;
+	Npc* m_shopOwner = nullptr;
+	Item* m_weapon = nullptr;
+	Item* m_inventory[SLOT_LAST] = {};
 
 	std::vector<uint32_t> m_forceWalkthrough;
 

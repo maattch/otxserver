@@ -32,10 +32,15 @@ function onSay(cid, words, param, channel)
 	param = param:lower()
 	for _, v in ipairs(reloadInfo) do
 		if (table.isStrIn(param, v)) then
-			if (doReloadInfo(v[1])) then
-				doPlayerSendTextMessage(cid, MESSAGE_STATUS_CONSOLE_BLUE, "Reloaded " .. v[2] .. " successfully.")
-			else
-				doPlayerSendTextMessage(cid, MESSAGE_STATUS_CONSOLE_BLUE, "Reload failed.")
+			local success = doReloadInfo(v[1])
+
+			-- just to make sure player is not kicked in some reload (vocations)
+			if (isPlayer(cid)) then
+				if (success) then
+					doPlayerSendTextMessage(cid, MESSAGE_STATUS_CONSOLE_BLUE, "Reloaded " .. v[2] .. " successfully.")
+				else
+					doPlayerSendTextMessage(cid, MESSAGE_STATUS_CONSOLE_BLUE, "Reload failed.")
+				end
 			end
 			return true
 		end

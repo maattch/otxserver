@@ -6962,6 +6962,27 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 			}
 			break;
 		}
+		case RELOAD_VOCATIONS: {
+			done = g_vocations.reload();
+
+			std::vector<Player*> toKickPlayers;
+			for (const auto& it : players) {
+				if (!it.second->setVocation(it.second->getVocationId())) {
+					toKickPlayers.push_back(it.second);
+				}
+			}
+
+			for (Player* player : toKickPlayers) {
+				std::clog << "[Error - Game::reloadInfo] Kicked player with invalid vocation id " << player->getVocationId() << " (" << player->getName() << ')' << std::endl;
+				player->kick(true, true);
+			}
+
+			if (!done) {
+				std::clog << "[Error - Game::reloadInfo] Failed to reload vocations." << std::endl;
+			}
+			break;
+		}
+
 		case RELOAD_WEAPONS: {
 			if (g_weapons.reload()) {
 				g_weapons.loadDefaults();
@@ -6975,7 +6996,6 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 		case RELOAD_GAMESERVERS:
 		case RELOAD_GROUPS:
 		case RELOAD_OUTFITS:
-		case RELOAD_VOCATIONS:
 		case RELOAD_MODS: {
 			done = true;
 			std::clog << "[Notice - Game::reloadInfo] Reload type does not work." << std::endl;

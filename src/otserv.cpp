@@ -544,7 +544,7 @@ void otserv(ServiceManager* services)
 	}
 
 	std::clog << ">> Loading vocations" << std::endl;
-	if (!Vocations::getInstance()->loadFromXml()) {
+	if (!g_vocations.loadFromXml()) {
 		startupErrorMessage("Unable to load vocations!");
 	}
 

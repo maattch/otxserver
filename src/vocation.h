@@ -20,122 +20,66 @@
 #include "const.h"
 #include "enums.h"
 
-class Vocation
+struct Vocation
 {
-public:
-	virtual ~Vocation();
-
-	Vocation() { reset(); }
-	Vocation(uint32_t _id) :
-		id(_id) { reset(); }
-
-	void reset();
-
-	uint32_t getId() const { return id; }
-	void setId(int32_t v) { id = v; }
-
-	uint16_t getClientId() const { return clientId; }
-	void setClientId(uint16_t v) { clientId = v; }
-
-	uint32_t getFromVocation() const { return fromVocation; }
-	void setFromVocation(int32_t v) { fromVocation = v; }
-
-	std::string getName() const { return name; }
-	void setName(const std::string& v) { name = v; }
-
-	std::string getDescription() const { return description; }
-	void setDescription(const std::string& v) { description = v; }
-
-	bool isAttackable() const { return attackable; }
-	void setAttackable(bool v) { attackable = v; }
-
-	bool isPremiumNeeded() const { return needPremium; }
-	void setNeedPremium(bool v) { needPremium = v; }
-
-	bool getDropLoot() const { return dropLoot; }
-	void setDropLoot(bool v) { dropLoot = v; }
-
-	bool getLossSkill() const { return skillLoss; }
-	void setLossSkill(bool v) { skillLoss = v; }
-
-	uint32_t getAttackSpeed() const { return attackSpeed; }
-	void setAttackSpeed(uint32_t v) { attackSpeed = v; }
-
-	uint32_t getBaseSpeed() const { return baseSpeed; }
-	void setBaseSpeed(uint32_t v) { baseSpeed = v; }
-
-	int32_t getLessLoss() const { return lessLoss; }
-	void setLessLoss(int32_t v) { lessLoss = v; }
-
-	int32_t getGainCap() const { return capGain; }
-	void setGainCap(int32_t v) { capGain = v; }
-
-	uint32_t getGain(gain_t type) const { return gain[type]; }
-	void setGain(gain_t type, uint32_t v) { gain[type] = v; }
-
-	uint32_t getGainTicks(gain_t type) const { return gainTicks[type]; }
-	void setGainTicks(gain_t type, uint32_t v) { gainTicks[type] = v; }
-
-	uint32_t getGainAmount(gain_t type) const { return gainAmount[type]; }
-	void setGainAmount(gain_t type, uint32_t v) { gainAmount[type] = v; }
-
-	float getMultiplier(multiplier_t type) const { return formulaMultipliers[type]; }
-	void setMultiplier(multiplier_t type, float v) { formulaMultipliers[type] = v; }
-
-	int16_t getAbsorb(CombatType_t combat) const { return absorb[combat]; }
-	void increaseAbsorb(CombatType_t combat, int16_t v) { absorb[combat] += v; }
-
+	uint64_t getReqSkillTries(uint8_t skill, int32_t level) const;
+	uint64_t getReqMana(uint32_t magLevel) const;
 	int16_t getReflect(CombatType_t combat) const;
-	void increaseReflect(Reflect_t type, CombatType_t combat, int16_t v) { reflect[type][combat] += v; }
-
 	double getExperienceMultiplier() const { return skillMultipliers[SKILL__LEVEL]; }
-	void setSkillMultiplier(skills_t s, float v) { skillMultipliers[s] = v; }
-	void setSkillBase(skills_t s, uint32_t v) { skillBase[s] = v; }
 
-	uint64_t getReqSkillTries(int32_t skill, int32_t level);
-	uint64_t getReqMana(uint32_t magLevel);
+	std::string name;
+	std::string description;
 
-private:
-	typedef std::map<uint32_t, uint64_t> cacheMap;
-	cacheMap cacheSkill[SKILL_LAST + 1];
-	cacheMap cacheMana;
+	uint32_t id = 0;
+	uint32_t fromVocationId = 0;
+	uint32_t baseSpeed = 220;
+	uint32_t attackSpeed = 1500;
+	uint32_t gain[GAIN_LAST + 1] = { 5, 5, 100 };
+	uint32_t gainTicks[GAIN_LAST + 1] = { 6, 6, 120 };
+	uint32_t gainAmount[GAIN_LAST + 1] = { 1, 1, 1 };
+	uint32_t skillBase[SKILL_LAST + 1] = { 50, 50, 50, 50, 30, 100, 20 };
 
-	bool attackable, needPremium, dropLoot, skillLoss;
-	uint16_t clientId;
-	int32_t lessLoss, capGain;
-	uint32_t id, fromVocation, baseSpeed, attackSpeed;
-	std::string name, description;
+	int32_t lessLoss = 0;
+	int32_t capGain = 5;
 
-	int16_t absorb[COMBAT_LAST + 1], reflect[REFLECT_LAST + 1][COMBAT_LAST + 1];
-	uint32_t gain[GAIN_LAST + 1], gainTicks[GAIN_LAST + 1], gainAmount[GAIN_LAST + 1], skillBase[SKILL_LAST + 1];
-	float skillMultipliers[SKILL__LAST + 1], formulaMultipliers[MULTIPLIER_LAST + 1];
+	float skillMultipliers[SKILL__LAST + 1] = { 1.5f, 2.f, 2.f, 2.f, 2.f, 2.f, 1.1f, 2.f, 1.0f, 2.f };
+	float formulaMultipliers[MULTIPLIER_LAST + 1] = { 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 4.f };
+
+	int16_t absorb[COMBAT_LAST + 1] = {};
+	int16_t reflect[REFLECT_LAST + 1][COMBAT_LAST + 1] = {};
+
+	bool attackable = true;
+	bool needPremium = false;
+	bool dropLoot = true;
+	bool skillLoss = true;
 };
 
-typedef std::map<uint32_t, Vocation*> VocationsMap;
-class Vocations
+class Vocations final
 {
 public:
-	virtual ~Vocations() { clear(); }
-	static Vocations* getInstance()
-	{
-		static Vocations instance;
-		return &instance;
-	}
+	Vocations() = default;
+
+	// non-copyable
+	Vocations(const Vocations&) = delete;
+	Vocations& operator=(const Vocations&) = delete;
+
+	// non-moveable
+	Vocations(Vocations&&) = delete;
+	Vocations& operator=(Vocations&&) = delete;
+
+	void clear() { m_vocations.clear(); }
 
 	bool reload();
 	bool loadFromXml();
-	bool parseVocationNode(xmlNodePtr p);
 
-	Vocation* getVocation(uint32_t vocId);
+	Vocation* getVocation(uint32_t id);
 	int32_t getVocationId(const std::string& name);
-	int32_t getPromotedVocation(uint32_t vocationId);
+	int32_t getPromotedVocation(uint32_t id);
 
-	const auto& getVocations() { return vocationsMap; }
+	const auto& getVocations() { return m_vocations; }
 
 private:
-	static Vocation defVoc;
-	VocationsMap vocationsMap;
-
-	Vocations() {}
-	void clear();
+	std::map<uint32_t, Vocation> m_vocations;
 };
+
+extern Vocations g_vocations;

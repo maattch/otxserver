@@ -3669,11 +3669,6 @@ void ProtocolGame::telescopeBack(bool lostConnection)
 		ownerPlayer->m_client->removeSpectator(this, spy);
 	}
 
-	if (!IOLoginData::getInstance()->loadPlayer(player, player->getName(), true)) {
-		disconnect();
-		return;
-	}
-
 	if (!IOLoginData::getInstance()->loadPlayer(player, player->getName())) {
 		disconnect();
 		return;

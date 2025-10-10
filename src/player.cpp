@@ -102,7 +102,6 @@ Player::Player(const std::string& _name, ProtocolGame_ptr p) :
 	m_walkTask = nullptr;
 	m_weapon = nullptr;
 
-	setVocation(0);
 	setParty(nullptr);
 
 	m_transferContainer.setParent(nullptr);
@@ -164,28 +163,34 @@ Player::~Player()
 	}
 }
 
-void Player::setVocation(uint32_t id)
+bool Player::setVocation(uint32_t id)
 {
+	const Vocation* vocation = g_vocations.getVocation(id);
+	if (!vocation) {
+		return false;
+	}
+
 	m_vocationId = id;
-	if (!(m_vocation = Vocations::getInstance()->getVocation(id))) {
-		return;
-	}
+	m_vocation = vocation;
 
-	Creature::setDropLoot((m_vocation->getDropLoot() ? LOOT_DROP_FULL : LOOT_DROP_PREVENT));
-	Creature::setLossSkill(m_vocation->getLossSkill());
+	Creature::setDropLoot(vocation->dropLoot ? LOOT_DROP_FULL : LOOT_DROP_PREVENT);
+	Creature::setLossSkill(vocation->skillLoss);
 
-	m_soulMax = m_vocation->getGain(GAIN_SOUL);
+	m_soulMax = vocation->gain[GAIN_SOUL];
 	if (Condition* condition = getCondition(CONDITION_REGENERATION, CONDITIONID_DEFAULT)) {
-		condition->setParam(CONDITIONPARAM_HEALTHGAIN, m_vocation->getGainAmount(GAIN_HEALTH));
-		condition->setParam(CONDITIONPARAM_HEALTHTICKS, (m_vocation->getGainTicks(GAIN_HEALTH) * 1000));
-		condition->setParam(CONDITIONPARAM_MANAGAIN, m_vocation->getGainAmount(GAIN_MANA));
-		condition->setParam(CONDITIONPARAM_MANATICKS, (m_vocation->getGainTicks(GAIN_MANA) * 1000));
+		condition->setParam(CONDITIONPARAM_HEALTHGAIN, vocation->gainAmount[GAIN_HEALTH]);
+		condition->setParam(CONDITIONPARAM_HEALTHTICKS, (vocation->gainTicks[GAIN_HEALTH] * 1000));
+		condition->setParam(CONDITIONPARAM_MANAGAIN, vocation->gainAmount[GAIN_MANA]);
+		condition->setParam(CONDITIONPARAM_MANATICKS, (vocation->gainTicks[GAIN_MANA] * 1000));
 	}
+
+	// TODO: update basespeed and skills tries to prevent overflow
+	return true;
 }
 
 void Player::setDropLoot(lootDrop_t _lootDrop)
 {
-	if (m_vocation && !m_vocation->getDropLoot()) {
+	if (m_vocation && !m_vocation->dropLoot) {
 		_lootDrop = LOOT_DROP_PREVENT;
 	}
 
@@ -194,7 +199,7 @@ void Player::setDropLoot(lootDrop_t _lootDrop)
 
 void Player::setLossSkill(bool _skillLoss)
 {
-	if (m_vocation && !m_vocation->getLossSkill()) {
+	if (m_vocation && !m_vocation->skillLoss) {
 		_skillLoss = false;
 	}
 
@@ -214,7 +219,7 @@ std::string Player::getDescription(int32_t lookDistance) const
 		if (hasFlag(PlayerFlag_ShowGroupNameInsteadOfVocation)) {
 			s << " You are " << m_group->getName();
 		} else if (m_vocationId != VOCATION_NONE) {
-			s << " You are " << m_vocation->getDescription();
+			s << " You are " << m_vocation->description;
 		} else {
 			s << " You have no m_vocation";
 		}
@@ -228,7 +233,7 @@ std::string Player::getDescription(int32_t lookDistance) const
 		if (hasFlag(PlayerFlag_ShowGroupNameInsteadOfVocation)) {
 			s << " is " << m_group->getName();
 		} else if (m_vocationId != VOCATION_NONE) {
-			s << " is " << m_vocation->getDescription();
+			s << " is " << m_vocation->description;
 		} else {
 			s << " has no m_vocation";
 		}
@@ -442,8 +447,8 @@ int32_t Player::getArmor() const
 		}
 	}
 
-	if (m_vocation->getMultiplier(MULTIPLIER_ARMOR) != 1.0) {
-		return int32_t(armor * m_vocation->getMultiplier(MULTIPLIER_ARMOR));
+	if (m_vocation->formulaMultipliers[MULTIPLIER_ARMOR] != 1.0) {
+		return int32_t(armor * m_vocation->formulaMultipliers[MULTIPLIER_ARMOR]);
 	}
 
 	return armor;
@@ -505,8 +510,8 @@ int32_t Player::getDefense() const
 	}
 
 	defenseValue += extraDefense;
-	if (m_vocation->getMultiplier(MULTIPLIER_DEFENSE) != 1.0) {
-		defenseValue = int32_t(defenseValue * m_vocation->getMultiplier(MULTIPLIER_DEFENSE));
+	if (m_vocation->formulaMultipliers[MULTIPLIER_DEFENSE] != 1.0) {
+		defenseValue = int32_t(defenseValue * m_vocation->formulaMultipliers[MULTIPLIER_DEFENSE]);
 	}
 
 	return ((int32_t)std::ceil(((float)(defenseSkill * (defenseValue * 0.015)) + (defenseValue * 0.1)) * defenseFactor));
@@ -1539,29 +1544,29 @@ void Player::onCreatureAppear(const Creature* creature)
 				ss << ".";
 				sendTextMessage(MSG_EVENT_ADVANCE, ss.str());
 
-				Vocation* voc = getVocation();
-				if (!isPromoted(m_promotionLevel + 1)) // maybe a configurable?...
-				{
-					int32_t vocId = Vocations::getInstance()->getPromotedVocation(voc->getId());
+				const Vocation* voc = m_vocation;
+				// maybe a configurable?...
+				if (!isPromoted(m_promotionLevel + 1)) {
+					int32_t vocId = g_vocations.getPromotedVocation(voc->id);
 					if (vocId > 0) {
-						if (Vocation* tmp = Vocations::getInstance()->getVocation(vocId)) {
+						if (Vocation* tmp = g_vocations.getVocation(vocId)) {
 							voc = tmp;
 						}
 					}
 				}
 
 				if (m_offlineTrainingSkill == SKILL_CLUB || m_offlineTrainingSkill == SKILL_SWORD || m_offlineTrainingSkill == SKILL_AXE) {
-					float modifier = voc->getAttackSpeed() / 1000.f;
+					float modifier = voc->attackSpeed / 1000.f;
 					addOfflineTrainingTries((skills_t)m_offlineTrainingSkill, (trainingTime / modifier) / 2);
 				} else if (m_offlineTrainingSkill == SKILL_DIST) {
-					float modifier = voc->getAttackSpeed() / 1000.f;
+					float modifier = voc->attackSpeed / 1000.f;
 					addOfflineTrainingTries((skills_t)m_offlineTrainingSkill, (trainingTime / modifier) / 4);
 				} else if (m_offlineTrainingSkill == SKILL__MAGLEVEL) {
-					int32_t gainTicks = voc->getGainTicks(GAIN_MANA) << 1;
+					int32_t gainTicks = voc->gainTicks[GAIN_MANA] << 1;
 					if (!gainTicks) {
 						gainTicks = 1;
 					}
-					addOfflineTrainingTries(SKILL__MAGLEVEL, (int32_t)((float)trainingTime * ((float)voc->getGainAmount(GAIN_MANA) / (float)gainTicks)));
+					addOfflineTrainingTries(SKILL__MAGLEVEL, (int32_t)((float)trainingTime * ((float)voc->gainAmount[GAIN_MANA] / (float)gainTicks)));
 				}
 
 				if (addOfflineTrainingTries(SKILL_SHIELD, trainingTime / 4)) {
@@ -2211,11 +2216,11 @@ void Player::addExperience(uint64_t exp)
 	m_experience += exp;
 	while (m_experience >= nextLevelExp) {
 		++m_level;
-		m_healthMax += m_vocation->getGain(GAIN_HEALTH);
-		m_health += m_vocation->getGain(GAIN_HEALTH);
-		m_manaMax += m_vocation->getGain(GAIN_MANA);
-		m_mana += m_vocation->getGain(GAIN_MANA);
-		m_capacity += m_vocation->getGainCap();
+		m_healthMax += m_vocation->gain[GAIN_HEALTH];
+		m_health += m_vocation->gain[GAIN_HEALTH];
+		m_manaMax += m_vocation->gain[GAIN_MANA];
+		m_mana += m_vocation->gain[GAIN_MANA];
+		m_capacity += m_vocation->capGain;
 
 		nextLevelExp = Player::getExpForLevel(m_level + 1);
 		if (Player::getExpForLevel(m_level) > nextLevelExp) { // player has reached max m_level
@@ -2263,9 +2268,9 @@ void Player::removeExperience(uint64_t exp, bool updateStats /* = true*/)
 	m_experience -= std::min(exp, m_experience);
 	while (m_level > 1 && m_experience < Player::getExpForLevel(m_level)) {
 		--m_level;
-		m_healthMax = std::max((int32_t)0, (m_healthMax - (int32_t)m_vocation->getGain(GAIN_HEALTH)));
-		m_manaMax = std::max((int32_t)0, (m_manaMax - (int32_t)m_vocation->getGain(GAIN_MANA)));
-		m_capacity = std::max((double)0, (m_capacity - (double)m_vocation->getGainCap()));
+		m_healthMax = std::max<int32_t>(0, (m_healthMax - m_vocation->gain[GAIN_HEALTH]));
+		m_manaMax = std::max<int32_t>(0, (m_manaMax - m_vocation->gain[GAIN_MANA]));
+		m_capacity = std::max<double>(0.0, (m_capacity - m_vocation->capGain));
 	}
 
 	if (prevLevel != m_level) {
@@ -2376,8 +2381,8 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 		return blockType;
 	}
 
-	if (m_vocation->getMultiplier(MULTIPLIER_MAGICDEFENSE) != 1.0 && combatType != COMBAT_PHYSICALDAMAGE && combatType != COMBAT_NONE && combatType != COMBAT_UNDEFINEDDAMAGE && combatType != COMBAT_DROWNDAMAGE) {
-		damage -= (int32_t)std::ceil((double)(damage * m_vocation->getMultiplier(MULTIPLIER_MAGICDEFENSE)) / 100.);
+	if (m_vocation->formulaMultipliers[MULTIPLIER_MAGICDEFENSE] != 1.0 && combatType != COMBAT_PHYSICALDAMAGE && combatType != COMBAT_NONE && combatType != COMBAT_UNDEFINEDDAMAGE && combatType != COMBAT_DROWNDAMAGE) {
+		damage -= (int32_t)std::ceil((double)(damage * m_vocation->formulaMultipliers[MULTIPLIER_MAGICDEFENSE]) / 100.);
 	}
 
 	if (damage <= 0) {
@@ -2441,8 +2446,8 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 			}
 		}
 	*/
-	if (m_vocation->getAbsorb(combatType)) {
-		blocked += (int32_t)std::ceil((double)(damage * m_vocation->getAbsorb(combatType)) / 100.);
+	if (m_vocation->absorb[combatType]) {
+		blocked += (int32_t)std::ceil((double)(damage * m_vocation->absorb[combatType]) / 100.);
 	}
 
 	if (reflect && m_vocation->getReflect(combatType)) {
@@ -2779,10 +2784,10 @@ void Player::addDefaultRegeneration(uint32_t addTicks)
 	if (condition) {
 		condition->setTicks(condition->getTicks() + addTicks);
 	} else if ((condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_REGENERATION, addTicks))) {
-		condition->setParam(CONDITIONPARAM_HEALTHGAIN, m_vocation->getGainAmount(GAIN_HEALTH));
-		condition->setParam(CONDITIONPARAM_HEALTHTICKS, m_vocation->getGainTicks(GAIN_HEALTH) * 1000);
-		condition->setParam(CONDITIONPARAM_MANAGAIN, m_vocation->getGainAmount(GAIN_MANA));
-		condition->setParam(CONDITIONPARAM_MANATICKS, m_vocation->getGainTicks(GAIN_MANA) * 1000);
+		condition->setParam(CONDITIONPARAM_HEALTHGAIN, m_vocation->gainAmount[GAIN_HEALTH]);
+		condition->setParam(CONDITIONPARAM_HEALTHTICKS, m_vocation->gainTicks[GAIN_HEALTH] * 1000);
+		condition->setParam(CONDITIONPARAM_MANAGAIN, m_vocation->gainAmount[GAIN_MANA]);
+		condition->setParam(CONDITIONPARAM_MANATICKS, m_vocation->gainTicks[GAIN_MANA] * 1000);
 		addCondition(condition);
 	}
 }
@@ -4340,9 +4345,9 @@ bool Player::gainExperience(double& gainExp, Creature* target)
 		if (Condition* condition = Condition::createCondition(
 				CONDITIONID_DEFAULT, CONDITION_SOUL, 4 * 60 * 1000)) {
 			condition->setParam(CONDITIONPARAM_SOULGAIN,
-				m_vocation->getGainAmount(GAIN_SOUL));
+				m_vocation->gainAmount[GAIN_SOUL]);
 			condition->setParam(CONDITIONPARAM_SOULTICKS,
-				(m_vocation->getGainTicks(GAIN_SOUL) * 1000));
+				(m_vocation->gainTicks[GAIN_SOUL] * 1000));
 			addCondition(condition);
 		}
 	}
@@ -4419,7 +4424,7 @@ bool Player::isImmune(ConditionType_t type) const
 
 bool Player::isProtected() const
 {
-	return (m_vocation && !m_vocation->isAttackable()) || hasCustomFlag(PlayerCustomFlag_IsProtected) || m_level < g_config.getNumber(ConfigManager::PROTECTION_LEVEL);
+	return (m_vocation && !m_vocation->attackable) || hasCustomFlag(PlayerCustomFlag_IsProtected) || m_level < g_config.getNumber(ConfigManager::PROTECTION_LEVEL);
 }
 
 bool Player::isAttackable() const
@@ -4752,14 +4757,14 @@ void Player::setPromotionLevel(uint32_t pLevel)
 	if (pLevel > m_promotionLevel) {
 		int32_t tmpLevel = 0, currentVoc = m_vocationId;
 		for (uint32_t i = m_promotionLevel; i < pLevel; ++i) {
-			currentVoc = Vocations::getInstance()->getPromotedVocation(currentVoc);
-			if (currentVoc < 1) {
+			currentVoc = g_vocations.getPromotedVocation(currentVoc);
+			if (currentVoc == -1) {
 				break;
 			}
 
 			tmpLevel++;
-			Vocation* voc = Vocations::getInstance()->getVocation(currentVoc);
-			if (voc->isPremiumNeeded() && !isPremium() && g_config.getBool(ConfigManager::PREMIUM_FOR_PROMOTION)) {
+			Vocation* voc = g_vocations.getVocation(currentVoc);
+			if (!voc || (voc->needPremium && !isPremium() && g_config.getBool(ConfigManager::PREMIUM_FOR_PROMOTION))) {
 				continue;
 			}
 
@@ -4770,14 +4775,14 @@ void Player::setPromotionLevel(uint32_t pLevel)
 	} else if (pLevel < m_promotionLevel) {
 		uint32_t tmpLevel = 0, currentVoc = m_vocationId;
 		for (uint32_t i = pLevel; i < m_promotionLevel; ++i) {
-			Vocation* voc = Vocations::getInstance()->getVocation(currentVoc);
-			if (voc->getFromVocation() == currentVoc) {
+			Vocation* voc = g_vocations.getVocation(currentVoc);
+			if (!voc || voc->fromVocationId == currentVoc) {
 				break;
 			}
 
 			tmpLevel++;
-			currentVoc = voc->getFromVocation();
-			if (voc->isPremiumNeeded() && !isPremium() && g_config.getBool(ConfigManager::PREMIUM_FOR_PROMOTION)) {
+			currentVoc = voc->fromVocationId;
+			if (voc->needPremium && !isPremium() && g_config.getBool(ConfigManager::PREMIUM_FOR_PROMOTION)) {
 				continue;
 			}
 
@@ -4843,7 +4848,7 @@ uint32_t Player::getAttackSpeed() const
 		_weapon = const_cast<Player*>(this)->getWeapon(true);
 	}
 
-	return (((_weapon && _weapon->getAttackSpeed() != 0) ? _weapon->getAttackSpeed() : (m_vocation->getAttackSpeed() / std::max((size_t)1, getWeapons().size()))) + modifiers);
+	return (((_weapon && _weapon->getAttackSpeed() != 0) ? _weapon->getAttackSpeed() : (m_vocation->attackSpeed / std::max((size_t)1, getWeapons().size()))) + modifiers);
 }
 
 void Player::learnInstantSpell(const std::string& name)
@@ -5087,9 +5092,9 @@ void Player::manageAccount(const std::string& text)
 					m_talkState[11] = true;
 
 					std::vector<std::string> vocations;
-					for (const auto& [id, vocation] : Vocations::getInstance()->getVocations()) {
-						if (id == vocation->getFromVocation() && id != 0) {
-							vocations.push_back(otx::util::as_lower_string(vocation->getName()));
+					for (const auto& [id, vocation] : g_vocations.getVocations()) {
+						if (id == vocation.fromVocationId && id != 0) {
+							vocations.push_back(otx::util::as_lower_string(vocation.name));
 						}
 					}
 
@@ -5120,9 +5125,9 @@ void Player::manageAccount(const std::string& text)
 					msg << "Player with that name already exists, please choose another one.";
 				}
 			} else if (m_talkState[11]) {
-				for (const auto& [id, vocation] : Vocations::getInstance()->getVocations()) {
-					if (checkText(text, otx::util::as_lower_string(vocation->getName())) && id == vocation->getFromVocation() && id != 0) {
-						msg << "So you would like to be " << vocation->getDescription() << ", {yes} or {no}?";
+				for (const auto& [id, vocation] : g_vocations.getVocations()) {
+					if (checkText(text, otx::util::as_lower_string(vocation.name)) && id == vocation.fromVocationId && id != 0) {
+						msg << "So you would like to be " << vocation.description << ", {yes} or {no}?";
 						managerNumber2 = id;
 						m_talkState[11] = false;
 						m_talkState[12] = true;
@@ -5518,15 +5523,15 @@ void Player::clearPartyInvitations()
 void Player::increaseCombatValues(int32_t& min, int32_t& max, bool useCharges, bool countWeapon)
 {
 	if (min > 0) {
-		min = (int32_t)(min * m_vocation->getMultiplier(MULTIPLIER_HEALING));
+		min = (int32_t)(min * m_vocation->formulaMultipliers[MULTIPLIER_HEALING]);
 	} else {
-		min = (int32_t)(min * m_vocation->getMultiplier(MULTIPLIER_MAGIC));
+		min = (int32_t)(min * m_vocation->formulaMultipliers[MULTIPLIER_MAGIC]);
 	}
 
 	if (max > 0) {
-		max = (int32_t)(max * m_vocation->getMultiplier(MULTIPLIER_HEALING));
+		max = (int32_t)(max * m_vocation->formulaMultipliers[MULTIPLIER_HEALING]);
 	} else {
-		max = (int32_t)(max * m_vocation->getMultiplier(MULTIPLIER_MAGIC));
+		max = (int32_t)(max * m_vocation->formulaMultipliers[MULTIPLIER_MAGIC]);
 	}
 
 	Item* item = nullptr;

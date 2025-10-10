@@ -348,8 +348,8 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		  << "`save` FROM `players` WHERE "
 		  << "`name` = " << g_database.escapeString(name) << " AND `deleted` = 0 LIMIT 1";
 
-	DBResultPtr result;
-	if (!(result = g_database.storeQuery(query.str()))) {
+	DBResultPtr result = g_database.storeQuery(query.str());
+	if (!result) {
 		return false;
 	}
 
@@ -379,6 +379,15 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	player->setSex(result->getNumber<int32_t>("sex"));
 	if (g_config.getBool(ConfigManager::STORE_DIRECTION)) {
 		player->setDirection((Direction)result->getNumber<int32_t>("direction"));
+	}
+
+	player->m_vocationId = result->getNumber<int32_t>("vocation");
+	player->setPromotionLevel(result->getNumber<int32_t>("promotion"));
+
+	const Vocation* vocation = player->getVocation();
+	if (!vocation) {
+		std::clog << "[Warning - IOLoginData::loadPlayer] Player with invalid vocation id " << player->getVocationId() << " (" << name << ')' << std::endl;
+		return false;
 	}
 
 	player->m_level = std::max((uint32_t)1, (uint32_t)result->getNumber<int32_t>("level"));
@@ -420,16 +429,13 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		}
 	}
 
-	player->m_vocationId = result->getNumber<int32_t>("vocation");
-	player->setPromotionLevel(result->getNumber<int32_t>("promotion"));
-
 	player->m_health = result->getNumber<int32_t>("health");
 	player->m_healthMax = result->getNumber<int32_t>("healthmax");
 	player->m_mana = result->getNumber<int32_t>("mana");
 	player->m_manaMax = result->getNumber<int32_t>("manamax");
 
 	player->m_magLevel = result->getNumber<int32_t>("maglevel");
-	uint64_t nextManaCount = player->m_vocation->getReqMana(player->m_magLevel + 1), manaSpent = result->getNumber<uint64_t>("manaspent");
+	uint64_t nextManaCount = vocation->getReqMana(player->m_magLevel + 1), manaSpent = result->getNumber<uint64_t>("manaspent");
 	if (manaSpent > nextManaCount) {
 		manaSpent = 0;
 	}
@@ -569,8 +575,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 			}
 
 			uint32_t skillLevel = result->getNumber<int32_t>("value");
-			uint64_t nextSkillCount = player->m_vocation->getReqSkillTries(
-						 skillId, skillLevel + 1),
+			uint64_t nextSkillCount = vocation->getReqSkillTries(skillId, skillLevel + 1),
 					 skillCount = result->getNumber<uint64_t>("count");
 			if (skillCount > nextSkillCount) {
 				skillCount = 0;
@@ -877,12 +882,21 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 		query << "`rank_id` = " << IOGuild::getInstance()->getRankIdByLevel(player->getGuildId(), player->getGuildLevel()) << ", ";
 	}
 
-	Vocation* tmpVoc = player->m_vocation;
-	for (uint32_t i = 0; i <= player->m_promotionLevel; ++i) {
-		tmpVoc = Vocations::getInstance()->getVocation(tmpVoc->getFromVocation());
+	uint32_t vocationId = player->getVocationId();
+	if (const Vocation* vocation = player->getVocation()) {
+		for (uint32_t i = 0; i <= player->m_promotionLevel; ++i) {
+			vocation = g_vocations.getVocation(vocation->fromVocationId);
+			if (!vocation || vocation->id == vocation->fromVocationId) {
+				break;
+			}
+		}
+
+		if (vocation) {
+			vocationId = vocation->id;
+		}
 	}
 
-	query << "`vocation` = " << tmpVoc->getId() << " WHERE `id` = " << player->getGUID() << " LIMIT 1;";
+	query << "`vocation` = " << vocationId << " WHERE `id` = " << player->getGUID() << " LIMIT 1";
 	if (!g_database.executeQuery(query.str())) {
 		return false;
 	}
@@ -1643,8 +1657,8 @@ bool IOLoginData::createCharacter(uint32_t accountId, std::string characterName,
 		return false;
 	}
 
-	Vocation* vocation = Vocations::getInstance()->getVocation(vocationId);
-	Vocation* rookVoc = Vocations::getInstance()->getVocation(0);
+	Vocation* vocation = g_vocations.getVocation(vocationId);
+	Vocation* rookVoc = g_vocations.getVocation(0);
 
 	uint16_t healthMax = 150, manaMax = 0, capMax = 400, lookType = 136;
 	if (sex % 2) {
@@ -1658,14 +1672,14 @@ bool IOLoginData::createCharacter(uint32_t accountId, std::string characterName,
 	}
 
 	if (tmpLevel > 0) {
-		healthMax += rookVoc->getGain(GAIN_HEALTH) * tmpLevel;
-		manaMax += rookVoc->getGain(GAIN_MANA) * tmpLevel;
-		capMax += rookVoc->getGainCap() * tmpLevel;
+		healthMax += rookVoc->gain[GAIN_HEALTH] * tmpLevel;
+		manaMax += rookVoc->gain[GAIN_MANA] * tmpLevel;
+		capMax += rookVoc->capGain * tmpLevel;
 		if (level > 8) {
 			tmpLevel = level - 8;
-			healthMax += vocation->getGain(GAIN_HEALTH) * tmpLevel;
-			manaMax += vocation->getGain(GAIN_MANA) * tmpLevel;
-			capMax += vocation->getGainCap() * tmpLevel;
+			healthMax += vocation->gain[GAIN_HEALTH] * tmpLevel;
+			manaMax += vocation->gain[GAIN_MANA] * tmpLevel;
+			capMax += vocation->capGain * tmpLevel;
 		}
 	}
 
