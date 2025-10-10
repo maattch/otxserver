@@ -27,7 +27,7 @@
 #include "iologindata.h"
 #include "outputmessage.h"
 
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 uint32_t ProtocolLogin::protocolLoginCount = 0;
 #endif
 

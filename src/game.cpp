@@ -55,6 +55,8 @@ Game g_game;
 
 namespace
 {
+	const int64_t gameStartTime = otx::util::mstime();
+
 	constexpr uint32_t EVENT_LIGHTINTERVAL = 10000;
 	constexpr uint32_t EVENT_DECAYINTERVAL = 250;
 	constexpr uint32_t STATE_DELAY = 1000;
@@ -7331,4 +7333,9 @@ void Game::saveGlobalStorages()
 		query.str("");
 	}
 	stmt.execute();
+}
+
+int64_t Game::getUptime() const
+{
+	return (otx::util::mstime() - gameStartTime) / 1000;
 }

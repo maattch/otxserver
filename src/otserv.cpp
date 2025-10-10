@@ -28,12 +28,12 @@
 #include "protocolgame.h"
 #include "protocollogin.h"
 #include "protocolold.h"
+#include "protocolstatus.h"
 #include "quests.h"
 #include "raids.h"
 #include "rsa.h"
 #include "scriptmanager.h"
 #include "server.h"
-#include "status.h"
 #include "textlogger.h"
 #include "vocation.h"
 
@@ -283,7 +283,7 @@ void otserv(ServiceManager* services)
 #else
 		<< "\t\tGroundCache: no\n"
 #endif
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 		<< "\t\tServerDiag: yes\n"
 #else
 		<< "\t\tServerDiag: no\n"

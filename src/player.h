@@ -124,7 +124,7 @@ typedef std::map<uint32_t, War_t> WarMap;
 class Player final : public Creature, public Cylinder
 {
 public:
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 	static uint32_t playerCount;
 #endif
 	Player(const std::string& name, ProtocolGame_ptr p);

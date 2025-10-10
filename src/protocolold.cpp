@@ -23,8 +23,8 @@
 #include "game.h"
 #include "outputmessage.h"
 
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-// uint32_t ProtocolOld::protocolOldCount = 0;
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+uint32_t ProtocolOld::protocolOldCount = 0;
 #endif
 
 void ProtocolOld::disconnectClient(uint8_t error, const char* message)

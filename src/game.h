@@ -696,6 +696,8 @@ public:
 	void loadGlobalStorages();
 	void saveGlobalStorages();
 
+	int64_t getUptime() const;
+
 protected:
 	bool playerWhisper(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
 	bool playerYell(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);

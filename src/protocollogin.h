@@ -20,37 +20,33 @@
 #include "protocol.h"
 
 class NetworkMessage;
-class ProtocolLogin : public Protocol
+
+class ProtocolLogin final : public Protocol
 {
 public:
 	// static protocol information
-	enum
-	{
-		server_sends_first = false
-	};
-	enum
-	{
-		protocol_identifier = 0x01
-	};
-	enum
-	{
-		use_checksum = true
-	};
-	static const char* protocol_name()
-	{
-		return "login protocol";
-	}
+	enum { server_sends_first = false };
+	enum { protocol_identifier = 0x01 };
+	enum { use_checksum = true };
+	static const char* protocol_name() { return "login protocol"; }
 
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 	static uint32_t protocolLoginCount;
 #endif
-	virtual void onRecvFirstMessage(NetworkMessage& msg);
 
-	explicit ProtocolLogin(Connection_ptr connection) :
-		Protocol(connection) {}
+	explicit ProtocolLogin(Connection_ptr connection) : Protocol(connection) {
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+		++ProtocolLogin::protocolLoginCount;
+#endif
+	}
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+	~ProtocolLogin() {
+		--ProtocolLogin::protocolLoginCount;
+	}
+#endif
 
-	static const char* protocolName() { return "login protocol"; }
+	void onRecvFirstMessage(NetworkMessage& msg) override;
 
-protected:
+private:
 	void disconnectClient(uint8_t error, const char* message);
 };

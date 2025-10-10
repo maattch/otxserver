@@ -43,7 +43,6 @@
 #include "player.h"
 #include "raids.h"
 #include "spells.h"
-#include "status.h"
 #include "talkaction.h"
 #include "teleport.h"
 #include "town.h"
@@ -2896,7 +2895,7 @@ static int luaGetWorldCreatures(lua_State* L)
 static int luaGetWorldUpTime(lua_State* L)
 {
 	// getWorldUpTime()
-	lua_pushnumber(L, (otx::util::mstime() - ProtocolStatus::start) / 1000);
+	lua_pushnumber(L, g_game.getUptime());
 	return 1;
 }
 

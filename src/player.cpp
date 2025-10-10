@@ -38,7 +38,7 @@
 
 uint32_t Player::playerAutoID = 0x10000000;
 
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 uint32_t Player::playerCount = 0;
 #endif
 MuteCountMap Player::muteCountMap;
@@ -60,6 +60,10 @@ Player::Player(const std::string& _name, ProtocolGame_ptr p) :
 	m_nameDescription(_name),
 	m_client(new Spectators(p))
 {
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+	++Player::playerCount;
+#endif
+
 	if (m_client->getOwner()) {
 		p->setPlayer(this);
 	}
@@ -131,16 +135,14 @@ Player::Player(const std::string& _name, ProtocolGame_ptr p) :
 	for (int32_t i = 0; i <= 12; ++i) {
 		m_talkState[i] = false;
 	}
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-	playerCount++;
-#endif
 }
 
 Player::~Player()
 {
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-	playerCount--;
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+	--Player::playerCount;
 #endif
+
 	delete m_client;
 	for (int32_t i = 0; i < 11; ++i) {
 		if (!m_inventory[i]) {

@@ -113,7 +113,7 @@ struct Voice
 class Npc final : public Creature
 {
 public:
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 	static uint32_t npcCount;
 #endif
 	virtual ~Npc();

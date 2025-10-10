@@ -26,6 +26,10 @@
 #include "server.h"
 #include "tools.h"
 
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+uint32_t Connection::connectionCount = 0;
+#endif
+
 constexpr uint32_t CONNECTION_READ_TIMEOUT = 30;
 constexpr uint32_t CONNECTION_WRITE_TIMEOUT = 30;
 
@@ -69,12 +73,17 @@ Connection::Connection(boost::asio::io_context& io_context, ConstServicePort_ptr
 	m_service_port(std::move(service_port)),
 	m_timeConnected(time(nullptr))
 {
-	//
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+	++Connection::connectionCount;
+#endif
 }
 
 Connection::~Connection()
 {
 	closeSocket();
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+	--Connection::connectionCount;
+#endif
 }
 
 void Connection::close(bool force)

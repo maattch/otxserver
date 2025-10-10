@@ -34,11 +34,11 @@
 
 #include "otx/util.hpp"
 
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-#include "outputmessage.h"
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 #include "connection.h"
 #include "protocollogin.h"
 #include "protocolold.h"
+#include "protocolstatus.h"
 #endif
 
 TalkActions g_talkActions;
@@ -1027,44 +1027,33 @@ bool TalkAction::diagnostics(Creature* creature, const std::string&)
 	if (!player) {
 		return false;
 	}
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 	std::ostringstream s;
 	s << "Server diagonostic:" << std::endl;
 	player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, s.str());
 
 	s.str("");
-	s << "World:" << std::endl
-	  << "--------------------" << std::endl
-	  << "Player: " << g_game.getPlayersOnline() << " (" << Player::playerCount << ")" << std::endl
-	  //<< "Unique Players: " << g_game.getUniquePlayersOnline() << " (" << Player::playerCount << ")" << std::endl
-	  << "Npc: " << g_game.getNpcsOnline() << " (" << Npc::npcCount << ")" << std::endl
-	  << "Monster: " << g_game.getMonstersOnline() << " (" << Monster::monsterCount << ")" << std::endl
-	  << std::endl;
+	s << "[World]" << std::endl
+	  << "Player: " << g_game.getPlayersOnline() << " (" << Player::playerCount << ')' << std::endl
+	  << "Npc: " << g_game.getNpcsOnline() << " (" << Npc::npcCount << ')' << std::endl
+	  << "Monster: " << g_game.getMonstersOnline() << " (" << Monster::monsterCount << ')';
 	player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, s.str());
 
 	s.str("");
-	s << "Protocols:" << std::endl
-	  << "--------------------" << std::endl
+	s << "[Protocol]" << std::endl
 	  << "ProtocolGame: " << ProtocolGame::protocolGameCount << std::endl
 	  << "ProtocolLogin: " << ProtocolLogin::protocolLoginCount << std::endl
-	  << "ProtocolManager: " << ProtocolManager::protocolManagerCount << std::endl;
-	/*
-	<< "ProtocolStatus: " << ProtocolStatus::protocolStatusCount << std::endl
-	<< "ProtocolOld: " << ProtocolOld::protocolOldCount << std::endl << std::endl;*/
+	  << "ProtocolStatus: " << ProtocolStatus::protocolStatusCount << std::endl
+	  << "ProtocolOld: " << ProtocolOld::protocolOldCount;
 	player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, s.str());
 
 	s.str("");
-	s << "Connections:" << std::endl
-	  << "--------------------" << std::endl; /*
-	   << "Active connections: " << Connection::connectionCount << std::endl
-	   << "Total message pool: " << OutputMessagePool::getInstance()->getTotalMessageCount() << std::endl
-	   << "Auto message pool: " << OutputMessagePool::getInstance()->getAutoMessageCount() << std::endl
-	   << "Queued message pool: " << OutputMessagePool::getInstance()->getQueuedMessageCount() << std::endl
-	   << "Free message pool: " << OutputMessagePool::getInstance()->getAvailableMessageCount() << std::endl;*/
+	s << "[Connection]" << std::endl
+	  << "Connections: " << Connection::connectionCount;
 	player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, s.str());
-
 #else
-	player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, "Command not available, please rebuild your software with -D__ENABLE_SERVER_DIAG__");
+	player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, "Command not available.");
 #endif
 	return true;
 }

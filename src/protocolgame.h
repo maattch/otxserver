@@ -37,48 +37,33 @@ typedef std::list<std::pair<uint16_t, std::string>> ChannelsList;
 class ProtocolGame;
 typedef std::shared_ptr<ProtocolGame> ProtocolGame_ptr;
 
-class ProtocolGame : public Protocol
+class ProtocolGame final : public Protocol
 {
 public:
 	// static protocol information
-	enum
-	{
-		server_sends_first = true
-	};
-	enum
-	{
-		protocol_identifier = 0
-	}; // Not required as we send first
-	enum
-	{
-		use_checksum = true
-	};
-	static const char* protocol_name()
-	{
-		return "gameworld protocol";
-	}
+	enum { server_sends_first = true };
+	enum { protocol_identifier = 0 }; // Not required as we send first
+	enum { use_checksum = true };
+	static const char* protocol_name() { return "gameworld protocol"; }
 
 	time_t lastCastMsg;
 
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 	static uint32_t protocolGameCount;
 #endif
 
-	ProtocolGame(Connection_ptr connection) :
-		Protocol(connection)
-	{
+	explicit ProtocolGame(Connection_ptr connection) : Protocol(connection) {
 		lastCastMsg = 0;
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-		protocolGameCount++;
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+		++ProtocolGame::protocolGameCount;
 #endif
 		player = nullptr;
-		eventConnect = m_packetCount = m_packetTime = naviexhaust = 0;
+		eventConnect = naviexhaust = 0;
 		m_debugAssertSent = acceptPackets = m_spectator = false;
 	}
-	virtual ~ProtocolGame()
-	{
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-		protocolGameCount--;
+	~ProtocolGame() {
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+		--ProtocolGame::protocolGameCount;
 #endif
 	}
 
@@ -102,8 +87,7 @@ public:
 	void sendCastList();
 
 private:
-	ProtocolGame_ptr getThis()
-	{
+	ProtocolGame_ptr getThis() {
 		return std::static_pointer_cast<ProtocolGame>(shared_from_this());
 	}
 
@@ -120,10 +104,10 @@ private:
 	bool canSee(const Creature*) const;
 	bool canSee(const Position& pos) const;
 
-	virtual void onConnect();
-	virtual void onRecvFirstMessage(NetworkMessage& msg);
+	void onConnect() override;
+	void onRecvFirstMessage(NetworkMessage& msg) override;
 
-	virtual void parsePacket(NetworkMessage& msg);
+	void parsePacket(NetworkMessage& msg) override;
 
 	// Parse methods
 	void parseTelescopeBack(bool lostConnection);
@@ -360,7 +344,7 @@ private:
 
 	Player* player;
 
-	uint32_t eventConnect, m_maxSizeCount, m_packetCount, m_packetTime;
+	uint32_t eventConnect;
 	int64_t naviexhaust;
 	bool m_debugAssertSent, acceptPackets, m_spectator;
 	std::string twatchername;

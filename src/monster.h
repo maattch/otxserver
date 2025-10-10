@@ -40,7 +40,7 @@ private:
 	Monster(MonsterType* _mType);
 
 public:
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 	static uint32_t monsterCount;
 #endif
 	virtual ~Monster();

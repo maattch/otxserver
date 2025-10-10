@@ -63,6 +63,9 @@ class Connection final : public std::enable_shared_from_this<Connection>
 {
 public:
 	static constexpr bool FORCE_CLOSE = true;
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+	static uint32_t connectionCount;
+#endif
 
 	Connection(boost::asio::io_context& io_context, ConstServicePort_ptr service_port);
 	~Connection();

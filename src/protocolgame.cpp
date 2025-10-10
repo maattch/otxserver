@@ -19,7 +19,6 @@
 
 #include "protocolgame.h"
 
-#include "actions.h"
 #include "chat.h"
 #include "configmanager.h"
 #include "connection.h"
@@ -35,13 +34,97 @@
 #include "quests.h"
 #include "textlogger.h"
 #include "tile.h"
-#include "waitlist.h"
 
 #include "otx/util.hpp"
 
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 uint32_t ProtocolGame::protocolGameCount = 0;
 #endif
+
+namespace WaitList
+{
+	using WaitListDeque = std::deque<std::pair<int64_t, uint32_t>>;
+	WaitListDeque waitList; // (timeout, player guid)
+	WaitListDeque::iterator priorityEnd = waitList.end();
+
+	auto findClient(uint32_t guid)
+	{
+		size_t slot = 1;
+		for (auto it = waitList.begin(), end = waitList.end(); it != end; ++it, ++slot) {
+			if (it->second == guid) {
+				return std::make_pair(it, slot);
+			}
+		}
+		return std::make_pair(waitList.end(), slot);
+	}
+
+	static constexpr uint8_t getWaitTime(size_t slot)
+	{
+		if (slot < 5) {
+			return 5;
+		} else if (slot < 10) {
+			return 10;
+		} else if (slot < 20) {
+			return 20;
+		} else if (slot < 50) {
+			return 60;
+		} else {
+			return 120;
+		}
+	}
+
+	static constexpr int64_t getTimeout(size_t slot)
+	{
+		// timeout is set to 15 seconds longer than expected retry attempt
+		return getWaitTime(slot) + 15;
+	}
+
+	size_t clientLogin(const Player& player)
+	{
+		if (player.hasFlag(PlayerFlag_CanAlwaysLogin)) {
+			return 0;
+		}
+
+		const auto maxPlayers = static_cast<uint32_t>(g_config.getNumber(ConfigManager::MAX_PLAYERS));
+		if (maxPlayers == 0 || (waitList.empty() && g_game.getPlayersOnline() < maxPlayers)) {
+			return 0;
+		}
+
+		const int64_t time = otx::util::mstime();
+
+		auto it = waitList.begin();
+		while (it != waitList.end()) {
+			if ((it->first - time) <= 0) {
+				it = waitList.erase(it);
+			} else {
+				++it;
+			}
+		}
+
+		size_t slot;
+		std::tie(it, slot) = findClient(player.getGUID());
+		if (it != waitList.end()) {
+			// If server has capacity for this client, let him in even though his current slot might be higher than 0.
+			if ((g_game.getPlayersOnline() + slot) <= maxPlayers) {
+				waitList.erase(it);
+				return 0;
+			}
+
+			// let them wait a bit longer
+			it->first = time + (getTimeout(slot) * 1000);
+			return slot;
+		}
+
+		if (player.isPremium()) {
+			priorityEnd = waitList.emplace(priorityEnd, time + (getTimeout(slot + 1) * 1000), player.getGUID());
+			return std::distance(waitList.begin(), priorityEnd);
+		}
+
+		waitList.emplace_back(time + (getTimeout(waitList.size() + 1) * 1000), player.getGUID());
+		return waitList.size();
+	}
+
+} // WaitList
 
 void ProtocolGame::setPlayer(Player* p)
 {
@@ -374,30 +457,15 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 			}
 		}
 
-		if (!WaitingList::getInstance()->login(player)) {
-			auto output = OutputMessagePool::getOutputMessage();
-
+		const size_t currentSlot = WaitList::clientLogin(*player);
+		if (currentSlot != 0) {
 			std::ostringstream ss;
-			ss << "Too many players online.\n"
-			   << "You are ";
+			ss << "Too many players online.\nYou are at " << currentSlot << " place on the waiting list.";
 
-			int32_t slot = WaitingList::getInstance()->getSlot(player);
-			if (slot) {
-				ss << "at ";
-				if (slot > 0) {
-					ss << slot;
-				} else {
-					ss << "unknown";
-				}
-
-				ss << " place on the waiting list.";
-			} else {
-				ss << "awaiting connection...";
-			}
-
+			auto output = OutputMessagePool::getOutputMessage();
 			output->addByte(0x16);
 			output->addString(ss.str());
-			output->addByte(WaitingList::getTime(slot));
+			output->addByte(WaitList::getWaitTime(currentSlot));
 			send(output);
 			disconnect();
 			return;
@@ -738,18 +806,7 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 		return;
 	}
 
-	uint32_t now = time(nullptr);
-	if (m_packetTime != now) {
-		m_packetTime = now;
-		m_packetCount = 0;
-	}
-
-	++m_packetCount;
-	if (m_packetCount > (uint32_t)g_config.getNumber(ConfigManager::MAX_PACKETS_PER_SECOND)) {
-		return;
-	}
-
-	uint8_t recvbyte = msg.get<char>();
+	const uint8_t recvbyte = msg.getByte();
 	if (player->isRemoved() && recvbyte != 0x14) { // a dead player cannot performs actions
 		return;
 	}

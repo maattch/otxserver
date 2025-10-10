@@ -17,7 +17,7 @@
 
 #include "otpch.h"
 
-#include "status.h"
+#include "protocolstatus.h"
 
 #include "configmanager.h"
 #include "game.h"
@@ -26,33 +26,38 @@
 
 #include "otx/util.hpp"
 
-std::map<uint32_t, int64_t> ProtocolStatus::ipConnectMap;
-const int64_t ProtocolStatus::start = otx::util::mstime();
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+uint32_t ProtocolStatus::protocolStatusCount = 0;
+#endif
 
-enum RequestedInfo_t : uint16_t
+namespace
 {
-	REQUEST_BASIC_SERVER_INFO = 1 << 0,
-	REQUEST_OWNER_SERVER_INFO = 1 << 1,
-	REQUEST_MISC_SERVER_INFO = 1 << 2,
-	REQUEST_PLAYERS_INFO = 1 << 3,
-	REQUEST_MAP_INFO = 1 << 4,
-	REQUEST_EXT_PLAYERS_INFO = 1 << 5,
-	REQUEST_PLAYER_STATUS_INFO = 1 << 6,
-	REQUEST_SERVER_SOFTWARE_INFO = 1 << 7,
-};
+	std::map<uint32_t, int64_t> connectedIpsMap;
+
+	constexpr uint8_t REQUEST_BASIC_SERVER_INFO    = 1 << 0;
+	constexpr uint8_t REQUEST_OWNER_SERVER_INFO    = 1 << 1;
+	constexpr uint8_t REQUEST_MISC_SERVER_INFO     = 1 << 2;
+	constexpr uint8_t REQUEST_PLAYERS_INFO         = 1 << 3;
+	constexpr uint8_t REQUEST_MAP_INFO             = 1 << 4;
+	constexpr uint8_t REQUEST_EXT_PLAYERS_INFO     = 1 << 5;
+	constexpr uint8_t REQUEST_PLAYER_STATUS_INFO   = 1 << 6;
+	constexpr uint8_t REQUEST_SERVER_SOFTWARE_INFO = 1 << 7;
+
+} // namespace
 
 void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
 {
-	uint32_t ip = getIP();
-	if (ip != 0x0100007F) {
-		std::map<uint32_t, int64_t>::const_iterator it = ipConnectMap.find(ip);
-		if (it != ipConnectMap.end() && (otx::util::mstime() < (it->second + g_config.getNumber(ConfigManager::STATUSQUERY_TIMEOUT)))) {
+	const int64_t timeNow = otx::util::mstime();
+	const uint32_t ip = getIP();
+	if (ip != 0x0100007F && ip != g_config.getIPNumber()) {
+		auto it = connectedIpsMap.find(ip);
+		if (it != connectedIpsMap.end() && (timeNow < (it->second + g_config.getNumber(ConfigManager::STATUSQUERY_TIMEOUT)))) {
 			disconnect();
 			return;
 		}
 	}
 
-	ipConnectMap[ip] = otx::util::mstime();
+	connectedIpsMap[ip] = timeNow;
 
 	uint8_t type = msg.get<char>();
 	switch (type) {
@@ -99,7 +104,7 @@ void ProtocolStatus::sendStatusString()
 	xmlSetProp(root, (const xmlChar*)"version", (const xmlChar*)"1.0");
 
 	xmlNodePtr p = xmlNewNode(nullptr, (const xmlChar*)"serverinfo");
-	sprintf(buffer, "%u", (uint32_t)((otx::util::mstime() - ProtocolStatus::start) / 1000));
+	sprintf(buffer, "%u", static_cast<uint32_t>(g_game.getUptime()));
 	xmlSetProp(p, (const xmlChar*)"uptime", (const xmlChar*)buffer);
 	xmlSetProp(p, (const xmlChar*)"ip", (const xmlChar*)g_config.getString(ConfigManager::IP).c_str());
 	xmlSetProp(p, (const xmlChar*)"servername", (const xmlChar*)g_config.getString(ConfigManager::SERVER_NAME).c_str());
@@ -220,8 +225,7 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 		output->addString(g_config.getString(ConfigManager::MOTD).c_str());
 		output->addString(g_config.getString(ConfigManager::LOCATION).c_str());
 		output->addString(g_config.getString(ConfigManager::URL).c_str());
-
-		output->add<uint64_t>((otx::util::mstime() - ProtocolStatus::start) / 1000);
+		output->add<uint64_t>(g_game.getUptime());
 	}
 
 	if (requestedInfo & REQUEST_PLAYERS_INFO) {

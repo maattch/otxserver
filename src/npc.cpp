@@ -31,9 +31,10 @@ Npcs g_npcs;
 
 uint32_t Npc::npcAutoID = 0x80000000;
 
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 uint32_t Npc::npcCount = 0;
 #endif
+
 NpcScript* Npc::m_interface = nullptr;
 
 Npcs::~Npcs()
@@ -233,8 +234,8 @@ Npc::Npc(NpcType* _nType) :
 	Creature(),
 	m_npcEventHandler(nullptr)
 {
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-	++npcCount;
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+	++Npc::npcCount;
 #endif
 	nType = _nType;
 
@@ -245,8 +246,8 @@ Npc::Npc(NpcType* _nType) :
 Npc::~Npc()
 {
 	reset();
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-	--npcCount;
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+	--Npc::npcCount;
 #endif
 }
 

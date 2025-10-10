@@ -32,7 +32,7 @@
 
 uint32_t Monster::monsterAutoID = 0x40000000;
 
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
+#if ENABLE_SERVER_DIAGNOSTIC > 0
 uint32_t Monster::monsterCount = 0;
 #endif
 
@@ -54,8 +54,8 @@ Monster* Monster::createMonster(const std::string& name)
 Monster::Monster(MonsterType* _mType) :
 	Creature()
 {
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-	monsterCount++;
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+	++Monster::monsterCount;
 #endif
 	mType = _mType;
 
@@ -109,10 +109,10 @@ Monster::~Monster()
 {
 	clearTargetList();
 	clearFriendList();
-#ifdef __ENABLE_SERVER_DIAGNOSTIC__
-
-	monsterCount--;
+#if ENABLE_SERVER_DIAGNOSTIC > 0
+	--Monster::monsterCount;
 #endif
+
 	if (raid) {
 		raid->unRef();
 		raid = nullptr;
