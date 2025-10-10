@@ -675,29 +675,6 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		} while (result->next());
 	}
 
-	query.str("");
-	query << "SELECT `pk`.`player_id`, `pd`.`date` FROM `player_killers` pk LEFT JOIN `killers` k"
-		  << " ON `pk`.`kill_id` = `k`.`id` LEFT JOIN `player_deaths` pd ON `k`.`death_id` = `pd`.`id`"
-		  << " WHERE `pd`.`player_id` = " << player->getGUID() << " AND `k`.`unjustified` = 1 AND "
-		  << "`pd`.`date` >= " << (time(nullptr) - (7 * 86400)) << " AND `k`.`war` = 0"; // TODO: configurable
-
-	std::map<uint32_t, time_t> deaths;
-	if ((result = g_database.storeQuery(query.str()))) {
-		do {
-			if (!deaths[result->getNumber<int32_t>("player_id")] || deaths[result->getNumber<int32_t>("player_id")] < (time_t)result->getNumber<int32_t>("date")) { // pick up the latest date
-				deaths[result->getNumber<int32_t>("player_id")] = (time_t)result->getNumber<int32_t>("date");
-			}
-		} while (result->next());
-	}
-
-	if (!deaths.empty()) {
-		query.str("");
-		query << "SELECT `pd`.`player_id`, `pd`.`date` FROM `player_killers` pk LEFT JOIN `killers` k"
-			  << " ON `pk`.`kill_id` = `k`.`id` LEFT JOIN `player_deaths` pd ON `k`.`death_id` = `pd`.`id`"
-			  << " WHERE `pk`.`player_id` = " << player->getGUID() << " AND `k`.`unjustified` = 0 AND "
-			  << "`pd`.`date` >= " << (time(nullptr) - (7 * 86400)) << " AND `k`.`war` = 0";
-	}
-
 	player->updateInventoryWeight();
 	player->updateItemsLight(true);
 	player->updateBaseSpeed();
