@@ -698,7 +698,7 @@ public:
 
 	int64_t getUptime() const;
 
-protected:
+private:
 	bool playerWhisper(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
 	bool playerYell(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
 	bool playerSpeakTo(Player* player, MessageClasses type, const std::string& receiver, const std::string& text, const uint32_t statementId, bool notify = true, bool fakeChat = false);

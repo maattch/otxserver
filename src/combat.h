@@ -104,38 +104,38 @@ struct Combat2Var
 };
 
 // for luascript callback
-class ValueCallback : public CallBack
+class ValueCallback final : public CallBack
 {
 public:
 	ValueCallback(formulaType_t _type) { type = _type; }
 	void getMinMaxValues(Player* player, CombatParams& params, int32_t& min, int32_t& max) const;
 
-protected:
+private:
 	formulaType_t type;
 };
 
-class TileCallback : public CallBack
+class TileCallback final : public CallBack
 {
 public:
 	TileCallback() {}
 	void onTileCombat(Creature* creature, Tile* tile) const;
 
-protected:
+private:
 	formulaType_t type;
 };
 
-class TargetCallback : public CallBack
+class TargetCallback final : public CallBack
 {
 public:
 	TargetCallback() {}
 	void onTargetCombat(Creature* creature, Creature* target) const;
 
-protected:
+private:
 	formulaType_t type;
 };
 
 typedef bool (*COMBATFUNC)(Creature*, Creature*, const CombatParams&, void*);
-class MatrixArea
+class MatrixArea final
 {
 public:
 	MatrixArea(uint32_t _rows, uint32_t _cols)
@@ -199,14 +199,14 @@ public:
 	inline const bool* operator[](uint32_t i) const { return data_[i]; }
 	inline bool* operator[](uint32_t i) { return data_[i]; }
 
-protected:
+private:
 	uint16_t centerX, centerY;
 	uint32_t rows, cols;
 	bool** data_;
 };
 
 typedef std::map<Direction, MatrixArea*> CombatAreas;
-class CombatArea
+class CombatArea final
 {
 public:
 	CombatArea() { hasExtArea = false; }
@@ -214,7 +214,6 @@ public:
 
 	CombatArea(const CombatArea& rhs);
 
-	ReturnValue doCombat(Creature* attacker, const Position& pos, const Combat& combat) const;
 	bool getList(const Position& centerPos, const Position& targetPos, std::list<Tile*>& list) const;
 
 	void setupArea(const std::list<uint32_t>& list, uint32_t rows);
@@ -223,7 +222,7 @@ public:
 	void setupExtArea(const std::list<uint32_t>& list, uint32_t rows);
 	void clear();
 
-protected:
+private:
 	enum MatrixOperation_t
 	{
 		MATRIXOPERATION_COPY,
@@ -275,7 +274,7 @@ protected:
 	bool hasExtArea;
 };
 
-class Combat
+class Combat final
 {
 public:
 	Combat();
@@ -342,7 +341,7 @@ public:
 		Combat::postCombatEffects(caster, pos, params);
 	}
 
-protected:
+private:
 	static void doCombatDefault(Creature* caster, Creature* target, const CombatParams& params);
 	static void CombatFunc(Creature* caster, const Position& pos,
 		const CombatArea* area, const CombatParams& params, COMBATFUNC func, void* data);

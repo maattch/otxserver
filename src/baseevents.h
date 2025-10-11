@@ -76,8 +76,10 @@ public:
 	bool loadCallBack(LuaInterface* scriptInterface, const std::string& name);
 
 protected:
-	std::string m_callbackName;
 	LuaInterface* m_interface = nullptr;
 	int m_scriptId = 0;
+
+private:
+	std::string m_callbackName;
 	bool m_loaded = false;
 };

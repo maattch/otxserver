@@ -17,6 +17,8 @@
 
 #pragma once
 
+// TODO: move it to another place
+
 class Waypoint
 {
 public:
@@ -31,7 +33,7 @@ public:
 typedef std::shared_ptr<Waypoint> WaypointPtr;
 typedef std::map<std::string, WaypointPtr> WaypointMap;
 
-class Waypoints
+class Waypoints final
 {
 public:
 	// Does not require either constructor nor destructor
@@ -39,7 +41,7 @@ public:
 	WaypointPtr getWaypointByName(const std::string& name) const;
 	const WaypointMap& getWaypointsMap() const { return waypoints; }
 
-protected:
+private:
 	WaypointMap waypoints;
 };
 

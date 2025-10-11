@@ -85,8 +85,7 @@ enum ZoneType_t
 class TileItemVector
 {
 public:
-	TileItemVector() :
-		downItemCount(0) {}
+	TileItemVector() : downItemCount(0) {}
 	virtual ~TileItemVector() {}
 
 	ItemVector::iterator begin() { return items.begin(); }
@@ -142,20 +141,22 @@ private:
 class Tile : public Cylinder
 {
 public:
+	Tile(uint16_t x, uint16_t y, uint16_t z) : m_pos(x, y, z) {}
+	virtual ~Tile() = default;
+
 	static Tile& nullTile;
-	Tile(uint16_t x, uint16_t y, uint16_t z);
-	virtual ~Tile();
 
-	TileItemVector* getItemList();
-	const TileItemVector* getItemList() const;
-	TileItemVector* makeItemList();
+	virtual TileItemVector* getItemList() = 0;
+	virtual const TileItemVector* getItemList() const = 0;
+	virtual TileItemVector* makeItemList() = 0;
 
-	CreatureVector* getCreatures();
-	const CreatureVector* getCreatures() const;
-	CreatureVector* makeCreatures();
+	virtual CreatureVector* getCreatures() = 0;
+	virtual const CreatureVector* getCreatures() const = 0;
+	virtual CreatureVector* makeCreatures() = 0;
 
 	virtual HouseTile* getHouseTile() { return nullptr; }
 	virtual const HouseTile* getHouseTile() const { return nullptr; }
+
 	virtual House* getHouse() { return nullptr; }
 	virtual const House* getHouse() const { return nullptr; }
 
@@ -293,21 +294,21 @@ public:
 	void onUpdateTile();
 	void updateTileFlags(Item* item, bool remove);
 
+	QTreeLeafNode* qt_node = nullptr;
+	Item* ground = nullptr;
+
 private:
 	void onAddTileItem(Item* item);
 	void onUpdateTileItem(Item* oldItem, const ItemType& oldType, Item* newItem, const ItemType& newType);
 	void onRemoveTileItem(const SpectatorVec& list, std::vector<int32_t>& oldStackPosVector, Item* item);
 
-protected:
 	bool isDynamic() const { return (m_flags & TILESTATE_DYNAMIC_TILE) != 0; }
 
-public:
-	QTreeLeafNode* qt_node;
-	Item* ground;
+	Position m_pos;
+	uint32_t m_thingCount = 0;
 
 protected:
-	Position m_pos;
-	uint32_t m_flags, m_thingCount;
+	uint32_t m_flags = 0;
 };
 
 // Used for walkable tiles, where there is high likeliness of
@@ -319,117 +320,44 @@ class DynamicTile : public Tile
 	CreatureVector creatures;
 
 public:
-	DynamicTile(uint16_t x, uint16_t y, uint16_t z);
-	virtual ~DynamicTile();
+	DynamicTile(uint16_t x, uint16_t y, uint16_t z) : Tile(x, y, z) {
+		m_flags |= TILESTATE_DYNAMIC_TILE;
+	}
 
-	TileItemVector* getItemList() { return &items; }
-	const TileItemVector* getItemList() const { return &items; }
-	TileItemVector* makeItemList() { return &items; }
+	TileItemVector* getItemList() override final { return &items; }
+	const TileItemVector* getItemList() const override final { return &items; }
+	TileItemVector* makeItemList() override final { return &items; }
 
-	CreatureVector* getCreatures() { return &creatures; }
-	const CreatureVector* getCreatures() const { return &creatures; }
-	CreatureVector* makeCreatures() { return &creatures; }
+	CreatureVector* getCreatures() override final { return &creatures; }
+	const CreatureVector* getCreatures() const override final { return &creatures; }
+	CreatureVector* makeCreatures() override final { return &creatures; }
 };
 
 // For blocking tiles, where we very rarely actually have items
-class StaticTile : public Tile
+class StaticTile final : public Tile
 {
 	// We very rarely even need the vectors, so don't keep them in memory
-	TileItemVector* items;
-	CreatureVector* creatures;
+	TileItemVector* items = nullptr;
+	CreatureVector* creatures = nullptr;
 
 public:
-	StaticTile(uint16_t x, uint16_t y, uint16_t z);
-	virtual ~StaticTile();
+	StaticTile(uint16_t x, uint16_t y, uint16_t z) : Tile(x, y, z) {}
 
-	TileItemVector* getItemList() { return items; }
-	const TileItemVector* getItemList() const { return items; }
-	TileItemVector* makeItemList() { return (items) ? (items) : (items = new TileItemVector); }
+	TileItemVector* getItemList() override { return items; }
+	const TileItemVector* getItemList() const override { return items; }
+	TileItemVector* makeItemList() override {
+		if (!items) {
+			items = new TileItemVector;
+		}
+		return items;
+	}
 
-	CreatureVector* getCreatures() { return creatures; }
-	const CreatureVector* getCreatures() const { return creatures; }
-	CreatureVector* makeCreatures() { return (creatures) ? (creatures) : (creatures = new CreatureVector); }
+	CreatureVector* getCreatures() override { return creatures; }
+	const CreatureVector* getCreatures() const override { return creatures; }
+	CreatureVector* makeCreatures() override {
+		if (!creatures) {
+			creatures = new CreatureVector;
+		}
+		return creatures;
+	}
 };
-
-inline Tile::Tile(uint16_t x, uint16_t y, uint16_t z) :
-	qt_node(nullptr),
-	ground(nullptr),
-	m_pos(x, y, z),
-	m_flags(0),
-	m_thingCount(0)
-{}
-
-inline Tile::~Tile()
-{}
-
-inline CreatureVector* Tile::getCreatures()
-{
-	if (isDynamic()) {
-		return static_cast<DynamicTile*>(this)->DynamicTile::getCreatures();
-	}
-
-	return static_cast<StaticTile*>(this)->StaticTile::getCreatures();
-}
-
-inline const CreatureVector* Tile::getCreatures() const
-{
-	if (isDynamic()) {
-		return static_cast<const DynamicTile*>(this)->DynamicTile::getCreatures();
-	}
-
-	return static_cast<const StaticTile*>(this)->StaticTile::getCreatures();
-}
-
-inline CreatureVector* Tile::makeCreatures()
-{
-	if (isDynamic()) {
-		return static_cast<DynamicTile*>(this)->DynamicTile::makeCreatures();
-	}
-
-	return static_cast<StaticTile*>(this)->StaticTile::makeCreatures();
-}
-
-inline TileItemVector* Tile::getItemList()
-{
-	if (isDynamic()) {
-		return static_cast<DynamicTile*>(this)->DynamicTile::getItemList();
-	}
-
-	return static_cast<StaticTile*>(this)->StaticTile::getItemList();
-}
-
-inline const TileItemVector* Tile::getItemList() const
-{
-	if (isDynamic()) {
-		return static_cast<const DynamicTile*>(this)->DynamicTile::getItemList();
-	}
-
-	return static_cast<const StaticTile*>(this)->StaticTile::getItemList();
-}
-
-inline TileItemVector* Tile::makeItemList()
-{
-	if (isDynamic()) {
-		return static_cast<DynamicTile*>(this)->DynamicTile::makeItemList();
-	}
-
-	return static_cast<StaticTile*>(this)->StaticTile::makeItemList();
-}
-
-inline StaticTile::StaticTile(uint16_t x, uint16_t y, uint16_t z) :
-	Tile(x, y, z),
-	items(nullptr),
-	creatures(nullptr)
-{}
-
-inline StaticTile::~StaticTile()
-{}
-
-inline DynamicTile::DynamicTile(uint16_t x, uint16_t y, uint16_t z) :
-	Tile(x, y, z)
-{
-	m_flags |= TILESTATE_DYNAMIC_TILE;
-}
-
-inline DynamicTile::~DynamicTile()
-{}

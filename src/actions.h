@@ -37,8 +37,7 @@ public:
 	bool configureEvent(xmlNodePtr p) override;
 
 	// scripting
-	virtual bool executeUse(Player* player, Item* item, const PositionEx& posFrom,
-		const PositionEx& posTo, bool extendedUse, uint32_t creatureId);
+	virtual bool executeUse(Player* player, Item* item, const PositionEx& posFrom, const PositionEx& posTo, bool extendedUse, uint32_t creatureId);
 
 	bool getAllowFarUse() const { return allowFarUse; }
 	void setAllowFarUse(bool v) { allowFarUse = v; }
@@ -49,11 +48,13 @@ public:
 	virtual ReturnValue canExecuteAction(const Player* player, const Position& pos);
 	virtual bool hasOwnErrorHandler() { return false; }
 
-protected:
+private:
 	std::string getScriptEventName() const override { return "onUse"; }
 
-	bool allowFarUse = false;
 	bool checkLineOfSight = true;
+
+protected:
+	bool allowFarUse = false;
 };
 
 class Actions final : public BaseEvents

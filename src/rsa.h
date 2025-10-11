@@ -23,7 +23,7 @@ class RSA
 {
 public:
 	RSA();
-	virtual ~RSA();
+	~RSA();
 
 	void initialize(const char* p, const char* q, const char* d);
 	bool initialize(const std::string& file);
@@ -32,7 +32,7 @@ public:
 
 	void getPublicKey(char* buffer);
 
-protected:
+private:
 	std::recursive_mutex rsaLock;
 	mpz_t m_p, m_q, m_u, m_d, m_dp, m_dq, m_mod;
 };

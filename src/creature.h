@@ -56,7 +56,7 @@ struct FindPathParams
 };
 
 struct DeathLessThan;
-struct DeathEntry
+struct DeathEntry final
 {
 	DeathEntry(std::string name, int32_t dmg) :
 		data(name),
@@ -92,7 +92,7 @@ struct DeathEntry
 	Creature* getKillerCreature() const { return boost::any_cast<Creature*>(data); }
 	std::string getKillerName() const { return boost::any_cast<std::string>(data); }
 
-protected:
+private:
 	friend struct DeathLessThan;
 
 	boost::any data;
@@ -133,7 +133,7 @@ class Container;
 #endif
 #define EVENT_CHECK_CREATURE_INTERVAL (EVENT_CREATURE_THINK_INTERVAL / EVENT_CREATURECOUNT)
 
-class FrozenPathingConditionCall
+class FrozenPathingConditionCall final
 {
 public:
 	FrozenPathingConditionCall(const Position& _targetPos);
@@ -145,7 +145,7 @@ public:
 	bool isInRange(const Position& startPos, const Position& testPos,
 		const FindPathParams& fpp) const;
 
-protected:
+private:
 	Position targetPos;
 };
 

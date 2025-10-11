@@ -23,7 +23,7 @@ class Party;
 
 typedef std::vector<Player*> PlayerVector;
 
-class Party
+class Party final
 {
 public:
 	Party(Player* _leader);
@@ -63,7 +63,7 @@ public:
 	bool isPlayerInvited(const Player* player, bool result = false) const;
 	bool canOpenCorpse(uint32_t ownerId);
 
-protected:
+private:
 	bool canEnableSharedExperience();
 
 	PlayerVector memberList;

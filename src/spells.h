@@ -253,8 +253,7 @@ public:
 	ReturnValue canExecuteAction(const Player* player, const Position& toPos) override;
 	bool hasOwnErrorHandler() override { return true; }
 
-	bool executeUse(Player* player, Item* item, const PositionEx& posFrom,
-		const PositionEx& posTo, bool extendedUse, uint32_t creatureId) override;
+	bool executeUse(Player* player, Item* item, const PositionEx& posFrom, const PositionEx& posTo, bool extendedUse, uint32_t creatureId) override;
 
 	bool castSpell(Creature* creature) override;
 	bool castSpell(Creature* creature, Creature* target) override;

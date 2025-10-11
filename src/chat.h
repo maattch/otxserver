@@ -71,7 +71,11 @@ public:
 	bool talk(std::string nick, MessageClasses type, const std::string& text, bool fakeChat = false, uint32_t ip = 0);
 
 protected:
-	uint16_t m_id, m_flags;
+	uint16_t m_id;
+	UsersMap m_users;
+
+private:
+	uint16_t m_flags;
 	int32_t m_conditionId;
 	uint32_t m_access, m_level;
 	std::string m_name, m_conditionMessage;
@@ -79,11 +83,10 @@ protected:
 	Condition* m_condition;
 	VocationMap* m_vocationMap;
 
-	UsersMap m_users;
 	std::shared_ptr<std::ofstream> m_file;
 };
 
-class PrivateChatChannel : public ChatChannel
+class PrivateChatChannel final : public ChatChannel
 {
 public:
 	PrivateChatChannel(uint16_t id, std::string name, uint16_t flags);
@@ -104,7 +107,7 @@ public:
 
 	const InviteList& getInvitedUsers() { return m_invites; }
 
-protected:
+private:
 	InviteList m_invites;
 	uint32_t m_owner;
 };

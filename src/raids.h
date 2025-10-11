@@ -147,16 +147,16 @@ class RaidEvent
 public:
 	RaidEvent(Raid* raid, bool ref) :
 		m_delay(RAID_MINTICKS),
-		m_ref(ref),
-		m_raid(raid) {}
-	virtual ~RaidEvent() {}
+		m_raid(raid),
+		m_ref(ref) {}
+	virtual ~RaidEvent() = default;
 
 	virtual bool configureRaidEvent(xmlNodePtr eventNode);
 	virtual bool executeEvent(const std::string&) const { return false; }
 
 	uint32_t getDelay() const { return m_delay; }
-	static bool compareEvents(const RaidEvent* lhs, const RaidEvent* rhs)
-	{
+
+	static bool compareEvents(const RaidEvent* lhs, const RaidEvent* rhs) {
 		return lhs->getDelay() < rhs->getDelay();
 	}
 
@@ -164,8 +164,8 @@ private:
 	uint32_t m_delay;
 
 protected:
-	bool m_ref;
 	Raid* m_raid;
+	bool m_ref;
 };
 
 class AnnounceEvent : public RaidEvent
@@ -254,17 +254,16 @@ private:
 	Position m_fromPos, m_toPos;
 };
 
-class ScriptEvent : public RaidEvent, public Event
+class ScriptEvent final : public RaidEvent, public Event
 {
 public:
 	ScriptEvent(Raid* raid, bool ref);
-	virtual ~ScriptEvent() {}
 
-	virtual bool configureRaidEvent(xmlNodePtr eventNode);
-	virtual bool executeEvent(const std::string& name) const;
+	bool configureRaidEvent(xmlNodePtr eventNode) override;
+	bool executeEvent(const std::string& name) const override;
 
-	virtual bool configureEvent(xmlNodePtr) { return false; }
+	bool configureEvent(xmlNodePtr) override { return false; }
 
-protected:
-	virtual std::string getScriptEventName() const { return "onRaid"; }
+private:
+	std::string getScriptEventName() const override { return "onRaid"; }
 };

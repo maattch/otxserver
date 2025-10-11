@@ -94,12 +94,9 @@ struct OTBM_HouseTile_coords
 };
 #pragma pack()
 
-class IOMap
+class IOMap final
 {
 public:
-	IOMap() {}
-	virtual ~IOMap() {}
-
 	static Tile* createTile(Item*& ground, Item* item, uint16_t px, uint16_t py, uint16_t pz);
 	bool loadMap(Map* map, const std::string& identifier);
 
@@ -118,6 +115,6 @@ public:
 	const std::string& getLastErrorString() const { return errorString; }
 	void setLastErrorString(const std::string& _errorString) { errorString = _errorString; }
 
-protected:
+private:
 	std::string errorString;
 };

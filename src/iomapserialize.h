@@ -24,7 +24,8 @@ typedef std::map<int32_t, std::pair<Item*, int32_t>> ItemMap;
 typedef std::list<std::pair<Container*, int32_t>> ContainerStackList;
 
 class House;
-class IOMapSerialize
+
+class IOMapSerialize final
 {
 public:
 	virtual ~IOMapSerialize() {}
@@ -46,7 +47,7 @@ public:
 	bool saveHouse(House* house);
 	bool saveHouseItems(House* house);
 
-protected:
+private:
 	IOMapSerialize() {}
 
 	// Relational storage uses a row for each item/tile

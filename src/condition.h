@@ -174,7 +174,7 @@ public:
 	virtual ConditionManaShield* clone() const { return new ConditionManaShield(*this); }
 };
 
-class ConditionAttributes : public ConditionGeneric
+class ConditionAttributes final : public ConditionGeneric
 {
 public:
 	ConditionAttributes(ConditionId_t _id, ConditionType_t _type, int32_t _ticks, bool _buff, uint32_t _subId);
@@ -193,7 +193,7 @@ public:
 	virtual bool serialize(PropWriteStream& propWriteStream);
 	virtual bool unserializeProp(ConditionAttr_t attr, PropStream& propStream);
 
-protected:
+private:
 	int32_t skills[SKILL_LAST + 1], stats[STAT_LAST + 1], skillsPercent[SKILL_LAST + 1],
 		statsPercent[STAT_LAST + 1], currentSkill, currentStat;
 
@@ -203,7 +203,7 @@ protected:
 	void updateStats(Player* player);
 };
 
-class ConditionRegeneration : public ConditionGeneric
+class ConditionRegeneration final : public ConditionGeneric
 {
 public:
 	ConditionRegeneration(ConditionId_t _id, ConditionType_t _type, int32_t _ticks, bool _buff, uint32_t _subId);
@@ -220,11 +220,11 @@ public:
 	virtual bool serialize(PropWriteStream& propWriteStream);
 	virtual bool unserializeProp(ConditionAttr_t attr, PropStream& propStream);
 
-protected:
+private:
 	uint32_t internalHealthTicks, internalManaTicks, healthTicks, manaTicks, healthGain, manaGain;
 };
 
-class ConditionSoul : public ConditionGeneric
+class ConditionSoul final : public ConditionGeneric
 {
 public:
 	ConditionSoul(ConditionId_t _id, ConditionType_t _type, int32_t _ticks, bool _buff, uint32_t _subId);
@@ -241,11 +241,11 @@ public:
 	virtual bool serialize(PropWriteStream& propWriteStream);
 	virtual bool unserializeProp(ConditionAttr_t attr, PropStream& propStream);
 
-protected:
+private:
 	uint32_t internalSoulTicks, soulTicks, soulGain;
 };
 
-class ConditionDamage : public Condition
+class ConditionDamage final : public Condition
 {
 public:
 	ConditionDamage(ConditionId_t _id, ConditionType_t _type, bool _buff, uint32_t _subId);
@@ -271,7 +271,7 @@ public:
 	virtual bool serialize(PropWriteStream& propWriteStream);
 	virtual bool unserializeProp(ConditionAttr_t attr, PropStream& propStream);
 
-protected:
+private:
 	bool updateCondition(const ConditionDamage* addCondition);
 
 	bool init();
@@ -290,11 +290,11 @@ class ConditionOutfit : public Condition
 {
 public:
 	ConditionOutfit(ConditionId_t _id, ConditionType_t _type, int32_t _ticks, bool _buff, uint32_t _subId);
-	virtual ~ConditionOutfit() {}
+	virtual ~ConditionOutfit() = default;
 
-	virtual bool startCondition(Creature* creature);
-	virtual void endCondition(Creature* creature, ConditionEnd_t reason);
-	virtual void addCondition(Creature* creature, const Condition* condition);
+	bool startCondition(Creature* creature) override;
+	void endCondition(Creature* creature, ConditionEnd_t reason) override;
+	void addCondition(Creature* creature, const Condition* condition) override;
 
 	virtual ConditionOutfit* clone() const { return new ConditionOutfit(*this); }
 
@@ -307,10 +307,11 @@ public:
 
 protected:
 	void changeOutfit(Creature* creature, int32_t index = -1);
+
 	std::vector<Outfit_t> outfits;
 };
 
-class ConditionSpeed : public ConditionOutfit
+class ConditionSpeed final : public ConditionOutfit
 {
 public:
 	ConditionSpeed(ConditionId_t _id, ConditionType_t _type, int32_t _ticks, bool _buff, uint32_t _subId, int32_t changeSpeed);
@@ -332,14 +333,14 @@ public:
 	virtual bool serialize(PropWriteStream& propWriteStream);
 	virtual bool unserializeProp(ConditionAttr_t attr, PropStream& propStream);
 
-protected:
+private:
 	void getFormulaValues(int32_t var, int32_t& min, int32_t& max) const;
 
 	int32_t speedDelta;
 	float mina, minb, maxa, maxb;
 };
 
-class ConditionLight : public Condition
+class ConditionLight final : public Condition
 {
 public:
 	ConditionLight(ConditionId_t _id, ConditionType_t _type, int32_t _ticks, bool _buff, uint32_t _subId, int32_t lightLevel, int32_t lightColor);
@@ -358,7 +359,7 @@ public:
 	virtual bool serialize(PropWriteStream& propWriteStream);
 	virtual bool unserializeProp(ConditionAttr_t attr, PropStream& propStream);
 
-protected:
+private:
 	LightInfo lightInfo;
 	uint32_t internalLightTicks, lightChangeInterval;
 };

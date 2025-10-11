@@ -114,21 +114,19 @@ private:
 	AccessList* accessList;
 };
 
-class TransferItem : public Item
+class TransferItem final : public Item
 {
 public:
+	TransferItem(House* _house) : Item(0) { house = _house; }
+
 	static TransferItem* createTransferItem(House* house);
 
-	TransferItem(House* _house) :
-		Item(0) { house = _house; }
-	virtual ~TransferItem() {}
-
-	virtual bool onTradeEvent(TradeEvents_t event, Player* owner, Player* seller);
-	virtual bool canTransform() const { return false; }
+	bool onTradeEvent(TradeEvents_t event, Player* owner, Player* seller) override;
+	bool canTransform() const override { return false; }
 
 	House* getHouse() { return house; }
 
-protected:
+private:
 	House* house;
 };
 

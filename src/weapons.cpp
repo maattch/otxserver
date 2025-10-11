@@ -133,21 +133,9 @@ int32_t Weapons::getMaxWeaponDamage(int32_t level, int32_t attackSkill, int32_t 
 	return (int32_t)std::ceil((2 * (attackValue * (attackSkill + 5.8) / 25 + (level - 1) / 10.)) / attackFactor);
 }
 
-Weapon::Weapon(LuaInterface* _interface) :
-	Event(_interface)
+Weapon::Weapon(LuaInterface* luaInterface) :
+	Event(luaInterface)
 {
-	id = 0;
-	level = 0;
-	magLevel = 0;
-	mana = 0;
-	manaPercent = 0;
-	soul = 0;
-	exhaustion = 0;
-	premium = false;
-	enabled = true;
-	wieldUnproperly = false;
-	swing = true;
-	ammoAction = AMMOACTION_NONE;
 	params.blockedByArmor = true;
 	params.blockedByShield = true;
 	params.combatType = COMBAT_PHYSICALDAMAGE;
@@ -511,9 +499,11 @@ bool Weapon::executeUseWeapon(Player* player, const LuaVariant& var) const
 	return otx::lua::callFunction(L, 2);
 }
 
-WeaponMelee::WeaponMelee(LuaInterface* _interface) :
-	Weapon(_interface)
-{}
+WeaponMelee::WeaponMelee(LuaInterface* luaInterface) :
+	Weapon(luaInterface)
+{
+	//
+}
 
 bool WeaponMelee::useWeapon(Player* player, Item* item, Creature* target) const
 {
@@ -615,11 +605,9 @@ int32_t WeaponMelee::getWeaponElementDamage(const Player* player, const Item* it
 	return -random_range(0, ret, DISTRO_NORMAL);
 }
 
-WeaponDistance::WeaponDistance(LuaInterface* _interface) :
-	Weapon(_interface)
+WeaponDistance::WeaponDistance(LuaInterface* luaInterface) :
+	Weapon(luaInterface)
 {
-	hitChance = -1;
-	maxHitChance = breakChance = attack = 0;
 	swing = params.blockedByShield = false;
 }
 
@@ -885,11 +873,9 @@ bool WeaponDistance::getSkillType(const Player* player, const Item*,
 	return true;
 }
 
-WeaponWand::WeaponWand(LuaInterface* _interface) :
-	Weapon(_interface)
+WeaponWand::WeaponWand(LuaInterface* luaInterface) :
+	Weapon(luaInterface)
 {
-	minChange = 0;
-	maxChange = 0;
 	params.blockedByArmor = false;
 	params.blockedByShield = false;
 }

@@ -22,7 +22,7 @@
 class House;
 class Player;
 
-class BedItem : public Item
+class BedItem final : public Item
 {
 public:
 	BedItem(uint16_t _type) :
@@ -51,7 +51,7 @@ public:
 
 	BedItem* getNextBedItem();
 
-protected:
+private:
 	void updateAppearance(const Player* player);
 	void regeneratePlayer(Player* player) const;
 
@@ -62,7 +62,7 @@ protected:
 	House* house;
 };
 
-class Beds
+class Beds final
 {
 public:
 	virtual ~Beds() {}
@@ -75,7 +75,7 @@ public:
 	BedItem* getBedBySleeper(uint32_t guid);
 	void setBedSleeper(BedItem* bed, uint32_t guid) { BedSleepersMap[guid] = bed; }
 
-protected:
+private:
 	Beds() { BedSleepersMap.clear(); }
 	std::map<uint32_t, BedItem*> BedSleepersMap;
 };

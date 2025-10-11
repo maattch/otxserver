@@ -120,7 +120,7 @@ protected:
 	friend class Map;
 };
 
-class QTreeLeafNode : public QTreeNode
+class QTreeLeafNode final : public QTreeNode
 {
 public:
 	QTreeLeafNode();
@@ -135,7 +135,7 @@ public:
 	void addCreature(Creature* c);
 	void removeCreature(Creature* c);
 
-protected:
+private:
 	static bool newLeaf;
 
 	QTreeLeafNode* m_leafS;
@@ -154,11 +154,10 @@ protected:
  * Holds all the actual map-data
  */
 
-class Map
+class Map final
 {
 public:
 	Map();
-	virtual ~Map() {}
 
 	static const int32_t maxViewportX = 11; // min value: maxClientViewportX + 1
 	static const int32_t maxViewportY = 11; // min value: maxClientViewportY + 1
@@ -252,7 +251,7 @@ public:
 	const Tile* canWalkTo(const Creature* creature, const Position& pos);
 	Waypoints waypoints;
 
-protected:
+private:
 	QTreeNode root;
 
 	uint32_t mapWidth, mapHeight;

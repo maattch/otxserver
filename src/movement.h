@@ -112,17 +112,16 @@ private:
 
 extern MoveEvents g_moveEvents;
 
-class MoveEvent : public Event
+class MoveEvent final : public Event
 {
 public:
 	MoveEvent(LuaInterface* _interface);
-	virtual ~MoveEvent() {}
 
 	MoveEvent_t getEventType() const { return m_eventType; }
 	void setEventType(MoveEvent_t type);
 
-	virtual bool configureEvent(xmlNodePtr p);
-	virtual bool loadFunction(const std::string& functionName);
+	bool configureEvent(xmlNodePtr p) override;
+	bool loadFunction(const std::string& functionName) override;
 
 	uint32_t fireStepEvent(Creature* actor, Creature* creature, Item* item, const Position& pos, const Position& fromPos, const Position& toPos);
 	uint32_t fireAddRemItem(Creature* actor, Item* item, Item* tileItem, const Position& pos);
@@ -146,19 +145,23 @@ public:
 	static bool EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slots_t slot, bool isCheck);
 	static bool DeEquipItem(MoveEvent*, Player* player, Item* item, slots_t slot, bool isRemoval);
 
-protected:
-	virtual std::string getScriptEventName() const;
+private:
+	std::string getScriptEventName() const override;
 
-	MoveEvent_t m_eventType;
+	std::string m_vocationString;
+	VocationMap m_vocEquipMap;
 
 	MoveFunctionPtr m_moveFunction = nullptr;
 	StepFunctionPtr m_stepFunction = nullptr;
 	EquipFunctionPtr m_equipFunction = nullptr;
 
-	uint32_t m_wieldInfo, m_slot;
-	int32_t m_reqLevel, m_reqMagLevel;
-	bool m_premium;
+	MoveEvent_t m_eventType;
 
-	VocationMap m_vocEquipMap;
-	std::string m_vocationString;
+	uint32_t m_wieldInfo;
+	uint32_t m_slot;
+
+	int32_t m_reqLevel;
+	int32_t m_reqMagLevel;
+
+	bool m_premium;
 };

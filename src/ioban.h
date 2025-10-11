@@ -55,9 +55,9 @@ struct Ban
 
 typedef std::vector<Ban> BansVec;
 
-class IOBan
+class IOBan final
 {
-protected:
+private:
 	IOBan() {}
 
 public:

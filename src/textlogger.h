@@ -75,8 +75,9 @@ public:
 		return &instance;
 	}
 
-protected:
+private:
 	OutputHandler();
+
 	std::streambuf::int_type overflow(std::streambuf::int_type c = traits_type::eof());
 
 	std::streambuf* log;

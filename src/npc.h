@@ -48,13 +48,13 @@ private:
 
 extern Npcs g_npcs;
 
-class NpcScript : public LuaInterface
+class NpcScript final : public LuaInterface
 {
 public:
 	NpcScript();
 	virtual ~NpcScript() {}
 
-protected:
+private:
 	virtual void registerFunctions();
 
 	static int32_t luaActionFocus(lua_State* L);
@@ -164,7 +164,7 @@ public:
 	void setCreatureFocus(Creature* creature);
 	NpcScript* getInterface();
 
-protected:
+private:
 	Npc(NpcType* _nType);
 	NpcType* nType;
 	bool loaded;

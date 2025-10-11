@@ -88,7 +88,7 @@ enum FILELOADER_ERRORS
 };
 
 class PropStream;
-class FileLoader
+class FileLoader final
 {
 public:
 	FileLoader();
@@ -107,7 +107,7 @@ public:
 	int32_t getLastError() const { return m_lastError; }
 	void clearError() { m_lastError = ERROR_NONE; }
 
-protected:
+private:
 	enum SPECIAL_BYTES
 	{
 		NODE_START = 0xFE,
@@ -147,7 +147,7 @@ public:
 		return true;
 	}
 
-protected:
+private:
 	FILELOADER_ERRORS m_lastError;
 
 	FILE* m_file;
@@ -175,7 +175,7 @@ protected:
 	int32_t loadCacheBlock(uint32_t pos);
 };
 
-class PropStream
+class PropStream final
 {
 public:
 	PropStream()
@@ -290,12 +290,12 @@ public:
 		return true;
 	}
 
-protected:
+private:
 	const char* p;
 	const char* end;
 };
 
-class PropWriteStream
+class PropWriteStream final
 {
 public:
 	PropWriteStream()
@@ -351,7 +351,7 @@ public:
 		size += strLen;
 	}
 
-protected:
+private:
 	void reserve(size_t length)
 	{
 		if ((bufferSize - size) >= length) {

@@ -47,7 +47,7 @@ struct Account
 	std::vector<std::string> charList;
 };
 
-class IOLoginData
+class IOLoginData final
 {
 public:
 	virtual ~IOLoginData() {}
@@ -125,7 +125,7 @@ public:
 
 	void increaseBankBalance(uint32_t guid, uint64_t bankBalance);
 
-protected:
+private:
 	IOLoginData() {}
 
 	typedef std::map<std::string, uint32_t> GuidCacheMap;
