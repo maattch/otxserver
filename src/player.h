@@ -255,16 +255,15 @@ public:
 	uint32_t getClientVersion() const { return m_clientVersion; }
 	void setClientVersion(uint32_t version) { m_clientVersion = version; }
 
-	bool hasClient() const { return (m_client->getOwner() != nullptr); }
-	ProtocolGame_ptr getClient() const
-	{
+	bool hasClient() const { return m_client->getOwner() != nullptr; }
+	ProtocolGame_ptr getClient() const {
 		if (m_client) {
 			return m_client->getOwner();
 		}
 		return nullptr;
 	}
 
-	bool isVirtual() const { return (getID() == 0); }
+	bool isVirtual() const { return getID() == 0; }
 	uint32_t getIP() const;
 	bool canOpenCorpse(uint32_t ownerId);
 

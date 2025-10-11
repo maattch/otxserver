@@ -698,6 +698,10 @@ public:
 
 	int64_t getUptime() const;
 
+	BedItem* getBedBySleeper(uint32_t guid) const;
+	void setBedSleeper(BedItem* bed, uint32_t guid);
+	void removeBedSleeper(uint32_t guid);
+
 private:
 	bool playerWhisper(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
 	bool playerYell(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
@@ -725,6 +729,7 @@ private:
 
 	RuleViolationsMap ruleViolations;
 	std::map<std::string, bool> monsterNamesMap_;
+	std::map<uint32_t, BedItem*> bedSleepersMap;
 
 	size_t checkCreatureLastIndex;
 	std::vector<Creature*> checkCreatureVectors[EVENT_CREATURECOUNT];

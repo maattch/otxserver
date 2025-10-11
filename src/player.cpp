@@ -1464,7 +1464,7 @@ void Player::onCreatureAppear(const Creature* creature)
 	}
 
 	updateWeapon();
-	if (BedItem* bed = Beds::getInstance()->getBedBySleeper(m_guid)) {
+	if (BedItem* bed = g_game.getBedBySleeper(m_guid)) {
 		bed->wakeUp();
 	}
 

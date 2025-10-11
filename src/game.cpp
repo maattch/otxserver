@@ -7339,3 +7339,25 @@ int64_t Game::getUptime() const
 {
 	return (otx::util::mstime() - gameStartTime) / 1000;
 }
+
+BedItem* Game::getBedBySleeper(uint32_t guid) const
+{
+	auto it = bedSleepersMap.find(guid);
+	if (it == bedSleepersMap.end()) {
+		return nullptr;
+	}
+	return it->second;
+}
+
+void Game::setBedSleeper(BedItem* bed, uint32_t guid)
+{
+	bedSleepersMap[guid] = bed;
+}
+
+void Game::removeBedSleeper(uint32_t guid)
+{
+	auto it = bedSleepersMap.find(guid);
+	if (it != bedSleepersMap.end()) {
+		bedSleepersMap.erase(it);
+	}
+}

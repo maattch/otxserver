@@ -25,24 +25,21 @@ class Player;
 class BedItem final : public Item
 {
 public:
-	BedItem(uint16_t _type) :
-		Item(_type),
-		house(nullptr) { internalRemoveSleeper(); }
-	virtual ~BedItem() {}
+	BedItem(uint16_t type) : Item(type) { internalRemoveSleeper(); }
 
-	virtual BedItem* getBed() { return this; }
-	virtual const BedItem* getBed() const { return this; }
+	BedItem* getBed() override { return this; }
+	const BedItem* getBed() const override { return this; }
 
-	virtual Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream);
-	virtual bool serializeAttr(PropWriteStream& propWriteStream) const;
+	Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream) override;
+	bool serializeAttr(PropWriteStream& propWriteStream) const override;
 
-	virtual bool canRemove() const { return house != nullptr; }
+	bool canRemove() const override { return m_house != nullptr; }
 
-	uint32_t getSleeper() const { return sleeper; }
-	void setSleeper(uint32_t guid) { sleeper = guid; }
+	uint32_t getSleeper() const { return m_sleeperGUID; }
+	void setSleeper(uint32_t guid) { m_sleeperGUID = guid; }
 
-	House* getHouse() const { return house; }
-	void setHouse(House* h) { house = h; }
+	House* getHouse() const { return m_house; }
+	void setHouse(House* h) { m_house = h; }
 
 	bool canUse(Player* player);
 
@@ -58,24 +55,6 @@ private:
 	void internalSetSleeper(const Player* player);
 	void internalRemoveSleeper();
 
-	uint32_t sleeper;
-	House* house;
-};
-
-class Beds final
-{
-public:
-	virtual ~Beds() {}
-	static Beds* getInstance()
-	{
-		static Beds instance;
-		return &instance;
-	}
-
-	BedItem* getBedBySleeper(uint32_t guid);
-	void setBedSleeper(BedItem* bed, uint32_t guid) { BedSleepersMap[guid] = bed; }
-
-private:
-	Beds() { BedSleepersMap.clear(); }
-	std::map<uint32_t, BedItem*> BedSleepersMap;
+	House* m_house = nullptr;
+	uint32_t m_sleeperGUID = 0;
 };
