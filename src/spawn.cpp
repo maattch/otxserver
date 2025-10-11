@@ -344,15 +344,15 @@ void Spawn::checkSpawn()
 			continue;
 		}
 
-		bool block = g_config.getBool(ConfigManager::ALLOW_BLOCK_SPAWN);
+		bool block = otx::config::getBoolean(otx::config::ALLOW_BLOCK_SPAWN);
 		if (findPlayer(sb.pos, block)) {
 			sb.lastSpawn = timeNow;
 			continue;
 		}
 
 		spawnMonster(spawnId, sb.mType, sb.pos, sb.direction);
-		uint32_t minSpawnCount = g_config.getNumber(ConfigManager::RATE_SPAWN_MIN),
-				 maxSpawnCount = g_config.getNumber(ConfigManager::RATE_SPAWN_MAX);
+		uint32_t minSpawnCount = otx::config::getInteger(otx::config::RATE_SPAWN_MIN),
+				 maxSpawnCount = otx::config::getInteger(otx::config::RATE_SPAWN_MAX);
 		if (++spawnCount >= (uint32_t)random_range(minSpawnCount, maxSpawnCount)) {
 			break;
 		}

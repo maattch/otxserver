@@ -311,7 +311,7 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 
 	if (Container* container = item->getContainer()) {
 		if (container->getCorpseOwner() && !player->canOpenCorpse(container->getCorpseOwner())
-			&& g_config.getBool(ConfigManager::CHECK_CORPSE_OWNER)) {
+			&& otx::config::getBoolean(otx::config::CHECK_CORPSE_OWNER)) {
 			return RET_YOUARENOTTHEOWNER;
 		}
 
@@ -388,8 +388,8 @@ bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* 
 	player->setNextActionTask(nullptr);
 	player->stopWalk();
 
-	// player->setNextAction(otx::util::mstime() + g_config.getNumber(ConfigManager::ACTIONS_DELAY_INTERVAL) - 10);
-	if (Condition* privCondition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST, g_config.getNumber(ConfigManager::ACTIONS_DELAY_INTERVAL), 0, false, EXHAUST_USEITEM)) {
+	// player->setNextAction(otx::util::mstime() + otx::config::getInteger(otx::config::ACTIONS_DELAY_INTERVAL) - 10);
+	if (Condition* privCondition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST, otx::config::getInteger(otx::config::ACTIONS_DELAY_INTERVAL), 0, false, EXHAUST_USEITEM)) {
 		player->addCondition(privCondition);
 	}
 

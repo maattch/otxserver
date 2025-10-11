@@ -95,7 +95,7 @@ bool Combat::getMinMaxValues(Creature* creature, Creature* target, CombatParams&
 						}
 
 						max = (int32_t)(weapon->getWeaponDamage(player, target, item, crit, true) * maxa + maxb);
-						if (params.useCharges && item->hasCharges() && g_config.getBool(ConfigManager::REMOVE_WEAPON_CHARGES)) {
+						if (params.useCharges && item->hasCharges() && otx::config::getBoolean(otx::config::REMOVE_WEAPON_CHARGES)) {
 							g_game.transformItem(item, item->getID(), std::max((int32_t)0, ((int32_t)item->getCharges()) - 1));
 						}
 					} else {
@@ -278,7 +278,7 @@ ReturnValue Combat::canDoCombat(const Creature* attacker, const Creature* target
 		return RET_NOTPOSSIBLE;
 	}
 
-	if (g_config.getBool(ConfigManager::MONSTER_ATTACK_MONSTER)) {
+	if (otx::config::getBoolean(otx::config::MONSTER_ATTACK_MONSTER)) {
 		if (target->getType() == CREATURE_TYPE_MONSTER && attacker->getType() == CREATURE_TYPE_MONSTER && !target->isPlayerSummon() && !attacker->isPlayerSummon()) {
 			return RET_NOTPOSSIBLE;
 		}
@@ -320,7 +320,7 @@ ReturnValue Combat::canDoCombat(const Creature* attacker, const Creature* target
 					&& !attackerPlayer->isEnemy(targetPlayer, true))
 				|| isProtected(const_cast<Player*>(attackerPlayer),
 					const_cast<Player*>(targetPlayer))
-				|| (g_config.getBool(ConfigManager::CANNOT_ATTACK_SAME_LOOKFEET)
+				|| (otx::config::getBoolean(otx::config::CANNOT_ATTACK_SAME_LOOKFEET)
 					&& attackerPlayer->getDefaultOutfit().lookFeet == targetPlayer->getDefaultOutfit().lookFeet)
 				|| !attackerPlayer->canSeeCreature(targetPlayer)) {
 				return RET_YOUMAYNOTATTACKTHISPLAYER;
@@ -399,7 +399,7 @@ ReturnValue Combat::canTargetCreature(const Player* player, const Creature* targ
 			return RET_TURNSECUREMODETOATTACKUNMARKEDPLAYERS;
 		}
 
-		if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+		if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 			if (player->getSkull() == SKULL_BLACK) {
 				return RET_YOUMAYNOTATTACKTHISPLAYER;
 			}
@@ -428,7 +428,7 @@ bool Combat::isProtected(Player* attacker, Player* target)
 		return false;
 	}
 
-	if (attacker->getZone() == ZONE_HARDCORE && target->getZone() == ZONE_HARDCORE && g_config.getBool(ConfigManager::PVP_TILE_IGNORE_PROTECTION)) {
+	if (attacker->getZone() == ZONE_HARDCORE && target->getZone() == ZONE_HARDCORE && otx::config::getBoolean(otx::config::PVP_TILE_IGNORE_PROTECTION)) {
 		return false;
 	}
 
@@ -602,7 +602,7 @@ bool Combat::CombatHealthFunc(Creature* caster, Creature* target, const CombatPa
 		g_game.combatBlockHit(_params.element.type, caster, target, _params.element.damage, params.blockedByShield, params.blockedByArmor, params.itemId != 0, true);
 	}
 
-	if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+	if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 		if (caster && caster->getPlayer() && target->getPlayer() && target->getSkull() != SKULL_BLACK) {
 			_params.element.damage /= 2;
 			if (change < 0) {
@@ -641,7 +641,7 @@ bool Combat::CombatManaFunc(Creature* caster, Creature* target, const CombatPara
 		return false;
 	}
 
-	if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+	if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 		if (change < 0 && caster && caster->getPlayer() && target->getPlayer() && target->getSkull() != SKULL_BLACK) {
 			change /= 2;
 		}
@@ -741,7 +741,7 @@ void Combat::combatTileEffects(const SpectatorVec& list, Creature* caster, Tile*
 		uint32_t itemId = params.itemId;
 		if (player) {
 			bool pzLock = false;
-			if (((g_game.getWorldType() == WORLDTYPE_OPTIONAL || g_config.getBool(ConfigManager::OPTIONAL_PROTECTION))
+			if (((g_game.getWorldType() == WORLDTYPE_OPTIONAL || otx::config::getBoolean(otx::config::OPTIONAL_PROTECTION))
 					&& !tile->hasFlag(TILESTATE_HARDCOREZONE))
 				|| tile->hasFlag(TILESTATE_OPTIONALZONE)) {
 				switch (itemId) {
@@ -787,7 +787,7 @@ void Combat::combatTileEffects(const SpectatorVec& list, Creature* caster, Tile*
 		params.tileCallback->onTileCombat(caster, tile);
 	}
 
-	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || g_config.getBool(ConfigManager::GHOST_SPELL_EFFECTS))) {
+	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || otx::config::getBoolean(otx::config::GHOST_SPELL_EFFECTS))) {
 		g_game.addMagicEffect(list, tile->getPosition(), params.effects.impact);
 	}
 }
@@ -960,7 +960,7 @@ void Combat::doCombatHealth(Creature* caster, Creature* target, int32_t minChang
 		params.targetCallback->onTargetCombat(caster, target);
 	}
 
-	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || g_config.getBool(ConfigManager::GHOST_SPELL_EFFECTS))) {
+	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || otx::config::getBoolean(otx::config::GHOST_SPELL_EFFECTS))) {
 		g_game.addMagicEffect(target->getPosition(), params.effects.impact);
 	}
 
@@ -993,7 +993,7 @@ void Combat::doCombatMana(Creature* caster, Creature* target, int32_t minChange,
 		params.targetCallback->onTargetCombat(caster, target);
 	}
 
-	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || g_config.getBool(ConfigManager::GHOST_SPELL_EFFECTS))) {
+	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || otx::config::getBoolean(otx::config::GHOST_SPELL_EFFECTS))) {
 		g_game.addMagicEffect(target->getPosition(), params.effects.impact);
 	}
 
@@ -1028,7 +1028,7 @@ void Combat::doCombatCondition(Creature* caster, Creature* target, const CombatP
 		params.targetCallback->onTargetCombat(caster, target);
 	}
 
-	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || g_config.getBool(ConfigManager::GHOST_SPELL_EFFECTS))) {
+	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || otx::config::getBoolean(otx::config::GHOST_SPELL_EFFECTS))) {
 		g_game.addMagicEffect(target->getPosition(), params.effects.impact);
 	}
 
@@ -1054,7 +1054,7 @@ void Combat::doCombatDispel(Creature* caster, Creature* target, const CombatPara
 		params.targetCallback->onTargetCombat(caster, target);
 	}
 
-	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || g_config.getBool(ConfigManager::GHOST_SPELL_EFFECTS))) {
+	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || otx::config::getBoolean(otx::config::GHOST_SPELL_EFFECTS))) {
 		g_game.addMagicEffect(target->getPosition(), params.effects.impact);
 	}
 
@@ -1079,7 +1079,7 @@ void Combat::doCombatDefault(Creature* caster, Creature* target, const CombatPar
 		params.targetCallback->onTargetCombat(caster, target);
 	}
 
-	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || g_config.getBool(ConfigManager::GHOST_SPELL_EFFECTS))) {
+	if (params.effects.impact != MAGIC_EFFECT_NONE && (!caster || !caster->isGhost() || otx::config::getBoolean(otx::config::GHOST_SPELL_EFFECTS))) {
 		g_game.addMagicEffect(target->getPosition(), params.effects.impact);
 	}
 
@@ -1123,7 +1123,7 @@ void ValueCallback::getMinMaxValues(Player* player, CombatParams& params, int32_
 			lua_pushnumber(L, player->getLevel());
 			if (Item* weapon = player->getWeapon(false)) {
 				lua_pushnumber(L, player->getWeaponSkill(weapon));
-				if (params.useCharges && weapon->hasCharges() && g_config.getBool(ConfigManager::REMOVE_WEAPON_CHARGES)) {
+				if (params.useCharges && weapon->hasCharges() && otx::config::getBoolean(otx::config::REMOVE_WEAPON_CHARGES)) {
 					g_game.transformItem(weapon, weapon->getID(), std::max(0, weapon->getCharges() - 1));
 				}
 
@@ -1152,7 +1152,7 @@ void ValueCallback::getMinMaxValues(Player* player, CombatParams& params, int32_
 				}
 			} else {
 				lua_pushnumber(L, player->getSkill(SKILL_FIST, SKILL_LEVEL));
-				lua_pushnumber(L, g_config.getNumber(ConfigManager::FIST_BASE_ATTACK));
+				lua_pushnumber(L, otx::config::getInteger(otx::config::FIST_BASE_ATTACK));
 				lua_pushnumber(L, 0);
 			}
 
@@ -1600,7 +1600,7 @@ void MagicField::onStepInField(Creature* creature)
 				}
 			}
 
-			if (!harmful || (otx::util::mstime() - createTime) <= (uint32_t)g_config.getNumber(ConfigManager::FIELD_OWNERSHIP) || creature->hasBeenAttacked(ownerId)) {
+			if (!harmful || (otx::util::mstime() - createTime) <= (uint32_t)otx::config::getInteger(otx::config::FIELD_OWNERSHIP) || creature->hasBeenAttacked(ownerId)) {
 				condition->setParam(CONDITIONPARAM_OWNER, ownerId);
 			}
 		}

@@ -409,7 +409,7 @@ static int luaGetPlayerBalance(lua_State* L)
 {
 	// getPlayerBalance(cid)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
-		if (g_config.getBool(ConfigManager::BANK_SYSTEM)) {
+		if (otx::config::getBoolean(otx::config::BANK_SYSTEM)) {
 			lua_pushnumber(L, player->m_balance);
 		} else {
 			lua_pushnumber(L, 0);
@@ -1486,7 +1486,7 @@ static int luaDoRelocate(lua_State* L)
 	TileItemVector* fromItems = fromTile->getItemList();
 
 	if (fromItems && toItems) {
-		int32_t itemLimit = g_config.getNumber(toTile->hasFlag(TILESTATE_PROTECTIONZONE) ? ConfigManager::PROTECTION_TILE_LIMIT : ConfigManager::TILE_LIMIT);
+		int32_t itemLimit = otx::config::getInteger(toTile->hasFlag(TILESTATE_PROTECTIONZONE) ? otx::config::PROTECTION_TILE_LIMIT : otx::config::TILE_LIMIT);
 		int32_t count = 0;
 		for (auto it = fromItems->getBeginDownItem(); it != fromItems->getEndDownItem();) {
 			if (itemLimit != 0 && static_cast<int32_t>(toItems->size()) > itemLimit) {
@@ -1526,7 +1526,7 @@ static int luaDoRelocate(lua_State* L)
 		fromTile->onUpdateTile();
 		toTile->onUpdateTile();
 
-		if (g_config.getBool(ConfigManager::STORE_TRASH) && fromTile->hasFlag(TILESTATE_TRASHED)) {
+		if (otx::config::getBoolean(otx::config::STORE_TRASH) && fromTile->hasFlag(TILESTATE_TRASHED)) {
 			g_game.addTrash(toPos);
 			toTile->setFlag(TILESTATE_TRASHED);
 		}
@@ -3315,9 +3315,9 @@ static int luaSetCombatFormula(lua_State* L)
 	const auto minb = otx::lua::getNumber<double>(L, 4);
 	const auto maxa = otx::lua::getNumber<double>(L, 5);
 	const auto maxb = otx::lua::getNumber<double>(L, 6);
-	const auto minl = otx::lua::getNumber<double>(L, 7, g_config.getDouble(ConfigManager::FORMULA_LEVEL));
+	const auto minl = otx::lua::getNumber<double>(L, 7, otx::config::getDouble(otx::config::FORMULA_LEVEL));
 	const auto maxl = otx::lua::getNumber<double>(L, 8, minl);
-	const auto minm = otx::lua::getNumber<double>(L, 9, g_config.getDouble(ConfigManager::FORMULA_MAGIC));
+	const auto minm = otx::lua::getNumber<double>(L, 9, otx::config::getDouble(otx::config::FORMULA_MAGIC));
 	const auto maxm = otx::lua::getNumber<double>(L, 10, minm);
 	const auto minc = otx::lua::getNumber<int32_t>(L, 11, 0);
 	const auto maxc = otx::lua::getNumber<int32_t>(L, 12, 0);
@@ -4023,7 +4023,7 @@ static int luaGetTalkActionList(lua_State* L)
 static int luaGetExperienceStageList(lua_State* L)
 {
 	// getExperienceStageList()
-	if (!g_config.getBool(ConfigManager::EXPERIENCE_STAGES)) {
+	if (!otx::config::getBoolean(otx::config::EXPERIENCE_STAGES)) {
 		lua_pushnil(L);
 		return 1;
 	}
@@ -6863,7 +6863,7 @@ static int luaDoAddIpBanishment(lua_State* L)
 	// doAddIpBanishment(ip[, mask = 0xFFFFFFFF, length = *, reason = 21, comment = "", admin = 0, statement = ""])
 	const auto ip = otx::lua::getNumber<uint32_t>(L, 1);
 	const auto mask = otx::lua::getNumber<uint32_t>(L, 2, 0xFFFFFFFF);
-	const auto length = otx::lua::getNumber<int64_t>(L, 3, time(nullptr) + g_config.getNumber(ConfigManager::IPBAN_LENGTH));
+	const auto length = otx::lua::getNumber<int64_t>(L, 3, time(nullptr) + otx::config::getInteger(otx::config::IPBAN_LENGTH));
 	const auto reason = otx::lua::getNumber<uint32_t>(L, 4, 21);
 	const std::string comment = otx::lua::getString(L, 5);
 	const auto admin = otx::lua::getNumber<uint32_t>(L, 6, 0);
@@ -6897,7 +6897,7 @@ static int luaDoAddAccountBanishment(lua_State* L)
 	//                        reason = 21, action = ACTION_BANISHMENT, comment = "", admin = 0, statement = ""])
 	const auto accountId = otx::lua::getNumber<uint32_t>(L, 1);
 	const auto playerId = otx::lua::getNumber<uint32_t>(L, 2, 0);
-	const auto length = otx::lua::getNumber<int64_t>(L, 3, time(nullptr) + g_config.getNumber(ConfigManager::BAN_LENGTH));
+	const auto length = otx::lua::getNumber<int64_t>(L, 3, time(nullptr) + otx::config::getInteger(otx::config::BAN_LENGTH));
 	const auto reason = otx::lua::getNumber<uint32_t>(L, 4, 21);
 	const auto action = static_cast<ViolationAction_t>(otx::lua::getNumber<uint8_t>(L, 5, ACTION_BANISHMENT));
 	const std::string comment = otx::lua::getString(L, 6);
@@ -7088,7 +7088,7 @@ static int luaGetLogsDir(lua_State* L)
 static int luaGetConfigFile(lua_State* L)
 {
 	// getConfigFile()
-	otx::lua::pushString(L, g_config.getString(ConfigManager::CONFIG_FILE));
+	otx::lua::pushString(L, otx::config::getString(otx::config::CONFIG_FILE));
 	return 1;
 }
 

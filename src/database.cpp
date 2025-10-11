@@ -50,11 +50,11 @@ namespace
 		// connects to database
 		if (!mysql_real_connect(
 				handle.get(),
-				g_config.getString(ConfigManager::SQL_HOST).data(),
-				g_config.getString(ConfigManager::SQL_USER).data(),
-				g_config.getString(ConfigManager::SQL_PASS).data(),
-				g_config.getString(ConfigManager::SQL_DB).data(),
-				static_cast<unsigned int>(g_config.getNumber(ConfigManager::SQL_PORT)),
+				otx::config::getString(otx::config::SQL_HOST).data(),
+				otx::config::getString(otx::config::SQL_USER).data(),
+				otx::config::getString(otx::config::SQL_PASS).data(),
+				otx::config::getString(otx::config::SQL_DB).data(),
+				static_cast<unsigned int>(otx::config::getInteger(otx::config::SQL_PORT)),
 				nullptr,
 				0)) {
 			std::clog << "[Error - connectToDatabase]\nMessage: " << mysql_error(handle.get()) << " (" << mysql_errno(handle.get()) << ')' << std::endl;

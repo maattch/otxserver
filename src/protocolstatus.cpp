@@ -49,9 +49,9 @@ void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
 {
 	const int64_t timeNow = otx::util::mstime();
 	const uint32_t ip = getIP();
-	if (ip != 0x0100007F && ip != g_config.getIPNumber()) {
+	if (ip != 0x0100007F && ip != otx::config::getIPNumber()) {
 		auto it = connectedIpsMap.find(ip);
-		if (it != connectedIpsMap.end() && (timeNow < (it->second + g_config.getNumber(ConfigManager::STATUSQUERY_TIMEOUT)))) {
+		if (it != connectedIpsMap.end() && (timeNow < (it->second + otx::config::getInteger(otx::config::STATUSQUERY_TIMEOUT)))) {
 			disconnect();
 			return;
 		}
@@ -106,20 +106,20 @@ void ProtocolStatus::sendStatusString()
 	xmlNodePtr p = xmlNewNode(nullptr, (const xmlChar*)"serverinfo");
 	sprintf(buffer, "%u", static_cast<uint32_t>(g_game.getUptime()));
 	xmlSetProp(p, (const xmlChar*)"uptime", (const xmlChar*)buffer);
-	xmlSetProp(p, (const xmlChar*)"ip", (const xmlChar*)g_config.getString(ConfigManager::IP).c_str());
-	xmlSetProp(p, (const xmlChar*)"servername", (const xmlChar*)g_config.getString(ConfigManager::SERVER_NAME).c_str());
-	sprintf(buffer, "%d", (int32_t)g_config.getNumber(ConfigManager::LOGIN_PORT));
+	xmlSetProp(p, (const xmlChar*)"ip", (const xmlChar*)otx::config::getString(otx::config::IP).c_str());
+	xmlSetProp(p, (const xmlChar*)"servername", (const xmlChar*)otx::config::getString(otx::config::SERVER_NAME).c_str());
+	sprintf(buffer, "%d", (int32_t)otx::config::getInteger(otx::config::LOGIN_PORT));
 	xmlSetProp(p, (const xmlChar*)"port", (const xmlChar*)buffer);
-	xmlSetProp(p, (const xmlChar*)"location", (const xmlChar*)g_config.getString(ConfigManager::LOCATION).c_str());
-	xmlSetProp(p, (const xmlChar*)"url", (const xmlChar*)g_config.getString(ConfigManager::URL).c_str());
+	xmlSetProp(p, (const xmlChar*)"location", (const xmlChar*)otx::config::getString(otx::config::LOCATION).c_str());
+	xmlSetProp(p, (const xmlChar*)"url", (const xmlChar*)otx::config::getString(otx::config::URL).c_str());
 	xmlSetProp(p, (const xmlChar*)"server", (const xmlChar*)SOFTWARE_NAME);
 	xmlSetProp(p, (const xmlChar*)"version", (const xmlChar*)SOFTWARE_VERSION);
 	xmlSetProp(p, (const xmlChar*)"client", (const xmlChar*)CLIENT_VERSION_STRING);
 	xmlAddChild(root, p);
 
 	p = xmlNewNode(nullptr, (const xmlChar*)"owner");
-	xmlSetProp(p, (const xmlChar*)"name", (const xmlChar*)g_config.getString(ConfigManager::OWNER_NAME).c_str());
-	xmlSetProp(p, (const xmlChar*)"email", (const xmlChar*)g_config.getString(ConfigManager::OWNER_EMAIL).c_str());
+	xmlSetProp(p, (const xmlChar*)"name", (const xmlChar*)otx::config::getString(otx::config::OWNER_NAME).c_str());
+	xmlSetProp(p, (const xmlChar*)"email", (const xmlChar*)otx::config::getString(otx::config::OWNER_EMAIL).c_str());
 	xmlAddChild(root, p);
 
 	p = xmlNewNode(nullptr, (const xmlChar*)"players");
@@ -147,7 +147,7 @@ void ProtocolStatus::sendStatusString()
 	sprintf(buffer, "%d", uniqueOnline);
 	xmlSetProp(p, (const xmlChar*)"unique", (const xmlChar*)buffer);
 
-	sprintf(buffer, "%d", (int32_t)g_config.getNumber(ConfigManager::MAX_PLAYERS));
+	sprintf(buffer, "%d", (int32_t)otx::config::getInteger(otx::config::MAX_PLAYERS));
 	xmlSetProp(p, (const xmlChar*)"max", (const xmlChar*)buffer);
 
 	sprintf(buffer, "%d", g_game.getPlayersRecord());
@@ -169,8 +169,8 @@ void ProtocolStatus::sendStatusString()
 	xmlAddChild(root, p);
 
 	p = xmlNewNode(nullptr, (const xmlChar*)"map");
-	xmlSetProp(p, (const xmlChar*)"name", (const xmlChar*)g_config.getString(ConfigManager::MAP_NAME).c_str());
-	xmlSetProp(p, (const xmlChar*)"author", (const xmlChar*)g_config.getString(ConfigManager::MAP_AUTHOR).c_str());
+	xmlSetProp(p, (const xmlChar*)"name", (const xmlChar*)otx::config::getString(otx::config::MAP_NAME).c_str());
+	xmlSetProp(p, (const xmlChar*)"author", (const xmlChar*)otx::config::getString(otx::config::MAP_AUTHOR).c_str());
 
 	uint32_t mapWidth, mapHeight;
 	g_game.getMapDimensions(mapWidth, mapHeight);
@@ -181,7 +181,7 @@ void ProtocolStatus::sendStatusString()
 	xmlSetProp(p, (const xmlChar*)"height", (const xmlChar*)buffer);
 	xmlAddChild(root, p);
 
-	xmlNewTextChild(root, nullptr, (const xmlChar*)"motd", (const xmlChar*)g_config.getString(ConfigManager::MOTD).c_str());
+	xmlNewTextChild(root, nullptr, (const xmlChar*)"motd", (const xmlChar*)otx::config::getString(otx::config::MOTD).c_str());
 
 	xmlChar* s = nullptr;
 	int32_t len = 0;
@@ -206,39 +206,39 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 
 	if (requestedInfo & REQUEST_BASIC_SERVER_INFO) {
 		output->addByte(0x10);
-		output->addString(g_config.getString(ConfigManager::SERVER_NAME).c_str());
-		output->addString(g_config.getString(ConfigManager::IP).c_str());
+		output->addString(otx::config::getString(otx::config::SERVER_NAME).c_str());
+		output->addString(otx::config::getString(otx::config::IP).c_str());
 
 		char buffer[10];
-		sprintf(buffer, "%d", (int32_t)g_config.getNumber(ConfigManager::LOGIN_PORT));
+		sprintf(buffer, "%d", (int32_t)otx::config::getInteger(otx::config::LOGIN_PORT));
 		output->addString(buffer);
 	}
 
 	if (requestedInfo & REQUEST_OWNER_SERVER_INFO) {
 		output->addByte(0x11);
-		output->addString(g_config.getString(ConfigManager::OWNER_NAME).c_str());
-		output->addString(g_config.getString(ConfigManager::OWNER_EMAIL).c_str());
+		output->addString(otx::config::getString(otx::config::OWNER_NAME).c_str());
+		output->addString(otx::config::getString(otx::config::OWNER_EMAIL).c_str());
 	}
 
 	if (requestedInfo & REQUEST_MISC_SERVER_INFO) {
 		output->addByte(0x12);
-		output->addString(g_config.getString(ConfigManager::MOTD).c_str());
-		output->addString(g_config.getString(ConfigManager::LOCATION).c_str());
-		output->addString(g_config.getString(ConfigManager::URL).c_str());
+		output->addString(otx::config::getString(otx::config::MOTD).c_str());
+		output->addString(otx::config::getString(otx::config::LOCATION).c_str());
+		output->addString(otx::config::getString(otx::config::URL).c_str());
 		output->add<uint64_t>(g_game.getUptime());
 	}
 
 	if (requestedInfo & REQUEST_PLAYERS_INFO) {
 		output->addByte(0x20);
 		output->add<uint32_t>(g_game.getPlayersOnline());
-		output->add<uint32_t>((uint32_t)g_config.getNumber(ConfigManager::MAX_PLAYERS));
+		output->add<uint32_t>((uint32_t)otx::config::getInteger(otx::config::MAX_PLAYERS));
 		output->add<uint32_t>(g_game.getPlayersRecord());
 	}
 
 	if (requestedInfo & REQUEST_MAP_INFO) {
 		output->addByte(0x30);
-		output->addString(g_config.getString(ConfigManager::MAP_NAME).c_str());
-		output->addString(g_config.getString(ConfigManager::MAP_AUTHOR).c_str());
+		output->addString(otx::config::getString(otx::config::MAP_NAME).c_str());
+		output->addString(otx::config::getString(otx::config::MAP_AUTHOR).c_str());
 
 		uint32_t mapWidth, mapHeight;
 		g_game.getMapDimensions(mapWidth, mapHeight);

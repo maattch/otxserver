@@ -25,7 +25,7 @@
 
 void Logger::open()
 {
-	std::string path = g_config.getString(ConfigManager::OUTPUT_LOG);
+	std::string path = otx::config::getString(otx::config::OUTPUT_LOG);
 	if (path.length() < 3) {
 		path = "";
 	} else if (path[0] != '/' && path[1] != ':') {
@@ -34,7 +34,7 @@ void Logger::open()
 
 	m_files[LOGFILE_ADMIN] = fopen(getFilePath(FILE_TYPE_LOG, "admin.log").c_str(), "a");
 	if (!path.empty()) {
-		m_files[LOGFILE_OUTPUT] = fopen(path.c_str(), (g_config.getBool(ConfigManager::TRUNCATE_LOG) ? "w" : "a"));
+		m_files[LOGFILE_OUTPUT] = fopen(path.c_str(), (otx::config::getBoolean(otx::config::TRUNCATE_LOG) ? "w" : "a"));
 	}
 
 	m_files[LOGFILE_ASSERTIONS] = fopen(getFilePath(FILE_TYPE_LOG, "client_assertions.log").c_str(), "a");

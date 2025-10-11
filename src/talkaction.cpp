@@ -172,7 +172,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 		}
 
 		if (!player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges)) {
-			player->setNextExAction(otx::util::mstime() + g_config.getNumber(ConfigManager::CUSTOM_ACTIONS_DELAY_INTERVAL) - 10);
+			player->setNextExAction(otx::util::mstime() + otx::config::getInteger(otx::config::CUSTOM_ACTIONS_DELAY_INTERVAL) - 10);
 		}
 	}
 
@@ -320,7 +320,7 @@ bool TalkAction::executeSay(Creature* creature, const std::string& words, const 
 bool TalkAction::houseBuy(Creature* creature, const std::string&)
 {
 	Player* player = creature->getPlayer();
-	if (!player || !g_config.getBool(ConfigManager::HOUSE_BUY_AND_SELL)) {
+	if (!player || !otx::config::getBoolean(otx::config::HOUSE_BUY_AND_SELL)) {
 		return false;
 	}
 
@@ -358,7 +358,7 @@ bool TalkAction::houseBuy(Creature* creature, const std::string&)
 			return false;
 		}
 
-		uint16_t accountHouses = g_config.getNumber(ConfigManager::HOUSES_PER_ACCOUNT);
+		uint16_t accountHouses = otx::config::getInteger(otx::config::HOUSES_PER_ACCOUNT);
 		if (accountHouses > 0 && Houses::getInstance()->getHousesCount(player->getAccount()) >= accountHouses) {
 			char buffer[80];
 			sprintf(buffer, "You may own only %d house%s per account.", accountHouses, (accountHouses != 1 ? "s" : ""));
@@ -368,13 +368,13 @@ bool TalkAction::houseBuy(Creature* creature, const std::string&)
 			return false;
 		}
 
-		if (g_config.getBool(ConfigManager::HOUSE_NEED_PREMIUM) && !player->isPremium()) {
+		if (otx::config::getBoolean(otx::config::HOUSE_NEED_PREMIUM) && !player->isPremium()) {
 			player->sendCancelMessage(RET_YOUNEEDPREMIUMACCOUNT);
 			g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
 			return false;
 		}
 
-		uint32_t levelToBuyHouse = g_config.getNumber(ConfigManager::LEVEL_TO_BUY_HOUSE);
+		uint32_t levelToBuyHouse = otx::config::getInteger(otx::config::LEVEL_TO_BUY_HOUSE);
 		if (player->getLevel() < levelToBuyHouse) {
 			char buffer[90];
 			sprintf(buffer, "You have to be at least Level %d to purchase a house.", levelToBuyHouse);
@@ -409,7 +409,7 @@ bool TalkAction::houseBuy(Creature* creature, const std::string&)
 	}
 
 	house->setOwnerEx(player->getGUID(), true);
-	if (g_config.getBool(ConfigManager::HOUSE_SKIP_INIT_RENT)) {
+	if (otx::config::getBoolean(otx::config::HOUSE_SKIP_INIT_RENT)) {
 		uint32_t paidUntil = time(nullptr);
 		switch (Houses::getInstance()->getRentPeriod()) {
 			case RENTPERIOD_DAILY:
@@ -444,7 +444,7 @@ bool TalkAction::houseBuy(Creature* creature, const std::string&)
 		ret += "guild owner ";
 	}
 
-	if (g_config.getBool(ConfigManager::BANK_SYSTEM)) {
+	if (otx::config::getBoolean(otx::config::BANK_SYSTEM)) {
 		ret += "bank or ";
 	}
 
@@ -458,7 +458,7 @@ bool TalkAction::houseBuy(Creature* creature, const std::string&)
 bool TalkAction::houseSell(Creature* creature, const std::string& param)
 {
 	Player* player = creature->getPlayer();
-	if (!player || !g_config.getBool(ConfigManager::HOUSE_BUY_AND_SELL)) {
+	if (!player || !otx::config::getBoolean(otx::config::HOUSE_BUY_AND_SELL)) {
 		return false;
 	}
 
@@ -503,7 +503,7 @@ bool TalkAction::houseSell(Creature* creature, const std::string& param)
 			return false;
 		}
 
-		uint16_t housesPerAccount = g_config.getNumber(ConfigManager::HOUSES_PER_ACCOUNT);
+		uint16_t housesPerAccount = otx::config::getInteger(otx::config::HOUSES_PER_ACCOUNT);
 		if (housesPerAccount > 0 && Houses::getInstance()->getHousesCount(tradePartner->getAccount()) >= housesPerAccount) {
 			char buffer[100];
 			sprintf(buffer, "Trade player has reached limit of %d house%s per account.", housesPerAccount, (housesPerAccount != 1 ? "s" : ""));
@@ -513,13 +513,13 @@ bool TalkAction::houseSell(Creature* creature, const std::string& param)
 			return false;
 		}
 
-		if (!tradePartner->isPremium() && g_config.getBool(ConfigManager::HOUSE_NEED_PREMIUM)) {
+		if (!tradePartner->isPremium() && otx::config::getBoolean(otx::config::HOUSE_NEED_PREMIUM)) {
 			player->sendCancel("Trade player does not have a premium account.");
 			g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
 			return false;
 		}
 
-		uint32_t levelToBuyHouse = g_config.getNumber(ConfigManager::LEVEL_TO_BUY_HOUSE);
+		uint32_t levelToBuyHouse = otx::config::getInteger(otx::config::LEVEL_TO_BUY_HOUSE);
 		if (tradePartner->getLevel() < levelToBuyHouse) {
 			char buffer[100];
 			sprintf(buffer, "Trade player has to be at least Level %d to buy house.", levelToBuyHouse);
@@ -659,7 +659,7 @@ bool TalkAction::houseSubOwnerList(Creature* creature, const std::string&)
 bool TalkAction::guildJoin(Creature* creature, const std::string& param)
 {
 	Player* player = creature->getPlayer();
-	if (!player || !g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)) {
+	if (!player || !otx::config::getBoolean(otx::config::INGAME_GUILD_MANAGEMENT)) {
 		return false;
 	}
 
@@ -693,7 +693,7 @@ bool TalkAction::guildJoin(Creature* creature, const std::string& param)
 bool TalkAction::guildCreate(Creature* creature, const std::string& param)
 {
 	Player* player = creature->getPlayer();
-	if (!player || !g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)) {
+	if (!player || !otx::config::getBoolean(otx::config::INGAME_GUILD_MANAGEMENT)) {
 		return false;
 	}
 
@@ -709,8 +709,8 @@ bool TalkAction::guildCreate(Creature* creature, const std::string& param)
 		return true;
 	}
 
-	uint32_t minLength = g_config.getNumber(ConfigManager::MIN_GUILDNAME),
-			 maxLength = g_config.getNumber(ConfigManager::MAX_GUILDNAME);
+	uint32_t minLength = otx::config::getInteger(otx::config::MIN_GUILDNAME),
+			 maxLength = otx::config::getInteger(otx::config::MAX_GUILDNAME);
 	if (param_.length() < minLength) {
 		player->sendCancel("That guild name is too short, please select a longer name.");
 		return true;
@@ -727,7 +727,7 @@ bool TalkAction::guildCreate(Creature* creature, const std::string& param)
 		return true;
 	}
 
-	const uint32_t levelToFormGuild = g_config.getNumber(ConfigManager::LEVEL_TO_FORM_GUILD);
+	const uint32_t levelToFormGuild = otx::config::getInteger(otx::config::LEVEL_TO_FORM_GUILD);
 	if (player->getLevel() < levelToFormGuild) {
 		std::ostringstream stream;
 		stream << "You have to be at least Level " << levelToFormGuild << " to form a guild.";
@@ -735,8 +735,8 @@ bool TalkAction::guildCreate(Creature* creature, const std::string& param)
 		return true;
 	}
 
-	const int32_t premiumDays = g_config.getNumber(ConfigManager::GUILD_PREMIUM_DAYS);
-	if (player->getPremiumDays() < premiumDays && !g_config.getBool(ConfigManager::FREE_PREMIUM)) {
+	const int32_t premiumDays = otx::config::getInteger(otx::config::GUILD_PREMIUM_DAYS);
+	if (player->getPremiumDays() < premiumDays && !otx::config::getBoolean(otx::config::FREE_PREMIUM)) {
 		std::ostringstream stream;
 		stream << "You need to have at least " << premiumDays << " premium days to form a guild.";
 		player->sendCancel(stream.str());

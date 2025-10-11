@@ -129,12 +129,12 @@ ReturnValue Spells::onPlayerSay(Player* player, const std::string& words)
 	}
 
 	MessageClasses type = MSG_SPEAK_SAY;
-	if (g_config.getBool(ConfigManager::EMOTE_SPELLS)) {
+	if (otx::config::getBoolean(otx::config::EMOTE_SPELLS)) {
 		type = MSG_SPEAK_MONSTER_SAY;
 	}
 
-	if (!g_config.getBool(ConfigManager::SPELL_NAME_INSTEAD_WORDS)) {
-		if (g_config.getBool(ConfigManager::UNIFIED_SPELLS)) {
+	if (!otx::config::getBoolean(otx::config::SPELL_NAME_INSTEAD_WORDS)) {
+		if (otx::config::getBoolean(otx::config::UNIFIED_SPELLS)) {
 			reWords = instantSpell->getWords();
 			if (instantSpell->getHasParam()) {
 				reWords += " \"" + reParam + "\"";
@@ -617,7 +617,7 @@ bool Spell::checkSpell(Player* player) const
 			return false;
 		}
 
-		if (g_config.getBool(ConfigManager::NO_ATTACKHEALING_SIMULTANEUS)) {
+		if (otx::config::getBoolean(otx::config::NO_ATTACKHEALING_SIMULTANEUS)) {
 			if (player->hasCondition(CONDITION_EXHAUST, EXHAUST_SPELLGROUP_ATTACK) || player->hasCondition(CONDITION_EXHAUST, EXHAUST_SPELLGROUP_HEALING)) {
 				player->sendCancelMessage(RET_YOUAREEXHAUSTED);
 				if (isInstant() && !player->isGhost()) {
@@ -636,7 +636,7 @@ bool Spell::checkSpell(Player* player) const
 		return false;
 	}
 
-	if (g_config.getBool(ConfigManager::USE_RUNE_REQUIREMENTS)) {
+	if (otx::config::getBoolean(otx::config::USE_RUNE_REQUIREMENTS)) {
 		if (player->getLevel() < level) {
 			player->sendCancelMessage(RET_NOTENOUGHLEVEL);
 			if (!player->isGhost()) {
@@ -775,7 +775,7 @@ bool Spell::checkInstantSpell(Player* player, Creature* creature)
 	}
 
 	if (!needTarget) {
-		if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+		if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 			if (!isAggressive || player->getSkull() != SKULL_BLACK) {
 				return true;
 			}
@@ -814,7 +814,7 @@ bool Spell::checkInstantSpell(Player* player, Creature* creature)
 		return false;
 	}
 
-	if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+	if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 		if (player->getSkull() == SKULL_BLACK) {
 			player->sendCancelMessage(RET_YOUMAYNOTATTACKTHISPLAYER);
 			if (!player->isGhost()) {
@@ -885,7 +885,7 @@ bool Spell::checkInstantSpell(Player* player, const Position& toPos)
 		return false;
 	}
 
-	if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+	if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 		if (player->getSkull() == SKULL_BLACK && isAggressive && range == -1) // CHECKME: -1 is (usually?) an area spell
 		{
 			player->sendCancelMessage(RET_YOUMAYNOTCASTAREAONBLACKSKULL);
@@ -978,7 +978,7 @@ bool Spell::checkRuneSpell(Player* player, const Position& toPos)
 	}
 
 	if (!needTarget) {
-		if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+		if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 			if (!isAggressive || player->getSkull() != SKULL_BLACK) {
 				return true;
 			}
@@ -1017,7 +1017,7 @@ bool Spell::checkRuneSpell(Player* player, const Position& toPos)
 		return false;
 	}
 
-	if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+	if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 		if (player->getSkull() != SKULL_BLACK) {
 			return true;
 		}
@@ -1047,7 +1047,7 @@ void Spell::postSpell(Player* player, uint32_t manaCost, uint32_t soulCost) cons
 {
 	if (manaCost > 0) {
 		player->changeMana(-(int32_t)manaCost);
-		if (!player->hasFlag(PlayerFlag_NotGainMana) && (player->getZone() != ZONE_HARDCORE || g_config.getBool(ConfigManager::PVPZONE_ADDMANASPENT))) {
+		if (!player->hasFlag(PlayerFlag_NotGainMana) && (player->getZone() != ZONE_HARDCORE || otx::config::getBoolean(otx::config::PVPZONE_ADDMANASPENT))) {
 			player->addManaSpent(manaCost);
 		}
 	}
@@ -1400,9 +1400,9 @@ bool InstantSpell::SummonMonster(const InstantSpell* spell, Creature* creature, 
 		return false;
 	}
 
-	int32_t manaCost = (int32_t)(mType->manaCost * g_config.getDouble(ConfigManager::RATE_MONSTER_MANA));
+	int32_t manaCost = (int32_t)(mType->manaCost * otx::config::getDouble(otx::config::RATE_MONSTER_MANA));
 	if (!player->hasFlag(PlayerFlag_CanSummonAll)) {
-		if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+		if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 			if (player->getSkull() == SKULL_BLACK) {
 				player->sendCancelMessage(RET_NOTPOSSIBLE);
 				if (!player->isGhost()) {
@@ -1428,7 +1428,7 @@ bool InstantSpell::SummonMonster(const InstantSpell* spell, Creature* creature, 
 			return false;
 		}
 
-		if ((int32_t)player->getSummonCount() >= g_config.getNumber(ConfigManager::MAX_PLAYER_SUMMONS)) {
+		if ((int32_t)player->getSummonCount() >= otx::config::getInteger(otx::config::MAX_PLAYER_SUMMONS)) {
 			player->sendCancel("You cannot summon more creatures.");
 			if (!player->isGhost()) {
 				player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -1736,7 +1736,7 @@ bool RuneSpell::configureEvent(xmlNodePtr p)
 	}
 
 	ItemType& it = Item::items.getItemType(runeId);
-	if (g_config.getBool(ConfigManager::USE_RUNE_REQUIREMENTS)) {
+	if (otx::config::getBoolean(otx::config::USE_RUNE_REQUIREMENTS)) {
 		if (level != 0 && level != it.runeLevel) {
 			it.runeLevel = level;
 		}
@@ -1814,7 +1814,7 @@ bool RuneSpell::Convince(const RuneSpell* spell, Creature* creature, const Posit
 	}
 
 	if (!player->hasFlag(PlayerFlag_CanConvinceAll)) {
-		if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+		if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 			if (player->getSkull() == SKULL_BLACK) {
 				player->sendCancelMessage(RET_NOTPOSSIBLE);
 				if (!player->isGhost()) {
@@ -1824,7 +1824,7 @@ bool RuneSpell::Convince(const RuneSpell* spell, Creature* creature, const Posit
 			}
 		}
 
-		if ((int32_t)player->getSummonCount() >= g_config.getNumber(ConfigManager::MAX_PLAYER_SUMMONS)) {
+		if ((int32_t)player->getSummonCount() >= otx::config::getInteger(otx::config::MAX_PLAYER_SUMMONS)) {
 			player->sendCancelMessage(RET_NOTPOSSIBLE);
 			if (!player->isGhost()) {
 				player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -1861,7 +1861,7 @@ bool RuneSpell::Convince(const RuneSpell* spell, Creature* creature, const Posit
 
 	int32_t manaCost = 0;
 	if (Monster* monster = convinceCreature->getMonster()) {
-		manaCost = (int32_t)(monster->getManaCost() * g_config.getDouble(ConfigManager::RATE_MONSTER_MANA));
+		manaCost = (int32_t)(monster->getManaCost() * otx::config::getDouble(otx::config::RATE_MONSTER_MANA));
 	}
 
 	if (!player->hasFlag(PlayerFlag_HasInfiniteMana) && player->getMana() < manaCost) {
@@ -1987,7 +1987,7 @@ bool RuneSpell::executeUse(Player* player, Item* item, const PositionEx& posFrom
 
 	if (result) {
 		Spell::postSpell(player);
-		if (hasCharges && item && g_config.getBool(ConfigManager::REMOVE_RUNE_CHARGES)) {
+		if (hasCharges && item && otx::config::getBoolean(otx::config::REMOVE_RUNE_CHARGES)) {
 			g_game.transformItem(item, item->getID(), std::max((int32_t)0, ((int32_t)item->getItemCount()) - 1));
 		}
 	}

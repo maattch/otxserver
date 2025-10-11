@@ -81,35 +81,35 @@ bool argumentsHandler(StringVec args)
 
 		tmp = explodeString((*it), "=");
 		if (tmp[0] == "--config") {
-			g_config.setString(ConfigManager::CONFIG_FILE, tmp[1]);
+			otx::config::setString(otx::config::CONFIG_FILE, tmp[1]);
 		} else if (tmp[0] == "--data-directory") {
-			g_config.setString(ConfigManager::DATA_DIRECTORY, tmp[1]);
+			otx::config::setString(otx::config::DATA_DIRECTORY, tmp[1]);
 		} else if (tmp[0] == "--logs-directory") {
-			g_config.setString(ConfigManager::LOGS_DIRECTORY, tmp[1]);
+			otx::config::setString(otx::config::LOGS_DIRECTORY, tmp[1]);
 		} else if (tmp[0] == "--ip") {
-			g_config.setString(ConfigManager::IP, tmp[1]);
+			otx::config::setString(otx::config::IP, tmp[1]);
 		} else if (tmp[0] == "--login-port") {
-			g_config.setNumber(ConfigManager::LOGIN_PORT, atoi(tmp[1].c_str()));
+			otx::config::setInteger(otx::config::LOGIN_PORT, atoi(tmp[1].c_str()));
 		} else if (tmp[0] == "--game-port") {
-			g_config.setNumber(ConfigManager::GAME_PORT, atoi(tmp[1].c_str()));
+			otx::config::setInteger(otx::config::GAME_PORT, atoi(tmp[1].c_str()));
 		} else if (tmp[0] == "--status-port") {
-			g_config.setNumber(ConfigManager::STATUS_PORT, atoi(tmp[1].c_str()));
+			otx::config::setInteger(otx::config::STATUS_PORT, atoi(tmp[1].c_str()));
 		}
 #ifndef _WIN32
 		else if (tmp[0] == "--runfile" || tmp[0] == "--run-file" || tmp[0] == "--pidfile" || tmp[0] == "--pid-file") {
-			g_config.setString(ConfigManager::RUNFILE, tmp[1]);
+			otx::config::setString(otx::config::RUNFILE, tmp[1]);
 		}
 #endif
 		else if (tmp[0] == "--log") {
-			g_config.setString(ConfigManager::OUTPUT_LOG, tmp[1]);
+			otx::config::setString(otx::config::OUTPUT_LOG, tmp[1]);
 		}
 #ifndef _WIN32
 		else if (tmp[0] == "--daemon" || tmp[0] == "-d") {
-			g_config.setBool(ConfigManager::DAEMONIZE, true);
+			otx::config::setBoolean(otx::config::DAEMONIZE, true);
 		}
 #endif
 		else if (tmp[0] == "--closed") {
-			g_config.setBool(ConfigManager::START_CLOSED, true);
+			otx::config::setBoolean(otx::config::START_CLOSED, true);
 		}
 	}
 
@@ -162,7 +162,7 @@ void signalHandler(int32_t sig)
 
 void runfileHandler(void)
 {
-	std::ofstream runfile(g_config.getString(ConfigManager::RUNFILE).c_str(), std::ios::trunc | std::ios::out);
+	std::ofstream runfile(otx::config::getString(otx::config::RUNFILE).c_str(), std::ios::trunc | std::ios::out);
 	runfile.close();
 }
 #endif
@@ -203,7 +203,6 @@ int main(int argc, char* argv[])
 	g_scheduler.start();
 
 	g_lua.init();
-	g_config.startup();
 	otx::scriptmanager::init();
 
 #ifndef _WIN32
@@ -232,10 +231,10 @@ int main(int argc, char* argv[])
 	g_loaderSignal.wait(g_loaderUniqueLock);
 
 	if (servicer.is_running()) {
-		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " server Online!" << std::endl << std::endl;
+		std::clog << ">> " << otx::config::getString(otx::config::SERVER_NAME) << " server Online!" << std::endl << std::endl;
 		servicer.run();
 	} else {
-		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " server Offline! No services available..." << std::endl << std::endl;
+		std::clog << ">> " << otx::config::getString(otx::config::SERVER_NAME) << " server Offline! No services available..." << std::endl << std::endl;
 		g_scheduler.shutdown();
 		g_dispatcher.shutdown();
 	}
@@ -331,13 +330,13 @@ void otserv(ServiceManager* services)
 		std::clog << ">> Debugging:" << debug << "." << std::endl;
 	}
 
-	std::clog << ">> Loading config (" << g_config.getString(ConfigManager::CONFIG_FILE) << ")" << std::endl;
-	if (!g_config.load()) {
-		startupErrorMessage("Unable to load " + g_config.getString(ConfigManager::CONFIG_FILE) + "!");
+	std::clog << ">> Loading config" << std::endl;
+	if (!otx::config::load()) {
+		startupErrorMessage("Unable to load " + otx::config::getString(otx::config::CONFIG_FILE) + "!");
 	}
 
 #ifndef _WIN32
-	if (g_config.getBool(ConfigManager::DAEMONIZE)) {
+	if (otx::config::getBoolean(otx::config::DAEMONIZE)) {
 		std::clog << "> Daemonization... ";
 		if (fork()) {
 			std::clog << "succeed, bye!" << std::endl;
@@ -346,19 +345,19 @@ void otserv(ServiceManager* services)
 			std::clog << "failed, continuing." << std::endl;
 		}
 	}
-
 #endif
-	// silently append trailing slash
-	std::string path = g_config.getString(ConfigManager::DATA_DIRECTORY);
-	g_config.setString(ConfigManager::DATA_DIRECTORY, path.erase(path.find_last_not_of("/") + 1) + "/");
 
-	path = g_config.getString(ConfigManager::LOGS_DIRECTORY);
-	g_config.setString(ConfigManager::LOGS_DIRECTORY, path.erase(path.find_last_not_of("/") + 1) + "/");
+	// silently append trailing slash
+	std::string path = otx::config::getString(otx::config::DATA_DIRECTORY);
+	otx::config::setString(otx::config::DATA_DIRECTORY, path.erase(path.find_last_not_of("/") + 1) + "/");
+
+	path = otx::config::getString(otx::config::LOGS_DIRECTORY);
+	otx::config::setString(otx::config::LOGS_DIRECTORY, path.erase(path.find_last_not_of("/") + 1) + "/");
 
 	std::clog << ">> Opening logs" << std::endl;
 	Logger::getInstance()->open();
 
-	IntegerVec cores = vectorAtoi(explodeString(g_config.getString(ConfigManager::CORES_USED), ","));
+	IntegerVec cores = vectorAtoi(explodeString(otx::config::getString(otx::config::CORES_USED), ","));
 	if (cores[0] != -1) {
 #ifdef _WIN32
 		int32_t mask = 0;
@@ -374,7 +373,7 @@ void otserv(ServiceManager* services)
 		startupErrorMessage("Another instance is already running.");
 	}
 
-	std::string defaultPriority = otx::util::as_lower_string(g_config.getString(ConfigManager::DEFAULT_PRIORITY));
+	std::string defaultPriority = otx::util::as_lower_string(otx::config::getString(otx::config::DEFAULT_PRIORITY));
 	if (defaultPriority == "realtime" || defaultPriority == "real") {
 		SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 	} else if (defaultPriority == "high" || defaultPriority == "regular") {
@@ -395,7 +394,7 @@ void otserv(ServiceManager* services)
 	}
 	#endif
 
-	std::string runPath = g_config.getString(ConfigManager::RUNFILE);
+	std::string runPath = otx::config::getString(otx::config::RUNFILE);
 	if (!runPath.empty() && runPath.length() > 2) {
 		std::ofstream runFile(runPath.c_str(), std::ios::trunc | std::ios::out);
 		runFile << getpid();
@@ -403,7 +402,7 @@ void otserv(ServiceManager* services)
 		atexit(runfileHandler);
 	}
 
-	if (!nice(g_config.getNumber(ConfigManager::NICE_LEVEL))) {}
+	if (!nice(otx::config::getInteger(otx::config::NICE_LEVEL))) {}
 #endif
 
 	std::clog << ">> Loading RSA key" << std::endl;
@@ -416,7 +415,7 @@ void otserv(ServiceManager* services)
 	std::clog << ">> Starting SQL connection" << std::endl;
 	if (g_database.connect()) {
 		std::clog << ">> Running Database Manager" << std::endl;
-		if (g_config.getBool(ConfigManager::OPTIMIZE_DATABASE) && !DatabaseManager::getInstance()->optimizeTables()) {
+		if (otx::config::getBoolean(otx::config::OPTIMIZE_DATABASE) && !DatabaseManager::getInstance()->optimizeTables()) {
 			std::clog << "[Done] No tables to optimize." << std::endl;
 		}
 	} else {
@@ -587,12 +586,12 @@ void otserv(ServiceManager* services)
 	Raids::getInstance()->loadFromXml();
 
 	std::clog << ">> Loading map and spawns..." << std::endl;
-	if (!g_game.loadMap(g_config.getString(ConfigManager::MAP_NAME))) {
+	if (!g_game.loadMap(otx::config::getString(otx::config::MAP_NAME))) {
 		startupErrorMessage();
 	}
 
 	std::clog << ">> Checking world type... ";
-	std::string worldType = otx::util::as_lower_string(g_config.getString(ConfigManager::WORLD_TYPE));
+	std::string worldType = otx::util::as_lower_string(otx::config::getString(otx::config::WORLD_TYPE));
 	if (worldType == "open" || worldType == "2" || worldType == "openpvp") {
 		g_game.setWorldType(WORLDTYPE_OPEN);
 		std::clog << "Open PvP" << std::endl;
@@ -604,7 +603,7 @@ void otserv(ServiceManager* services)
 		std::clog << "Hardcore PvP" << std::endl;
 	} else {
 		std::clog << std::endl;
-		startupErrorMessage("Unknown world type: " + g_config.getString(ConfigManager::WORLD_TYPE));
+		startupErrorMessage("Unknown world type: " + otx::config::getString(otx::config::WORLD_TYPE));
 	}
 
 	std::clog << ">> Starting to dominate the world... done." << std::endl;
@@ -612,16 +611,16 @@ void otserv(ServiceManager* services)
 	std::clog << ">> Initializing game state and binding services:" << std::endl;
 	g_game.setGameState(GAMESTATE_INIT);
 
-	services->add<ProtocolStatus>(g_config.getNumber(ConfigManager::STATUS_PORT));
-	if (!g_config.getBool(ConfigManager::LOGIN_ONLY_LOGINSERVER)) {
-		services->add<ProtocolLogin>(g_config.getNumber(ConfigManager::LOGIN_PORT));
+	services->add<ProtocolStatus>(otx::config::getInteger(otx::config::STATUS_PORT));
+	if (!otx::config::getBoolean(otx::config::LOGIN_ONLY_LOGINSERVER)) {
+		services->add<ProtocolLogin>(otx::config::getInteger(otx::config::LOGIN_PORT));
 	}
 
-	services->add<ProtocolOld>(g_config.getNumber(ConfigManager::LOGIN_PORT));
-	services->add<ProtocolGame>(g_config.getNumber(ConfigManager::GAME_PORT));
+	services->add<ProtocolOld>(otx::config::getInteger(otx::config::LOGIN_PORT));
+	services->add<ProtocolGame>(otx::config::getInteger(otx::config::GAME_PORT));
 
 	std::clog << std::endl << ">> Everything smells good, server is starting up..." << std::endl;
 	g_game.start(services);
-	g_game.setGameState(g_config.getBool(ConfigManager::START_CLOSED) ? GAMESTATE_CLOSED : GAMESTATE_NORMAL);
+	g_game.setGameState(otx::config::getBoolean(otx::config::START_CLOSED) ? GAMESTATE_CLOSED : GAMESTATE_NORMAL);
 	g_loaderSignal.notify_all();
 }

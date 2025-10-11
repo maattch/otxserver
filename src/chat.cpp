@@ -118,7 +118,7 @@ ChatChannel::ChatChannel(uint16_t id, const std::string& name, uint16_t flags, u
 	m_vocationMap(vocationMap)
 {
 	if (hasFlag(CHANNELFLAG_LOGGED)) {
-		m_file.reset(new std::ofstream(getFilePath(FILE_TYPE_LOG, (std::string) "chat/" + g_config.getString(ConfigManager::PREFIX_CHANNEL_LOGS) + m_name + (std::string) ".log").c_str(), std::ios::app | std::ios::out));
+		m_file.reset(new std::ofstream(getFilePath(FILE_TYPE_LOG, (std::string) "chat/" + otx::config::getString(otx::config::PREFIX_CHANNEL_LOGS) + m_name + (std::string) ".log").c_str(), std::ios::app | std::ios::out));
 		if (!m_file->is_open()) {
 			m_flags &= ~CHANNELFLAG_LOGGED;
 		}
@@ -670,7 +670,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 		return true;
 	}
 
-	if (channelId != CHANNEL_GUILD || !g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)
+	if (channelId != CHANNEL_GUILD || !otx::config::getBoolean(otx::config::INGAME_GUILD_MANAGEMENT)
 		|| (text[0] != '!' && text[0] != '/')) {
 		if (channelId == CHANNEL_GUILD) {
 			switch (player->getGuildLevel()) {
@@ -862,7 +862,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 								}
 							} else if (text[2] == 'a') {
 								if (paramPlayer->getGuildLevel() == GUILDLEVEL_VICE) {
-									const uint32_t levelToFormGuild = g_config.getNumber(ConfigManager::LEVEL_TO_FORM_GUILD);
+									const uint32_t levelToFormGuild = otx::config::getInteger(otx::config::LEVEL_TO_FORM_GUILD);
 									if (paramPlayer->getLevel() >= levelToFormGuild) {
 										paramPlayer->setGuildLevel(GUILDLEVEL_LEADER);
 										player->setGuildLevel(GUILDLEVEL_VICE);
@@ -922,7 +922,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 							}
 						} else if (text[2] == 'a') {
 							if (IOGuild::getInstance()->getGuildLevel(guid) == GUILDLEVEL_VICE) {
-								const uint32_t levelToFormGuild = g_config.getNumber(ConfigManager::LEVEL_TO_FORM_GUILD);
+								const uint32_t levelToFormGuild = otx::config::getInteger(otx::config::LEVEL_TO_FORM_GUILD);
 								if (IOLoginData::getInstance()->getLevel(guid) >= levelToFormGuild) {
 									IOGuild::getInstance()->setGuildLevel(guid, GUILDLEVEL_LEADER);
 									player->setGuildLevel(GUILDLEVEL_VICE);

@@ -896,17 +896,17 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			}
 
 			bool begin = true;
-			if (g_config.getBool(ConfigManager::USE_RUNE_REQUIREMENTS) && it.runeLevel != 0) {
+			if (otx::config::getBoolean(otx::config::USE_RUNE_REQUIREMENTS) && it.runeLevel != 0) {
 				begin = false;
 				s << " with level " << it.runeLevel;
 			}
 
-			if (g_config.getBool(ConfigManager::USE_RUNE_REQUIREMENTS) && it.runeMagLevel != 0) {
+			if (otx::config::getBoolean(otx::config::USE_RUNE_REQUIREMENTS) && it.runeMagLevel != 0) {
 				begin = false;
 				s << " " << (begin ? "with" : "and") << " magic level " << it.runeMagLevel;
 			}
 
-			if (g_config.getBool(ConfigManager::USE_RUNE_REQUIREMENTS) && !begin) {
+			if (otx::config::getBoolean(otx::config::USE_RUNE_REQUIREMENTS) && !begin) {
 				s << " or higher";
 			}
 		}
@@ -1524,7 +1524,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 		} else {
 			s << "Nothing is written on it";
 		}
-	} else if (it.levelDoor && item && item->getActionId() >= (int32_t)it.levelDoor && item->getActionId() <= ((int32_t)it.levelDoor + g_config.getNumber(ConfigManager::MAXIMUM_DOOR_LEVEL))) {
+	} else if (it.levelDoor && item && item->getActionId() >= (int32_t)it.levelDoor && item->getActionId() <= ((int32_t)it.levelDoor + otx::config::getInteger(otx::config::MAXIMUM_DOOR_LEVEL))) {
 		s << " for level " << item->getActionId() - it.levelDoor;
 	}
 

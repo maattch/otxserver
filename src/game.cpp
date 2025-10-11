@@ -88,7 +88,7 @@ Game::~Game()
 
 WorldType_t Game::getWorldType() const
 {
-	return g_config.getBool(ConfigManager::OPTIONAL_PROTECTION) ? WORLDTYPE_OPTIONAL : worldType;
+	return otx::config::getBoolean(otx::config::OPTIONAL_PROTECTION) ? WORLDTYPE_OPTIONAL : worldType;
 }
 
 void Game::start(ServiceManager* servicer)
@@ -100,12 +100,12 @@ void Game::start(ServiceManager* servicer)
 	luaCollectGarbageEventId = addSchedulerTask(LUA_COLLECT_GARBAGE_INTERVAL, [this]() { collectLuaGarbage(); });
 
 	services = servicer;
-	if (!g_config.getBool(ConfigManager::GLOBALSAVE_ENABLED)) {
+	if (!otx::config::getBoolean(otx::config::GLOBALSAVE_ENABLED)) {
 		return;
 	}
 
-	int32_t prepareHour = g_config.getNumber(ConfigManager::GLOBALSAVE_H),
-			prepareMinute = g_config.getNumber(ConfigManager::GLOBALSAVE_M);
+	int32_t prepareHour = otx::config::getInteger(otx::config::GLOBALSAVE_H),
+			prepareMinute = otx::config::getInteger(otx::config::GLOBALSAVE_M);
 
 	if (prepareHour < 0 || prepareHour > 24) {
 		std::clog << "> WARNING: No valid hour (" << prepareHour << ") for a global save, should be between 0-23. Global save disabled." << std::endl;
@@ -196,7 +196,7 @@ void Game::setGameState(GameState_t newState)
 				loadGameState();
 
 				g_globalEvents.startup();
-				if (g_config.getBool(ConfigManager::INIT_PREMIUM_UPDATE)) {
+				if (otx::config::getBoolean(otx::config::INIT_PREMIUM_UPDATE)) {
 					IOLoginData::getInstance()->updatePremiumDays();
 				}
 
@@ -282,7 +282,7 @@ void Game::saveGameState(uint8_t flags)
 	}
 
 	std::clog << "> SAVE: Complete in " << (otx::util::mstime() - start) / (1000.) << " seconds using "
-			  << otx::util::as_lower_string(g_config.getString(ConfigManager::HOUSE_STORAGE))
+			  << otx::util::as_lower_string(otx::config::getString(otx::config::HOUSE_STORAGE))
 			  << " house storage." << std::endl;
 }
 
@@ -313,10 +313,10 @@ void Game::cleanMapEx(uint32_t& count)
 
 	Tile* tile = nullptr;
 	ItemVector::iterator tit;
-	if (g_config.getBool(ConfigManager::STORE_TRASH)) {
+	if (otx::config::getBoolean(otx::config::STORE_TRASH)) {
 		marked = trash.size();
 		Trash::iterator it = trash.begin();
-		if (g_config.getBool(ConfigManager::CLEAN_PROTECTED_ZONES)) {
+		if (otx::config::getBoolean(otx::config::CLEAN_PROTECTED_ZONES)) {
 			for (; it != trash.end(); ++it) {
 				if (!(tile = getTile(*it))) {
 					continue;
@@ -373,7 +373,7 @@ void Game::cleanMapEx(uint32_t& count)
 		}
 
 		trash.clear();
-	} else if (g_config.getBool(ConfigManager::CLEAN_PROTECTED_ZONES)) {
+	} else if (otx::config::getBoolean(otx::config::CLEAN_PROTECTED_ZONES)) {
 		for (uint16_t z = 0; z < (uint16_t)MAP_MAX_LAYERS; z++) {
 			for (uint16_t y = 1; y <= map->mapHeight; y++) {
 				for (uint16_t x = 1; x <= map->mapWidth; x++) {
@@ -699,7 +699,7 @@ bool Game::existMonsterByName(const std::string& name)
 		return false;
 	}
 
-	std::string forbiddenNames = g_config.getString(ConfigManager::FORBIDDEN_NAMES);
+	std::string forbiddenNames = otx::config::getString(otx::config::FORBIDDEN_NAMES);
 	auto forbiddenNamesVec = explodeString(forbiddenNames, ";");
 	if (std::find(forbiddenNamesVec.begin(), forbiddenNamesVec.end(), otx::util::as_lower_string(name)) != forbiddenNamesVec.end()) {
 		return true;
@@ -1121,7 +1121,7 @@ bool Game::playerMoveCreature(const uint32_t playerId, const uint32_t movingCrea
 		return false;
 	}
 
-	if (!player->canDoAction() && !g_config.getBool(ConfigManager::ALLOW_INDEPENDENT_PUSH)) {
+	if (!player->canDoAction() && !otx::config::getBoolean(otx::config::ALLOW_INDEPENDENT_PUSH)) {
 		player->setNextActionTask(createSchedulerTask(1000,
 			[=]() { playerMoveCreature(playerId, movingCreatureId, movingCreaturePos, toPos, false); }));
 		return false;
@@ -1150,7 +1150,7 @@ bool Game::playerMoveCreature(const uint32_t playerId, const uint32_t movingCrea
 		player->sendCancelMessage(RET_THEREISNOWAY);
 		return false;
 	} else if (delay) {
-		uint32_t delayTime = g_config.getNumber(ConfigManager::PUSH_CREATURE_DELAY);
+		uint32_t delayTime = otx::config::getInteger(otx::config::PUSH_CREATURE_DELAY);
 		if (delayTime > 0) {
 			player->setNextActionTask(createSchedulerTask(delayTime, [=]() {
 				playerMoveCreature(playerId, movingCreatureId, movingCreaturePos, toPos, false);
@@ -1198,7 +1198,7 @@ bool Game::playerMoveCreature(const uint32_t playerId, const uint32_t movingCrea
 
 		// CUSTOM: Pz Push
 		if (!player->hasFlag(PlayerFlag_IgnoreProtectionZone) && movingCreature->getZone() == ZONE_PROTECTION
-			&& !g_config.getBool(ConfigManager::PUSH_IN_PZ)) {
+			&& !otx::config::getBoolean(otx::config::PUSH_IN_PZ)) {
 			player->sendCancelMessage(RET_NOTPOSSIBLE);
 			return false;
 		}
@@ -1525,7 +1525,7 @@ bool Game::playerMoveItem(const uint32_t playerId, const Position& fromPos,
 		return false;
 	}
 
-	player->setNextAction(otx::util::mstime() + g_config.getNumber(ConfigManager::ACTIONS_DELAY_INTERVAL) - 10);
+	player->setNextAction(otx::util::mstime() + otx::config::getInteger(otx::config::ACTIONS_DELAY_INTERVAL) - 10);
 	return true;
 }
 
@@ -2482,7 +2482,7 @@ bool Game::playerMove(const uint32_t playerId, const Direction& dir)
 	}
 
 	// CUSTOM: Diagonal Push
-	if (g_config.getBool(ConfigManager::DIAGONAL_PUSH)) {
+	if (otx::config::getBoolean(otx::config::DIAGONAL_PUSH)) {
 		player->startAutoWalk(dir);
 	} else {
 		player->setNextWalkActionTask(nullptr);
@@ -2813,7 +2813,7 @@ bool Game::playerUseItemEx(const uint32_t playerId, const Position& fromPos, int
 		return false;
 	}
 
-	if (isHotkey && !g_config.getBool(ConfigManager::AIMBOT_HOTKEY_ENABLED)) {
+	if (isHotkey && !otx::config::getBoolean(otx::config::AIMBOT_HOTKEY_ENABLED)) {
 		return false;
 	}
 
@@ -2906,7 +2906,7 @@ bool Game::playerUseItem(const uint32_t playerId, const Position& pos, const int
 		return false;
 	}
 
-	if (isHotkey && !g_config.getBool(ConfigManager::AIMBOT_HOTKEY_ENABLED)) {
+	if (isHotkey && !otx::config::getBoolean(otx::config::AIMBOT_HOTKEY_ENABLED)) {
 		return false;
 	}
 
@@ -2986,7 +2986,7 @@ bool Game::playerUseBattleWindow(const uint32_t playerId, const Position& pos, c
 		return false;
 	}
 
-	if (!g_config.getBool(ConfigManager::AIMBOT_HOTKEY_ENABLED) && (creature->getPlayer() || isHotkey)) {
+	if (!otx::config::getBoolean(otx::config::AIMBOT_HOTKEY_ENABLED) && (creature->getPlayer() || isHotkey)) {
 		player->sendCancelMessage(RET_DIRECTPLAYERSHOOT);
 		return false;
 	}
@@ -3355,7 +3355,7 @@ bool Game::playerRequestTrade(const uint32_t playerId, const Position& pos, cons
 	}
 
 	Container* tradeContainer = tradeItem->getContainer();
-	if (tradeContainer && tradeContainer->getItemHoldingCount() + 1 > (uint32_t)g_config.getNumber(ConfigManager::TRADE_LIMIT)) {
+	if (tradeContainer && tradeContainer->getItemHoldingCount() + 1 > (uint32_t)otx::config::getInteger(otx::config::TRADE_LIMIT)) {
 		player->sendCancelMessage(RET_YOUCANONLYTRADEUPTOX);
 		return false;
 	}
@@ -4202,7 +4202,7 @@ bool Game::playerRequestAddVip(const uint32_t playerId, const std::string& vipNa
 	bool specialVip;
 	std::string name = vipName;
 
-	player->setNextExAction(otx::util::mstime() + g_config.getNumber(ConfigManager::CUSTOM_ACTIONS_DELAY_INTERVAL) - 10);
+	player->setNextExAction(otx::util::mstime() + otx::config::getInteger(otx::config::CUSTOM_ACTIONS_DELAY_INTERVAL) - 10);
 	if (!IOLoginData::getInstance()->getGuidByNameEx(guid, specialVip, name)) {
 		player->sendTextMessage(MSG_STATUS_SMALL, "A player with that name does not exist.");
 		return false;
@@ -4365,7 +4365,7 @@ bool Game::playerSay(const uint32_t playerId, const uint16_t channelId, const Me
 	}
 
 	std::string _text = otx::util::as_lower_string(text);
-	auto prohibitedWords = explodeString(g_config.getString(ConfigManager::ADVERTISING_BLOCK), ";");
+	auto prohibitedWords = explodeString(otx::config::getString(otx::config::ADVERTISING_BLOCK), ";");
 	bool fakeChat = false;
 
 	std::string concatenatedText = removeNonAlphabetic(_text);
@@ -4393,7 +4393,7 @@ bool Game::playerSay(const uint32_t playerId, const uint16_t channelId, const Me
 	ReturnValue ret = RET_NOERROR;
 	if (!muted) {
 		ret = g_spells.onPlayerSay(player, text);
-		if (ret == RET_NOERROR || (ret == RET_NEEDEXCHANGE && !g_config.getBool(ConfigManager::BUFFER_SPELL_FAILURE))) {
+		if (ret == RET_NOERROR || (ret == RET_NEEDEXCHANGE && !otx::config::getBoolean(otx::config::BUFFER_SPELL_FAILURE))) {
 			return true;
 		}
 	}
@@ -4407,7 +4407,7 @@ bool Game::playerSay(const uint32_t playerId, const uint16_t channelId, const Me
 	}
 
 	uint32_t statementId = 0;
-	if (g_config.getBool(ConfigManager::SAVE_STATEMENT)) {
+	if (otx::config::getBoolean(otx::config::SAVE_STATEMENT)) {
 		IOLoginData::getInstance()->playerStatement(player, channelId, text, statementId);
 	}
 
@@ -5067,7 +5067,7 @@ bool Game::combatChangeHealth(const CombatParams& params, Creature* attacker, Cr
 
 		int32_t oldHealth = target->getHealth();
 		target->gainHealth(attacker, healthChange);
-		if (oldHealth != target->getHealth() && g_config.getBool(ConfigManager::SHOW_HEALTH_CHANGE) && !target->isGhost() && (g_config.getBool(ConfigManager::SHOW_HEALTH_CHANGE_MONSTER) || !target->getMonster())) {
+		if (oldHealth != target->getHealth() && otx::config::getBoolean(otx::config::SHOW_HEALTH_CHANGE) && !target->isGhost() && (otx::config::getBoolean(otx::config::SHOW_HEALTH_CHANGE_MONSTER) || !target->getMonster())) {
 			SpectatorVec list;
 			getSpectators(list, targetPos, true, true);
 			if (params.combatType != COMBAT_HEALING) {
@@ -5356,7 +5356,7 @@ bool Game::combatChangeMana(Creature* attacker, Creature* target, int32_t manaCh
 
 		int32_t oldMana = target->getMana();
 		target->changeMana(manaChange);
-		if (oldMana != target->getMana() && g_config.getBool(ConfigManager::SHOW_MANA_CHANGE) && !target->isGhost() && (g_config.getBool(ConfigManager::SHOW_MANA_CHANGE_MONSTER) || !target->getMonster())) {
+		if (oldMana != target->getMana() && otx::config::getBoolean(otx::config::SHOW_MANA_CHANGE) && !target->isGhost() && (otx::config::getBoolean(otx::config::SHOW_MANA_CHANGE_MONSTER) || !target->getMonster())) {
 			SpectatorVec list;
 			getSpectators(list, targetPos, true, true);
 
@@ -6104,7 +6104,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 		return false;
 	}
 
-	uint32_t commentSize = g_config.getNumber(ConfigManager::MAX_VIOLATIONCOMMENT_SIZE);
+	uint32_t commentSize = otx::config::getInteger(otx::config::MAX_VIOLATIONCOMMENT_SIZE);
 	if (comment.size() > commentSize) {
 		char buffer[90];
 		sprintf(buffer, "The comment may not exceed limit of %d characters.", commentSize);
@@ -6153,10 +6153,10 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 
 		case ACTION_NAMEREPORT: {
 			int64_t banTime = -1;
-			PlayerBan_t tmp = (PlayerBan_t)g_config.getNumber(ConfigManager::NAME_REPORT_TYPE);
+			PlayerBan_t tmp = (PlayerBan_t)otx::config::getInteger(otx::config::NAME_REPORT_TYPE);
 			if (tmp == PLAYERBAN_BANISHMENT) {
 				if (!length[0]) {
-					banTime = time(nullptr) + g_config.getNumber(ConfigManager::BAN_LENGTH);
+					banTime = time(nullptr) + otx::config::getInteger(otx::config::BAN_LENGTH);
 				} else {
 					banTime = length[0];
 				}
@@ -6182,7 +6182,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 			}
 
 			if (IOBan::getInstance()->getNotationsCount(account.number) < (uint32_t)
-					g_config.getNumber(ConfigManager::NOTATIONS_TO_BAN)) {
+					otx::config::getInteger(otx::config::NOTATIONS_TO_BAN)) {
 				kickAction = NONE;
 				break;
 			}
@@ -6197,14 +6197,14 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 			pos = 2;
 
 			account.warnings++;
-			if (account.warnings >= g_config.getNumber(ConfigManager::WARNINGS_TO_DELETION)) {
+			if (account.warnings >= otx::config::getInteger(otx::config::WARNINGS_TO_DELETION)) {
 				action = ACTION_DELETION;
 			} else if (length[0]) {
 				banTime = length[0];
-			} else if (account.warnings >= g_config.getNumber(ConfigManager::WARNINGS_TO_FINALBAN)) {
-				banTime = time(nullptr) + g_config.getNumber(ConfigManager::FINALBAN_LENGTH);
+			} else if (account.warnings >= otx::config::getInteger(otx::config::WARNINGS_TO_FINALBAN)) {
+				banTime = time(nullptr) + otx::config::getInteger(otx::config::FINALBAN_LENGTH);
 			} else {
-				banTime = time(nullptr) + g_config.getNumber(ConfigManager::BAN_LENGTH);
+				banTime = time(nullptr) + otx::config::getInteger(otx::config::BAN_LENGTH);
 			}
 
 			if (!IOBan::getInstance()->addAccountBanishment(account.number, banTime, reason, action,
@@ -6219,10 +6219,10 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 			}
 
 			banTime = -1;
-			PlayerBan_t tmp = (PlayerBan_t)g_config.getNumber(ConfigManager::NAME_REPORT_TYPE);
+			PlayerBan_t tmp = (PlayerBan_t)otx::config::getInteger(otx::config::NAME_REPORT_TYPE);
 			if (tmp == PLAYERBAN_BANISHMENT) {
 				if (!length[1]) {
-					banTime = time(nullptr) + g_config.getNumber(ConfigManager::FINALBAN_LENGTH);
+					banTime = time(nullptr) + otx::config::getInteger(otx::config::FINALBAN_LENGTH);
 				} else {
 					banTime = length[1];
 				}
@@ -6239,12 +6239,12 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 			int64_t banTime = -1;
 
 			account.warnings++;
-			if (account.warnings >= g_config.getNumber(ConfigManager::WARNINGS_TO_DELETION)) {
+			if (account.warnings >= otx::config::getInteger(otx::config::WARNINGS_TO_DELETION)) {
 				action = ACTION_DELETION;
 			} else if (length[0]) {
 				banTime = length[0];
 			} else {
-				banTime = time(nullptr) + g_config.getNumber(ConfigManager::FINALBAN_LENGTH);
+				banTime = time(nullptr) + otx::config::getInteger(otx::config::FINALBAN_LENGTH);
 			}
 
 			if (!IOBan::getInstance()->addAccountBanishment(account.number, banTime, reason, action,
@@ -6255,12 +6255,12 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 			}
 
 			if (action != ACTION_DELETION) {
-				account.warnings += (g_config.getNumber(ConfigManager::WARNINGS_TO_FINALBAN) - 1);
+				account.warnings += (otx::config::getInteger(otx::config::WARNINGS_TO_FINALBAN) - 1);
 			}
 
 			if (allow) {
 				IOBan::getInstance()->addPlayerBanishment(target->getGUID(), -1, reason, action, comment,
-					player->getGUID(), (PlayerBan_t)g_config.getNumber(ConfigManager::NAME_REPORT_TYPE));
+					player->getGUID(), (PlayerBan_t)otx::config::getInteger(otx::config::NAME_REPORT_TYPE));
 			}
 
 			break;
@@ -6286,7 +6286,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 
 	if (ipBanishment && target->getIP()) {
 		if (!length[pos]) {
-			length[pos] = time(nullptr) + g_config.getNumber(ConfigManager::IPBAN_LENGTH);
+			length[pos] = time(nullptr) + otx::config::getInteger(otx::config::IPBAN_LENGTH);
 		}
 
 		IOBan::getInstance()->addIpBanishment(target->getIP(), length[pos], reason, comment, player->getGUID(), 0xFFFFFFFF);
@@ -6297,7 +6297,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 	}
 
 	std::ostringstream ss;
-	if (g_config.getBool(ConfigManager::BROADCAST_BANISHMENTS)) {
+	if (otx::config::getBoolean(otx::config::BROADCAST_BANISHMENTS)) {
 		ss << player->getName() << " has";
 	} else {
 		ss << "You have";
@@ -6306,7 +6306,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 	ss << " taken the action \"" << getAction(action, ipBanishment) << "\"";
 	switch (action) {
 		case ACTION_NOTATION: {
-			ss << " (" << (g_config.getNumber(ConfigManager::NOTATIONS_TO_BAN) - IOBan::getInstance()->getNotationsCount(account.number)) << " left to banishment)";
+			ss << " (" << (otx::config::getInteger(otx::config::NOTATIONS_TO_BAN) - IOBan::getInstance()->getNotationsCount(account.number)) << " left to banishment)";
 			break;
 		}
 		case ACTION_STATEMENT: {
@@ -6318,7 +6318,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 	}
 
 	ss << " against: " << name << " (Warnings: " << account.warnings << "), with reason: \"" << getReason(reason) << "\", and comment: \"" << comment << "\".";
-	if (g_config.getBool(ConfigManager::BROADCAST_BANISHMENTS)) {
+	if (otx::config::getBoolean(otx::config::BROADCAST_BANISHMENTS)) {
 		broadcastMessage(ss.str(), MSG_STATUS_WARNING);
 	} else {
 		player->sendTextMessage(MSG_STATUS_CONSOLE_RED, ss.str());
@@ -6352,7 +6352,7 @@ void Game::kickPlayer(const uint32_t playerId, const bool displayEffect)
 
 bool Game::broadcastMessage(const std::string& text, MessageClasses type)
 {
-	if (g_config.getBool(ConfigManager::DISPLAY_BROADCAST)) { // by kizuno18
+	if (otx::config::getBoolean(otx::config::DISPLAY_BROADCAST)) { // by kizuno18
 		std::clog << "> Broadcasted message: \"" << text << "\"." << std::endl;
 	}
 
@@ -6624,8 +6624,8 @@ std::string Game::getSearchString(const Position& fromPos, const Position& toPos
 
 double Game::getExperienceStage(const uint32_t level, const double divider /* = 1.*/)
 {
-	if (!g_config.getBool(ConfigManager::EXPERIENCE_STAGES)) {
-		return g_config.getDouble(ConfigManager::RATE_EXPERIENCE) * divider;
+	if (!otx::config::getBoolean(otx::config::EXPERIENCE_STAGES)) {
+		return otx::config::getDouble(otx::config::RATE_EXPERIENCE) * divider;
 	}
 
 	if (lastStageLevel && level >= lastStageLevel) {
@@ -6636,7 +6636,7 @@ double Game::getExperienceStage(const uint32_t level, const double divider /* = 
 
 bool Game::loadExperienceStages()
 {
-	if (!g_config.getBool(ConfigManager::EXPERIENCE_STAGES)) {
+	if (!otx::config::getBoolean(otx::config::EXPERIENCE_STAGES)) {
 		stages.clear();
 		return true;
 	}
@@ -6710,7 +6710,7 @@ bool Game::reloadHighscores()
 void Game::checkHighscores()
 {
 	reloadHighscores();
-	uint32_t tmp = g_config.getNumber(ConfigManager::HIGHSCORES_UPDATETIME) * 60 * 1000;
+	uint32_t tmp = otx::config::getInteger(otx::config::HIGHSCORES_UPDATETIME) * 60 * 1000;
 	if (tmp <= 0) {
 		return;
 	}
@@ -6741,9 +6741,9 @@ Highscore Game::getHighscore(uint16_t skill)
 	Highscore hs;
 	if (skill >= SKILL__MAGLEVEL) {
 		if (skill == SKILL__MAGLEVEL) {
-			query << "SELECT `maglevel`, `name` FROM `players` ORDER BY `maglevel` DESC, `manaspent` DESC LIMIT " << g_config.getNumber(ConfigManager::HIGHSCORES_TOP);
+			query << "SELECT `maglevel`, `name` FROM `players` ORDER BY `maglevel` DESC, `manaspent` DESC LIMIT " << otx::config::getInteger(otx::config::HIGHSCORES_TOP);
 		} else {
-			query << "SELECT `level`, `name` FROM `players` ORDER BY `level` DESC, `experience` DESC LIMIT " << g_config.getNumber(ConfigManager::HIGHSCORES_TOP);
+			query << "SELECT `level`, `name` FROM `players` ORDER BY `level` DESC, `experience` DESC LIMIT " << otx::config::getInteger(otx::config::HIGHSCORES_TOP);
 		}
 
 		if (!(result = g_database.storeQuery(query.str()))) {
@@ -6764,7 +6764,7 @@ Highscore Game::getHighscore(uint16_t skill)
 			}
 		} while (result->next());
 	} else {
-		query << "SELECT `player_skills`.`value`, `players`.`name` FROM `player_skills`,`players` WHERE `player_skills`.`skillid`=" << skill << " AND `player_skills`.`player_id`=`players`.`id` ORDER BY `player_skills`.`value` DESC, `player_skills`.`count` DESC LIMIT " << g_config.getNumber(ConfigManager::HIGHSCORES_TOP);
+		query << "SELECT `player_skills`.`value`, `players`.`name` FROM `player_skills`,`players` WHERE `player_skills`.`skillid`=" << skill << " AND `player_skills`.`player_id`=`players`.`id` ORDER BY `player_skills`.`value` DESC, `player_skills`.`count` DESC LIMIT " << otx::config::getInteger(otx::config::HIGHSCORES_TOP);
 		if (!(result = g_database.storeQuery(query.str()))) {
 			return hs;
 		}
@@ -6782,13 +6782,13 @@ Highscore Game::getHighscore(uint16_t skill)
 
 int32_t Game::getMotdId()
 {
-	if (lastMotd.length() == g_config.getString(ConfigManager::MOTD).length()) {
-		if (lastMotd == g_config.getString(ConfigManager::MOTD)) {
+	if (lastMotd.length() == otx::config::getString(otx::config::MOTD).length()) {
+		if (lastMotd == otx::config::getString(otx::config::MOTD)) {
 			return lastMotdId;
 		}
 	}
 
-	lastMotd = g_config.getString(ConfigManager::MOTD);
+	lastMotd = otx::config::getString(otx::config::MOTD);
 
 	std::ostringstream query;
 	query << "INSERT INTO `server_motd` (`id`, `text`) VALUES (" << lastMotdId + 1 << ", " << g_database.escapeString(lastMotd) << ")";
@@ -6852,7 +6852,7 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 			break;
 		}
 		case RELOAD_CONFIG: {
-			done = g_config.reload();
+			done = otx::config::reload();
 			if (!done) {
 				std::clog << "[Error - Game::reloadInfo] Failed to reload config." << std::endl;
 			}
@@ -7056,7 +7056,7 @@ void Game::prepareGlobalSave(uint8_t minutes)
 
 void Game::globalSave()
 {
-	bool close = g_config.getBool(ConfigManager::SHUTDOWN_AT_GLOBALSAVE);
+	bool close = otx::config::getBoolean(otx::config::SHUTDOWN_AT_GLOBALSAVE);
 	if (!close) { // check are we're going to close the server
 		addDispatcherTask([this]() { setGameState(GAMESTATE_CLOSED); });
 	}
@@ -7072,12 +7072,12 @@ void Game::globalSave()
 	// pay houses
 	Houses::getInstance()->check();
 	// clean map if configured to
-	if (g_config.getBool(ConfigManager::CLEAN_MAP_AT_GLOBALSAVE)) {
+	if (otx::config::getBoolean(otx::config::CLEAN_MAP_AT_GLOBALSAVE)) {
 		cleanMap();
 	}
 
 	// remove premium days globally if configured to
-	if (g_config.getBool(ConfigManager::INIT_PREMIUM_UPDATE)) {
+	if (otx::config::getBoolean(otx::config::INIT_PREMIUM_UPDATE)) {
 		IOLoginData::getInstance()->updatePremiumDays();
 	}
 
@@ -7313,7 +7313,7 @@ void Game::loadGlobalStorages()
 
 void Game::saveGlobalStorages()
 {
-	if (!g_config.getBool(ConfigManager::SAVE_GLOBAL_STORAGE)) {
+	if (!otx::config::getBoolean(otx::config::SAVE_GLOBAL_STORAGE)) {
 		return;
 	}
 

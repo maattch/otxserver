@@ -254,7 +254,7 @@ bool IOLoginData::getPassword(uint32_t accountId, std::string& password, std::st
 bool IOLoginData::setPassword(uint32_t accountId, std::string newPassword)
 {
 	std::string salt;
-	if (g_config.getBool(ConfigManager::GENERATE_ACCOUNT_SALT)) {
+	if (otx::config::getBoolean(otx::config::GENERATE_ACCOUNT_SALT)) {
 		salt = generateRecoveryKey(2, 19, true);
 		newPassword = salt + newPassword;
 	}
@@ -377,7 +377,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 
 	player->m_nameDescription += result->getString("description");
 	player->setSex(result->getNumber<int32_t>("sex"));
-	if (g_config.getBool(ConfigManager::STORE_DIRECTION)) {
+	if (otx::config::getBoolean(otx::config::STORE_DIRECTION)) {
 		player->setDirection((Direction)result->getNumber<int32_t>("direction"));
 	}
 
@@ -409,7 +409,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	player->m_marriage = result->getNumber<int32_t>("marriage");
 
 	player->m_balance = result->getNumber<uint64_t>("balance");
-	if (g_config.getBool(ConfigManager::BLESSINGS) && (player->isPremium() || !g_config.getBool(ConfigManager::BLESSING_ONLY_PREMIUM))) {
+	if (otx::config::getBoolean(otx::config::BLESSINGS) && (player->isPremium() || !otx::config::getBoolean(otx::config::BLESSING_ONLY_PREMIUM))) {
 		player->m_blessings = result->getNumber<int32_t>("blessings");
 		player->setPVPBlessing(result->getNumber<int32_t>("pvp_blessing") != 0);
 	}
@@ -475,7 +475,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 
 	player->m_currentOutfit = player->m_defaultOutfit;
 	Skulls_t skull = SKULL_RED;
-	if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+	if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 		skull = (Skulls_t)result->getNumber<int32_t>("skull");
 	}
 
@@ -521,7 +521,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 			player->m_guildNick = nick;
 
 			std::string tmpStatus = "AND `status` IN (1,4)";
-			if (g_config.getBool(ConfigManager::EXTERNAL_GUILD_WARS_MANAGEMENT)) {
+			if (otx::config::getBoolean(otx::config::EXTERNAL_GUILD_WARS_MANAGEMENT)) {
 				tmpStatus = "AND `status` IN (1,4,9)";
 			}
 
@@ -544,7 +544,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 				} while (result->next());
 			}
 		}
-	} else if (g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)) {
+	} else if (otx::config::getBoolean(otx::config::INGAME_GUILD_MANAGEMENT)) {
 		query.str("");
 		query << "SELECT `guild_id` FROM `guild_invites` WHERE `player_id` = " << player->getGUID();
 		if ((result = g_database.storeQuery(query.str()))) {
@@ -660,7 +660,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 
 	// load vip
 	query.str("");
-	if (!g_config.getBool(ConfigManager::VIPLIST_PER_PLAYER)) {
+	if (!otx::config::getBoolean(otx::config::VIPLIST_PER_PLAYER)) {
 		query << "SELECT `player_id` AS `vip` FROM `account_viplist` WHERE `account_id` = " << account.number;
 	} else {
 		query << "SELECT `vip_id` AS `vip` FROM `player_viplist` WHERE `player_id` = " << player->getGUID();
@@ -746,10 +746,10 @@ bool IOLoginData::deletePlayer(Player* player)
 bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shallow /* = false*/)
 {
 	if (preSave && player->m_health <= 0) {
-		if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+		if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 			if (player->getSkull() == SKULL_BLACK) {
-				player->m_health = g_config.getNumber(ConfigManager::BLACK_SKULL_DEATH_HEALTH);
-				player->m_mana = g_config.getNumber(ConfigManager::BLACK_SKULL_DEATH_MANA);
+				player->m_health = otx::config::getInteger(otx::config::BLACK_SKULL_DEATH_HEALTH);
+				player->m_mana = otx::config::getInteger(otx::config::BLACK_SKULL_DEATH_MANA);
 			} else {
 				player->m_health = player->m_healthMax;
 				player->m_mana = player->m_manaMax;
@@ -768,7 +768,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	query.str("");
 	query << "UPDATE `players` SET `lastlogin` = " << player->m_lastLogin << ", `lastip` = " << player->m_lastIP;
-	if (!player->isSaving() || !g_config.getBool(ConfigManager::SAVE_PLAYER_DATA)) {
+	if (!player->isSaving() || !otx::config::getBoolean(otx::config::SAVE_PLAYER_DATA)) {
 		query << " WHERE `id` = " << player->getGUID() << " LIMIT 1;";
 		if (!g_database.executeQuery(query.str())) {
 			return false;
@@ -804,14 +804,14 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	query << "`stamina` = " << player->getStamina() << ", ";
 
 	Skulls_t skull = SKULL_RED;
-	if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+	if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 		skull = player->getSkull();
 	}
 
 	query << "`skull` = " << skull << ", ";
 	query << "`skulltime` = " << player->getSkullEnd() << ", ";
 	query << "`promotion` = " << player->m_promotionLevel << ", ";
-	if (g_config.getBool(ConfigManager::STORE_DIRECTION)) {
+	if (otx::config::getBoolean(otx::config::STORE_DIRECTION)) {
 		query << "`direction` = " << (uint32_t)player->getDirection() << ", ";
 	}
 
@@ -845,7 +845,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	query << "`loss_items` = " << (uint32_t)player->getLossPercent(LOSS_ITEMS) << ", ";
 
 	query << "`lastlogout` = " << player->getLastLogout() << ", ";
-	if (g_config.getBool(ConfigManager::BLESSINGS) && (player->isPremium() || !g_config.getBool(ConfigManager::BLESSING_ONLY_PREMIUM))) {
+	if (otx::config::getBoolean(otx::config::BLESSINGS) && (player->isPremium() || !otx::config::getBoolean(otx::config::BLESSING_ONLY_PREMIUM))) {
 		query << "`blessings` = " << player->m_blessings << ", ";
 		query << "`pvp_blessing` = " << (player->hasPVPBlessing() ? "1" : "0") << ", ";
 	}
@@ -854,7 +854,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	query << "`offlinetraining_skill` = " << player->getOfflineTrainingSkill() << ", ";
 
 	query << "`marriage` = " << player->m_marriage << ", ";
-	if (g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)) {
+	if (otx::config::getBoolean(otx::config::INGAME_GUILD_MANAGEMENT)) {
 		query << "`guildnick` = " << g_database.escapeString(player->m_guildNick) << ", ";
 		query << "`rank_id` = " << IOGuild::getInstance()->getRankIdByLevel(player->getGuildId(), player->getGuildLevel()) << ", ";
 	}
@@ -989,7 +989,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 		return false;
 	}
 
-	if (g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)) {
+	if (otx::config::getBoolean(otx::config::INGAME_GUILD_MANAGEMENT)) {
 		query.str("");
 		// save guild invites
 		query << "DELETE FROM `guild_invites` WHERE player_id = " << player->getGUID();
@@ -1019,7 +1019,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	query.str("");
 	// save vip list
-	if (!g_config.getBool(ConfigManager::VIPLIST_PER_PLAYER)) {
+	if (!otx::config::getBoolean(otx::config::VIPLIST_PER_PLAYER)) {
 		query << "DELETE FROM `account_viplist` WHERE `account_id` = " << player->getAccount();
 	} else {
 		query << "DELETE FROM `player_viplist` WHERE `player_id` = " << player->getGUID();
@@ -1029,7 +1029,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 		return false;
 	}
 
-	if (!g_config.getBool(ConfigManager::VIPLIST_PER_PLAYER)) {
+	if (!otx::config::getBoolean(otx::config::VIPLIST_PER_PLAYER)) {
 		stmt.setQuery("INSERT INTO `account_viplist` (`account_id`, `player_id`) VALUES ");
 	} else {
 		stmt.setQuery("INSERT INTO `player_viplist` (`player_id`, `vip_id`) VALUES ");
@@ -1041,7 +1041,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 			continue;
 		}
 
-		if (!g_config.getBool(ConfigManager::VIPLIST_PER_PLAYER)) {
+		if (!otx::config::getBoolean(otx::config::VIPLIST_PER_PLAYER)) {
 			query << player->getAccount() << "," << (*it);
 		} else {
 			query << player->getGUID() << "," << (*it);
@@ -1256,7 +1256,7 @@ bool IOLoginData::playerDeath(Player* _player, const DeathList& dl)
 		return false;
 	}
 
-	uint32_t i = 0, size = dl.size(), tmp = g_config.getNumber(ConfigManager::DEATH_ASSISTS) + 1;
+	uint32_t i = 0, size = dl.size(), tmp = otx::config::getInteger(otx::config::DEATH_ASSISTS) + 1;
 	if (size > tmp) {
 		size = tmp;
 	}
@@ -1440,7 +1440,7 @@ bool IOLoginData::hasCustomFlag(PlayerCustomFlags value, uint32_t guid)
 
 bool IOLoginData::isPremium(uint32_t guid)
 {
-	if (g_config.getBool(ConfigManager::FREE_PREMIUM)) {
+	if (otx::config::getBoolean(otx::config::FREE_PREMIUM)) {
 		return true;
 	}
 
@@ -1642,7 +1642,7 @@ bool IOLoginData::createCharacter(uint32_t accountId, std::string characterName,
 		lookType = 128;
 	}
 
-	uint32_t level = g_config.getNumber(ConfigManager::START_LEVEL), tmpLevel = std::min((uint32_t)7, (level - 1));
+	uint32_t level = otx::config::getInteger(otx::config::START_LEVEL), tmpLevel = std::min((uint32_t)7, (level - 1));
 	uint64_t exp = 0;
 	if (level > 1) {
 		exp = Player::getExpForLevel(level);
@@ -1661,7 +1661,7 @@ bool IOLoginData::createCharacter(uint32_t accountId, std::string characterName,
 	}
 
 	query.str("");
-	query << "INSERT INTO `players` (`id`, `name`, `group_id`, `account_id`, `level`, `vocation`, `health`, `healthmax`, `experience`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `maglevel`, `mana`, `manamax`, `manaspent`, `soul`, `town_id`, `posx`, `posy`, `posz`, `conditions`, `cap`, `sex`, `lastlogin`, `lastip`, `skull`, `skulltime`, `save`, `rank_id`, `guildnick`, `lastlogout`, `blessings`, `online`) VALUES (NULL, " << g_database.escapeString(characterName) << ", 1, " << accountId << ", " << level << ", " << vocationId << ", " << healthMax << ", " << healthMax << ", " << exp << ", 68, 76, 78, 39, " << lookType << ", 0, " << g_config.getNumber(ConfigManager::START_MAGICLEVEL) << ", " << manaMax << ", " << manaMax << ", 0, 100, " << g_config.getNumber(ConfigManager::SPAWNTOWN_ID) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_X) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_Y) << ", " << g_config.getNumber(ConfigManager::SPAWNPOS_Z) << ", 0, " << capMax << ", " << sex << ", 0, 0, 0, 0, 1, 0, '', 0, 0, 0)";
+	query << "INSERT INTO `players` (`id`, `name`, `group_id`, `account_id`, `level`, `vocation`, `health`, `healthmax`, `experience`, `lookbody`, `lookfeet`, `lookhead`, `looklegs`, `looktype`, `lookaddons`, `maglevel`, `mana`, `manamax`, `manaspent`, `soul`, `town_id`, `posx`, `posy`, `posz`, `conditions`, `cap`, `sex`, `lastlogin`, `lastip`, `skull`, `skulltime`, `save`, `rank_id`, `guildnick`, `lastlogout`, `blessings`, `online`) VALUES (NULL, " << g_database.escapeString(characterName) << ", 1, " << accountId << ", " << level << ", " << vocationId << ", " << healthMax << ", " << healthMax << ", " << exp << ", 68, 76, 78, 39, " << lookType << ", 0, " << otx::config::getInteger(otx::config::START_MAGICLEVEL) << ", " << manaMax << ", " << manaMax << ", 0, 100, " << otx::config::getInteger(otx::config::SPAWNTOWN_ID) << ", " << otx::config::getInteger(otx::config::SPAWNPOS_X) << ", " << otx::config::getInteger(otx::config::SPAWNPOS_Y) << ", " << otx::config::getInteger(otx::config::SPAWNPOS_Z) << ", 0, " << capMax << ", " << sex << ", 0, 0, 0, 0, 1, 0, '', 0, 0, 0)";
 	return g_database.executeQuery(query.str());
 }
 
@@ -1784,9 +1784,9 @@ bool IOLoginData::getUnjustifiedDates(uint32_t guid, std::vector<time_t>& dateLi
 {
 	std::ostringstream query;
 
-	uint32_t maxLength = std::max(g_config.getNumber(ConfigManager::FRAG_THIRD_LIMIT),
-		std::max(g_config.getNumber(ConfigManager::FRAG_SECOND_LIMIT),
-			g_config.getNumber(ConfigManager::FRAG_LIMIT)));
+	uint32_t maxLength = std::max(otx::config::getInteger(otx::config::FRAG_THIRD_LIMIT),
+		std::max(otx::config::getInteger(otx::config::FRAG_SECOND_LIMIT),
+			otx::config::getInteger(otx::config::FRAG_LIMIT)));
 	query << "SELECT `pd`.`date` FROM `player_killers` pk LEFT JOIN `killers` k ON `pk`.`kill_id` = `k`.`id`"
 		  << "LEFT JOIN `player_deaths` pd ON `k`.`death_id` = `pd`.`id` WHERE `pk`.`player_id` = " << guid
 		  << " AND `k`.`unjustified` = 1 AND `pd`.`date` >= " << (_time - maxLength) << " AND `k`.`war` = 0";

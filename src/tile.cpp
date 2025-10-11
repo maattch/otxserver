@@ -100,9 +100,9 @@ bool Tile::isFull() const
 {
 	uint32_t limit = 0;
 	if (hasFlag(TILESTATE_PROTECTIONZONE)) {
-		limit = g_config.getNumber(ConfigManager::PROTECTION_TILE_LIMIT);
+		limit = otx::config::getInteger(otx::config::PROTECTION_TILE_LIMIT);
 	} else {
-		limit = g_config.getNumber(ConfigManager::TILE_LIMIT);
+		limit = otx::config::getInteger(otx::config::TILE_LIMIT);
 	}
 
 	if (!limit) {
@@ -786,7 +786,7 @@ ReturnValue Tile::__queryAdd(int32_t, const Thing* thing, uint32_t,
 				for (ItemVector::const_iterator it = items->begin(); it != items->end(); ++it) {
 					const ItemType& iType = Item::items[(*it)->getID()];
 
-					if (g_config.getBool(ConfigManager::ALLOW_CORPSE_BLOCK)) {
+					if (otx::config::getBoolean(otx::config::ALLOW_CORPSE_BLOCK)) {
 						if ((*it)->getCorpseOwner() && !iType.movable) {
 							return RET_NOTPOSSIBLE;
 						}
@@ -999,7 +999,7 @@ void Tile::__addThing(Creature* actor, int32_t, Thing* thing)
 		return /* RET_NOTPOSSIBLE*/;
 	}
 
-	if (g_config.getBool(ConfigManager::STORE_TRASH) && !hasFlag(TILESTATE_TRASHED)) {
+	if (otx::config::getBoolean(otx::config::STORE_TRASH) && !hasFlag(TILESTATE_TRASHED)) {
 		g_game.addTrash(m_pos);
 		setFlag(TILESTATE_TRASHED);
 	}

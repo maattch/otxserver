@@ -353,11 +353,11 @@ bool Weapon::useFist(Player* player, Creature* target)
 
 	bool isCritical = false;
 	float attackFactor = player->getAttackFactor();
-	int32_t attackSkill = player->getSkill(SKILL_FIST, SKILL_LEVEL), attackValue = g_config.getNumber(ConfigManager::FIST_BASE_ATTACK);
+	int32_t attackSkill = player->getSkill(SKILL_FIST, SKILL_LEVEL), attackValue = otx::config::getInteger(otx::config::FIST_BASE_ATTACK);
 
 	double maxDamage = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
-	if (player->getCriticalHitChance() + g_config.getNumber(ConfigManager::CRITICAL_HIT_CHANCE) >= random_range(1, 100)) {
-		maxDamage *= g_config.getDouble(ConfigManager::CRITICAL_HIT_MUL);
+	if (player->getCriticalHitChance() + otx::config::getInteger(otx::config::CRITICAL_HIT_CHANCE) >= random_range(1, 100)) {
+		maxDamage *= otx::config::getDouble(otx::config::CRITICAL_HIT_MUL);
 		player->sendCritical();
 		isCritical = true;
 	}
@@ -442,7 +442,7 @@ void Weapon::onUsedWeapon(Player* player, Item* item, Tile*) const
 	int32_t manaCost = getManaCost(player);
 	if (manaCost > 0) {
 		player->changeMana(-manaCost);
-		if (!player->hasFlag(PlayerFlag_NotGainMana) && (player->getZone() != ZONE_HARDCORE || g_config.getBool(ConfigManager::PVPZONE_ADDMANASPENT))) {
+		if (!player->hasFlag(PlayerFlag_NotGainMana) && (player->getZone() != ZONE_HARDCORE || otx::config::getBoolean(otx::config::PVPZONE_ADDMANASPENT))) {
 			player->addManaSpent(manaCost);
 		}
 	}
@@ -454,7 +454,7 @@ void Weapon::onUsedWeapon(Player* player, Item* item, Tile*) const
 
 void Weapon::onUsedAmmo(Player* player, Item* item, Tile* destTile) const
 {
-	if (!g_config.getBool(ConfigManager::REMOVE_WEAPON_AMMO)) {
+	if (!otx::config::getBoolean(otx::config::REMOVE_WEAPON_AMMO)) {
 		return;
 	}
 
@@ -576,10 +576,10 @@ int32_t WeaponMelee::getWeaponDamage(const Player* player, const Creature*, cons
 	float attackFactor = player->getAttackFactor();
 
 	double maxValue = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
-	if (player->getCriticalHitChance() + g_config.getNumber(ConfigManager::CRITICAL_HIT_CHANCE) >= random_range(1, 100)) {
+	if (player->getCriticalHitChance() + otx::config::getInteger(otx::config::CRITICAL_HIT_CHANCE) >= random_range(1, 100)) {
 		isCritical = true;
 		maxDamage = true;
-		maxValue *= g_config.getDouble(ConfigManager::CRITICAL_HIT_MUL);
+		maxValue *= otx::config::getDouble(otx::config::CRITICAL_HIT_MUL);
 		player->sendCritical();
 	}
 
@@ -815,7 +815,7 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
 
 void WeaponDistance::onUsedAmmo(Player* player, Item* item, Tile* destTile) const
 {
-	if (!g_config.getBool(ConfigManager::REMOVE_WEAPON_AMMO)) {
+	if (!otx::config::getBoolean(otx::config::REMOVE_WEAPON_AMMO)) {
 		return;
 	}
 
@@ -841,10 +841,10 @@ int32_t WeaponDistance::getWeaponDamage(const Player* player, const Creature* ta
 	float attackFactor = player->getAttackFactor();
 
 	double maxValue = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
-	if (player->getCriticalHitChance() + g_config.getNumber(ConfigManager::CRITICAL_HIT_CHANCE) >= random_range(1, 100)) {
+	if (player->getCriticalHitChance() + otx::config::getInteger(otx::config::CRITICAL_HIT_CHANCE) >= random_range(1, 100)) {
 		isCritical = true;
 		maxDamage = true;
-		maxValue *= g_config.getDouble(ConfigManager::CRITICAL_HIT_MUL);
+		maxValue *= otx::config::getDouble(otx::config::CRITICAL_HIT_MUL);
 		player->sendCritical();
 	}
 

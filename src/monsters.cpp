@@ -162,7 +162,7 @@ bool MonsterType::createChildLoot(Container* parent, const LootBlock& lootBlock)
 
 uint16_t Monsters::getLootRandom()
 {
-	return (uint16_t)std::ceil((double)random_range(0, MAX_LOOTCHANCE) / g_config.getDouble(ConfigManager::RATE_LOOT));
+	return (uint16_t)std::ceil((double)random_range(0, MAX_LOOTCHANCE) / otx::config::getDouble(otx::config::RATE_LOOT));
 }
 
 void MonsterType::dropLoot(Container* corpse)
@@ -201,7 +201,7 @@ void MonsterType::dropLoot(Container* corpse)
 
 	LootMessage_t message = lootMessage;
 	if (message == LOOTMSG_IGNORE) {
-		message = (LootMessage_t)g_config.getNumber(ConfigManager::LOOT_MESSAGE);
+		message = (LootMessage_t)otx::config::getInteger(otx::config::LOOT_MESSAGE);
 	}
 
 	if (message < LOOTMSG_PLAYER) {
@@ -211,10 +211,10 @@ void MonsterType::dropLoot(Container* corpse)
 	std::stringstream ss;
 	ss << "Loot of " << nameDescription << ": " << corpse->getContentDescription() << ".";
 	if (owner->getParty() && message > LOOTMSG_PLAYER) {
-		owner->getParty()->broadcastMessage((MessageClasses)g_config.getNumber(ConfigManager::LOOT_MESSAGE_TYPE), ss.str());
+		owner->getParty()->broadcastMessage((MessageClasses)otx::config::getInteger(otx::config::LOOT_MESSAGE_TYPE), ss.str());
 	} else if (message == LOOTMSG_PLAYER || message == LOOTMSG_BOTH) {
 		if (!owner->getLoot()) {
-			owner->sendTextMessage((MessageClasses)g_config.getNumber(ConfigManager::LOOT_MESSAGE_TYPE), ss.str());
+			owner->sendTextMessage((MessageClasses)otx::config::getInteger(otx::config::LOOT_MESSAGE_TYPE), ss.str());
 		} else {
 			owner->sendChannelMessage("", ss.str(), MSG_CHANNEL_MANAGEMENT, CHANNEL_LOOT);
 		}

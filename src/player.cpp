@@ -602,7 +602,7 @@ void Player::updateInventoryWeight()
 {
 	m_inventoryWeight = 0.00;
 	if (hasFlag(PlayerFlag_HasInfiniteCapacity)
-		|| !g_config.getBool(ConfigManager::USE_CAPACITY)) {
+		|| !otx::config::getBoolean(otx::config::USE_CAPACITY)) {
 		return;
 	}
 
@@ -681,7 +681,7 @@ void Player::addSkillAdvance(skills_t skill, uint64_t count, bool useMultiplier 
 	}
 
 	if (useMultiplier) {
-		count = uint64_t((double)count * m_rates[skill] * g_config.getDouble(ConfigManager::RATE_SKILL));
+		count = uint64_t((double)count * m_rates[skill] * otx::config::getDouble(otx::config::RATE_SKILL));
 	}
 
 	std::ostringstream s;
@@ -838,10 +838,10 @@ void Player::dropLoot(Container* corpse)
 		return;
 	}
 
-	uint32_t loss = m_lossPercent[LOSS_CONTAINERS], start = g_config.getNumber(ConfigManager::BLESS_REDUCTION_BASE), bless = getBlessings();
+	uint32_t loss = m_lossPercent[LOSS_CONTAINERS], start = otx::config::getInteger(otx::config::BLESS_REDUCTION_BASE), bless = getBlessings();
 	while (bless > 0 && loss > 0) {
 		loss -= start;
-		start -= g_config.getNumber(ConfigManager::BLESS_REDUCTION_DECREMENT);
+		start -= otx::config::getInteger(otx::config::BLESS_REDUCTION_DECREMENT);
 		--bless;
 	}
 
@@ -1283,7 +1283,7 @@ void Player::sendCancelMessage(ReturnValue message) const
 
 		case RET_YOUCANONLYTRADEUPTOX: {
 			std::ostringstream s;
-			s << "You can only trade up to " << g_config.getNumber(ConfigManager::TRADE_LIMIT) << " items at a time.";
+			s << "You can only trade up to " << otx::config::getInteger(otx::config::TRADE_LIMIT) << " items at a time.";
 			sendCancel(s.str());
 		} break;
 
@@ -1476,8 +1476,8 @@ void Player::onCreatureAppear(const Creature* creature)
 	if (m_lastLogout && m_stamina < STAMINA_MAX) {
 		int64_t ticks = (int64_t)time(nullptr) - m_lastLogout - 600;
 		if (ticks > 0) {
-			ticks = (int64_t)((double)(ticks * 1000) / g_config.getDouble(ConfigManager::RATE_STAMINA_GAIN));
-			int64_t premium = g_config.getNumber(ConfigManager::STAMINA_LIMIT_TOP) * STAMINA_MULTIPLIER, period = ticks;
+			ticks = (int64_t)((double)(ticks * 1000) / otx::config::getDouble(otx::config::RATE_STAMINA_GAIN));
+			int64_t premium = otx::config::getInteger(otx::config::STAMINA_LIMIT_TOP) * STAMINA_MULTIPLIER, period = ticks;
 			if ((int64_t)m_stamina <= premium) {
 				period += m_stamina;
 				if (period > premium) {
@@ -1490,8 +1490,8 @@ void Player::onCreatureAppear(const Creature* creature)
 			}
 
 			if (period > 0) {
-				ticks = (int64_t)((g_config.getDouble(ConfigManager::RATE_STAMINA_GAIN) * period)
-					/ g_config.getDouble(ConfigManager::RATE_STAMINA_THRESHOLD));
+				ticks = (int64_t)((otx::config::getDouble(otx::config::RATE_STAMINA_GAIN) * period)
+					/ otx::config::getDouble(otx::config::RATE_STAMINA_THRESHOLD));
 				if (m_stamina + ticks > STAMINA_MAX) {
 					ticks = STAMINA_MAX - m_stamina;
 				}
@@ -1601,7 +1601,7 @@ void Player::onCreatureAppear(const Creature* creature)
 		}
 	}
 
-	if (g_config.getBool(ConfigManager::DISPLAY_LOGGING)) {
+	if (otx::config::getBoolean(otx::config::DISPLAY_LOGGING)) {
 		std::clog << m_name << " has logged in." << std::endl;
 	}
 }
@@ -1726,7 +1726,7 @@ void Player::onCreatureDisappear(const Creature* creature, bool isLogout)
 		IOLoginData::getInstance()->updateOnlineStatus(m_guid, false);
 	}
 
-	if (g_config.getBool(ConfigManager::DISPLAY_LOGGING)) {
+	if (otx::config::getBoolean(otx::config::DISPLAY_LOGGING)) {
 		std::clog << getName() << " has logged out." << std::endl;
 	}
 
@@ -1831,7 +1831,7 @@ void Player::onCreatureMove(const Creature* creature, const Tile* newTile, const
 	}
 
 	if ((teleport || oldPos.z != newPos.z) && !hasCustomFlag(PlayerCustomFlag_CanStairhop)) {
-		int32_t ticks = g_config.getNumber(ConfigManager::STAIRHOP_DELAY);
+		int32_t ticks = otx::config::getInteger(otx::config::STAIRHOP_DELAY);
 		if (ticks > 0) {
 			addExhaust(ticks, EXHAUST_MELEE);
 			if (Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_PACIFIED, ticks)) {
@@ -2032,7 +2032,7 @@ void Player::onThink(uint32_t interval)
 		m_lastPing = timeNow;
 		if (hasClient()) {
 			m_client->sendPing();
-		} else if (g_config.getBool(ConfigManager::STOP_ATTACK_AT_EXIT)) {
+		} else if (otx::config::getBoolean(otx::config::STOP_ATTACK_AT_EXIT)) {
 			setAttackedCreature(nullptr);
 		}
 	}
@@ -2056,7 +2056,7 @@ void Player::onThink(uint32_t interval)
 		addMessageBuffer();
 	}
 
-	if (m_lastMail && m_lastMail < (uint64_t)(otx::util::mstime() + g_config.getNumber(ConfigManager::MAIL_ATTEMPTS_FADE))) {
+	if (m_lastMail && m_lastMail < (uint64_t)(otx::util::mstime() + otx::config::getInteger(otx::config::MAIL_ATTEMPTS_FADE))) {
 		m_mailAttempts = m_lastMail = 0;
 	}
 
@@ -2096,7 +2096,7 @@ bool Player::isMuted(uint16_t channelId, MessageClasses type, int32_t& time)
 
 void Player::addMessageBuffer()
 {
-	if (!hasFlag(PlayerFlag_CannotBeMuted) && g_config.getNumber(ConfigManager::MAX_MESSAGEBUFFER) && m_messageBuffer) {
+	if (!hasFlag(PlayerFlag_CannotBeMuted) && otx::config::getInteger(otx::config::MAX_MESSAGEBUFFER) && m_messageBuffer) {
 		m_messageBuffer--;
 	}
 }
@@ -2107,7 +2107,7 @@ void Player::removeMessageBuffer()
 		return;
 	}
 
-	int32_t maxBuffer = g_config.getNumber(ConfigManager::MAX_MESSAGEBUFFER);
+	int32_t maxBuffer = otx::config::getInteger(otx::config::MAX_MESSAGEBUFFER);
 	if (!maxBuffer || m_messageBuffer > maxBuffer + 1 || ++m_messageBuffer <= maxBuffer) {
 		return;
 	}
@@ -2132,7 +2132,7 @@ void Player::removeMessageBuffer()
 double Player::getFreeCapacity() const
 {
 	if (hasFlag(PlayerFlag_HasInfiniteCapacity)
-		|| !g_config.getBool(ConfigManager::USE_CAPACITY)) {
+		|| !otx::config::getBoolean(otx::config::USE_CAPACITY)) {
 		return 10000.00;
 	}
 
@@ -2163,7 +2163,7 @@ void Player::addManaSpent(uint64_t amount, bool useMultiplier /* = true*/)
 	}
 
 	if (useMultiplier) {
-		amount = uint64_t((double)amount * m_rates[SKILL__MAGLEVEL] * g_config.getDouble(ConfigManager::RATE_MAGIC));
+		amount = uint64_t((double)amount * m_rates[SKILL__MAGLEVEL] * otx::config::getDouble(otx::config::RATE_MAGIC));
 	}
 
 	std::ostringstream s;
@@ -2371,7 +2371,7 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 {
 	BlockType_t blockType = Creature::blockHit(attacker, combatType, damage, checkDefense, checkArmor, reflect, field);
 	if (attacker && !element) {
-		int16_t color = g_config.getNumber(ConfigManager::SQUARE_COLOR);
+		int16_t color = otx::config::getInteger(otx::config::SQUARE_COLOR);
 		if (color < 0) {
 			color = random_range(0, 254);
 		}
@@ -2458,8 +2458,8 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 		reflected += (int32_t)std::ceil((double)(damage * m_vocation->getReflect(combatIndex)) / 100.);
 	}
 
-	if (g_config.getBool(ConfigManager::USE_MAX_ABSORBALL)) {
-		double maxAbsorb = (g_config.getDouble(ConfigManager::MAX_ABSORB_PERCENT) / 100.0);
+	if (otx::config::getBoolean(otx::config::USE_MAX_ABSORBALL)) {
+		double maxAbsorb = (otx::config::getDouble(otx::config::MAX_ABSORB_PERCENT) / 100.0);
 		damage -= (blocked > (damage * maxAbsorb) ? (damage * maxAbsorb) : blocked); // set max absorb = 80%
 	} else {
 		damage -= blocked;
@@ -2543,8 +2543,7 @@ bool Player::onDeath()
 
 	uint32_t totalDamage = 0, pvpDamage = 0, opponents = 0;
 	for (CountMap::iterator it = m_damageMap.begin(); it != m_damageMap.end(); ++it) {
-		if (((otx::util::mstime() - it->second.ticks) / 1000) > g_config.getNumber(
-				ConfigManager::FAIRFIGHT_TIMERANGE)) {
+		if (((otx::util::mstime() - it->second.ticks) / 1000) > otx::config::getInteger(otx::config::FAIRFIGHT_TIMERANGE)) {
 			continue;
 		}
 
@@ -2568,7 +2567,7 @@ bool Player::onDeath()
 	if (preventLoss) {
 		setLossSkill(false);
 		g_game.transformItem(preventLoss, preventLoss->getID(), std::max(0, (int32_t)preventLoss->getCharges() - 1));
-	} else if (m_pvpBlessing && (int32_t)std::floor((100. * pvpDamage) / std::max(1U, totalDamage)) >= g_config.getNumber(ConfigManager::PVP_BLESSING_THRESHOLD)) {
+	} else if (m_pvpBlessing && (int32_t)std::floor((100. * pvpDamage) / std::max(1U, totalDamage)) >= otx::config::getInteger(otx::config::PVP_BLESSING_THRESHOLD)) {
 		usePVPBlessing = true;
 	}
 
@@ -2579,7 +2578,7 @@ bool Player::onDeath()
 	removeConditions(CONDITIONEND_DEATH);
 	if (m_skillLoss) {
 		double reduction = 1.;
-		if (g_config.getBool(ConfigManager::FAIRFIGHT_REDUCTION) && opponents > m_level) {
+		if (otx::config::getBoolean(otx::config::FAIRFIGHT_REDUCTION) && opponents > m_level) {
 			reduction -= (double)m_level / opponents;
 		}
 
@@ -2649,7 +2648,7 @@ bool Player::onDeath()
 
 		m_loginPosition = m_masterPosition;
 		if (!m_inventory[SLOT_BACKPACK]) { // FIXME: you should receive the bag after you login back...
-			__internalAddThing(SLOT_BACKPACK, Item::CreateItem(g_config.getNumber(ConfigManager::DEATH_CONTAINER)));
+			__internalAddThing(SLOT_BACKPACK, Item::CreateItem(otx::config::getInteger(otx::config::DEATH_CONTAINER)));
 		}
 
 		sendIcons();
@@ -2679,7 +2678,7 @@ void Player::dropCorpse(DeathList deathList)
 		m_pzLocked = false;
 		if (m_health <= 0) {
 			m_health = m_healthMax;
-			if (getZone() != ZONE_HARDCORE || g_config.getBool(ConfigManager::PVPZONE_RECOVERMANA)) {
+			if (getZone() != ZONE_HARDCORE || otx::config::getBoolean(otx::config::PVPZONE_RECOVERMANA)) {
 				m_mana = m_manaMax;
 			}
 		}
@@ -2693,7 +2692,7 @@ void Player::dropCorpse(DeathList deathList)
 		g_game.internalTeleport(this, m_masterPosition, false);
 	} else {
 		Creature::dropCorpse(deathList);
-		if (g_config.getBool(ConfigManager::DEATH_LIST)) {
+		if (otx::config::getBoolean(otx::config::DEATH_LIST)) {
 			IOLoginData::getInstance()->playerDeath(this, deathList);
 		}
 	}
@@ -2717,7 +2716,7 @@ Item* Player::createCorpse(DeathList deathList)
 		ss << deathList[0].getKillerName();
 	}
 
-	if (deathList.size() > 1 && g_config.getBool(ConfigManager::MULTIPLE_NAME)) {
+	if (deathList.size() > 1 && otx::config::getBoolean(otx::config::MULTIPLE_NAME)) {
 		if (deathList[0].getKillerType() != deathList[1].getKillerType()) {
 			if (deathList[1].isCreatureKill()) {
 				ss << " and by " << deathList[1].getKillerCreature()->getNameDescription();
@@ -2767,7 +2766,7 @@ void Player::addInFightTicks(bool pzLock, int32_t ticks /* = 0*/)
 	}
 
 	if (!ticks) {
-		ticks = g_config.getNumber(ConfigManager::PZ_LOCKED);
+		ticks = otx::config::getInteger(otx::config::PZ_LOCKED);
 	} else {
 		ticks = std::max(-1, ticks);
 	}
@@ -2874,7 +2873,7 @@ bool Player::addVIP(uint32_t _guid, const std::string& name, bool online, bool l
 		return false;
 	}
 
-	if (!loading && m_VIPList.size() > (size_t)(m_group ? m_group->getMaxVips(isPremium()) : g_config.getNumber(ConfigManager::VIPLIST_DEFAULT_LIMIT))) {
+	if (!loading && m_VIPList.size() > (size_t)(m_group ? m_group->getMaxVips(isPremium()) : otx::config::getInteger(otx::config::VIPLIST_DEFAULT_LIMIT))) {
 		sendTextMessage(MSG_STATUS_SMALL, "You cannot add more buddies.");
 		return false;
 	}
@@ -2963,7 +2962,7 @@ ReturnValue Player::__queryAdd(int32_t index, const Thing* thing, uint32_t count
 	} else if (item->getSlotPosition() & SLOTP_TWO_HAND) {
 		ret = RET_PUTTHISOBJECTINBOTHHANDS;
 	} else if ((item->getSlotPosition() & SLOTP_RIGHT) || (item->getSlotPosition() & SLOTP_LEFT)) {
-		if (!g_config.getBool(ConfigManager::CLASSIC_EQUIPMENT_SLOTS)) {
+		if (!otx::config::getBoolean(otx::config::CLASSIC_EQUIPMENT_SLOTS)) {
 			ret = RET_CANNOTBEDRESSED;
 		} else {
 			ret = RET_PUTTHISOBJECTINYOURHAND;
@@ -2993,7 +2992,7 @@ ReturnValue Player::__queryAdd(int32_t index, const Thing* thing, uint32_t count
 			break;
 		case SLOT_RIGHT:
 			if (item->getSlotPosition() & SLOTP_RIGHT) {
-				if (!g_config.getBool(ConfigManager::CLASSIC_EQUIPMENT_SLOTS)) {
+				if (!otx::config::getBoolean(otx::config::CLASSIC_EQUIPMENT_SLOTS)) {
 					if (!item->isWeapon() || (item->getWeaponType() != WEAPON_SHIELD && !item->isDualWield())) {
 						ret = RET_CANNOTBEDRESSED;
 					} else {
@@ -3035,7 +3034,7 @@ ReturnValue Player::__queryAdd(int32_t index, const Thing* thing, uint32_t count
 			break;
 		case SLOT_LEFT:
 			if (item->getSlotPosition() & SLOTP_LEFT) {
-				if (!g_config.getBool(ConfigManager::CLASSIC_EQUIPMENT_SLOTS)) {
+				if (!otx::config::getBoolean(otx::config::CLASSIC_EQUIPMENT_SLOTS)) {
 					if (!item->isWeapon() || item->getWeaponType() == WEAPON_SHIELD) {
 						ret = RET_CANNOTBEDRESSED;
 					} else if (m_inventory[SLOT_RIGHT] && (item->getSlotPosition() & SLOTP_TWO_HAND)) {
@@ -3084,7 +3083,7 @@ ReturnValue Player::__queryAdd(int32_t index, const Thing* thing, uint32_t count
 			}
 			break;
 		case SLOT_AMMO:
-			if ((item->getSlotPosition() & SLOTP_AMMO) || g_config.getBool(ConfigManager::CLASSIC_EQUIPMENT_SLOTS)) {
+			if ((item->getSlotPosition() & SLOTP_AMMO) || otx::config::getBoolean(otx::config::CLASSIC_EQUIPMENT_SLOTS)) {
 				ret = RET_NOERROR;
 			}
 			break;
@@ -3283,7 +3282,7 @@ Cylinder* Player::__queryDestination(int32_t& index, const Thing* thing, Item** 
 			}
 		}
 
-		int32_t deepness = g_config.getNumber(ConfigManager::PLAYER_DEEPNESS);
+		int32_t deepness = otx::config::getInteger(otx::config::PLAYER_DEEPNESS);
 		while (!containers.empty()) {
 			Container* tmpContainer = containers.front().first;
 			int32_t level = containers.front().second;
@@ -3843,7 +3842,7 @@ double Player::getGainedExperience(Creature* attacker) const
 		return 0;
 	}
 
-	double rate = g_config.getDouble(ConfigManager::RATE_PVP_EXPERIENCE);
+	double rate = otx::config::getDouble(otx::config::RATE_PVP_EXPERIENCE);
 	if (rate <= 0) {
 		return 0;
 	}
@@ -3853,7 +3852,7 @@ double Player::getGainedExperience(Creature* attacker) const
 		return 0;
 	}
 
-	double attackerLevel = (double)attackerPlayer->getLevel(), min = g_config.getDouble(ConfigManager::EFP_MIN_THRESHOLD), max = g_config.getDouble(ConfigManager::EFP_MAX_THRESHOLD);
+	double attackerLevel = (double)attackerPlayer->getLevel(), min = otx::config::getDouble(otx::config::EFP_MIN_THRESHOLD), max = otx::config::getDouble(otx::config::EFP_MAX_THRESHOLD);
 	if ((min > 0.0 && m_level < (uint32_t)std::floor(attackerLevel * min)) || (max > 0.0 && m_level > (uint32_t)std::floor(attackerLevel * max))) {
 		return 0;
 	}
@@ -4063,7 +4062,7 @@ void Player::onTickCondition(ConditionType_t type, ConditionId_t id, int32_t int
 	Creature::onTickCondition(type, id, interval, _remove);
 	switch (type) {
 		case CONDITION_HUNTING:
-			useStamina(-(interval * g_config.getNumber(ConfigManager::RATE_STAMINA_LOSS)));
+			useStamina(-(interval * otx::config::getInteger(otx::config::RATE_STAMINA_LOSS)));
 			break;
 
 		default:
@@ -4091,7 +4090,7 @@ void Player::onTarget(Creature* target)
 			sendIcons();
 		}
 
-		if (g_config.getBool(ConfigManager::PZLOCK_ON_ATTACK_SKULLED_PLAYERS)) {
+		if (otx::config::getBoolean(otx::config::PZLOCK_ON_ATTACK_SKULLED_PLAYERS)) {
 			if (!m_pzLocked && targetPlayer->getSkull() >= SKULL_WHITE) {
 				m_pzLocked = true;
 				sendIcons();
@@ -4141,7 +4140,7 @@ void Player::onAttacked()
 
 bool Player::checkLoginDelay() const
 {
-	return (!hasCustomFlag(PlayerCustomFlag_IgnoreLoginDelay) && otx::util::mstime() <= (m_lastLoad + g_config.getNumber(ConfigManager::LOGIN_PROTECTION)));
+	return (!hasCustomFlag(PlayerCustomFlag_IgnoreLoginDelay) && otx::util::mstime() <= (m_lastLoad + otx::config::getInteger(otx::config::LOGIN_PROTECTION)));
 }
 
 void Player::onIdleStatus()
@@ -4255,7 +4254,7 @@ bool Player::isEnemy(const Player* player, bool allies) const
 		return false;
 	}
 
-	return !m_warMap.empty() && (((g_game.getWorldType() != WORLDTYPE_OPTIONAL || g_config.getBool(ConfigManager::OPTIONAL_WAR_ATTACK_ALLY)) && allies && m_guildId == guild) || m_warMap.find(guild) != m_warMap.end());
+	return !m_warMap.empty() && (((g_game.getWorldType() != WORLDTYPE_OPTIONAL || otx::config::getBoolean(otx::config::OPTIONAL_WAR_ATTACK_ALLY)) && allies && m_guildId == guild) || m_warMap.find(guild) != m_warMap.end());
 }
 
 bool Player::isAlly(const Player* player) const
@@ -4276,7 +4275,7 @@ bool Player::onKilledCreature(Creature* target, DeathEntry& entry)
 	Condition* condition = nullptr;
 	if (target->getMonster() && !target->isPlayerSummon() && !hasFlag(PlayerFlag_HasInfiniteStamina)
 		&& (condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_HUNTING,
-				g_config.getNumber(ConfigManager::HUNTING_DURATION)))) {
+				otx::config::getInteger(otx::config::HUNTING_DURATION)))) {
 		addCondition(condition);
 	}
 
@@ -4308,7 +4307,7 @@ bool Player::onKilledCreature(Creature* target, DeathEntry& entry)
 			}
 		}
 
-		if (!g_config.getBool(ConfigManager::ADD_FRAG_SAMEIP)) {
+		if (!otx::config::getBoolean(otx::config::ADD_FRAG_SAMEIP)) {
 			if (this->getIP() == targetPlayer->getIP()) {
 				return true;
 			}
@@ -4325,7 +4324,7 @@ bool Player::onKilledCreature(Creature* target, DeathEntry& entry)
 	}
 
 	if (entry.isLast()) {
-		addInFightTicks(true, g_config.getNumber(ConfigManager::WHITE_SKULL_TIME));
+		addInFightTicks(true, otx::config::getInteger(otx::config::WHITE_SKULL_TIME));
 	}
 	return true;
 }
@@ -4337,9 +4336,9 @@ bool Player::gainExperience(double& gainExp, Creature* target)
 	}
 
 	// use cast exp, make by feetads
-	if (g_config.getBool(ConfigManager::CAST_EXP_ENABLED)) {
+	if (otx::config::getBoolean(otx::config::CAST_EXP_ENABLED)) {
 		if (m_client->isBroadcasting() && m_client->getPassword().empty()) {
-			uint32_t extraExpCast = g_config.getNumber(ConfigManager::CAST_EXP_PERCENT);
+			uint32_t extraExpCast = otx::config::getInteger(otx::config::CAST_EXP_PERCENT);
 			gainExp *= 1 + ((extraExpCast && extraExpCast > 0) ? (extraExpCast / 100.0) : 0);
 		}
 	}
@@ -4373,17 +4372,17 @@ bool Player::rateExperience(double& gainExp, Creature* target)
 	gainExp *= m_rates[SKILL__LEVEL] * g_game.getExperienceStage(m_level, m_vocation->getExperienceMultiplier());
 	if (!hasFlag(PlayerFlag_HasInfiniteStamina)) {
 		int32_t minutes = getStaminaMinutes();
-		if (minutes >= g_config.getNumber(ConfigManager::STAMINA_LIMIT_TOP)) {
-			if (isPremium() || !g_config.getBool(ConfigManager::STAMINA_BONUS_PREMIUM)) {
-				gainExp *= g_config.getDouble(ConfigManager::RATE_STAMINA_ABOVE);
+		if (minutes >= otx::config::getInteger(otx::config::STAMINA_LIMIT_TOP)) {
+			if (isPremium() || !otx::config::getBoolean(otx::config::STAMINA_BONUS_PREMIUM)) {
+				gainExp *= otx::config::getDouble(otx::config::RATE_STAMINA_ABOVE);
 			}
-		} else if (minutes < (g_config.getNumber(ConfigManager::STAMINA_LIMIT_BOTTOM)) && minutes > 0) {
-			gainExp *= g_config.getDouble(ConfigManager::RATE_STAMINA_UNDER);
+		} else if (minutes < (otx::config::getInteger(otx::config::STAMINA_LIMIT_BOTTOM)) && minutes > 0) {
+			gainExp *= otx::config::getDouble(otx::config::RATE_STAMINA_UNDER);
 		} else if (minutes <= 0) {
 			gainExp = 0;
 		}
-	} else if (isPremium() || !g_config.getBool(ConfigManager::STAMINA_BONUS_PREMIUM)) {
-		gainExp *= g_config.getDouble(ConfigManager::RATE_STAMINA_ABOVE);
+	} else if (isPremium() || !otx::config::getBoolean(otx::config::STAMINA_BONUS_PREMIUM)) {
+		gainExp *= otx::config::getDouble(otx::config::RATE_STAMINA_ABOVE);
 	}
 
 	return true;
@@ -4428,7 +4427,7 @@ bool Player::isImmune(ConditionType_t type) const
 
 bool Player::isProtected() const
 {
-	return (m_vocation && !m_vocation->attackable) || hasCustomFlag(PlayerCustomFlag_IsProtected) || m_level < g_config.getNumber(ConfigManager::PROTECTION_LEVEL);
+	return (m_vocation && !m_vocation->attackable) || hasCustomFlag(PlayerCustomFlag_IsProtected) || m_level < otx::config::getInteger(otx::config::PROTECTION_LEVEL);
 }
 
 bool Player::isAttackable() const
@@ -4691,7 +4690,7 @@ void Player::setSkullEnd(time_t _time, bool login, Skulls_t _skull)
 
 bool Player::addUnjustifiedKill(const Player* attacked, bool countNow)
 {
-	if (!g_config.getBool(ConfigManager::USE_FRAG_HANDLER) || hasFlag(PlayerFlag_NotGainInFight) || g_game.getWorldType() != WORLDTYPE_OPEN
+	if (!otx::config::getBoolean(otx::config::USE_FRAG_HANDLER) || hasFlag(PlayerFlag_NotGainInFight) || g_game.getWorldType() != WORLDTYPE_OPEN
 		|| hasCustomFlag(PlayerCustomFlag_NotGainUnjustified) || hasCustomFlag(PlayerCustomFlag_NotGainSkull)) {
 		return false;
 	}
@@ -4702,8 +4701,8 @@ bool Player::addUnjustifiedKill(const Player* attacked, bool countNow)
 		sendTextMessage(MSG_STATUS_WARNING, buffer);
 	}
 
-	time_t now = time(nullptr), first = (now - g_config.getNumber(ConfigManager::FRAG_LIMIT)),
-		   second = (now - g_config.getNumber(ConfigManager::FRAG_SECOND_LIMIT));
+	time_t now = time(nullptr), first = (now - otx::config::getInteger(otx::config::FRAG_LIMIT)),
+		   second = (now - otx::config::getInteger(otx::config::FRAG_SECOND_LIMIT));
 	std::vector<time_t> dateList;
 
 	IOLoginData::getInstance()->getUnjustifiedDates(m_guid, dateList, now);
@@ -4722,20 +4721,20 @@ bool Player::addUnjustifiedKill(const Player* attacked, bool countNow)
 		}
 	}
 
-	uint32_t f = g_config.getNumber(ConfigManager::RED_LIMIT), s = g_config.getNumber(ConfigManager::RED_SECOND_LIMIT), t = g_config.getNumber(ConfigManager::RED_THIRD_LIMIT);
+	uint32_t f = otx::config::getInteger(otx::config::RED_LIMIT), s = otx::config::getInteger(otx::config::RED_SECOND_LIMIT), t = otx::config::getInteger(otx::config::RED_THIRD_LIMIT);
 	if (m_skull < SKULL_RED && ((f > 0 && fc >= f) || (s > 0 && sc >= s) || (t > 0 && tc >= t))) {
-		setSkullEnd(now + g_config.getNumber(ConfigManager::RED_SKULL_LENGTH), false, SKULL_RED);
+		setSkullEnd(now + otx::config::getInteger(otx::config::RED_SKULL_LENGTH), false, SKULL_RED);
 	}
 
-	if (!g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
-		f += g_config.getNumber(ConfigManager::BAN_LIMIT);
-		s += g_config.getNumber(ConfigManager::BAN_SECOND_LIMIT);
-		t += g_config.getNumber(ConfigManager::BAN_THIRD_LIMIT);
+	if (!otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
+		f += otx::config::getInteger(otx::config::BAN_LIMIT);
+		s += otx::config::getInteger(otx::config::BAN_SECOND_LIMIT);
+		t += otx::config::getInteger(otx::config::BAN_THIRD_LIMIT);
 		if ((f <= 0 || fc < f) && (s <= 0 || sc < s) && (t <= 0 || tc < t)) {
 			return true;
 		}
 
-		if (!IOBan::getInstance()->addAccountBanishment(m_accountId, (now + g_config.getNumber(ConfigManager::KILLS_BAN_LENGTH)), 28, ACTION_BANISHMENT, "Player Killing (automatic)", 0, m_guid)) {
+		if (!IOBan::getInstance()->addAccountBanishment(m_accountId, (now + otx::config::getInteger(otx::config::KILLS_BAN_LENGTH)), 28, ACTION_BANISHMENT, "Player Killing (automatic)", 0, m_guid)) {
 			return true;
 		}
 
@@ -4743,11 +4742,11 @@ bool Player::addUnjustifiedKill(const Player* attacked, bool countNow)
 		g_game.addMagicEffect(getPosition(), MAGIC_EFFECT_WRAPS_GREEN);
 		addSchedulerTask(1000, [playerID = getID()]() { g_game.kickPlayer(playerID, false); });
 	} else {
-		f += g_config.getNumber(ConfigManager::BLACK_LIMIT);
-		s += g_config.getNumber(ConfigManager::BLACK_SECOND_LIMIT);
-		t += g_config.getNumber(ConfigManager::BLACK_THIRD_LIMIT);
+		f += otx::config::getInteger(otx::config::BLACK_LIMIT);
+		s += otx::config::getInteger(otx::config::BLACK_SECOND_LIMIT);
+		t += otx::config::getInteger(otx::config::BLACK_THIRD_LIMIT);
 		if (m_skull < SKULL_BLACK && ((f > 0 && fc >= f) || (s > 0 && sc >= s) || (t > 0 && tc >= t))) {
-			setSkullEnd(now + g_config.getNumber(ConfigManager::BLACK_SKULL_LENGTH), false, SKULL_BLACK);
+			setSkullEnd(now + otx::config::getInteger(otx::config::BLACK_SKULL_LENGTH), false, SKULL_BLACK);
 			setAttackedCreature(nullptr);
 			destroySummons();
 		}
@@ -4768,7 +4767,7 @@ void Player::setPromotionLevel(uint32_t pLevel)
 
 			tmpLevel++;
 			Vocation* voc = g_vocations.getVocation(currentVoc);
-			if (!voc || (voc->needPremium && !isPremium() && g_config.getBool(ConfigManager::PREMIUM_FOR_PROMOTION))) {
+			if (!voc || (voc->needPremium && !isPremium() && otx::config::getBoolean(otx::config::PREMIUM_FOR_PROMOTION))) {
 				continue;
 			}
 
@@ -4786,7 +4785,7 @@ void Player::setPromotionLevel(uint32_t pLevel)
 
 			tmpLevel++;
 			currentVoc = voc->fromVocationId;
-			if (voc->needPremium && !isPremium() && g_config.getBool(ConfigManager::PREMIUM_FOR_PROMOTION)) {
+			if (voc->needPremium && !isPremium() && otx::config::getBoolean(otx::config::PREMIUM_FOR_PROMOTION)) {
 				continue;
 			}
 
@@ -4801,7 +4800,7 @@ void Player::setPromotionLevel(uint32_t pLevel)
 
 uint16_t Player::getBlessings() const
 {
-	if (!g_config.getBool(ConfigManager::BLESSINGS) || (!isPremium() && g_config.getBool(ConfigManager::BLESSING_ONLY_PREMIUM))) {
+	if (!otx::config::getBoolean(otx::config::BLESSINGS) || (!isPremium() && otx::config::getBoolean(otx::config::BLESSING_ONLY_PREMIUM))) {
 		return 0;
 	}
 
@@ -5091,7 +5090,7 @@ void Player::manageAccount(const std::string& text)
 				m_talkState[9] = false;
 				msg << "Tell me then, would you like to be a {male} or a {female}?";
 			} else if (checkText(text, "yes") && m_talkState[9]) {
-				if (g_config.getBool(ConfigManager::START_CHOOSEVOC)) {
+				if (otx::config::getBoolean(otx::config::START_CHOOSEVOC)) {
 					m_talkState[9] = false;
 					m_talkState[11] = true;
 
@@ -5206,7 +5205,7 @@ void Player::manageAccount(const std::string& text)
 					msg << "{" << m_managerString << "} is it? {yes} or {no}?";
 				}
 			} else if (checkText(text, "yes") && m_talkState[3]) {
-				if (g_config.getBool(ConfigManager::GENERATE_ACCOUNT_NUMBER)) {
+				if (otx::config::getBoolean(otx::config::GENERATE_ACCOUNT_NUMBER)) {
 					do {
 						sprintf(m_managerChar, "%d%d%d%d%d%d%d", random_range(2, 9), random_range(2, 9), random_range(2, 9), random_range(2, 9), random_range(2, 9), random_range(2, 9), random_range(2, 9));
 					} while (IOLoginData::getInstance()->accountNameExists(m_managerChar));
@@ -5295,7 +5294,7 @@ void Player::manageAccount(const std::string& text)
 			} else if (m_talkState[8]) {
 				m_managerString2 = text;
 				if (IOLoginData::getInstance()->validRecoveryKey(m_managerNumber, m_managerString2) && m_managerString2 != "0") {
-					sprintf(m_managerChar, "%s%d", g_config.getString(ConfigManager::SERVER_NAME).c_str(), random_range(100, 999));
+					sprintf(m_managerChar, "%s%d", otx::config::getString(otx::config::SERVER_NAME).c_str(), random_range(100, 999));
 					IOLoginData::getInstance()->setPassword(m_managerNumber, m_managerChar);
 					msg << "Correct! Your new password is {" << m_managerChar << "}.";
 				} else {
@@ -5344,7 +5343,7 @@ void Player::leaveGuild()
 
 bool Player::isPremium() const
 {
-	if (g_config.getBool(ConfigManager::FREE_PREMIUM) || hasFlag(PlayerFlag_IsAlwaysPremium)) {
+	if (otx::config::getBoolean(otx::config::FREE_PREMIUM) || hasFlag(PlayerFlag_IsAlwaysPremium)) {
 		return true;
 	}
 
@@ -5595,7 +5594,7 @@ void Player::increaseCombatValues(int32_t& min, int32_t& max, bool useCharges, b
 
 bool Player::transferMoneyTo(const std::string& name, uint64_t amount)
 {
-	if (!g_config.getBool(ConfigManager::BANK_SYSTEM) || amount > m_balance) {
+	if (!otx::config::getBoolean(otx::config::BANK_SYSTEM) || amount > m_balance) {
 		return false;
 	}
 
@@ -5615,7 +5614,7 @@ bool Player::transferMoneyTo(const std::string& name, uint64_t amount)
 
 void Player::sendCritical() const
 {
-	if (g_config.getBool(ConfigManager::DISPLAY_CRITICAL_HIT)) {
+	if (otx::config::getBoolean(otx::config::DISPLAY_CRITICAL_HIT)) {
 		g_game.addAnimatedText(getPosition(), COLOR_DARKRED, "CRITICAL!");
 	}
 }
@@ -5639,7 +5638,7 @@ bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)
 		oldSkillValue = m_magLevel;
 		oldPercentToNextLevel = (long double)(m_manaSpent * 100) / nextReqMana;
 
-		tries *= g_config.getDouble(ConfigManager::RATE_MAGIC_OFFLINE);
+		tries *= otx::config::getDouble(otx::config::RATE_MAGIC_OFFLINE);
 		while ((m_manaSpent + tries) >= nextReqMana) {
 			tries -= nextReqMana - m_manaSpent;
 			m_manaSpent = 0;
@@ -5690,7 +5689,7 @@ bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)
 		oldSkillValue = m_skills[skill][SKILL_LEVEL];
 		oldPercentToNextLevel = (long double)(m_skills[skill][SKILL_TRIES] * 100) / nextReqTries;
 
-		tries *= g_config.getDouble(ConfigManager::RATE_SKILL_OFFLINE);
+		tries *= otx::config::getDouble(otx::config::RATE_SKILL_OFFLINE);
 		while ((m_skills[skill][SKILL_TRIES] + tries) >= nextReqTries) {
 			tries -= nextReqTries - m_skills[skill][SKILL_TRIES];
 			m_skills[skill][SKILL_LEVEL]++;

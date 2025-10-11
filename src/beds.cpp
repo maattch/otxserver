@@ -86,7 +86,7 @@ BedItem* BedItem::getNextBedItem()
 
 bool BedItem::canUse(Player* player)
 {
-	if (!house || !player || player->isRemoved() || (!player->isPremium() && g_config.getBool(ConfigManager::BED_REQUIRE_PREMIUM))) {
+	if (!house || !player || player->isRemoved() || (!player->isPremium() && otx::config::getBoolean(otx::config::BED_REQUIRE_PREMIUM))) {
 		return false;
 	}
 

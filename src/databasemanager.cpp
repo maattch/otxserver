@@ -24,7 +24,7 @@
 bool DatabaseManager::optimizeTables()
 {
 	std::ostringstream query;
-	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::SQL_DB)) << " AND `DATA_FREE` > 0;";
+	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(otx::config::getString(otx::config::SQL_DB)) << " AND `DATA_FREE` > 0;";
 
 	DBResultPtr result = g_database.storeQuery(query.str());
 	if (!result) {
@@ -51,7 +51,7 @@ bool DatabaseManager::optimizeTables()
 bool DatabaseManager::triggerExists(std::string trigger)
 {
 	std::ostringstream query;
-	query << "SELECT `TRIGGER_NAME` FROM `information_schema`.`triggers` WHERE `TRIGGER_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::SQL_DB)) << " AND `TRIGGER_NAME` = " << g_database.escapeString(trigger) << ";";
+	query << "SELECT `TRIGGER_NAME` FROM `information_schema`.`triggers` WHERE `TRIGGER_SCHEMA` = " << g_database.escapeString(otx::config::getString(otx::config::SQL_DB)) << " AND `TRIGGER_NAME` = " << g_database.escapeString(trigger) << ";";
 
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
@@ -64,7 +64,7 @@ bool DatabaseManager::triggerExists(std::string trigger)
 bool DatabaseManager::tableExists(std::string table)
 {
 	std::ostringstream query;
-	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::SQL_DB)) << " AND `TABLE_NAME` = " << g_database.escapeString(table) << ";";
+	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(otx::config::getString(otx::config::SQL_DB)) << " AND `TABLE_NAME` = " << g_database.escapeString(table) << ";";
 
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
@@ -77,7 +77,7 @@ bool DatabaseManager::tableExists(std::string table)
 bool DatabaseManager::isDatabaseSetup()
 {
 	std::ostringstream query;
-	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::SQL_DB)) << ";";
+	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(otx::config::getString(otx::config::SQL_DB)) << ";";
 
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {

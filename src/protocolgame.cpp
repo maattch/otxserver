@@ -85,7 +85,7 @@ namespace WaitList
 			return 0;
 		}
 
-		const auto maxPlayers = static_cast<uint32_t>(g_config.getNumber(ConfigManager::MAX_PLAYERS));
+		const auto maxPlayers = static_cast<uint32_t>(otx::config::getInteger(otx::config::MAX_PLAYERS));
 		if (maxPlayers == 0 || (waitList.empty() && g_game.getPlayersOnline() < maxPlayers)) {
 			return 0;
 		}
@@ -331,7 +331,7 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 {
 	// dispatcher thread
 	Player* foundPlayer = g_game.getPlayerByName(name);
-	if (!foundPlayer || (g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && name == "Account Manager")) {
+	if (!foundPlayer || (otx::config::getBoolean(otx::config::ACCOUNT_MANAGER) && name == "Account Manager")) {
 		player = new Player(name, getThis());
 		player->addRef();
 
@@ -344,7 +344,7 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 
 		// check exist after load, need this to get groupId
 		if (g_game.existMonsterByName(name) && player->getGroupId() == 1) {
-			bool deleteMonsterName = (bool)g_config.getBool(ConfigManager::DELETE_PLAYER_MONSTER_NAME);
+			bool deleteMonsterName = (bool)otx::config::getBoolean(otx::config::DELETE_PLAYER_MONSTER_NAME);
 			if (deleteMonsterName && IOLoginData::getInstance()->deletePlayer(player)) {
 				disconnectClient(0x14, "This character was deleted because it contains invalid characters in its name.");
 			} else {
@@ -356,11 +356,11 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 		}
 
 		// max connections by swatt' edited by Feetads
-		bool useMaxCon = (bool)g_config.getBool(ConfigManager::MAXIP_USECONECT);
+		bool useMaxCon = (bool)otx::config::getBoolean(otx::config::MAXIP_USECONECT);
 		if (useMaxCon) {
 			uint32_t ip = player->getIP();
 			PlayerVector player_count = g_game.getPlayersByIP(ip);
-			uint32_t maxConnections = (uint32_t)g_config.getNumber(ConfigManager::MAX_IP_CONNECTIONS);
+			uint32_t maxConnections = (uint32_t)otx::config::getInteger(otx::config::MAX_IP_CONNECTIONS);
 			if ((player_count.size() + 1) > maxConnections) {
 				std::stringstream maxConnectMsg;
 				maxConnectMsg << "Disconnected, the connection limit by IP " << (maxConnections == 1 ? "is " : "are ") << maxConnections << ".";
@@ -395,7 +395,7 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 		}
 
 		if (IOBan::getInstance()->isPlayerBanished(player->getGUID(), PLAYERBAN_LOCK) && id != 1) {
-			if (g_config.getBool(ConfigManager::NAMELOCK_MANAGER)) {
+			if (otx::config::getBoolean(otx::config::NAMELOCK_MANAGER)) {
 				player->m_name = "Account Manager";
 				player->m_accountManager = MANAGER_NAMELOCK;
 
@@ -406,7 +406,7 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 				return;
 			}
 		} else if (player->getName() == "Account Manager") {
-			if (!g_config.getBool(ConfigManager::ACCOUNT_MANAGER)) {
+			if (!otx::config::getBoolean(otx::config::ACCOUNT_MANAGER)) {
 				disconnectClient(0x14, "Account Manager is disabled.");
 				return;
 			}
@@ -439,7 +439,7 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 		player->setClientVersion(version);
 		player->setOperatingSystem(operatingSystem);
 
-		if (g_config.getBool(ConfigManager::ONE_PLAYER_ON_ACCOUNT) && !player->isAccountManager() && !IOLoginData::getInstance()->hasCustomFlag(id, PlayerCustomFlag_CanLoginMultipleCharacters)) {
+		if (otx::config::getBoolean(otx::config::ONE_PLAYER_ON_ACCOUNT) && !player->isAccountManager() && !IOLoginData::getInstance()->hasCustomFlag(id, PlayerCustomFlag_CanLoginMultipleCharacters)) {
 			bool found = false;
 			PlayerVector tmp = g_game.getPlayersByAccount(id);
 			for (PlayerVector::iterator it = tmp.begin(); it != tmp.end(); ++it) {
@@ -498,7 +498,7 @@ void ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 
 		acceptPackets = true;
 	} else {
-		if (eventConnect != 0 || !g_config.getBool(ConfigManager::REPLACE_KICK_ON_LOGIN)) {
+		if (eventConnect != 0 || !otx::config::getBoolean(otx::config::REPLACE_KICK_ON_LOGIN)) {
 			// task has already been scheduled just bail out (should not be overriden)
 			disconnectClient(0x14, "You are already logged in.");
 			return;
@@ -724,12 +724,12 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 	}
 
 	msg.skipBytes(6);
-	if (!g_config.getBool(ConfigManager::MANUAL_ADVANCED_CONFIG)) {
+	if (!otx::config::getBoolean(otx::config::MANUAL_ADVANCED_CONFIG)) {
 		if (version < CLIENT_VERSION_MIN || version > CLIENT_VERSION_MAX) {
 			disconnectClient(0x14, CLIENT_VERSION_STRING);
 			return;
-		} else if (version < g_config.getNumber(ConfigManager::VERSION_MIN) || version > g_config.getNumber(ConfigManager::VERSION_MAX)) {
-			disconnectClient(0x14, g_config.getString(ConfigManager::VERSION_MSG).c_str());
+		} else if (version < otx::config::getInteger(otx::config::VERSION_MIN) || version > otx::config::getInteger(otx::config::VERSION_MAX)) {
+			disconnectClient(0x14, otx::config::getString(otx::config::VERSION_MSG).c_str());
 			return;
 		}
 	}
@@ -1053,13 +1053,13 @@ void ProtocolGame::parsePacket(NetworkMessage& msg)
 				parseUpdateContainer(msg);
 				break;
 			case 0xD2:
-				if ((!player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges) || !g_config.getBool(ConfigManager::DISABLE_OUTFITS_PRIVILEGED)) && (g_config.getBool(ConfigManager::ALLOW_CHANGEOUTFIT) || g_config.getBool(ConfigManager::ALLOW_CHANGECOLORS) || g_config.getBool(ConfigManager::ALLOW_CHANGEADDONS))) {
+				if ((!player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges) || !otx::config::getBoolean(otx::config::DISABLE_OUTFITS_PRIVILEGED)) && (otx::config::getBoolean(otx::config::ALLOW_CHANGEOUTFIT) || otx::config::getBoolean(otx::config::ALLOW_CHANGECOLORS) || otx::config::getBoolean(otx::config::ALLOW_CHANGEADDONS))) {
 					parseRequestOutfit(msg);
 				}
 				break;
 			case 0xD3:
-				if ((!player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges) || !g_config.getBool(ConfigManager::DISABLE_OUTFITS_PRIVILEGED))
-					&& (g_config.getBool(ConfigManager::ALLOW_CHANGECOLORS) || g_config.getBool(ConfigManager::ALLOW_CHANGEOUTFIT))) {
+				if ((!player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges) || !otx::config::getBoolean(otx::config::DISABLE_OUTFITS_PRIVILEGED))
+					&& (otx::config::getBoolean(otx::config::ALLOW_CHANGECOLORS) || otx::config::getBoolean(otx::config::ALLOW_CHANGEOUTFIT))) {
 					parseSetOutfit(msg);
 				}
 				break;
@@ -1486,13 +1486,13 @@ void ProtocolGame::parseRequestOutfit(NetworkMessage&)
 void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 {
 	Outfit_t newOutfit = player->m_defaultOutfit;
-	if (g_config.getBool(ConfigManager::ALLOW_CHANGEOUTFIT)) {
+	if (otx::config::getBoolean(otx::config::ALLOW_CHANGEOUTFIT)) {
 		newOutfit.lookType = msg.get<uint16_t>();
 	} else {
 		msg.skipBytes(2);
 	}
 
-	if (g_config.getBool(ConfigManager::ALLOW_CHANGECOLORS)) {
+	if (otx::config::getBoolean(otx::config::ALLOW_CHANGECOLORS)) {
 		newOutfit.lookHead = msg.get<char>();
 		newOutfit.lookBody = msg.get<char>();
 		newOutfit.lookLegs = msg.get<char>();
@@ -1501,7 +1501,7 @@ void ProtocolGame::parseSetOutfit(NetworkMessage& msg)
 		msg.skipBytes(4);
 	}
 
-	if (g_config.getBool(ConfigManager::ALLOW_CHANGEADDONS)) {
+	if (otx::config::getBoolean(otx::config::ALLOW_CHANGEADDONS)) {
 		newOutfit.lookAddons = msg.get<char>();
 	} else {
 		msg.skipBytes(1);
@@ -3011,7 +3011,7 @@ void ProtocolGame::sendOutfitWindow()
 				msg->addString(it->name);
 				if (player->hasCustomFlag(PlayerCustomFlag_CanWearAllAddons)) {
 					msg->addByte(0x03);
-				} else if (!g_config.getBool(ConfigManager::ADDONS_PREMIUM) || player->isPremium()) {
+				} else if (!otx::config::getBoolean(otx::config::ADDONS_PREMIUM) || player->isPremium()) {
 					msg->addByte(it->addons);
 				} else {
 					msg->addByte(0x00);
@@ -3163,7 +3163,7 @@ void ProtocolGame::AddTextMessage(MessageClasses mClass, const std::string& mess
 			}
 
 			std::stringstream sss;
-			if (g_config.getBool(ConfigManager::USEDAMAGE_IN_K)) {
+			if (otx::config::getBoolean(otx::config::USEDAMAGE_IN_K)) {
 				if (details->value > 1000000) {
 					sss << std::fixed << std::setprecision(2) << (details->value / 1000000.0) << "Mi";
 				} else if (details->value > 1000) {
@@ -3380,7 +3380,7 @@ void ProtocolGame::AddCreatureHealth(OutputMessage_ptr msg, const Creature* crea
 void ProtocolGame::AddCreatureOutfit(OutputMessage_ptr msg, const Creature* creature, const Outfit_t& outfit, bool outfitWindow /* = false*/)
 {
 	const Player* cp = creature->getPlayer();
-	if ((outfitWindow || (!creature->isInvisible() && (!creature->isGhost() || !g_config.getBool(ConfigManager::GHOST_INVISIBLE_EFFECT)))) || (!creature->isInvisible() && cp && cp->isGhost() && cp->getGroupId() < 3)) // if player is ghost and GHOST_INVISIBLE_EFFECT = true, send normal outfit
+	if ((outfitWindow || (!creature->isInvisible() && (!creature->isGhost() || !otx::config::getBoolean(otx::config::GHOST_INVISIBLE_EFFECT)))) || (!creature->isInvisible() && cp && cp->isGhost() && cp->getGroupId() < 3)) // if player is ghost and GHOST_INVISIBLE_EFFECT = true, send normal outfit
 	{
 		msg->add<uint16_t>(outfit.lookType);
 		if (outfit.lookType) {

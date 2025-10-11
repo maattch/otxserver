@@ -1197,7 +1197,7 @@ bool ConditionDamage::doDamage(Creature* creature, int32_t damage)
 	}
 
 	Creature* attacker = g_game.getCreatureByID(owner);
-	if (g_config.getBool(ConfigManager::USE_BLACK_SKULL)) {
+	if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 		if (damage < 0 && attacker && attacker->getPlayer() && creature->getPlayer() && creature->getPlayer()->getSkull() != SKULL_BLACK) {
 			damage = damage / 2;
 		}

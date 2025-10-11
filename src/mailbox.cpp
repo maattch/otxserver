@@ -39,9 +39,9 @@ ReturnValue Mailbox::canSend(const Item* item, Creature* actor) const
 				return RET_YOUAREEXHAUSTED;
 			}
 
-			if (player->getMailAttempts() >= g_config.getNumber(ConfigManager::MAIL_ATTEMPTS)) {
+			if (player->getMailAttempts() >= otx::config::getInteger(otx::config::MAIL_ATTEMPTS)) {
 				if (Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT,
-						CONDITION_MUTED, g_config.getNumber(ConfigManager::MAIL_BLOCK), 0, false, 2)) {
+						CONDITION_MUTED, otx::config::getInteger(otx::config::MAIL_BLOCK), 0, false, 2)) {
 					player->addCondition(condition);
 					player->setLastMail(1); // auto erase
 				}
@@ -104,7 +104,7 @@ bool Mailbox::getDepotId(const std::string& townString, uint32_t& depotId)
 		return false;
 	}
 
-	std::string disabledTowns = g_config.getString(ConfigManager::MAILBOX_DISABLED_TOWNS);
+	std::string disabledTowns = otx::config::getString(otx::config::MAILBOX_DISABLED_TOWNS);
 	if (disabledTowns.size()) {
 		IntegerVec tmpVec = vectorAtoi(explodeString(disabledTowns, ","));
 		if (tmpVec[0] != 0 && std::find(tmpVec.begin(), tmpVec.end(), town->getID()) != tmpVec.end()) {

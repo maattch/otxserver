@@ -239,7 +239,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 		StringVec::const_iterator mit = std::find(m_mutes.begin(), m_mutes.end(), otx::util::as_lower_string(sit->second.first));
 		if (mit == m_mutes.end()) {
 			if (channel && channel->getId() == channelId) {
-				uint16_t exhaust = g_config.getNumber(ConfigManager::EXHAUST_SPECTATOR_SAY);
+				uint16_t exhaust = otx::config::getInteger(otx::config::EXHAUST_SPECTATOR_SAY);
 				if (exhaust <= 2) { // prevents exhaust < 2s
 					exhaust = 2;
 				}
@@ -251,7 +251,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 				client->lastCastMsg = time(nullptr);
 				std::string _text = otx::util::as_lower_string(text);
 				StringVec prohibitedWords;
-				prohibitedWords = explodeString(g_config.getString(ConfigManager::ADVERTISING_BLOCK), ";");
+				prohibitedWords = explodeString(otx::config::getString(otx::config::ADVERTISING_BLOCK), ";");
 				bool fakeChat = false;
 
 				std::string concatenatedText = g_game.removeNonAlphabetic(_text);

@@ -589,7 +589,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 bool IOMap::loadSpawns(Map* map)
 {
 	if (map->spawnfile.empty()) {
-		map->spawnfile = g_config.getString(ConfigManager::MAP_NAME) + "-spawn.xml";
+		map->spawnfile = otx::config::getString(otx::config::MAP_NAME) + "-spawn.xml";
 	}
 
 	return Spawns::getInstance()->loadFromXml(map->spawnfile);
@@ -598,7 +598,7 @@ bool IOMap::loadSpawns(Map* map)
 bool IOMap::loadHouses(Map* map)
 {
 	if (map->housefile.empty()) {
-		map->housefile = g_config.getString(ConfigManager::MAP_NAME) + "-house.xml";
+		map->housefile = otx::config::getString(otx::config::MAP_NAME) + "-house.xml";
 	}
 
 	return Houses::getInstance()->loadFromXml(map->housefile);

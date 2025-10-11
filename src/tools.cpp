@@ -1664,7 +1664,7 @@ uint32_t adlerChecksum(uint8_t* data, size_t length)
 
 std::string getFilePath(FileType_t type, std::string name /* = ""*/)
 {
-	std::string path = g_config.getString(ConfigManager::DATA_DIRECTORY);
+	std::string path = otx::config::getString(otx::config::DATA_DIRECTORY);
 	switch (type) {
 		case FILE_TYPE_OTHER:
 			path += name;
@@ -1673,7 +1673,7 @@ std::string getFilePath(FileType_t type, std::string name /* = ""*/)
 			path += "XML/" + name;
 			break;
 		case FILE_TYPE_LOG:
-			path = g_config.getString(ConfigManager::LOGS_DIRECTORY) + name;
+			path = otx::config::getString(otx::config::LOGS_DIRECTORY) + name;
 			break;
 		case FILE_TYPE_CONFIG:
 			path = name;

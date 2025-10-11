@@ -68,7 +68,7 @@ Monster::Monster(MonsterType* _mType) :
 	m_defaultOutfit = mType->outfit;
 	m_currentOutfit = mType->outfit;
 
-	double multiplier = g_config.getDouble(ConfigManager::RATE_MONSTER_HEALTH);
+	double multiplier = otx::config::getDouble(otx::config::RATE_MONSTER_HEALTH);
 	m_health = (int32_t)(mType->health * multiplier);
 	healthMin = mType->healthMin, m_healthMax = mType->healthMax;
 	if (healthMin > 0) {
@@ -144,7 +144,7 @@ void Monster::onTargetDisappear(bool)
 #endif
 	attackTicks = 0;
 	extraMeleeAttack = true;
-	if (g_config.getBool(ConfigManager::MONSTER_SPAWN_WALKBACK)) {
+	if (otx::config::getBoolean(otx::config::MONSTER_SPAWN_WALKBACK)) {
 		g_game.steerCreature(this, m_masterPosition, 5000);
 	}
 }
@@ -345,7 +345,7 @@ void Monster::onCreatureLeave(Creature* creature)
 	std::clog << "onCreatureLeave - " << creature->getName() << std::endl;
 #endif
 	if (isSummon() && m_master == creature) {
-		if (!g_config.getBool(ConfigManager::TELEPORT_SUMMONS) && (!m_master->getPlayer() || !g_config.getBool(ConfigManager::TELEPORT_PLAYER_SUMMONS))) {
+		if (!otx::config::getBoolean(otx::config::TELEPORT_SUMMONS) && (!m_master->getPlayer() || !otx::config::getBoolean(otx::config::TELEPORT_PLAYER_SUMMONS))) {
 			// Turn the monster off until its master comes back
 			isMasterInRange = false;
 			updateIdleStatus();
@@ -674,9 +674,9 @@ void Monster::doAttacking(uint32_t interval)
 
 				double multiplier;
 				if (maxCombatValue > 0) { // defense
-					multiplier = g_config.getDouble(ConfigManager::RATE_MONSTER_DEFENSE);
+					multiplier = otx::config::getDouble(otx::config::RATE_MONSTER_DEFENSE);
 				} else { // attack
-					multiplier = g_config.getDouble(ConfigManager::RATE_MONSTER_ATTACK);
+					multiplier = otx::config::getDouble(otx::config::RATE_MONSTER_ATTACK);
 				}
 
 				minCombatValue = (int32_t)(it->minCombatValue * multiplier);
@@ -1253,7 +1253,7 @@ Item* Monster::createCorpse(DeathList deathList)
 		return corpse;
 	}
 
-	uint64_t stamina = g_config.getNumber(ConfigManager::STAMINA_DESTROY_LOOT);
+	uint64_t stamina = otx::config::getInteger(otx::config::STAMINA_DESTROY_LOOT);
 	if (stamina && owner->getStamina() <= (stamina * STAMINA_MULTIPLIER)) {
 		m_lootDrop = LOOT_DROP_NONE;
 	}
@@ -1268,7 +1268,7 @@ bool Monster::inDespawnRange(const Position& pos)
 		return false;
 	}
 
-	int32_t radius = g_config.getNumber(ConfigManager::DEFAULT_DESPAWNRADIUS);
+	int32_t radius = otx::config::getInteger(otx::config::DEFAULT_DESPAWNRADIUS);
 	if (!radius) {
 		return false;
 	}
@@ -1277,7 +1277,7 @@ bool Monster::inDespawnRange(const Position& pos)
 		return true;
 	}
 
-	int32_t range = g_config.getNumber(ConfigManager::DEFAULT_DESPAWNRANGE);
+	int32_t range = otx::config::getInteger(otx::config::DEFAULT_DESPAWNRANGE);
 	if (!range) {
 		return false;
 	}
@@ -1298,9 +1298,9 @@ bool Monster::getCombatValues(int32_t& min, int32_t& max)
 
 	double multiplier;
 	if (maxCombatValue > 0) { // defense
-		multiplier = g_config.getDouble(ConfigManager::RATE_MONSTER_DEFENSE);
+		multiplier = otx::config::getDouble(otx::config::RATE_MONSTER_DEFENSE);
 	} else { // attack
-		multiplier = g_config.getDouble(ConfigManager::RATE_MONSTER_ATTACK);
+		multiplier = otx::config::getDouble(otx::config::RATE_MONSTER_ATTACK);
 	}
 
 	min = (int32_t)(minCombatValue * multiplier);

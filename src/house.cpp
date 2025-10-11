@@ -143,7 +143,7 @@ bool House::setOwnerEx(uint32_t guid, bool transfer)
 
 bool House::isGuild() const
 {
-	return g_config.getBool(ConfigManager::GUILD_HALLS) && guild;
+	return otx::config::getBoolean(otx::config::GUILD_HALLS) && guild;
 }
 
 bool House::isBidded() const
@@ -331,7 +331,7 @@ AccessHouseLevel_t House::getHouseAccessLevel(const Player* player)
 	}
 
 	// CUSTOM: Protect House
-	if (g_config.getBool(ConfigManager::HOUSE_OWNED_BY_ACCOUNT) && player->getAccount() == ownerAccountId) {
+	if (otx::config::getBoolean(otx::config::HOUSE_OWNED_BY_ACCOUNT) && player->getAccount() == ownerAccountId) {
 		return HOUSE_OWNER;
 	}
 
@@ -652,7 +652,7 @@ void Door::setAccessList(const std::string& textlist)
 Houses::Houses()
 {
 	rentPeriod = RENTPERIOD_NEVER;
-	std::string strValue = otx::util::as_lower_string(g_config.getString(ConfigManager::HOUSE_RENT_PERIOD));
+	std::string strValue = otx::util::as_lower_string(otx::config::getString(otx::config::HOUSE_RENT_PERIOD));
 	if (strValue == "yearly") {
 		rentPeriod = RENTPERIOD_YEARLY;
 	} else if (strValue == "monthly") {
@@ -752,14 +752,14 @@ bool Houses::loadFromXml(std::string filename)
 			rent = intValue;
 		}
 
-		uint32_t price = (house->getSize() + house->getBedsCount()) * g_config.getNumber(ConfigManager::HOUSE_PRICE);
+		uint32_t price = (house->getSize() + house->getBedsCount()) * otx::config::getInteger(otx::config::HOUSE_PRICE);
 		// we should let players to pay only for walkable tiles + beds as single units not two items.
-		if (g_config.getBool(ConfigManager::HOUSE_RENTASPRICE) && rent) {
+		if (otx::config::getBoolean(otx::config::HOUSE_RENTASPRICE) && rent) {
 			price = rent;
 		}
 
 		house->setPrice(price);
-		if (g_config.getBool(ConfigManager::HOUSE_PRICEASRENT)) {
+		if (otx::config::getBoolean(otx::config::HOUSE_PRICEASRENT)) {
 			house->setRent(price);
 		} else {
 			house->setRent(rent);
@@ -799,7 +799,7 @@ bool Houses::payRent(Player* player, House* house, uint32_t bid, time_t _time /*
 
 	bool paid = false;
 	uint32_t amount = house->getRent() + bid;
-	if (g_config.getBool(ConfigManager::BANK_SYSTEM) && player->m_balance >= amount) {
+	if (otx::config::getBoolean(otx::config::BANK_SYSTEM) && player->m_balance >= amount) {
 		player->m_balance -= amount;
 		paid = true;
 	} else if (Depot* depot = player->getDepot(town->getID(), true)) {
@@ -867,7 +867,7 @@ bool Houses::payHouse(House* house, time_t _time, uint32_t bid)
 		return false;
 	}
 
-	if (!player->isPremium() && g_config.getBool(ConfigManager::HOUSE_NEED_PREMIUM)) {
+	if (!player->isPremium() && otx::config::getBoolean(otx::config::HOUSE_NEED_PREMIUM)) {
 		house->setOwnerEx(0, true);
 		if (player->isVirtual()) {
 			delete player;
@@ -876,7 +876,7 @@ bool Houses::payHouse(House* house, time_t _time, uint32_t bid)
 		return false;
 	}
 
-	int32_t loginClean = g_config.getNumber(ConfigManager::HOUSE_CLEAN_OLD);
+	int32_t loginClean = otx::config::getInteger(otx::config::HOUSE_CLEAN_OLD);
 	if (loginClean && _time >= (player->getLastLogin() + loginClean)) {
 		house->setOwnerEx(0, true);
 		if (player->isVirtual()) {
@@ -923,7 +923,7 @@ bool Houses::payHouse(House* house, time_t _time, uint32_t bid)
 	if (Depot* depot = player->getDepot(town->getID(), true)) {
 		if (Item* letter = Item::CreateItem(ITEM_LETTER_STAMPED)) {
 			if (g_game.internalAddItem(nullptr, depot, letter, INDEX_WHEREEVER, FLAG_NOLIMIT) == RET_NOERROR) {
-				letter->setWriter(g_config.getString(ConfigManager::SERVER_NAME));
+				letter->setWriter(otx::config::getString(otx::config::SERVER_NAME));
 				letter->setDate(std::time(nullptr));
 				std::ostringstream s;
 

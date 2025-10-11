@@ -217,8 +217,8 @@ void ServicePort::open(uint16_t port)
 	pendingStart = false;
 
 	try {
-		if (g_config.getBool(ConfigManager::BIND_ONLY_GLOBAL_ADDRESS)) {
-			acceptor.reset(new ip::tcp::acceptor(io_context, ip::tcp::endpoint(ip::make_address_v4(g_config.getString(ConfigManager::IP)), serverPort)));
+		if (otx::config::getBoolean(otx::config::BIND_ONLY_GLOBAL_ADDRESS)) {
+			acceptor.reset(new ip::tcp::acceptor(io_context, ip::tcp::endpoint(ip::make_address_v4(otx::config::getString(otx::config::IP)), serverPort)));
 		} else {
 			acceptor.reset(new ip::tcp::acceptor(io_context, ip::tcp::endpoint(ip::make_address_v4(INADDR_ANY), serverPort)));
 		}

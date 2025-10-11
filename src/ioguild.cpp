@@ -388,7 +388,7 @@ std::string IOGuild::getMotd(uint32_t guild)
 
 void IOGuild::checkWars()
 {
-	if (!g_config.getBool(ConfigManager::EXTERNAL_GUILD_WARS_MANAGEMENT)) {
+	if (!otx::config::getBoolean(otx::config::EXTERNAL_GUILD_WARS_MANAGEMENT)) {
 		return;
 	}
 

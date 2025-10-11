@@ -81,9 +81,9 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 		name = "10";
 	}
 
-	if (!g_config.getBool(ConfigManager::MANUAL_ADVANCED_CONFIG)) {
-		if (version < g_config.getNumber(ConfigManager::VERSION_MIN) || version > g_config.getNumber(ConfigManager::VERSION_MAX)) {
-			disconnectClient(0x14, g_config.getString(ConfigManager::VERSION_MSG).c_str());
+	if (!otx::config::getBoolean(otx::config::MANUAL_ADVANCED_CONFIG)) {
+		if (version < otx::config::getInteger(otx::config::VERSION_MIN) || version > otx::config::getInteger(otx::config::VERSION_MAX)) {
+			disconnectClient(0x14, otx::config::getString(otx::config::VERSION_MSG).c_str());
 			return;
 		}
 	} else {
@@ -139,8 +139,8 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 	// remove premium days
 	IOLoginData::getInstance()->removePremium(account);
-	if (account.name != "10" && !g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && !account.charList.size()) {
-		disconnectClient(0x0A, std::string("This account does not contain any character yet.\nCreate a new character on the " + g_config.getString(ConfigManager::SERVER_NAME) + " website at " + g_config.getString(ConfigManager::URL) + ".").c_str());
+	if (account.name != "10" && !otx::config::getBoolean(otx::config::ACCOUNT_MANAGER) && !account.charList.size()) {
+		disconnectClient(0x0A, std::string("This account does not contain any character yet.\nCreate a new character on the " + otx::config::getString(otx::config::SERVER_NAME) + " website at " + otx::config::getString(otx::config::URL) + ".").c_str());
 		return;
 	}
 
@@ -154,7 +154,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 		sprintf(motd, "%d\nWelcome to cast system!\n\n Do you know you can use CTRL + ARROWS\n to switch casts?\n\nVoc� sabia que pode usar CTRL + SETAS\n para alternar casts?", random_number);
 		output->addString(motd);
 	} else {
-		sprintf(motd, "%d\n%s", g_game.getMotdId(), g_config.getString(ConfigManager::MOTD).c_str());
+		sprintf(motd, "%d\n%s", g_game.getMotdId(), otx::config::getString(otx::config::MOTD).c_str());
 		output->addString(motd);
 	}
 
@@ -186,41 +186,41 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 				output->addString(player->getName());
 				output->addString(s.str());
-				output->add<uint32_t>(g_config.getIPNumber());
-				output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
+				output->add<uint32_t>(otx::config::getIPNumber());
+				output->add<uint16_t>(otx::config::getInteger(otx::config::GAME_PORT));
 			}
 		}
 	} else {
-		if (g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && account.number != 1) {
+		if (otx::config::getBoolean(otx::config::ACCOUNT_MANAGER) && account.number != 1) {
 			output->addByte(account.charList.size() + 1);
 			output->addString("Account Manager");
 
-			output->addString(g_config.getString(ConfigManager::SERVER_NAME));
-			output->add<uint32_t>(g_config.getIPNumber());
-			output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
+			output->addString(otx::config::getString(otx::config::SERVER_NAME));
+			output->add<uint32_t>(otx::config::getIPNumber());
+			output->add<uint16_t>(otx::config::getInteger(otx::config::GAME_PORT));
 		} else {
 			output->addByte((uint8_t)account.charList.size());
 		}
 
 		for (const std::string& charName : account.charList) {
 			output->addString(charName);
-			if (g_config.getBool(ConfigManager::ON_OR_OFF_CHARLIST)) {
+			if (otx::config::getBoolean(otx::config::ON_OR_OFF_CHARLIST)) {
 				if (g_game.getPlayerByName(charName)) {
 					output->addString("Online");
 				} else {
 					output->addString("Offline");
 				}
 			} else {
-				output->addString(g_config.getString(ConfigManager::SERVER_NAME));
+				output->addString(otx::config::getString(otx::config::SERVER_NAME));
 			}
 
-			output->add<uint32_t>(g_config.getIPNumber());
-			output->add<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
+			output->add<uint32_t>(otx::config::getIPNumber());
+			output->add<uint16_t>(otx::config::getInteger(otx::config::GAME_PORT));
 		}
 	}
 
 	// Add premium days
-	if (g_config.getBool(ConfigManager::FREE_PREMIUM)) {
+	if (otx::config::getBoolean(otx::config::FREE_PREMIUM)) {
 		output->add<uint16_t>(GRATIS_PREMIUM);
 	} else {
 		output->add<uint16_t>(account.premiumDays);

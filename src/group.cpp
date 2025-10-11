@@ -160,8 +160,8 @@ uint32_t Group::getDepotLimit(bool premium) const
 		return m_depotLimit;
 	}
 
-	return (premium ? g_config.getNumber(ConfigManager::DEFAULT_DEPOT_SIZE_PREMIUM)
-					: g_config.getNumber(ConfigManager::DEFAULT_DEPOT_SIZE));
+	return (premium ? otx::config::getInteger(otx::config::DEFAULT_DEPOT_SIZE_PREMIUM)
+					: otx::config::getInteger(otx::config::DEFAULT_DEPOT_SIZE));
 }
 
 uint32_t Group::getMaxVips(bool premium) const
@@ -170,5 +170,5 @@ uint32_t Group::getMaxVips(bool premium) const
 		return m_maxVips;
 	}
 
-	return (premium ? g_config.getNumber(ConfigManager::VIPLIST_DEFAULT_PREMIUM_LIMIT) : g_config.getNumber(ConfigManager::VIPLIST_DEFAULT_LIMIT));
+	return (premium ? otx::config::getInteger(otx::config::VIPLIST_DEFAULT_PREMIUM_LIMIT) : otx::config::getInteger(otx::config::VIPLIST_DEFAULT_LIMIT));
 }

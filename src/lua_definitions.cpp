@@ -104,7 +104,7 @@ namespace
 
 void otx::lua::reportError(const char* function, std::string_view desc, lua_State* L /*= nullptr*/, bool stack_trace /*= false*/)
 {
-	if (g_config.getBool(ConfigManager::SILENT_LUA)) {
+	if (otx::config::getBoolean(otx::config::SILENT_LUA)) {
 		return;
 	}
 

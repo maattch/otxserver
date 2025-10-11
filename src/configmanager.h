@@ -17,15 +17,11 @@
 
 #pragma once
 
-class ConfigManager final
+namespace otx::config
 {
-public:
-	ConfigManager();
-
-	enum string_config_t
+	enum ConfigString_t : uint8_t
 	{
-		DUMMY_STR = 0,
-		CONFIG_FILE,
+		CONFIG_FILE = 0,
 		MAP_NAME,
 		HOUSE_RENT_PERIOD,
 		HOUSE_STORAGE,
@@ -43,7 +39,6 @@ public:
 		SQL_PASS,
 		SQL_DB,
 		DEFAULT_PRIORITY,
-		SQL_FILE,
 		MAP_AUTHOR,
 		RUNFILE,
 		OUTPUT_LOG,
@@ -58,7 +53,37 @@ public:
 		LAST_STRING_CONFIG /* this must be the last one */
 	};
 
-	enum number_config_t
+	enum ConfigDouble_t : uint8_t
+	{
+		RATE_EXPERIENCE,
+		RATE_SKILL,
+		RATE_SKILL_OFFLINE,
+		RATE_MAGIC,
+		RATE_MAGIC_OFFLINE,
+		RATE_LOOT,
+		TWO_VOCATION_PARTY,
+		THREE_VOCATION_PARTY,
+		FOUR_VOCATION_PARTY,
+		PARTY_DIFFERENCE,
+		CRITICAL_HIT_MUL,
+		RATE_STAMINA_GAIN,
+		RATE_STAMINA_THRESHOLD,
+		RATE_STAMINA_ABOVE,
+		RATE_STAMINA_UNDER,
+		EFP_MIN_THRESHOLD,
+		EFP_MAX_THRESHOLD,
+		RATE_PVP_EXPERIENCE,
+		RATE_MONSTER_HEALTH,
+		RATE_MONSTER_MANA,
+		RATE_MONSTER_ATTACK,
+		MAX_ABSORB_PERCENT,
+		RATE_MONSTER_DEFENSE,
+		FORMULA_LEVEL,
+		FORMULA_MAGIC,
+		LAST_DOUBLE_CONFIG /* this must be the last one */
+	};
+
+	enum ConfigInteger_t : uint8_t
 	{
 		LOGIN_TRIES = 0,
 		MYSQL_RECONNECTION_ATTEMPTS,
@@ -68,7 +93,6 @@ public:
 		GAME_PORT,
 		STATUS_PORT,
 		SQL_PORT,
-		SQL_KEEPALIVE,
 		MAX_PLAYERS,
 		PZ_LOCKED,
 		EXHAUST_POTION,
@@ -114,8 +138,6 @@ public:
 		FIELD_OWNERSHIP,
 		EXTRA_PARTY_PERCENT,
 		EXTRA_PARTY_LIMIT,
-		MYSQL_READ_TIMEOUT,
-		MYSQL_WRITE_TIMEOUT,
 		PARTY_RADIUS_X,
 		PARTY_RADIUS_Y,
 		PARTY_RADIUS_Z,
@@ -180,40 +202,10 @@ public:
 		HIGHSCORES_TOP,
 		HIGHSCORES_UPDATETIME,
 		LOGIN_PROTECTION_TIME,
-		LAST_NUMBER_CONFIG /* this must be the last one */
+		LAST_INTEGER_CONFIG /* this must be the last one */
 	};
 
-	enum double_config_t
-	{
-		RATE_EXPERIENCE,
-		RATE_SKILL,
-		RATE_SKILL_OFFLINE,
-		RATE_MAGIC,
-		RATE_MAGIC_OFFLINE,
-		RATE_LOOT,
-		TWO_VOCATION_PARTY,
-		THREE_VOCATION_PARTY,
-		FOUR_VOCATION_PARTY,
-		PARTY_DIFFERENCE,
-		CRITICAL_HIT_MUL,
-		RATE_STAMINA_GAIN,
-		RATE_STAMINA_THRESHOLD,
-		RATE_STAMINA_ABOVE,
-		RATE_STAMINA_UNDER,
-		EFP_MIN_THRESHOLD,
-		EFP_MAX_THRESHOLD,
-		RATE_PVP_EXPERIENCE,
-		RATE_MONSTER_HEALTH,
-		RATE_MONSTER_MANA,
-		RATE_MONSTER_ATTACK,
-		MAX_ABSORB_PERCENT,
-		RATE_MONSTER_DEFENSE,
-		FORMULA_LEVEL,
-		FORMULA_MAGIC,
-		LAST_DOUBLE_CONFIG /* this must be the last one */
-	};
-
-	enum bool_config_t
+	enum ConfigBoolean_t : uint8_t
 	{
 		GLOBALSAVE_ENABLED = 0,
 		MONSTER_ATTACK_MONSTER,
@@ -327,32 +319,19 @@ public:
 
 	bool load();
 	bool reload();
-	void startup() { m_startup = false; }
 
-	bool isRunning() const { return !m_startup; }
-	bool isLoaded() const { return m_loaded; }
+	uint32_t getIPNumber();
 
-	const std::string& getString(uint32_t _what) const;
-	bool getBool(uint32_t _what) const;
-	int64_t getNumber(uint32_t _what) const;
-	double getDouble(uint32_t _what) const;
+	const std::string& getString(ConfigString_t option);
+	bool setString(ConfigString_t option, const std::string& value);
 
-	bool setString(uint32_t _what, const std::string& _value);
-	bool setNumber(uint32_t _what, int64_t _value);
-	bool setBool(uint32_t _what, bool _value);
+	bool getBoolean(ConfigBoolean_t option);
+	bool setBoolean(ConfigBoolean_t option, bool value);
 
-	uint32_t getIPNumber() const { return IP_NUMBER; }
+	int64_t getInteger(ConfigInteger_t option);
+	bool setInteger(ConfigInteger_t option, int64_t value);
 
-private:
-	std::string m_confString[LAST_STRING_CONFIG];
-	double m_confDouble[LAST_DOUBLE_CONFIG] = {};
-	int64_t m_confNumber[LAST_NUMBER_CONFIG] = {};
-	bool m_confBool[LAST_BOOL_CONFIG] = {};
+	double getDouble(ConfigDouble_t option);
+	bool setDouble(ConfigDouble_t option, double value);
 
-	uint32_t IP_NUMBER = 0;
-
-	bool m_loaded = false;
-	bool m_startup = true;
-};
-
-extern ConfigManager g_config;
+} // namespace otx::config

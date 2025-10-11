@@ -80,12 +80,12 @@ ReturnValue HouseTile::__queryAdd(int32_t index, const Thing* thing, uint32_t co
 			return RET_NOTPOSSIBLE;
 		}
 	} else if (thing->getItem()) {
-		const uint32_t itemLimit = g_config.getNumber(ConfigManager::HOUSE_TILE_LIMIT);
+		const uint32_t itemLimit = otx::config::getInteger(otx::config::HOUSE_TILE_LIMIT);
 		if (itemLimit && getItemCount() > itemLimit) {
 			return RET_TILEISFULL;
 		}
 
-		if (actor && g_config.getBool(ConfigManager::HOUSE_PROTECTION)) {
+		if (actor && otx::config::getBoolean(otx::config::HOUSE_PROTECTION)) {
 			if (const Player* player = actor->getPlayer()) {
 				if (!house->isInvited(player) && !player->hasCustomFlag(PlayerCustomFlag_CanThrowAnywhere)) {
 					return RET_PLAYERISNOTINVITED;
@@ -99,7 +99,7 @@ ReturnValue HouseTile::__queryAdd(int32_t index, const Thing* thing, uint32_t co
 
 ReturnValue HouseTile::__queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor /* = nullptr*/) const
 {
-	if (thing->getItem() && actor && g_config.getBool(ConfigManager::HOUSE_PROTECTION)) {
+	if (thing->getItem() && actor && otx::config::getBoolean(otx::config::HOUSE_PROTECTION)) {
 		if (const Player* player = actor->getPlayer()) {
 			if (!house->isInvited(player) && !player->hasCustomFlag(PlayerCustomFlag_CanThrowAnywhere)) {
 				return RET_PLAYERISNOTINVITED;

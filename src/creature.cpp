@@ -561,7 +561,7 @@ void Creature::onCreatureMove(const Creature* creature, const Tile* newTile, con
 			stopEventWalk();
 		}
 
-		if (!m_summons.empty() && (!g_config.getBool(ConfigManager::TELEPORT_SUMMONS) || (g_config.getBool(ConfigManager::TELEPORT_PLAYER_SUMMONS) && !getPlayer()))) {
+		if (!m_summons.empty() && (!otx::config::getBoolean(otx::config::TELEPORT_SUMMONS) || (otx::config::getBoolean(otx::config::TELEPORT_PLAYER_SUMMONS) && !getPlayer()))) {
 			std::list<Creature*>::iterator cit;
 			std::list<Creature*> despawnList;
 			for (cit = m_summons.begin(); cit != m_summons.end(); ++cit) {
@@ -721,7 +721,7 @@ bool Creature::onDeath()
 		return false;
 	}
 
-	int32_t i = 0, size = deathList.size(), limit = g_config.getNumber(ConfigManager::DEATH_ASSISTS) + 1;
+	int32_t i = 0, size = deathList.size(), limit = otx::config::getInteger(otx::config::DEATH_ASSISTS) + 1;
 	if (limit > 0 && size > limit) {
 		size = limit;
 	}
@@ -849,7 +849,7 @@ DeathList Creature::getKillers()
 		list.push_back(DeathEntry(getCombatName(m_lastDamageSource), 0));
 	}
 
-	int32_t requiredTime = g_config.getNumber(ConfigManager::DEATHLIST_REQUIRED_TIME);
+	int32_t requiredTime = otx::config::getInteger(otx::config::DEATHLIST_REQUIRED_TIME);
 	int64_t now = otx::util::mstime();
 
 	CountBlock_t cb;
@@ -896,7 +896,7 @@ bool Creature::hasBeenAttacked(uint32_t attackerId) const
 {
 	CountMap::const_iterator it = m_damageMap.find(attackerId);
 	if (it != m_damageMap.end()) {
-		return (otx::util::mstime() - it->second.ticks) <= g_config.getNumber(ConfigManager::PZ_LOCKED);
+		return (otx::util::mstime() - it->second.ticks) <= otx::config::getInteger(otx::config::PZ_LOCKED);
 	}
 
 	return false;
@@ -1076,7 +1076,7 @@ void Creature::getPathSearchParams(const Creature*, FindPathParams& fpp) const
 
 void Creature::goToFollowCreature()
 {
-	if (getPlayer() && (otx::util::mstime() - m_lastFailedFollow <= g_config.getNumber(ConfigManager::FOLLOW_EXHAUST))) {
+	if (getPlayer() && (otx::util::mstime() - m_lastFailedFollow <= otx::config::getInteger(otx::config::FOLLOW_EXHAUST))) {
 		return;
 	}
 
@@ -1381,10 +1381,10 @@ void Creature::onGainExperience(double& gainExp, Creature* target, bool multipli
 		gainExp = gainExp / 2;
 		m_master->onGainExperience(gainExp, target, multiplied);
 	} else if (!multiplied) {
-		gainExp *= g_config.getDouble(ConfigManager::RATE_EXPERIENCE);
+		gainExp *= otx::config::getDouble(otx::config::RATE_EXPERIENCE);
 	}
 
-	int16_t color = g_config.getNumber(ConfigManager::EXPERIENCE_COLOR);
+	int16_t color = otx::config::getInteger(otx::config::EXPERIENCE_COLOR);
 	if (color < 0) {
 		color = random_range(0, 255);
 	}
@@ -1406,16 +1406,16 @@ void Creature::onGainExperience(double& gainExp, Creature* target, bool multipli
 	}
 
 	std::string sss;
-	if (g_config.getBool(ConfigManager::USEEXP_IN_K)) {
+	if (otx::config::getBoolean(otx::config::USEEXP_IN_K)) {
 		sss = TransformExpToString((double&)gainExp);
 	}
 
 	MessageDetails* details = nullptr;
-	if (!g_config.getBool(ConfigManager::USEEXP_IN_K)) {
+	if (!otx::config::getBoolean(otx::config::USEEXP_IN_K)) {
 		details = new MessageDetails((uint32_t)gainExp, (Color_t)color);
 		g_game.addStatsMessage(textList, MSG_EXPERIENCE_OTHERS, ss.str(), targetPos, details);
 	} else {
-		uint16_t colorExp = g_config.getNumber(ConfigManager::EXPERIENCE_COLOR);
+		uint16_t colorExp = otx::config::getInteger(otx::config::EXPERIENCE_COLOR);
 		g_game.addAnimatedText(targetPos, (Color_t)colorExp, sss);
 	}
 
@@ -1440,10 +1440,10 @@ void Creature::onGainSharedExperience(double& gainExp, Creature* target, bool mu
 		gainExp = gainExp / 2;
 		m_master->onGainSharedExperience(gainExp, target, multiplied);
 	} else if (!multiplied) {
-		gainExp *= g_config.getDouble(ConfigManager::RATE_EXPERIENCE);
+		gainExp *= otx::config::getDouble(otx::config::RATE_EXPERIENCE);
 	}
 
-	int16_t color = g_config.getNumber(ConfigManager::EXPERIENCE_COLOR);
+	int16_t color = otx::config::getInteger(otx::config::EXPERIENCE_COLOR);
 	if (color < 0) {
 		color = random_range(0, 255);
 	}
@@ -1465,16 +1465,16 @@ void Creature::onGainSharedExperience(double& gainExp, Creature* target, bool mu
 	}
 
 	std::string sss;
-	if (g_config.getBool(ConfigManager::USEEXP_IN_K)) {
+	if (otx::config::getBoolean(otx::config::USEEXP_IN_K)) {
 		sss = TransformExpToString((double&)gainExp);
 	}
 
 	MessageDetails* details = nullptr;
-	if (!g_config.getBool(ConfigManager::USEEXP_IN_K)) {
+	if (!otx::config::getBoolean(otx::config::USEEXP_IN_K)) {
 		details = new MessageDetails((uint32_t)gainExp, (Color_t)color);
 		g_game.addStatsMessage(textList, MSG_EXPERIENCE_OTHERS, ss.str(), targetPos, details);
 	} else {
-		uint16_t colorExp = g_config.getNumber(ConfigManager::EXPERIENCE_COLOR);
+		uint16_t colorExp = otx::config::getInteger(otx::config::EXPERIENCE_COLOR);
 		g_game.addAnimatedText(targetPos, (Color_t)colorExp, sss);
 	}
 

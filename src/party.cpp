@@ -115,7 +115,7 @@ bool Party::leave(Player* player)
 	updateIcons(player);
 	clearPlayerPoints(player);
 
-	if (g_config.getBool(ConfigManager::PARTY_VOCATION_MULT)) {
+	if (otx::config::getBoolean(otx::config::PARTY_VOCATION_MULT)) {
 		updateExperienceMult();
 	}
 
@@ -168,11 +168,11 @@ void Party::updateExperienceMult()
 	if (soma == 1) {
 		currentExpMultiplier = 1;
 	} else if (soma == 2) {
-		currentExpMultiplier = g_config.getDouble(ConfigManager::TWO_VOCATION_PARTY);
+		currentExpMultiplier = otx::config::getDouble(otx::config::TWO_VOCATION_PARTY);
 	} else if (soma == 3) {
-		currentExpMultiplier = g_config.getDouble(ConfigManager::THREE_VOCATION_PARTY);
+		currentExpMultiplier = otx::config::getDouble(otx::config::THREE_VOCATION_PARTY);
 	} else if (soma == 4) {
-		currentExpMultiplier = g_config.getDouble(ConfigManager::FOUR_VOCATION_PARTY);
+		currentExpMultiplier = otx::config::getDouble(otx::config::FOUR_VOCATION_PARTY);
 	}
 }
 
@@ -229,7 +229,7 @@ bool Party::join(Player* player)
 	updateSharedExperience();
 	updateIcons(player);
 
-	if (g_config.getBool(ConfigManager::PARTY_VOCATION_MULT)) {
+	if (otx::config::getBoolean(otx::config::PARTY_VOCATION_MULT)) {
 		updateExperienceMult();
 	}
 
@@ -363,7 +363,7 @@ void Party::updateSharedExperience()
 		return;
 	}
 
-	if (g_config.getBool(ConfigManager::PARTY_VOCATION_MULT)) {
+	if (otx::config::getBoolean(otx::config::PARTY_VOCATION_MULT)) {
 		updateExperienceMult();
 	}
 
@@ -437,12 +437,12 @@ bool Party::canUseSharedExperience(const Player* player, uint32_t highestLevel /
 		return false;
 	}
 
-	if (player->getLevel() < (uint32_t)std::ceil((double)highestLevel * g_config.getDouble(ConfigManager::PARTY_DIFFERENCE)) || !Position::areInRange(Position(g_config.getNumber(ConfigManager::PARTY_RADIUS_X), g_config.getNumber(ConfigManager::PARTY_RADIUS_Y), g_config.getNumber(ConfigManager::PARTY_RADIUS_Z)), leader->getPosition(), player->getPosition())) {
+	if (player->getLevel() < (uint32_t)std::ceil((double)highestLevel * otx::config::getDouble(otx::config::PARTY_DIFFERENCE)) || !Position::areInRange(Position(otx::config::getInteger(otx::config::PARTY_RADIUS_X), otx::config::getInteger(otx::config::PARTY_RADIUS_Y), otx::config::getInteger(otx::config::PARTY_RADIUS_Z)), leader->getPosition(), player->getPosition())) {
 		return false;
 	}
 
 	CountMap::const_iterator it = pointMap.find(player->getID());
-	return it != pointMap.end() && (otx::util::mstime() - it->second.ticks) <= g_config.getNumber(ConfigManager::EXPERIENCE_SHARE_ACTIVITY);
+	return it != pointMap.end() && (otx::util::mstime() - it->second.ticks) <= otx::config::getInteger(otx::config::EXPERIENCE_SHARE_ACTIVITY);
 }
 
 bool Party::canEnableSharedExperience()

@@ -173,7 +173,7 @@ void Connection::parseHeader(const boost::system::error_code& error)
 
 	const time_t timeNow = time(nullptr);
 	const uint32_t timePassed = std::max<uint32_t>(1, (timeNow - m_timeConnected) + 1);
-	if ((++m_packetsSent / timePassed) > static_cast<uint32_t>(g_config.getNumber(ConfigManager::MAX_PACKETS_PER_SECOND))) {
+	if ((++m_packetsSent / timePassed) > static_cast<uint32_t>(otx::config::getInteger(otx::config::MAX_PACKETS_PER_SECOND))) {
 		std::cout << convertIPAddress(getIP()) << " disconnected for exceeding packet per second limit." << std::endl;
 		close();
 		return;
