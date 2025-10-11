@@ -26,6 +26,7 @@
 #include "ioban.h"
 #include "ioguild.h"
 #include "iologindata.h"
+#include "npc.h"
 #include "player.h"
 #include "teleport.h"
 #include "textlogger.h"

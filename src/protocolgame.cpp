@@ -1674,26 +1674,21 @@ void ProtocolGame::parseSay(NetworkMessage& msg)
 
 void ProtocolGame::parseFightModes(NetworkMessage& msg)
 {
-	uint8_t rawFightMode = msg.get<char>(); // 1 - offensive, 2 - balanced, 3 - defensive
-	uint8_t rawChaseMode = msg.get<char>(); // 0 - stand while fightning, 1 - chase opponent
-	uint8_t rawSecureMode = msg.get<char>(); // 0 - can't attack unmarked, 1 - can attack unmarked
+	const uint8_t rawFightMode = msg.getByte(); // 1 - offensive, 2 - balanced, 3 - defensive
+	const uint8_t rawChaseMode = msg.getByte(); // 0 - stand while fightning, 1 - chase opponent
+	const uint8_t rawSecureMode = msg.getByte(); // 0 - can't attack unmarked, 1 - can attack unmarked
 
-	chaseMode_t chaseMode = CHASEMODE_STANDSTILL;
-	if (rawChaseMode == 1) {
-		chaseMode = CHASEMODE_FOLLOW;
-	}
-
-	fightMode_t fightMode = FIGHTMODE_ATTACK;
+	FightMode_t fightMode;
 	if (rawFightMode == 2) {
 		fightMode = FIGHTMODE_BALANCED;
 	} else if (rawFightMode == 3) {
 		fightMode = FIGHTMODE_DEFENSE;
+	} else {
+		fightMode = FIGHTMODE_ATTACK;
 	}
 
-	secureMode_t secureMode = SECUREMODE_OFF;
-	if (rawSecureMode == 1) {
-		secureMode = SECUREMODE_ON;
-	}
+	bool chaseMode = (rawChaseMode != 0);
+	bool secureMode = (rawSecureMode != 0);
 
 	addTimedDispatcherTask(DISPATCHER_TASK_EXPIRATION, ([=, playerID = player->getID()]() {
 		g_game.playerSetFightModes(playerID, fightMode, chaseMode, secureMode);
@@ -3256,7 +3251,7 @@ void ProtocolGame::AddPlayerStats(OutputMessage_ptr msg)
 {
 	msg->addByte(0xA0);
 	msg->add<uint16_t>(player->getHealth());
-	msg->add<uint16_t>(player->getPlayerInfo(PLAYERINFO_MAXHEALTH));
+	msg->add<uint16_t>(player->getMaxHealth());
 	uint32_t capacity = uint32_t(player->getFreeCapacity() * 100);
 	if (capacity >= INT32_MAX) {
 		msg->add<uint32_t>(INT32_MAX);
@@ -3264,20 +3259,24 @@ void ProtocolGame::AddPlayerStats(OutputMessage_ptr msg)
 		msg->add<uint32_t>(capacity);
 	}
 
-	uint64_t experience = player->getExperience();
+	const uint64_t experience = player->getExperience();
 	if (experience > 0x7FFFFFFF) {
 		msg->add<uint32_t>(0x7FFFFFFF);
 	} else {
 		msg->add<uint32_t>(experience);
 	}
 
-	msg->add<uint16_t>(player->getPlayerInfo(PLAYERINFO_LEVEL));
-	msg->addByte(player->getPlayerInfo(PLAYERINFO_LEVELPERCENT));
-	msg->add<uint16_t>(player->getPlayerInfo(PLAYERINFO_MANA));
-	msg->add<uint16_t>(player->getPlayerInfo(PLAYERINFO_MAXMANA));
-	msg->addByte(player->getPlayerInfo(PLAYERINFO_MAGICLEVEL));
-	msg->addByte(player->getPlayerInfo(PLAYERINFO_MAGICLEVELPERCENT));
-	msg->addByte(player->getPlayerInfo(PLAYERINFO_SOUL));
+	msg->add<uint16_t>(player->getLevel());
+	msg->addByte(player->getLevelPercent());
+
+	msg->add<uint16_t>(player->getMana());
+	msg->add<uint16_t>(player->getMaxMana());
+
+	msg->addByte(player->getMagicLevel());
+	msg->addByte(player->getMagicLevelPercent());
+
+	msg->addByte(player->getSoul());
+
 	msg->add<uint16_t>(player->getStaminaMinutes());
 }
 
@@ -3285,8 +3284,8 @@ void ProtocolGame::AddPlayerSkills(OutputMessage_ptr msg)
 {
 	msg->addByte(0xA1);
 	for (uint8_t i = 0; i <= SKILL_LAST; ++i) {
-		msg->addByte(player->getSkill((skills_t)i, SKILL_LEVEL));
-		msg->addByte(player->getSkill((skills_t)i, SKILL_PERCENT));
+		msg->addByte(player->getSkillLevel(i));
+		msg->addByte(player->getSkillPercent(i));
 	}
 }
 
@@ -3318,7 +3317,7 @@ void ProtocolGame::AddCreatureSpeak(OutputMessage_ptr msg, const Creature* creat
 
 		const Player* speaker = creature->getPlayer();
 		if (speaker && !speaker->isAccountManager() && !speaker->hasCustomFlag(PlayerCustomFlag_HideLevel)) {
-			msg->add<uint16_t>(speaker->getPlayerInfo(PLAYERINFO_LEVEL));
+			msg->add<uint16_t>(speaker->getLevel());
 		} else {
 			msg->add<uint16_t>(0x00);
 		}

@@ -1254,7 +1254,7 @@ Item* Monster::createCorpse(DeathList deathList)
 	}
 
 	uint64_t stamina = otx::config::getInteger(otx::config::STAMINA_DESTROY_LOOT);
-	if (stamina && owner->getStamina() <= (stamina * STAMINA_MULTIPLIER)) {
+	if (stamina && owner->getStamina() <= (stamina * 60000)) {
 		m_lootDrop = LOOT_DROP_NONE;
 	}
 

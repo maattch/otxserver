@@ -907,7 +907,7 @@ bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slot
 		}
 
 		if (it.abilities->skillsPercent[i]) {
-			player->setVarSkill((skills_t)i, (int32_t)(player->getSkill((skills_t)i, SKILL_LEVEL) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill((skills_t)i, (int32_t)(player->getSkillLevel(i) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
 			if (!needUpdateSkills) {
 				needUpdateSkills = true;
 			}
@@ -988,7 +988,7 @@ bool MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, slots_t slot
 
 		if (it.abilities->skillsPercent[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill((skills_t)i, -(int32_t)(player->getSkill((skills_t)i, SKILL_LEVEL) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill((skills_t)i, -(int32_t)(player->getSkillLevel(i) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
 		}
 	}
 

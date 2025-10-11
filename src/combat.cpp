@@ -395,7 +395,7 @@ ReturnValue Combat::canTargetCreature(const Player* player, const Creature* targ
 	}
 
 	if (target->getPlayer() && !Combat::isInPvpZone(player, target) && player->getSkullType(target->getPlayer()) == SKULL_NONE) {
-		if (player->getSecureMode() == SECUREMODE_ON) {
+		if (player->getSecureMode()) {
 			return RET_TURNSECUREMODETOATTACKUNMARKEDPLAYERS;
 		}
 
@@ -1151,7 +1151,7 @@ void ValueCallback::getMinMaxValues(Player* player, CombatParams& params, int32_
 					lua_pushnumber(L, 0);
 				}
 			} else {
-				lua_pushnumber(L, player->getSkill(SKILL_FIST, SKILL_LEVEL));
+				lua_pushnumber(L, player->getSkillLevel(SKILL_FIST));
 				lua_pushnumber(L, otx::config::getInteger(otx::config::FIST_BASE_ATTACK));
 				lua_pushnumber(L, 0);
 			}

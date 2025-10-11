@@ -341,7 +341,7 @@ bool Weapon::useFist(Player* player, Creature* target)
 
 	bool isCritical = false;
 	float attackFactor = player->getAttackFactor();
-	int32_t attackSkill = player->getSkill(SKILL_FIST, SKILL_LEVEL), attackValue = otx::config::getInteger(otx::config::FIST_BASE_ATTACK);
+	int32_t attackSkill = player->getSkillLevel(SKILL_FIST), attackValue = otx::config::getInteger(otx::config::FIST_BASE_ATTACK);
 
 	double maxDamage = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
 	if (player->getCriticalHitChance() + otx::config::getInteger(otx::config::CRITICAL_HIT_CHANCE) >= random_range(1, 100)) {
@@ -667,7 +667,7 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
 		const Position& playerPos = player->getPosition();
 		const Position& targetPos = target->getPosition();
 
-		uint32_t distance = std::max(std::abs(playerPos.x - targetPos.x), std::abs(playerPos.y - targetPos.y)), skill = player->getSkill(SKILL_DIST, SKILL_LEVEL);
+		uint32_t distance = std::max(std::abs(playerPos.x - targetPos.x), std::abs(playerPos.y - targetPos.y)), skill = player->getSkillLevel(SKILL_DIST);
 		if (maxHitChance == 75) {
 			// chance for one-handed weapons
 			switch (distance) {
@@ -825,7 +825,7 @@ int32_t WeaponDistance::getWeaponDamage(const Player* player, const Creature* ta
 		}
 	}
 
-	int32_t attackSkill = player->getSkill(SKILL_DIST, SKILL_LEVEL);
+	int32_t attackSkill = player->getSkillLevel(SKILL_DIST);
 	float attackFactor = player->getAttackFactor();
 
 	double maxValue = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);

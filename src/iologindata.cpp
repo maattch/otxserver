@@ -581,9 +581,9 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 				skillCount = 0;
 			}
 
-			player->m_skills[skillId][SKILL_LEVEL] = skillLevel;
-			player->m_skills[skillId][SKILL_TRIES] = skillCount;
-			player->m_skills[skillId][SKILL_PERCENT] = Player::getPercentLevel(skillCount, nextSkillCount);
+			player->m_skills[skillId].level = skillLevel;
+			player->m_skills[skillId].tries = skillCount;
+			player->m_skills[skillId].percent = Player::getPercentLevel(skillCount, nextSkillCount);
 		} while (result->next());
 	}
 
@@ -879,9 +879,9 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	}
 
 	// skills
-	for (int32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
+	for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		query.str("");
-		query << "UPDATE `player_skills` SET `value` = " << player->m_skills[i][SKILL_LEVEL] << ", `count` = " << player->m_skills[i][SKILL_TRIES] << " WHERE `player_id` = " << player->getGUID() << " AND `skillid` = " << i << " LIMIT 1;";
+		query << "UPDATE `player_skills` SET `value` = " << player->getSkillLevel(i) << ", `count` = " << player->getSkillTries(i) << " WHERE `player_id` = " << player->getGUID() << " AND `skillid` = " << i << " LIMIT 1";
 		if (!g_database.executeQuery(query.str())) {
 			return false;
 		}

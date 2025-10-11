@@ -520,7 +520,7 @@ public:
 	bool playerSetAttackedCreature(const uint32_t playerId, const uint32_t creatureId);
 	bool playerFollowCreature(const uint32_t playerId, const uint32_t creatureId);
 	bool playerCancelAttackAndFollow(const uint32_t playerId);
-	bool playerSetFightModes(const uint32_t playerId, const fightMode_t& fightMode, const chaseMode_t& chaseMode, const secureMode_t& secureMode);
+	bool playerSetFightModes(const uint32_t playerId, FightMode_t fightMode, bool chaseMode, bool secureMode);
 	bool playerLookAt(const uint32_t playerId, const Position& pos, const uint16_t spriteId, const int16_t stackpos);
 	bool playerLookInBattleList(const uint32_t playerId, const uint32_t creatureId);
 	bool playerQuests(const uint32_t playerId);

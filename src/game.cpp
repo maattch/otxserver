@@ -36,6 +36,7 @@
 #include "lua_definitions.h"
 #include "monsters.h"
 #include "movement.h"
+#include "npc.h"
 #include "quests.h"
 #include "raids.h"
 #include "server.h"
@@ -4176,7 +4177,7 @@ bool Game::playerFollowCreature(const uint32_t playerId, const uint32_t creature
 	return player->setFollowCreature(followCreature);
 }
 
-bool Game::playerSetFightModes(const uint32_t playerId, const fightMode_t& fightMode, const chaseMode_t& chaseMode, const secureMode_t& secureMode)
+bool Game::playerSetFightModes(const uint32_t playerId, FightMode_t fightMode, bool chaseMode, bool secureMode)
 {
 	Player* player = getPlayerByID(playerId);
 	if (!player || player->isRemoved()) {
@@ -4186,7 +4187,6 @@ bool Game::playerSetFightModes(const uint32_t playerId, const fightMode_t& fight
 	player->setFightMode(fightMode);
 	player->setChaseMode(chaseMode);
 	player->setSecureMode(secureMode);
-
 	player->setLastAttack(otx::util::mstime());
 	return true;
 }

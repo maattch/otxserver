@@ -489,7 +489,6 @@ inline int32_t Item::getAttackSpeed() const
 	if (ok) {
 		return v;
 	}
-
 	return items[m_id].attackSpeed;
 }
 

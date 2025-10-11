@@ -763,7 +763,7 @@ bool Outfits::addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, 
 
 		if (outfit.skillsPercent[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill((skills_t)i, (int32_t)(player->getSkill((skills_t)i, SKILL_LEVEL) * ((outfit.skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill((skills_t)i, (int32_t)(player->getSkillLevel(i) * ((outfit.skillsPercent[i] - 100) / 100.f)));
 		}
 	}
 
@@ -835,7 +835,7 @@ bool Outfits::removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t se
 
 		if (outfit.skillsPercent[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill((skills_t)i, -(int32_t)(player->getSkill((skills_t)i, SKILL_LEVEL) * ((outfit.skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill((skills_t)i, -(int32_t)(player->getSkillLevel(i) * ((outfit.skillsPercent[i] - 100) / 100.f)));
 		}
 	}
 

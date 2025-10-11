@@ -40,6 +40,7 @@
 #include "lua_definitions.h"
 #include "monsters.h"
 #include "movement.h"
+#include "npc.h"
 #include "player.h"
 #include "raids.h"
 #include "spells.h"
@@ -1736,7 +1737,7 @@ static int luaGetPlayerSkillLevel(lua_State* L)
 		const auto skillId = static_cast<skills_t>(otx::lua::getNumber<uint8_t>(L, 2));
 		const bool ignoreModifiers = otx::lua::getBoolean(L, 3, false);
 		if (skillId <= SKILL_LAST) {
-			lua_pushnumber(L, ignoreModifiers ? player->getBaseSkill(skillId) : player->getSkill(skillId, SKILL_LEVEL));
+			lua_pushnumber(L, ignoreModifiers ? player->getBaseSkillLevel(skillId) : player->getSkillLevel(skillId));
 		} else {
 			otx::lua::reportErrorEx(L, "Invalid skill type.");
 			lua_pushnil(L);

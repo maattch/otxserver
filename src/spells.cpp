@@ -655,8 +655,8 @@ bool Spell::checkSpell(Player* player) const
 	}
 
 	// Check for future !!
-	for (int16_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
-		if ((int32_t)player->getSkill((skills_t)i, SKILL_LEVEL) < skills[i]) {
+	for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
+		if (static_cast<int32_t>(player->getSkillLevel(i)) < skills[i]) {
 			player->sendCancelMessage(RET_NOTENOUGHSKILL);
 			if (!player->isGhost()) {
 				player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -806,7 +806,7 @@ bool Spell::checkInstantSpell(Player* player, Creature* creature)
 		return true;
 	}
 
-	if (player->getSecureMode() == SECUREMODE_ON) {
+	if (player->getSecureMode()) {
 		player->sendCancelMessage(RET_TURNSECUREMODETOATTACKUNMARKEDPLAYERS);
 		if (!player->isGhost()) {
 			player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -1009,7 +1009,7 @@ bool Spell::checkRuneSpell(Player* player, const Position& toPos)
 		return true;
 	}
 
-	if (player->getSecureMode() == SECUREMODE_ON) {
+	if (player->getSecureMode()) {
 		player->sendCancelMessage(RET_TURNSECUREMODETOATTACKUNMARKEDPLAYERS);
 		if (!player->isGhost()) {
 			player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
