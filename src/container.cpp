@@ -204,9 +204,8 @@ bool Container::isHoldingItem(const Item* item) const
 void Container::onAddContainerItem(Item* item)
 {
 	const Position& cylinderMapPos = getPosition();
-	SpectatorVec list;
 
-	SpectatorVec::iterator it;
+	SpectatorVec list;
 	g_game.getSpectators(list, cylinderMapPos, false, true, 2, 2, 2, 2);
 
 	// send to client
@@ -220,32 +219,29 @@ void Container::onAddContainerItem(Item* item)
 	}
 }
 
-void Container::onUpdateContainerItem(uint32_t index, Item* oldItem, const ItemType& oldType,
-	Item* newItem, const ItemType& newType)
+void Container::onUpdateContainerItem(uint32_t index, Item* oldItem, Item* newItem) const
 {
 	const Position& cylinderMapPos = getPosition();
-	SpectatorVec list;
 
-	SpectatorVec::iterator it;
+	SpectatorVec list;
 	g_game.getSpectators(list, cylinderMapPos, false, true, 2, 2, 2, 2);
 
 	// send to client
 	for (Creature* spectator : list) {
-		spectator->getPlayer()->sendUpdateContainerItem(this, index, oldItem, newItem);
+		spectator->getPlayer()->sendUpdateContainerItem(this, index, newItem);
 	}
 
 	// event methods
 	for (Creature* spectator : list) {
-		spectator->getPlayer()->onUpdateContainerItem(this, index, oldItem, oldType, newItem, newType);
+		spectator->getPlayer()->onUpdateContainerItem(this, oldItem, newItem);
 	}
 }
 
-void Container::onRemoveContainerItem(uint32_t index, Item* item)
+void Container::onRemoveContainerItem(uint32_t index, Item* item) const
 {
 	const Position& cylinderMapPos = getPosition();
-	SpectatorVec list;
 
-	SpectatorVec::iterator it;
+	SpectatorVec list;
 	g_game.getSpectators(list, cylinderMapPos, false, true, 2, 2, 2, 2);
 
 	// send change to client
@@ -507,9 +503,6 @@ void Container::__updateThing(Thing* thing, uint16_t itemId, uint32_t count)
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
-	const ItemType& oldType = Item::items[item->getID()];
-	const ItemType& newType = Item::items[itemId];
-
 	const double oldWeight = item->getWeight();
 	item->setID(itemId);
 	item->setSubType(count);
@@ -522,7 +515,7 @@ void Container::__updateThing(Thing* thing, uint16_t itemId, uint32_t count)
 
 	// send change to client
 	if (getParent()) {
-		onUpdateContainerItem(index, item, oldType, item, newType);
+		onUpdateContainerItem(index, item, item);
 	}
 }
 
@@ -563,9 +556,7 @@ void Container::__replaceThing(uint32_t index, Thing* thing)
 	item->setParent(this);
 	// send change to client
 	if (getParent()) {
-		const ItemType& oldType = Item::items[(*cit)->getID()];
-		const ItemType& newType = Item::items[item->getID()];
-		onUpdateContainerItem(index, *cit, oldType, item, newType);
+		onUpdateContainerItem(index, *cit, item);
 	}
 
 	(*cit)->setParent(nullptr);
@@ -609,9 +600,7 @@ void Container::__removeThing(Thing* thing, uint32_t count)
 			if (Container* parentContainer = getParentContainer()) {
 				parentContainer->updateItemWeight(diffWeight);
 			}
-
-			const ItemType& it = Item::items[item->getID()];
-			onUpdateContainerItem(index, item, it, item, it);
+			onUpdateContainerItem(index, item, item);
 		}
 	} else {
 		// send change to client

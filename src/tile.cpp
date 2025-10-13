@@ -442,7 +442,7 @@ void Tile::onRemoveTileItem(const SpectatorVec& list, std::vector<int32_t>& oldS
 	uint32_t i = 0;
 	for (it = list.begin(); it != list.end(); ++it) {
 		if ((tmpPlayer = (*it)->getPlayer())) {
-			tmpPlayer->sendRemoveTileItem(this, m_pos, oldStackposVector[i++], item);
+			tmpPlayer->sendRemoveTileItem(m_pos, oldStackposVector[i++]);
 		}
 	}
 
@@ -523,7 +523,7 @@ void Tile::moveCreature(Creature* actor, Creature* creature, Cylinder* toCylinde
 	int32_t i = 0;
 	for (it = list.begin(); it != list.end(); ++it) {
 		if ((tmpPlayer = (*it)->getPlayer())) {
-			tmpPlayer->sendCreatureMove(creature, newTile, newPos, this, m_pos, oldStackposVector[i++], teleport);
+			tmpPlayer->sendCreatureMove(creature, newTile, newPos, m_pos, oldStackposVector[i++], teleport);
 		}
 	}
 

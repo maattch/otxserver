@@ -1198,7 +1198,7 @@ void Player::sendHouseWindow(House* house, uint32_t listId) const
 
 	std::string text;
 	if (house->getAccessList(listId, text)) {
-		m_client->sendHouseWindow(m_windowTextId, house, listId, text);
+		m_client->sendHouseWindow(m_windowTextId, text);
 	}
 }
 
@@ -1232,7 +1232,7 @@ void Player::sendAddContainerItem(const Container* container, const Item* item)
 	}
 }
 
-void Player::sendUpdateContainerItem(const Container* container, uint8_t slot, const Item*, const Item* newItem)
+void Player::sendUpdateContainerItem(const Container* container, uint8_t slot, const Item* item)
 {
 	if (!m_client) {
 		return;
@@ -1240,7 +1240,7 @@ void Player::sendUpdateContainerItem(const Container* container, uint8_t slot, c
 
 	for (ContainerVector::const_iterator cl = m_containerVec.begin(); cl != m_containerVec.end(); ++cl) {
 		if (cl->second == container) {
-			m_client->sendUpdateContainerItem(cl->first, slot, newItem);
+			m_client->sendUpdateContainerItem(cl->first, slot, item);
 		}
 	}
 }
@@ -1600,9 +1600,9 @@ void Player::onCreatureDisappear(const Creature* creature, bool isLogout)
 #endif
 }
 
-void Player::openShopWindow(Npc* npc)
+void Player::openShopWindow() const
 {
-	sendShop(npc);
+	sendShop();
 	sendGoods();
 }
 
@@ -1706,8 +1706,8 @@ void Player::onAddContainerItem(const Container* container, const Item* item)
 	checkTradeState(item);
 }
 
-void Player::onUpdateContainerItem(const Container* container, uint8_t,
-	const Item* oldItem, const ItemType&, const Item* newItem, const ItemType&)
+void Player::onUpdateContainerItem(const Container* container,
+	const Item* oldItem, const Item* newItem)
 {
 	if (m_tradeState == TRADE_TRANSFER) {
 		return;
@@ -1766,8 +1766,7 @@ void Player::onSendContainer(const Container* container)
 	}
 }
 
-void Player::onUpdateInventoryItem(slots_t, Item* oldItem, const ItemType&,
-	Item* newItem, const ItemType&)
+void Player::onUpdateInventoryItem(Item* oldItem, Item* newItem)
 {
 	if (m_tradeState == TRADE_TRANSFER) {
 		return;
@@ -3255,16 +3254,13 @@ void Player::__updateThing(Thing* thing, uint16_t itemId, uint32_t count)
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
-	const ItemType& oldType = Item::items[item->getID()];
-	const ItemType& newType = Item::items[itemId];
-
 	item->setID(itemId);
 	item->setSubType(count);
 
 	// send to client
-	sendUpdateInventoryItem((slots_t)index, item, item);
+	sendUpdateInventoryItem((slots_t)index, item);
 	// event methods
-	onUpdateInventoryItem((slots_t)index, item, oldType, item, newType);
+	onUpdateInventoryItem(item, item);
 }
 
 void Player::__replaceThing(uint32_t index, Thing* thing)
@@ -3292,15 +3288,13 @@ void Player::__replaceThing(uint32_t index, Thing* thing)
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
-	const ItemType& oldType = Item::items[oldItem->getID()];
-	const ItemType& newType = Item::items[item->getID()];
-
 	// send to client
-	sendUpdateInventoryItem((slots_t)index, oldItem, item);
+	sendUpdateInventoryItem((slots_t)index, item);
 	// event methods
-	onUpdateInventoryItem((slots_t)index, oldItem, oldType, item, newType);
+	onUpdateInventoryItem(oldItem, item);
 
 	item->setParent(this);
+
 	m_inventory[index] = item;
 }
 
@@ -3333,12 +3327,11 @@ void Player::__removeThing(Thing* thing, uint32_t count)
 			m_inventory[index] = nullptr;
 		} else {
 			item->setItemCount(std::max(0, (int32_t)(item->getItemCount() - count)));
-			const ItemType& it = Item::items[item->getID()];
 
 			// send change to client
-			sendUpdateInventoryItem((slots_t)index, item, item);
+			sendUpdateInventoryItem((slots_t)index, item);
 			// event methods
-			onUpdateInventoryItem((slots_t)index, item, it, item, it);
+			onUpdateInventoryItem(item, item);
 		}
 	} else {
 		// send change to client

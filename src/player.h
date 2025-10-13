@@ -423,7 +423,7 @@ public:
 	void onWalkAborted() override;
 	void onWalkComplete() override;
 
-	void openShopWindow(Npc* npc);
+	void openShopWindow() const;
 	void closeShopWindow(bool send = true);
 
 	bool canBuyItem(uint16_t itemId, uint8_t subType);
@@ -535,19 +535,19 @@ public:
 	void sendAddTileItem(const Tile* tile, const Position& pos, const Item* item)
 	{
 		if (m_client) {
-			m_client->sendAddTileItem(tile, pos, tile->getClientIndexOfThing(this, item), item);
+			m_client->sendAddTileItem(pos, tile->getClientIndexOfThing(this, item), item);
 		}
 	}
 	void sendUpdateTileItem(const Tile* tile, const Position& pos, const Item* oldItem, const Item* newItem)
 	{
 		if (m_client) {
-			m_client->sendUpdateTileItem(tile, pos, tile->getClientIndexOfThing(this, oldItem), newItem);
+			m_client->sendUpdateTileItem(pos, tile->getClientIndexOfThing(this, oldItem), newItem);
 		}
 	}
-	void sendRemoveTileItem(const Tile* tile, const Position& pos, uint32_t stackpos, const Item*)
+	void sendRemoveTileItem(const Position& pos, uint32_t stackpos)
 	{
 		if (m_client) {
-			m_client->sendRemoveTileItem(tile, pos, stackpos);
+			m_client->sendRemoveTileItem(pos, stackpos);
 		}
 	}
 	void sendUpdateTile(const Tile* tile, const Position& pos)
@@ -578,14 +578,14 @@ public:
 	void sendCreatureDisappear(const Creature* creature, uint32_t stackpos)
 	{
 		if (m_client) {
-			m_client->sendRemoveCreature(creature, creature->getPosition(), stackpos);
+			m_client->sendRemoveCreature(creature->getPosition(), stackpos);
 		}
 	}
 	void sendCreatureMove(const Creature* creature, const Tile* newTile, const Position& newPos,
-		const Tile* oldTile, const Position& oldPos, uint32_t oldStackpos, bool teleport)
+		const Position& oldPos, uint32_t oldStackpos, bool teleport)
 	{
 		if (m_client) {
-			m_client->sendMoveCreature(creature, newTile, newPos, newTile->getClientIndexOfThing(this, creature), oldTile, oldPos, oldStackpos, teleport);
+			m_client->sendMoveCreature(creature, newPos, newTile->getClientIndexOfThing(this, creature), oldPos, oldStackpos, teleport);
 		}
 	}
 
@@ -654,7 +654,7 @@ public:
 
 	// container
 	void sendAddContainerItem(const Container* container, const Item* item);
-	void sendUpdateContainerItem(const Container* container, uint8_t slot, const Item* oldItem, const Item* newItem);
+	void sendUpdateContainerItem(const Container* container, uint8_t slot, const Item* item);
 	void sendRemoveContainerItem(const Container* container, uint8_t slot, const Item* item);
 	void sendContainer(uint32_t cid, const Container* container, bool hasParent)
 	{
@@ -671,10 +671,10 @@ public:
 			m_client->sendAddInventoryItem(slot, item);
 		}
 	}
-	void sendUpdateInventoryItem(slots_t slot, const Item*, const Item* newItem)
+	void sendUpdateInventoryItem(slots_t slot, const Item* item)
 	{
 		if (m_client) {
-			m_client->sendUpdateInventoryItem(slot, newItem);
+			m_client->sendUpdateInventoryItem(slot, item);
 		}
 	}
 	void sendRemoveInventoryItem(slots_t slot, const Item*)
@@ -712,8 +712,7 @@ public:
 
 	// container
 	void onAddContainerItem(const Container* container, const Item* item);
-	void onUpdateContainerItem(const Container* container, uint8_t slot,
-		const Item* oldItem, const ItemType& oldType, const Item* newItem, const ItemType& newType);
+	void onUpdateContainerItem(const Container* container, const Item* oldItem, const Item* newItem);
 	void onRemoveContainerItem(const Container* container, uint8_t slot, const Item* item);
 
 	void onCloseContainer(const Container* container);
@@ -722,8 +721,7 @@ public:
 
 	// inventory
 	void onAddInventoryItem(slots_t, Item*) {}
-	void onUpdateInventoryItem(slots_t slot, Item* oldItem, const ItemType& oldType,
-		Item* newItem, const ItemType& newType);
+	void onUpdateInventoryItem(Item* oldItem, Item* newItem);
 	void onRemoveInventoryItem(slots_t slot, Item* item);
 
 	void sendCancel(const std::string& msg) const
@@ -853,10 +851,10 @@ public:
 			m_client->sendTextWindow(m_windowTextId, item, maxLen, canWrite);
 		}
 	}
-	void sendShop(Npc* npc) const
+	void sendShop() const
 	{
 		if (m_client) {
-			m_client->sendShop(npc, m_shopOffer);
+			m_client->sendShop(m_shopOffer);
 		}
 	}
 	void sendGoods() const

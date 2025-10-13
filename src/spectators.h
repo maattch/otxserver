@@ -512,13 +512,13 @@ private:
 		}
 	}
 
-	void sendShop(Npc* npc, const ShopInfoList& shop)
+	void sendShop(const ShopInfoList& shop)
 	{
 		if (!m_owner) {
 			return;
 		}
 
-		m_owner->sendShop(npc, shop);
+		m_owner->sendShop(shop);
 	}
 	void sendCloseShop()
 	{
@@ -561,13 +561,13 @@ private:
 
 		m_owner->sendTextWindow(windowTextId, item, maxLen, canWrite);
 	}
-	void sendHouseWindow(uint32_t windowTextId, House* house, uint32_t listId, const std::string& text)
+	void sendHouseWindow(uint32_t windowTextId, const std::string& text)
 	{
 		if (!m_owner) {
 			return;
 		}
 
-		m_owner->sendHouseWindow(windowTextId, house, listId, text);
+		m_owner->sendHouseWindow(windowTextId, text);
 	}
 
 	void sendOutfitWindow()
@@ -649,37 +649,37 @@ private:
 		}
 	}
 
-	void sendAddTileItem(const Tile* tile, const Position& pos, uint32_t stackpos, const Item* item)
+	void sendAddTileItem(const Position& pos, uint32_t stackpos, const Item* item)
 	{
 		if (!m_owner) {
 			return;
 		}
 
-		m_owner->sendAddTileItem(tile, pos, stackpos, item);
+		m_owner->sendAddTileItem(pos, stackpos, item);
 		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendAddTileItem(tile, pos, stackpos, item);
+			it->first->sendAddTileItem(pos, stackpos, item);
 		}
 	}
-	void sendUpdateTileItem(const Tile* tile, const Position& pos, uint32_t stackpos, const Item* item)
+	void sendUpdateTileItem(const Position& pos, uint32_t stackpos, const Item* item)
 	{
 		if (!m_owner) {
 			return;
 		}
 
-		m_owner->sendUpdateTileItem(tile, pos, stackpos, item);
+		m_owner->sendUpdateTileItem(pos, stackpos, item);
 		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendUpdateTileItem(tile, pos, stackpos, item);
+			it->first->sendUpdateTileItem(pos, stackpos, item);
 		}
 	}
-	void sendRemoveTileItem(const Tile* tile, const Position& pos, uint32_t stackpos)
+	void sendRemoveTileItem(const Position& pos, uint32_t stackpos)
 	{
 		if (!m_owner) {
 			return;
 		}
 
-		m_owner->sendRemoveTileItem(tile, pos, stackpos);
+		m_owner->sendRemoveTileItem(pos, stackpos);
 		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendRemoveTileItem(tile, pos, stackpos);
+			it->first->sendRemoveTileItem(pos, stackpos);
 		}
 	}
 	void sendUpdateTile(const Tile* tile, const Position& pos)
@@ -705,27 +705,27 @@ private:
 			it->first->sendAddCreature(creature, pos, stackpos);
 		}
 	}
-	void sendRemoveCreature(const Creature* creature, const Position& pos, uint32_t stackpos)
+	void sendRemoveCreature(const Position& pos, uint32_t stackpos)
 	{
 		if (!m_owner) {
 			return;
 		}
 
-		m_owner->sendRemoveCreature(creature, pos, stackpos);
+		m_owner->sendRemoveCreature(pos, stackpos);
 		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendRemoveCreature(creature, pos, stackpos);
+			it->first->sendRemoveCreature(pos, stackpos);
 		}
 	}
-	void sendMoveCreature(const Creature* creature, const Tile* newTile, const Position& newPos, uint32_t newStackPos,
-		const Tile* oldTile, const Position& oldPos, uint32_t oldStackpos, bool teleport)
+	void sendMoveCreature(const Creature* creature, const Position& newPos, uint32_t newStackPos,
+		const Position& oldPos, uint32_t oldStackpos, bool teleport)
 	{
 		if (!m_owner) {
 			return;
 		}
 
-		m_owner->sendMoveCreature(creature, newTile, newPos, newStackPos, oldTile, oldPos, oldStackpos, teleport);
+		m_owner->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackpos, teleport);
 		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendMoveCreature(creature, newTile, newPos, newStackPos, oldTile, oldPos, oldStackpos, teleport);
+			it->first->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackpos, teleport);
 		}
 	}
 

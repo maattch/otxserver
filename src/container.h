@@ -148,9 +148,8 @@ public:
 
 private:
 	void onAddContainerItem(Item* item);
-	void onUpdateContainerItem(uint32_t index, Item* oldItem, const ItemType& oldType,
-		Item* newItem, const ItemType& newType);
-	void onRemoveContainerItem(uint32_t index, Item* item);
+	void onUpdateContainerItem(uint32_t index, Item* oldItem, Item* newItem) const;
+	void onRemoveContainerItem(uint32_t index, Item* item) const;
 
 	Container* getParentContainer();
 	void updateItemWeight(double diff);

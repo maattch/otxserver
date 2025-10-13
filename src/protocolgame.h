@@ -69,8 +69,7 @@ public:
 	std::string generateRandomName(int length);
 
 	void spectate(const std::string& name, const std::string& password);
-	void login(const std::string& name, uint32_t id, const std::string& password,
-		OperatingSystem_t operatingSystem, uint16_t version, bool gamemaster);
+	void login(const std::string& name, uint32_t id, OperatingSystem_t operatingSystem, uint16_t version, bool gamemaster);
 	bool logout(bool displayEffect, bool forceLogout);
 	void chat(uint16_t channelId);
 
@@ -110,17 +109,9 @@ private:
 
 	// Parse methods
 	void parseTelescopeBack(bool lostConnection);
-	void parseLogout(NetworkMessage& msg);
-	void parseCancelWalk(NetworkMessage& msg);
-	void parseCancelTarget(NetworkMessage& msg);
 
-	void parseReceivePing(NetworkMessage& msg);
 	void parseAutoWalk(NetworkMessage& msg);
-	void parseMove(NetworkMessage& msg, Direction dir);
-	void parseTurn(NetworkMessage& msg, Direction dir);
-	void parseCancelMove(NetworkMessage& msg);
 
-	void parseRequestOutfit(NetworkMessage& msg);
 	void parseSetOutfit(NetworkMessage& msg);
 	void parseSay(NetworkMessage& msg);
 	void parseLookAt(NetworkMessage& msg);
@@ -146,7 +137,6 @@ private:
 	void parseLookInShop(NetworkMessage& msg);
 	void parsePlayerPurchase(NetworkMessage& msg);
 	void parsePlayerSale(NetworkMessage& msg);
-	void parseCloseShop(NetworkMessage& msg);
 
 	void parseQuests(NetworkMessage& msg);
 	void parseQuestInfo(NetworkMessage& msg);
@@ -155,13 +145,11 @@ private:
 	void parseJoinParty(NetworkMessage& msg);
 	void parseRevokePartyInvite(NetworkMessage& msg);
 	void parsePassPartyLeadership(NetworkMessage& msg);
-	void parseLeaveParty(NetworkMessage& msg);
 	void parseSharePartyExperience(NetworkMessage& msg);
 
 	// trade methods
 	void parseRequestTrade(NetworkMessage& msg);
 	void parseLookInTrade(NetworkMessage& msg);
-	void parseAcceptTrade(NetworkMessage& msg);
 	void parseCloseTrade();
 
 	// VIP methods
@@ -171,20 +159,17 @@ private:
 	void parseRotateItem(NetworkMessage& msg);
 
 	// Channel tabs
-	void parseCreatePrivateChannel(NetworkMessage& msg);
 	void parseChannelInvite(NetworkMessage& msg);
 	void parseChannelExclude(NetworkMessage& msg);
 	void parseGetChannels(NetworkMessage& msg);
 	void parseOpenChannel(NetworkMessage& msg);
 	void parseOpenPrivate(NetworkMessage& msg);
 	void parseCloseChannel(NetworkMessage& msg);
-	void parseCloseNpc(NetworkMessage& msg);
 
 	// rule violation
 	void parseViolationReport(NetworkMessage& msg);
 	void parseProcessRuleViolation(NetworkMessage& msg);
 	void parseCloseRuleViolation(NetworkMessage& msg);
-	void parseCancelRuleViolation(NetworkMessage& msg);
 
 	// Send functions
 	void sendChannelMessage(std::string author, std::string text, MessageClasses type, uint16_t channel);
@@ -234,14 +219,14 @@ private:
 	void sendCreatureEmblem(const Creature* creature) { reloadCreature(creature); }
 	void sendCreatureWalkthrough(const Creature* creature, bool walkthrough);
 
-	void sendShop(Npc* npc, const ShopInfoList& shop);
+	void sendShop(const ShopInfoList& shop);
 	void sendCloseShop();
 	void sendGoods(const ShopInfoList& shop);
 	void sendTradeItemRequest(const Player* _player, const Item* item, bool ack);
 	void sendCloseTrade();
 
 	void sendTextWindow(uint32_t windowTextId, Item* item, uint16_t maxLen, bool canWrite);
-	void sendHouseWindow(uint32_t windowTextId, House* house, uint32_t listId, const std::string& text);
+	void sendHouseWindow(uint32_t windowTextId, const std::string& text);
 
 	void sendOutfitWindow();
 	void sendQuests();
@@ -257,15 +242,15 @@ private:
 	void sendCreatureSquare(const Creature* creature, uint8_t color);
 
 	// tiles
-	void sendAddTileItem(const Tile* tile, const Position& pos, uint32_t stackpos, const Item* item);
-	void sendUpdateTileItem(const Tile* tile, const Position& pos, uint32_t stackpos, const Item* item);
-	void sendRemoveTileItem(const Tile* tile, const Position& pos, uint32_t stackpos);
+	void sendAddTileItem(const Position& pos, uint32_t stackpos, const Item* item);
+	void sendUpdateTileItem(const Position& pos, uint32_t stackpos, const Item* item);
+	void sendRemoveTileItem(const Position& pos, uint32_t stackpos);
 	void sendUpdateTile(const Tile* tile, const Position& pos);
 
 	void sendAddCreature(const Creature* creature, const Position& pos, uint32_t stackpos);
-	void sendRemoveCreature(const Creature* creature, const Position& pos, uint32_t stackpos);
-	void sendMoveCreature(const Creature* creature, const Tile* newTile, const Position& newPos, uint32_t newStackPos,
-		const Tile* oldTile, const Position& oldPos, uint32_t oldStackpos, bool teleport);
+	void sendRemoveCreature(const Position& pos, uint32_t stackpos);
+	void sendMoveCreature(const Creature* creature, const Position& newPos, uint32_t newStackPos,
+		const Position& oldPos, uint32_t oldStackpos, bool teleport);
 
 	// containers
 	void sendAddContainerItem(uint8_t cid, const Item* item);
