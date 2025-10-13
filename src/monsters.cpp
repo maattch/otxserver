@@ -370,24 +370,24 @@ bool Monsters::deserializeSpell(xmlNodePtr node, spellBlock_t& sb, const std::st
 					spread = std::max(0, intValue);
 				}
 
-				CombatArea* area = new CombatArea();
+				auto area = std::make_unique<CombatArea>();
 				area->setupArea(length, spread);
 
-				combat->setArea(area);
+				combat->setArea(std::move(area));
 				needDirection = true;
 			}
 		}
 
 		if (readXMLInteger(node, "radius", intValue)) {
-			int32_t radius = intValue;
+			const auto radius = std::clamp<int32_t>(intValue, 0, 0xFF);
 			// target spell
 			if (readXMLInteger(node, "target", intValue)) {
 				needTarget = (intValue != 0);
 			}
 
-			CombatArea* area = new CombatArea();
+			auto area = std::make_unique<CombatArea>();
 			area->setupArea(radius);
-			combat->setArea(area);
+			combat->setArea(std::move(area));
 		}
 
 		std::string tmpName = otx::util::as_lower_string(name);

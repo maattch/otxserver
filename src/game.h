@@ -610,14 +610,10 @@ public:
 	void checkWars();
 	void collectLuaGarbage();
 
-	bool combatBlockHit(const CombatType_t& combatType, Creature* attacker, Creature* target,
-		int32_t& healthChange, const bool checkDefense, const bool checkArmor, const bool field = false, const bool element = false);
+	bool combatBlockHit(CombatDamage& damage, Creature* attacker, Creature* target, bool checkDefense, bool checkArmor, bool field = false);
 
-	bool combatChangeHealth(const CombatType_t& combatType, Creature* attacker, Creature* target, int32_t healthChange,
-		const MagicEffect_t& hitEffect = MAGIC_EFFECT_NONE, const Color_t& hitColor = COLOR_UNKNOWN, const bool force = false);
-	bool combatChangeHealth(const CombatParams& params, Creature* attacker, Creature* target, int32_t healthChange, const bool force);
-	bool combatChangeMana(Creature* attacker, Creature* target, int32_t manaChange,
-		const CombatType_t& combatType = COMBAT_MANADRAIN, const bool inherited = false);
+	bool combatChangeHealth(Creature* attacker, Creature* target, CombatDamage& damage, MagicEffect_t hitEffect = MAGIC_EFFECT_NONE, Color_t hitColor = COLOR_NONE, bool force = false);
+	bool combatChangeMana(Creature* attacker, Creature* target, CombatDamage& damage);
 
 	// animation help functions
 	void addCreatureHealth(const Creature* target);

@@ -631,7 +631,7 @@ void ScriptEnvironment::reset()
 	clearEnvironmentObjects(this);
 }
 
-bool ScriptEnvironment::setCallbackId(int32_t callbackId, LuaInterface* interface)
+bool ScriptEnvironment::setCallbackId(int callbackId, LuaInterface* interface)
 {
 	if (m_callbackId == 0) {
 		m_callbackId = callbackId;

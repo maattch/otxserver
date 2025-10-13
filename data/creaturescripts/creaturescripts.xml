@@ -13,9 +13,6 @@
 	<event type="login" name="MBlogin" script="monsterBoost.lua"/>
 	<event type="kill" name="MBKill" event="script" value="monsterBoost.lua"/>
 
-	<!-- custom protect house -->
-	<event type="moveitem" name="houseProtectTrash" event="script" value="houseProtectTrash.lua"/>
-
 	<!-- Player Login -->
 	<event type="login" name="PlayerLogin" event="script" value="login.lua"/>
 

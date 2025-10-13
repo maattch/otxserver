@@ -481,7 +481,6 @@ public:
 	bool addUnjustifiedKill(const Player* attacked, bool countNow);
 
 	int32_t getArmor() const override;
-	int32_t getCriticalHitChance() const;
 	int32_t getDefense() const override;
 	float getAttackFactor() const override;
 	float getDefenseFactor() const override;
@@ -973,7 +972,6 @@ public:
 		}
 	}
 
-	void sendCritical() const;
 	void sendPlayerIcons(Player* player);
 	void sendStats();
 

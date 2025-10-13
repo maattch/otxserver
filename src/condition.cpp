@@ -753,9 +753,12 @@ bool ConditionRegeneration::executeCondition(Creature* creature, int32_t interva
 	if (creature->getZone() != ZONE_PROTECTION) {
 		if (internalHealthTicks >= healthTicks) {
 			internalHealthTicks = 0;
-			if (healthGain && creature->getHealth() < creature->getMaxHealth()) {
+			if (healthGain != 0 && creature->getHealth() < creature->getMaxHealth()) {
 				if (getSubId() != 0) {
-					g_game.combatChangeHealth(COMBAT_HEALING, creature, creature, healthGain);
+					CombatDamage damage;
+					damage.primary.value = healthGain;
+					damage.primary.type = COMBAT_HEALING;
+					g_game.combatChangeHealth(creature, creature, damage);
 				} else {
 					creature->changeHealth(healthGain);
 				}
@@ -766,7 +769,10 @@ bool ConditionRegeneration::executeCondition(Creature* creature, int32_t interva
 			internalManaTicks = 0;
 			if (manaGain && creature->getMana() < creature->getMaxMana()) {
 				if (getSubId() != 0) {
-					g_game.combatChangeMana(creature, creature, manaGain);
+					CombatDamage damage;
+					damage.primary.value = manaGain;
+					damage.primary.type = COMBAT_HEALING;
+					g_game.combatChangeMana(creature, creature, damage);
 				} else {
 					creature->changeMana(manaGain);
 				}
@@ -1196,23 +1202,29 @@ bool ConditionDamage::doDamage(Creature* creature, int32_t damage)
 		return true;
 	}
 
+	const bool aggressive = (damage < 0);
+
+	CombatDamage combatDamage;
+	combatDamage.primary.value = otx::util::abs(damage);
+	combatDamage.primary.type = Combat::ConditionToDamageType(conditionType);
+
 	Creature* attacker = g_game.getCreatureByID(owner);
-	if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
-		if (damage < 0 && attacker && attacker->getPlayer() && creature->getPlayer() && creature->getPlayer()->getSkull() != SKULL_BLACK) {
-			damage = damage / 2;
-		}
-	} else {
-		if (damage < 0 && attacker && attacker->getPlayer() && creature->getPlayer()) {
-			damage = damage / 2;
+	if (aggressive && attacker && attacker->getPlayer()) {
+		Player* player = creature->getPlayer();
+		if (player && player->getSkull() != SKULL_BLACK) {
+			combatDamage.primary.value /= 2;
 		}
 	}
 
-	CombatType_t combatType = Combat::ConditionToDamageType(conditionType);
-	if (g_game.combatBlockHit(combatType, attacker, creature, damage, false, false, field)) {
+	if (Combat::canDoCombat(attacker, creature, aggressive) != RET_NOERROR) {
+		g_game.addMagicEffect(creature->getPosition(), MAGIC_EFFECT_POFF, creature->isGhost());
+		return true;
+	}
+
+	if (g_game.combatBlockHit(combatDamage, attacker, creature, false, false, field)) {
 		return false;
 	}
-
-	return g_game.combatChangeHealth(combatType, attacker, creature, damage);
+	return g_game.combatChangeHealth(attacker, creature, combatDamage);
 }
 
 void ConditionDamage::addCondition(Creature* creature, const Condition* addCondition)

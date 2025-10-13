@@ -284,8 +284,8 @@ public:
 
 	void reset();
 
-	int32_t getCallbackId() const { return m_callbackId; };
-	bool setCallbackId(int32_t callbackId, LuaInterface* interface);
+	int getCallbackId() const { return m_callbackId; };
+	bool setCallbackId(int callbackId, LuaInterface* interface);
 
 	Npc* getNpc() const { return m_curNpc; }
 	void setNpc(Npc* npc) { m_curNpc = npc; }

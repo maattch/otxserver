@@ -236,7 +236,6 @@ bool otx::config::load()
 	double_array[THREE_VOCATION_PARTY] = getConfigDouble(L, "threeVocationExpMultiplier", 1.6);
 	double_array[FOUR_VOCATION_PARTY] = getConfigDouble(L, "fourVocationExpMultiplier", 2.0);
 	double_array[PARTY_DIFFERENCE] = getConfigDouble(L, "experienceShareLevelDifference", 2.0 / 3.0);
-	double_array[CRITICAL_HIT_MUL] = getConfigDouble(L, "criticalHitMultiplier", 1.0);
 	double_array[RATE_STAMINA_GAIN] = getConfigDouble(L, "rateStaminaGain", 3.0);
 	double_array[RATE_STAMINA_THRESHOLD] = getConfigDouble(L, "rateStaminaThresholdGain", 12.0);
 	double_array[RATE_STAMINA_ABOVE] = getConfigDouble(L, "rateStaminaAboveNormal", 1.5);
@@ -276,7 +275,6 @@ bool otx::config::load()
 	integer_array[ACTIONS_DELAY_INTERVAL] = getConfigInteger(L, "timeBetweenActions", 200);
 	integer_array[EX_ACTIONS_DELAY_INTERVAL] = getConfigInteger(L, "timeBetweenExActions", 1000);
 	integer_array[CUSTOM_ACTIONS_DELAY_INTERVAL] = getConfigInteger(L, "timeBetweenCustomActions", 500);
-	integer_array[CRITICAL_HIT_CHANCE] = getConfigInteger(L, "criticalHitChance", 5);
 	integer_array[PROTECTION_LEVEL] = getConfigInteger(L, "protectionLevel", 1);
 	integer_array[STATUSQUERY_TIMEOUT] = getConfigInteger(L, "statusTimeout", 300000);
 	integer_array[LEVEL_TO_FORM_GUILD] = getConfigInteger(L, "levelToFormGuild", 8);
@@ -383,7 +381,6 @@ bool otx::config::load()
 	bool_array[TELEPORT_SUMMONS] = getConfigBoolean(L, "teleportAllSummons", false);
 	bool_array[TELEPORT_PLAYER_SUMMONS] = getConfigBoolean(L, "teleportPlayerSummons", false);
 	bool_array[PVP_TILE_IGNORE_PROTECTION] = getConfigBoolean(L, "pvpTileIgnoreLevelAndVocationProtection", true);
-	bool_array[DISPLAY_CRITICAL_HIT] = getConfigBoolean(L, "displayCriticalHitNotify", false);
 	bool_array[POTION_CAN_EXHAUST_ITEM] = getConfigBoolean(L, "exhaustItemAtUsePotion", false);
 	bool_array[CLEAN_PROTECTED_ZONES] = getConfigBoolean(L, "cleanProtectedZones", true);
 	bool_array[SPELL_NAME_INSTEAD_WORDS] = getConfigBoolean(L, "spellNameInsteadOfWords", false);

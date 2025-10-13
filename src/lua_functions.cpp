@@ -81,12 +81,11 @@ namespace
 		return lastResultId;
 	}
 
-	bool parseCombatArea(lua_State* L, int index, std::list<uint32_t>& list, uint32_t& rows)
+	bool parseCombatArea(lua_State* L, int index, std::vector<uint8_t>& vec, uint32_t& rows)
 	{
 		rows = 0;
-		list.clear();
+		vec.clear();
 		if (!otx::lua::isTable(L, index)) {
-			otx::lua::reportErrorEx(L, "Combat area must be a table.");
 			return false;
 		}
 
@@ -95,14 +94,13 @@ namespace
 			lua_rawgeti(L, index, i);
 			if (!otx::lua::isTable(L, -1)) {
 				lua_pop(L, 1);
-				otx::lua::reportErrorEx(L, "Combat area must be a table.");
 				return false;
 			}
 
-			const int nestedTableSize = lua_objlen(L, -1);
-			for (int j = 1; j <= nestedTableSize; ++j) {
+			const int cols = lua_objlen(L, -1);
+			for (int j = 1; j <= cols; ++j) {
 				lua_rawgeti(L, -1, j);
-				list.push_back(otx::lua::getNumber<uint32_t>(L, -1));
+				vec.push_back(otx::lua::getNumber<uint8_t>(L, -1));
 				lua_pop(L, 1);
 			}
 			lua_pop(L, 1);
@@ -1245,16 +1243,16 @@ static int luaDoCreatureSetHideHealth(lua_State* L)
 
 static int luaDoCreatureAddHealth(lua_State* L)
 {
-	// doCreatureAddHealth(uid, health[, hitEffect = MAGIC_EFFECT_NONE, hitColor = COLOR_UNKNOWN, force = false])
+	// doCreatureAddHealth(uid, health[, hitEffect = MAGIC_EFFECT_NONE, hitColor = COLOR_NONE, force = false])
 	if (Creature* creature = otx::lua::getCreature(L, 1)) {
-		const auto health = otx::lua::getNumber<int32_t>(L, 2);
+		CombatDamage damage;
+		damage.primary.value = otx::lua::getNumber<int32_t>(L, 2);
+		damage.primary.type = (damage.primary.value < 1 ? COMBAT_UNDEFINEDDAMAGE : COMBAT_HEALING);
+
 		const auto hitEffect = static_cast<MagicEffect_t>(otx::lua::getNumber<uint16_t>(L, 3));
 		const auto hitColor = static_cast<Color_t>(otx::lua::getNumber<uint16_t>(L, 4));
 		const bool force = otx::lua::getBoolean(L, 5, false);
-		if (health != 0) {
-			g_game.combatChangeHealth(health < 1 ? COMBAT_UNDEFINEDDAMAGE : COMBAT_HEALING, nullptr, creature, health, hitEffect, hitColor, force);
-		}
-
+		g_game.combatChangeHealth(nullptr, creature, damage, hitEffect, hitColor, force);
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
@@ -1270,7 +1268,10 @@ static int luaDoCreatureAddMana(lua_State* L)
 		const auto mana = otx::lua::getNumber<int32_t>(L, 2);
 		const bool aggressive = otx::lua::getBoolean(L, 3, true);
 		if (aggressive) {
-			g_game.combatChangeMana(nullptr, creature, mana);
+			CombatDamage damage;
+			damage.primary.value = mana;
+			damage.primary.type = COMBAT_MANADRAIN;
+			g_game.combatChangeMana(nullptr, creature, damage);
 		} else {
 			creature->changeMana(mana);
 		}
@@ -3092,19 +3093,26 @@ static int luaCreateCombatArea(lua_State* L)
 	}
 
 	auto area = std::make_unique<CombatArea>();
-	uint32_t rowsArea = 0;
-	std::list<uint32_t> listArea;
+
+	uint32_t areaRows = 0;
+	std::vector<uint8_t> areaVec;
+
+	// has extra parameter with diagonal area information
 	if (lua_gettop(L) > 1) {
-		// has extra parameter with diagonal area information
-		if (parseCombatArea(L, 2, listArea, rowsArea)) {
-			area->setupExtArea(listArea, rowsArea);
+		if (!parseCombatArea(L, 2, areaVec, areaRows)) {
+			otx::lua::reportErrorEx(L, "Invalid area table.");
+			lua_pushnil(L);
+			return 1;
 		}
+
+		area->setupExtArea(areaVec, areaRows);
 	}
 
-	if (parseCombatArea(L, 1, listArea, rowsArea)) {
-		area->setupArea(listArea, rowsArea);
+	if (parseCombatArea(L, 1, areaVec, areaRows)) {
+		area->setupArea(areaVec, areaRows);
 		lua_pushnumber(L, env.addCombatArea(area.release()));
 	} else {
+		otx::lua::reportErrorEx(L, "Invalid area table.");
 		lua_pushnil(L);
 	}
 	return 1;
@@ -3148,7 +3156,7 @@ static int luaSetCombatArea(lua_State* L)
 	}
 
 	if (const CombatArea* area = g_lua.getCombatAreaById(areaId)) {
-		combat->setArea(new CombatArea(*area));
+		combat->setArea(std::make_unique<CombatArea>(*area));
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_AREA_NOT_FOUND));
@@ -3311,7 +3319,7 @@ static int luaSetCombatFormula(lua_State* L)
 	}
 
 	const auto combatId = otx::lua::getNumber<uint32_t>(L, 1);
-	const auto formulaType = static_cast<formulaType_t>(otx::lua::getNumber<uint8_t>(L, 2));
+	const auto formulaType = static_cast<FormulaType_t>(otx::lua::getNumber<uint8_t>(L, 2));
 	const auto mina = otx::lua::getNumber<double>(L, 3);
 	const auto minb = otx::lua::getNumber<double>(L, 4);
 	const auto maxa = otx::lua::getNumber<double>(L, 5);
@@ -3459,12 +3467,16 @@ static int luaDoCombatAreaHealth(lua_State* L)
 
 	const CombatArea* area = g_lua.getCombatAreaById(areaId);
 	if (area || areaId == 0) {
+		CombatDamage damage;
+		damage.primary.type = combatType;
+		damage.primary.value = random_range(min, max);
+
 		CombatParams params;
 		params.combatType = combatType;
-		params.effects.impact = effectId;
+		params.impactEffect = effectId;
 		params.isAggressive = aggressive;
 
-		Combat::doCombatHealth(creature, pos, area, min, max, params);
+		Combat::doAreaCombat(creature, pos, area, damage, params);
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_AREA_NOT_FOUND));
@@ -3494,12 +3506,16 @@ static int luaDoTargetCombatHealth(lua_State* L)
 	}
 
 	if (Creature* target = otx::lua::getCreature(L, 2)) {
+		CombatDamage damage;
+		damage.primary.type = combatType;
+		damage.primary.value = random_range(min, max);
+
 		CombatParams params;
 		params.combatType = combatType;
-		params.effects.impact = effectId;
+		params.impactEffect = effectId;
 		params.isAggressive = aggressive;
 
-		Combat::doCombatHealth(creature, target, min, max, params);
+		Combat::doTargetCombat(creature, target, damage, params);
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
@@ -3531,11 +3547,15 @@ static int luaDoCombatAreaMana(lua_State* L)
 
 	const CombatArea* area = g_lua.getCombatAreaById(areaId);
 	if (area || areaId == 0) {
+		CombatDamage damage;
+		damage.primary.type = COMBAT_MANADRAIN;
+		damage.primary.value = random_range(min, max);
+
 		CombatParams params;
-		params.effects.impact = effectId;
+		params.impactEffect = effectId;
 		params.isAggressive = aggressive;
 
-		Combat::doCombatMana(creature, pos, area, min, max, params);
+		Combat::doAreaCombat(creature, pos, area, damage, params);
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_AREA_NOT_FOUND));
@@ -3564,11 +3584,15 @@ static int luaDoTargetCombatMana(lua_State* L)
 	}
 
 	if (Creature* target = otx::lua::getCreature(L, 2)) {
+		CombatDamage damage;
+		damage.primary.type = COMBAT_MANADRAIN;
+		damage.primary.value = random_range(min, max);
+		
 		CombatParams params;
-		params.effects.impact = effectId;
+		params.impactEffect = effectId;
 		params.isAggressive = aggressive;
 
-		Combat::doCombatMana(creature, target, min, max, params);
+		Combat::doTargetCombat(creature, target, damage, params);
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
@@ -3600,10 +3624,10 @@ static int luaDoCombatAreaCondition(lua_State* L)
 		const CombatArea* area = g_lua.getCombatAreaById(areaId);
 		if (area || areaId == 0) {
 			CombatParams params;
-			params.effects.impact = effectId;
+			params.impactEffect = effectId;
 			params.conditionList.push_back(condition);
 
-			Combat::doCombatCondition(creature, pos, area, params);
+			Combat::doAreaCombat(creature, pos, area, params);
 			lua_pushboolean(L, true);
 		} else {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_AREA_NOT_FOUND));
@@ -3636,10 +3660,10 @@ static int luaDoTargetCombatCondition(lua_State* L)
 	if (Creature* target = otx::lua::getCreature(L, 2)) {
 		if (const Condition* condition = g_lua.getConditionById(conditionObjId)) {
 			CombatParams params;
-			params.effects.impact = effectId;
+			params.impactEffect = effectId;
 			params.conditionList.push_back(condition);
 
-			Combat::doCombatCondition(creature, target, params);
+			Combat::doTargetCombat(creature, target, params);
 			lua_pushboolean(L, true);
 		} else {
 			otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONDITION_NOT_FOUND));
@@ -3675,9 +3699,9 @@ static int luaDoCombatAreaDispel(lua_State* L)
 	if (area || areaId == 0) {
 		CombatParams params;
 		params.dispelType = dispelType;
-		params.effects.impact = effectId;
+		params.impactEffect = effectId;
 
-		Combat::doCombatDispel(creature, position, area, params);
+		Combat::doAreaCombat(creature, position, area, params);
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_AREA_NOT_FOUND));
@@ -3706,9 +3730,9 @@ static int luaDoTargetCombatDispel(lua_State* L)
 
 		CombatParams params;
 		params.dispelType = dispelType;
-		params.effects.impact = effectId;
+		params.impactEffect = effectId;
 
-		Combat::doCombatDispel(creature, target, params);
+		Combat::doTargetCombat(creature, target, params);
 		lua_pushboolean(L, true);
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
@@ -6493,7 +6517,7 @@ static int luaGetItemInfo(lua_State* L)
 		return 1;
 	}
 
-	lua_createtable(L, 0, 89);
+	lua_createtable(L, 0, 88);
 	otx::lua::setTableValue(L, "isDoor", iType.isDoor());
 	otx::lua::setTableValue(L, "stopTime", iType.stopTime);
 	otx::lua::setTableValue(L, "showCount", iType.showCount);
@@ -6547,7 +6571,6 @@ static int luaGetItemInfo(lua_State* L)
 	otx::lua::setTableValue(L, "date", iType.date);
 	otx::lua::setTableValue(L, "writer", iType.writer);
 	otx::lua::setTableValue(L, "text", iType.text);
-	otx::lua::setTableValue(L, "criticalHitChance", iType.criticalHitChance);
 	otx::lua::setTableValue(L, "attack", iType.attack);
 	otx::lua::setTableValue(L, "reduceskillloss", iType.reduceSkillLoss);
 	otx::lua::setTableValue(L, "extraAttack", iType.extraAttack);

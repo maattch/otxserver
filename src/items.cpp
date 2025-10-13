@@ -375,6 +375,10 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 		it.name = strValue;
 	}
 
+	if (!it.name.empty()) {
+		nameToItems.emplace(otx::util::as_lower_string(it.name), id);
+	}
+
 	if (readXMLString(itemNode, "article", strValue)) {
 		it.article = strValue;
 	}
@@ -515,10 +519,6 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 			}
 			if (readXMLInteger(itemAttributesNode, "random_max", intValue)) {
 				it.extraDefenseRndMax = intValue;
-			}
-		} else if (tmpStrValue == "criticalhitchance") {
-			if (readXMLInteger(itemAttributesNode, "value", intValue)) {
-				it.criticalHitChance = intValue;
 			}
 		} else if (tmpStrValue == "attack") {
 			if (readXMLInteger(itemAttributesNode, "value", intValue)) {
@@ -1544,9 +1544,9 @@ uint16_t Items::getItemIdByName(const std::string& name)
 		return 0;
 	}
 
-	auto result = nameToItems.find(otx::util::as_lower_string(name));
-	if (result == nameToItems.end()) {
+	auto it = nameToItems.find(otx::util::as_lower_string(name));
+	if (it == nameToItems.end()) {
 		return 0;
 	}
-	return result->second;
+	return it->second;
 }

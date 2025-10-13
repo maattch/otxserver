@@ -118,7 +118,6 @@ AmmoAction_t getAmmoAction(const std::string& strValue);
 CombatType_t getCombatType(const std::string& strValue);
 FluidTypes_t getFluidType(const std::string& strValue);
 WeaponType_t getWeaponType(const std::string& strValue);
-void getCombatDetails(CombatType_t combatType, MagicEffect_t& magicEffect, Color_t& textColor);
 
 std::string getCombatName(CombatType_t combatType);
 std::string getSkillName(uint16_t skillId, bool suffix = true);

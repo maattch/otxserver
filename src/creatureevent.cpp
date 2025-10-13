@@ -625,8 +625,8 @@ bool CreatureEvent::executeCombatArea(Creature* creature, Tile* tile, bool aggre
 	m_interface->pushFunction(m_scriptId);
 
 	lua_pushnumber(L, env.addThing(creature));
-	otx::lua::pushThing(L, tile->ground, env.addThing(tile->ground));
-	otx::lua::pushPosition(L, tile->getPosition(), 0);
+	otx::lua::pushThing(L, tile->ground);
+	otx::lua::pushPosition(L, tile->getPosition());
 	lua_pushboolean(L, aggressive);
 	return otx::lua::callFunction(L, 4);
 }

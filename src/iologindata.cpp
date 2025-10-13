@@ -875,13 +875,13 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	query << "`vocation` = " << vocationId << " WHERE `id` = " << player->getGUID() << " LIMIT 1";
 	if (!g_database.executeQuery(query.str())) {
-		return false;
+		return false;	
 	}
 
 	// skills
 	for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		query.str("");
-		query << "UPDATE `player_skills` SET `value` = " << player->getSkillLevel(i) << ", `count` = " << player->getSkillTries(i) << " WHERE `player_id` = " << player->getGUID() << " AND `skillid` = " << i << " LIMIT 1";
+		query << "UPDATE `player_skills` SET `value` = " << player->getSkillLevel(i) << ", `count` = " << player->getSkillTries(i) << " WHERE `player_id` = " << player->getGUID() << " AND `skillid` = " << static_cast<int>(i) << " LIMIT 1";
 		if (!g_database.executeQuery(query.str())) {
 			return false;
 		}

@@ -349,18 +349,6 @@ int32_t Player::getArmor() const
 	return armor;
 }
 
-int32_t Player::getCriticalHitChance() const
-{
-	int32_t i = SLOT_FIRST, crit = 0;
-	for (; i < SLOT_LAST; ++i) {
-		if (Item* item = getInventoryItem((slots_t)i)) {
-			crit += item->getCriticalHitChance();
-		}
-	}
-
-	return crit;
-}
-
 int32_t Player::getDefense() const
 {
 	int32_t baseDefense = 5;
@@ -2326,16 +2314,18 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 		blockType = BLOCK_DEFENSE;
 	}
 
-	if (reflected && !element) {
+	if (reflected != 0 && !element) {
 		if (combatType != COMBAT_HEALING) {
 			reflected = -reflected;
 		}
 
-		if (!g_game.combatBlockHit(combatType, this, attacker, reflected, false, false, true, false)) {
-			g_game.combatChangeHealth(combatType, nullptr, attacker, reflected);
+		CombatDamage reflectDamage;
+		reflectDamage.primary.type = combatType;
+		reflectDamage.primary.value = reflected;
+		if (!g_game.combatBlockHit(reflectDamage, this, attacker, false, false)) {
+			g_game.combatChangeHealth(nullptr, attacker, reflectDamage);
 		}
 	}
-
 	return blockType;
 }
 
@@ -5456,13 +5446,6 @@ bool Player::transferMoneyTo(const std::string& name, uint64_t amount)
 		delete target;
 	}
 	return true;
-}
-
-void Player::sendCritical() const
-{
-	if (otx::config::getBoolean(otx::config::DISPLAY_CRITICAL_HIT)) {
-		g_game.addAnimatedText(getPosition(), COLOR_DARKRED, "CRITICAL!");
-	}
 }
 
 bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)

@@ -455,7 +455,7 @@ const uint8_t fluidMap[] = {
 	CLIENTFLUID_PURPLE
 };
 
-enum Color_t
+enum Color_t : uint8_t
 {
 	COLOR_BLACK = 0,
 	COLOR_BLUE = 5,
@@ -478,8 +478,8 @@ enum Color_t
 	COLOR_DARKYELLOW = 205,
 	COLOR_YELLOW = 210,
 	COLOR_WHITE = 215,
-	COLOR_NONE = 255,
-	COLOR_UNKNOWN = 256
+
+	COLOR_NONE = 255
 };
 
 enum Icons_t
@@ -725,6 +725,45 @@ enum PlayerCustomFlags
 	PlayerCustomFlag_LastFlag
 };
 
+enum CombatType_t : uint16_t
+{
+	COMBAT_NONE = 0,
+
+	COMBAT_PHYSICALDAMAGE  = 1 << 0,
+	COMBAT_ENERGYDAMAGE    = 1 << 1,
+	COMBAT_EARTHDAMAGE     = 1 << 2,
+	COMBAT_FIREDAMAGE      = 1 << 3,
+	COMBAT_UNDEFINEDDAMAGE = 1 << 4,
+	COMBAT_LIFEDRAIN       = 1 << 5,
+	COMBAT_MANADRAIN       = 1 << 6,
+	COMBAT_HEALING         = 1 << 7,
+	COMBAT_DROWNDAMAGE     = 1 << 8,
+	COMBAT_ICEDAMAGE       = 1 << 9,
+	COMBAT_HOLYDAMAGE      = 1 << 10,
+	COMBAT_DEATHDAMAGE     = 1 << 11,
+
+	COMBATINDEX_PHYSICALDAMAGE  = 1,
+	COMBATINDEX_ENERGYDAMAGE    = 2,
+	COMBATINDEX_EARTHDAMAGE     = 3,
+	COMBATINDEX_FIREDAMAGE      = 4,
+	COMBATINDEX_UNDEFINEDDAMAGE = 5,
+	COMBATINDEX_LIFEDRAIN       = 6,
+	COMBATINDEX_MANADRAIN       = 7,
+	COMBATINDEX_HEALING         = 8,
+	COMBATINDEX_DROWNDAMAGE     = 9,
+	COMBATINDEX_ICEDAMAGE       = 10,
+	COMBATINDEX_HOLYDAMAGE      = 11,
+	COMBATINDEX_DEATHDAMAGE     = 12,
+
+	COMBAT_FIRST = COMBAT_PHYSICALDAMAGE,
+	COMBAT_LAST = COMBAT_DEATHDAMAGE,
+
+	COMBATINDEX_FIRST = COMBATINDEX_PHYSICALDAMAGE,
+	COMBATINDEX_LAST = COMBATINDEX_DEATHDAMAGE,
+
+	COMBAT_ALL = 0, /* for internal use only.*/
+};
+
 struct MessageDetails
 {
 	int32_t value;
@@ -735,6 +774,17 @@ struct MessageDetails
 		value(value),
 		color(color),
 		sub(nullptr) {}
+};
+
+struct CombatDamage
+{
+	struct {
+		CombatType_t type = COMBAT_NONE;
+		int32_t value = 0;
+	} primary, secondary;
+
+	int32_t min = 0;
+	int32_t max = 0;
 };
 
 // Reserved player storage key ranges

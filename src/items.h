@@ -176,7 +176,6 @@ public:
 
 	int32_t attack = 0;
 	int32_t reduceSkillLoss = 0;
-	int32_t criticalHitChance = 0;
 	int32_t extraAttack = 0;
 	int32_t defense = 0;
 	int32_t extraDefense = 0;

@@ -257,7 +257,6 @@ public:
 
 	int32_t getAttack() const;
 	int32_t getReduceSkillLoss() const;
-	int32_t getCriticalHitChance() const;
 	int32_t getExtraAttack() const;
 	int32_t getDefense() const;
 	int32_t getExtraDefense() const;
@@ -403,17 +402,6 @@ inline bool Item::isScriptProtected() const
 	}
 
 	return false;
-}
-
-inline int32_t Item::getCriticalHitChance() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("criticalhitchance", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].criticalHitChance;
 }
 
 inline int32_t Item::getAttack() const

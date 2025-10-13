@@ -965,17 +965,6 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			}
 		}
 
-		if (it.criticalHitChance || (item && item->getCriticalHitChance())) {
-			if (begin) {
-				begin = false;
-				s << " (";
-			} else {
-				s << ", ";
-			}
-
-			s << "Crit Chance:" << std::showpos << int32_t(item ? item->getCriticalHitChance() : it.criticalHitChance) << "%" << std::noshowpos;
-		}
-
 		if (it.attackSpeed || (item && item->getAttackSpeed())) {
 			if (begin) {
 				begin = false;
@@ -1267,17 +1256,6 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 				s << ", ";
 			}
 			s << "SkillLoss: -" << reduceSkillLoss << "%";
-		}
-
-		if (it.criticalHitChance || (item && item->getCriticalHitChance())) {
-			if (begin) {
-				begin = false;
-				s << " (";
-			} else {
-				s << ", ";
-			}
-
-			s << "Crit Chance:" << std::showpos << int32_t(item ? item->getCriticalHitChance() : it.criticalHitChance) << "%" << std::noshowpos;
 		}
 
 		if (it.hasAbilities()) {
