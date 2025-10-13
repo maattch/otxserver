@@ -4769,7 +4769,7 @@ static int luaGetContainerItem(lua_State* L)
 	// getContainerItem(uid, slot)
 	if (Container* container = otx::lua::getContainer(L, 1)) {
 		const auto slot = otx::lua::getNumber<uint32_t>(L, 2);
-		otx::lua::pushThing(L, container->getItem(slot));
+		otx::lua::pushThing(L, container->getItemByIndex(slot));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CONTAINER_NOT_FOUND));
 		otx::lua::pushThing(L, nullptr);

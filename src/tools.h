@@ -43,6 +43,10 @@ enum DistributionType_t
 	DISTRO_NORMAL
 };
 
+constexpr bool hasBitSet(uint32_t flag, uint32_t flags) noexcept {
+	return (flags & flag) != 0;
+}
+
 std::mt19937& getRandomGenerator();
 
 bool caseInsensitiveEqual(std::string_view str1, std::string_view str2);
@@ -84,7 +88,6 @@ int32_t random_range(int32_t lowestNumber, int32_t highestNumber, DistributionTy
 double round(double v);
 #endif
 
-bool hasBitSet(uint32_t flag, uint32_t flags);
 uint32_t adlerChecksum(uint8_t* data, size_t length);
 
 bool utf8ToLatin1(char* inText, std::string& outText);

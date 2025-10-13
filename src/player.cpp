@@ -2997,7 +2997,7 @@ ReturnValue Player::__queryMaxCount(int32_t index, const Thing* thing, uint32_t 
 
 					// iterate through all items, including sub-containers (deep search)
 					n += queryCount;
-					for (ContainerIterator cit = subContainer->begin(); cit != subContainer->end(); ++cit) {
+					for (ContainerIterator cit = subContainer->iterator(); cit.hasNext(); cit.advance()) {
 						if (Container* tmpContainer = (*cit)->getContainer()) {
 							queryCount = 0;
 							tmpContainer->__queryMaxCount(INDEX_WHEREEVER, item, item->getItemCount(), queryCount, flags);
@@ -3128,7 +3128,7 @@ Cylinder* Player::__queryDestination(int32_t& index, const Thing* thing, Item** 
 			}
 
 			for (uint32_t n = 0; n < tmpContainer->capacity(); ++n) {
-				if (Item* tmpItem = tmpContainer->getItem(n)) {
+				if (Item* tmpItem = tmpContainer->getItemByIndex(n)) {
 					if (tmpItem == item || tmpItem == m_tradeItem) {
 						continue;
 					}
@@ -3393,7 +3393,7 @@ uint32_t Player::__getItemTypeCount(uint16_t itemId, int32_t subType /*= -1*/) c
 			continue;
 		}
 
-		for (ContainerIterator it = container->begin(), end = container->end(); it != end; ++it) {
+		for (ContainerIterator it = container->iterator(); it.hasNext(); it.advance()) {
 			if ((*it)->getID() == itemId) {
 				count += Item::countByType(*it, subType);
 			}
@@ -3417,7 +3417,7 @@ std::map<uint32_t, uint32_t>& Player::__getAllItemTypeCount(std::map<uint32_t, u
 			continue;
 		}
 
-		for (ContainerIterator it = container->begin(), end = container->end(); it != end; ++it) {
+		for (ContainerIterator it = container->iterator(); it.hasNext(); it.advance()) {
 			countMap[(*it)->getID()] += Item::countByType(*it, -1);
 		}
 	}

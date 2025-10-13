@@ -19,17 +19,16 @@
 
 #include "container.h"
 
-class Depot : public Container
+class Depot final : public Container
 {
 public:
-	Depot(uint16_t type);
-	virtual ~Depot() {}
+	Depot(uint16_t type) : Container(type) {}
 
-	virtual Depot* getDepot() { return this; }
-	virtual const Depot* getDepot() const { return this; }
+	Depot* getDepot() override { return this; }
+	const Depot* getDepot() const override { return this; }
 
 	// serialization
-	virtual Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream);
+	Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream) override;
 
 	uint32_t getDepotId() const;
 
@@ -59,19 +58,8 @@ public:
 		int32_t index, bool isCompleteRemoval, CylinderLink_t link = LINK_OWNER);
 
 	// overrides
-	virtual bool canRemove() const { return false; }
+	bool canRemove() const override { return false; }
 
 private:
-	uint32_t depotLimit;
+	uint32_t depotLimit = 1000;
 };
-
-inline uint32_t Depot::getDepotId() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("depotid", ok);
-	if (ok) {
-		return (uint32_t)v;
-	}
-
-	return 0;
-}

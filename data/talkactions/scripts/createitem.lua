@@ -22,7 +22,7 @@ function onSay(cid, words, param, channel)
 
 	local amount = 100
 	if(t[2]) then
-		amount = t[2]
+		amount = tonumber(t[2])
 	end
 
 	local item = doCreateItemEx(id, amount)

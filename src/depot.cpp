@@ -19,11 +19,6 @@
 
 #include "depot.h"
 
-Depot::Depot(uint16_t type) :
-	Container(type),
-	depotLimit(1000)
-{}
-
 Attr_ReadValue Depot::readAttr(AttrTypes_t attr, PropStream& propStream)
 {
 	if (attr != ATTR_DEPOT_ID) {
@@ -39,6 +34,16 @@ Attr_ReadValue Depot::readAttr(AttrTypes_t attr, PropStream& propStream)
 	return ATTR_READ_CONTINUE;
 }
 
+uint32_t Depot::getDepotId() const
+{
+	bool ok;
+	int32_t v = getIntegerAttribute("depotid", ok);
+	if (ok) {
+		return (uint32_t)v;
+	}
+	return 0;
+}
+
 ReturnValue Depot::__queryAdd(int32_t index, const Thing* thing, uint32_t count,
 	uint32_t flags, Creature* actor /* = nullptr*/) const
 {
@@ -47,23 +52,24 @@ ReturnValue Depot::__queryAdd(int32_t index, const Thing* thing, uint32_t count,
 		return RET_NOTPOSSIBLE;
 	}
 
-	int32_t addCount = 0;
-	if ((item->isStackable() && item->getItemCount() != count)) {
-		addCount = 1;
-	}
-
-	if (item->getTopParent() != this) {
-		if (const Container* container = item->getContainer()) {
-			addCount = container->getItemHoldingCount() + 1;
-		} else {
+	if(!hasBitSet(FLAG_NOLIMIT, flags)) {
+		uint32_t addCount = 0;
+		if ((item->isStackable() && item->getItemCount() != count)) {
 			addCount = 1;
 		}
-	}
 
-	if (getItemHoldingCount() + addCount > depotLimit) {
-		return RET_DEPOTISFULL;
-	}
+		if (item->getTopParent() != this) {
+			if (const Container* container = item->getContainer()) {
+				addCount = container->getItemHoldingCount() + 1;
+			} else {
+				addCount = 1;
+			}
+		}
 
+		if (getItemHoldingCount() + addCount > depotLimit) {
+			return RET_DEPOTISFULL;
+		}
+	}
 	return Container::__queryAdd(index, thing, count, flags, actor);
 }
 

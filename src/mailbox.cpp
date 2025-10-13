@@ -125,9 +125,9 @@ bool Mailbox::getRecipient(Item* item, std::string& name, uint32_t& depotId)
 	if (item->getID() == ITEM_PARCEL) /**We need to get the text from the label incase its a parcel**/
 	{
 		if (Container* parcel = item->getContainer()) {
-			for (ItemList::const_iterator cit = parcel->getItems(); cit != parcel->getEnd(); ++cit) {
-				if ((*cit)->getID() == ITEM_LABEL && !(*cit)->getText().empty()) {
-					item = (*cit);
+			for (Item* parcelItem : parcel->getItemList()) {
+				if (parcelItem->getID() == ITEM_LABEL && !parcelItem->getText().empty()) {
+					item = parcelItem;
 					break;
 				}
 			}

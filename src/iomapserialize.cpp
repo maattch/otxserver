@@ -805,26 +805,22 @@ bool IOMapSerialize::saveItems(uint32_t& tileId, uint32_t houseId, const Tile* t
 	for (ContainerStackList::iterator cit = containerStackList.begin(); cit != containerStackList.end(); ++cit) {
 		container = cit->first;
 		parentId = cit->second;
-		for (ItemList::const_iterator it = container->getItems(); it != container->getEnd(); ++it) {
-			if (!(item = *it)) {
-				continue;
-			}
-
+		for (Item* containerItem : container->getItemList()) {
 			PropWriteStream propWriteStream;
-			item->serializeAttr(propWriteStream);
+			containerItem->serializeAttr(propWriteStream);
 
 			uint32_t attributesSize = 0;
 			const char* attributes = propWriteStream.getStream(attributesSize);
 
 			query << tileId << ", " << ++runningId << ", " << parentId << ", "
-				  << item->getID() << ", " << (int32_t)item->getSubType() << ", " << g_database.escapeBlob(attributes, attributesSize);
+				  << containerItem->getID() << ", " << containerItem->getSubType() << ", " << g_database.escapeBlob(attributes, attributesSize);
 			if (!stmt.addRow(query.str())) {
 				return false;
 			}
 
 			query.str("");
-			if (item->getContainer()) {
-				containerStackList.push_back(std::make_pair(item->getContainer(), runningId));
+			if (containerItem->getContainer()) {
+				containerStackList.emplace_back(containerItem->getContainer(), runningId);
 			}
 		}
 	}
@@ -949,10 +945,9 @@ bool IOMapSerialize::loadItem(PropStream& propStream, Cylinder* parent, bool dep
 		}
 
 		if (depotTransfer) {
-			for (ItemList::const_iterator it = container->getItems(); it != container->getEnd(); ++it) {
-				parent->__addThing(nullptr, (*it));
+			for (Item* containerItem : container->getItemList()) {
+				parent->__addThing(nullptr, containerItem);
 			}
-
 			container->itemlist.clear();
 		}
 	}
@@ -999,7 +994,7 @@ bool IOMapSerialize::saveItem(PropWriteStream& stream, const Item* item)
 	if (const Container* container = item->getContainer()) {
 		stream.addByte(ATTR_CONTAINER_ITEMS);
 		stream.addLong(container->size());
-		for (ItemList::const_reverse_iterator rit = container->getReversedItems(); rit != container->getReversedEnd(); ++rit) {
+		for (auto rit = container->getReversedItems(); rit != container->getReversedEnd(); ++rit) {
 			saveItem(stream, (*rit));
 		}
 	}

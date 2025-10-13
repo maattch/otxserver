@@ -721,7 +721,7 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
 	} else if (pos.y & 0x40) {
 		uint8_t fromCid = pos.y & 0x0F, slot = pos.z;
 		if (Container* parentcontainer = player->getContainer(fromCid)) {
-			return parentcontainer->getItem(slot);
+			return parentcontainer->getItemByIndex(slot);
 		}
 	} else if (!pos.y && !pos.z) {
 		const ItemType& it = Item::items.getItemIdByClientId(spriteId);
@@ -2163,7 +2163,7 @@ Item* Game::findItemOfType(Cylinder* cylinder, const uint16_t itemId,
 		container = listContainer.front();
 		listContainer.pop_front();
 		for (int32_t i = 0; i < (int32_t)container->size();) {
-			if ((item = container->getItem(i))) {
+			if ((item = container->getItemByIndex(i))) {
 				if (item->getID() == itemId && (subType == -1 || subType == item->getSubType())) {
 					return item;
 				}
@@ -2229,7 +2229,7 @@ bool Game::removeItemOfType(Cylinder* cylinder, const uint16_t itemId, int32_t c
 		container = listContainer.front();
 		listContainer.pop_front();
 		for (int32_t i = 0; i < (int32_t)container->size() && count > 0;) {
-			if ((item = container->getItem(i))) {
+			if ((item = container->getItemByIndex(i))) {
 				if (item->getID() == itemId) {
 					if (item->isStackable()) {
 						if (item->getItemCount() > count) {
@@ -2289,12 +2289,11 @@ uint64_t Game::getMoney(const Cylinder* cylinder)
 	while (listContainer.size() > 0) {
 		container = listContainer.front();
 		listContainer.pop_front();
-		for (ItemList::const_iterator it = container->getItems(); it != container->getEnd(); ++it) {
-			item = *it;
-			if ((tmpContainer = item->getContainer())) {
+		for (Item* containerItem : container->getItemList()) {
+			if ((tmpContainer = containerItem->getContainer())) {
 				listContainer.push_back(tmpContainer);
-			} else if (item->getWorth()) {
-				moneyCount += item->getWorth();
+			} else if (containerItem->getWorth()) {
+				moneyCount += containerItem->getWorth();
 			}
 		}
 	}
@@ -2303,7 +2302,6 @@ uint64_t Game::getMoney(const Cylinder* cylinder)
 	if (const Player* p = dynamic_cast<const Player*>(cylinder)) {
 		moneyCount += p->m_balance;
 	}
-
 	return moneyCount;
 }
 
@@ -2344,7 +2342,7 @@ bool Game::removeMoney(Cylinder* cylinder, int64_t money, uint32_t flags /*= 0*/
 		Container* container = listContainer.front();
 		listContainer.pop_front();
 		for (int32_t i = 0; i < (int32_t)container->size(); ++i) {
-			Item* containerItem = container->getItem(i);
+			Item* containerItem = container->getItemByIndex(i);
 			if ((tmpContainer = containerItem->getContainer())) {
 				listContainer.push_back(tmpContainer);
 			} else if (containerItem->getWorth()) {
@@ -3729,14 +3727,13 @@ bool Game::playerLookInTrade(const uint32_t playerId, const bool lookAtCounterOf
 
 	std::list<const Container*> listContainer;
 	listContainer.push_back(tradeContainer);
-	ItemList::const_iterator it;
 
 	Container* tmpContainer = nullptr;
 	while (listContainer.size() > 0) {
 		const Container* container = listContainer.front();
 		listContainer.pop_front();
-		for (it = container->getItems(); it != container->getEnd(); ++it) {
-			if ((tmpContainer = (*it)->getContainer())) {
+		for (Item* containerItem : container->getItemList()) {
+			if ((tmpContainer = containerItem->getContainer())) {
 				listContainer.push_back(tmpContainer);
 			}
 
@@ -3745,20 +3742,20 @@ bool Game::playerLookInTrade(const uint32_t playerId, const bool lookAtCounterOf
 				continue;
 			}
 
-			ss << (*it)->getDescription(lookDistance);
+			ss << containerItem->getDescription(lookDistance);
 			if (player->hasCustomFlag(PlayerCustomFlag_CanSeeItemDetails)) {
 				ss << std::endl
-				   << "ItemID: [" << (*it)->getID() << "]";
-				if ((*it)->getActionId() > 0) {
-					ss << ", ActionID: [" << (*it)->getActionId() << "]";
+				   << "ItemID: [" << containerItem->getID() << "]";
+				if (containerItem->getActionId() > 0) {
+					ss << ", ActionID: [" << containerItem->getActionId() << "]";
 				}
 
-				if ((*it)->getUniqueId() > 0) {
-					ss << ", UniqueID: [" << (*it)->getUniqueId() << "]";
+				if (containerItem->getUniqueId() > 0) {
+					ss << ", UniqueID: [" << containerItem->getUniqueId() << "]";
 				}
 
 				ss << ".";
-				const ItemType& iit = Item::items[(*it)->getID()];
+				const ItemType& iit = Item::items[containerItem->getID()];
 				if (iit.transformEquipTo) {
 					ss << std::endl
 					   << "TransformTo: [" << iit.transformEquipTo << "] (onEquip).";

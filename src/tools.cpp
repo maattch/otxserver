@@ -410,11 +410,6 @@ std::vector<int32_t> vectorAtoi(const std::vector<std::string>& strvec)
 	return vec;
 }
 
-bool hasBitSet(uint32_t flag, uint32_t flags)
-{
-	return ((flags & flag) == flag);
-}
-
 #if !defined(_MSC_VER) || _MSC_VER < 1800
 double round(double v)
 {

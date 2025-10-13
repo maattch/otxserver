@@ -23,29 +23,19 @@
 class Depot;
 class Container;
 
-class ContainerIterator
+using ItemDeque = std::deque<Item*>;
+
+class ContainerIterator final
 {
 public:
-	ContainerIterator();
-	ContainerIterator(const ContainerIterator& rhs);
-	virtual ~ContainerIterator() {}
+	bool hasNext() const { return !over.empty(); }
 
-	ContainerIterator& operator=(const ContainerIterator& rhs);
-	bool operator==(const ContainerIterator& rhs);
-	bool operator!=(const ContainerIterator& rhs);
-
-	ContainerIterator& operator++();
-	ContainerIterator operator++(int32_t);
-
+	void advance();
 	Item* operator*();
-	Item* operator->();
 
-protected:
-	ContainerIterator(Container* _base);
-
-	Container* base;
-	std::queue<Container*> over;
-	ItemList::iterator current;
+private:
+	std::list<const Container*> over;
+	ItemDeque::const_iterator cur;
 
 	friend class Container;
 };
@@ -54,51 +44,39 @@ class Container : public Item, public Cylinder
 {
 public:
 	Container(uint16_t type);
+	Container(uint16_t type, uint16_t size);
 	virtual ~Container();
-	virtual Item* clone() const;
 
-	virtual Container* getContainer() { return this; }
-	virtual const Container* getContainer() const { return this; }
+	Item* clone() const override final;
+
+	Container* getContainer() override final { return this; }
+	const Container* getContainer() const override final { return this; }
 
 	virtual Depot* getDepot() { return nullptr; }
 	virtual const Depot* getDepot() const { return nullptr; }
 
-	Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream);
-	bool unserializeItemNode(FileLoader& f, NODE node, PropStream& propStream);
+	Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream) override;
+	bool unserializeItemNode(FileLoader& f, NODE node, PropStream& propStream) override;
 
 	std::string getContentDescription() const;
 	uint32_t getItemHoldingCount() const;
-	virtual double getWeight() const;
+	double getWeight() const override final;
 
-	uint32_t capacity() const { return maxSize ? maxSize : std::min(255, (int32_t)itemlist.size() + 1); }
-	uint32_t size() const { return (uint32_t)itemlist.size(); }
-	bool full() const
-	{
-		if (maxSize) {
-			return itemlist.size() >= maxSize;
-		}
-
-		return true;
-	}
+	uint32_t capacity() const { return maxSize; }
+	uint32_t size() const { return static_cast<uint32_t>(itemlist.size()); }
 	bool empty() const { return itemlist.empty(); }
+	bool full() const { return size() >= capacity(); }
 
 	void addItem(Item* item);
-	Item* getItem(uint32_t index);
+	Item* getItemByIndex(uint32_t index) const;
 	bool isHoldingItem(const Item* item) const;
 
-	ContainerIterator begin();
-	ContainerIterator end();
+	ContainerIterator iterator() const;
 
-	ContainerIterator begin() const;
-	ContainerIterator end() const;
+	const ItemDeque& getItemList() const { return itemlist; }
 
-	const ItemList& getItemList() const { return itemlist; }
-
-	ItemList::const_iterator getItems() const { return itemlist.begin(); }
-	ItemList::const_iterator getEnd() const { return itemlist.end(); }
-
-	ItemList::const_reverse_iterator getReversedItems() const { return itemlist.rbegin(); }
-	ItemList::const_reverse_iterator getReversedEnd() const { return itemlist.rend(); }
+	ItemDeque::const_reverse_iterator getReversedItems() const { return itemlist.rbegin(); }
+	ItemDeque::const_reverse_iterator getReversedEnd() const { return itemlist.rend(); }
 
 	// cylinder implementations
 	virtual Cylinder* getParent() { return Thing::getParent(); }
@@ -117,8 +95,7 @@ public:
 	virtual ReturnValue __queryMaxCount(int32_t index, const Thing* thing, uint32_t count, uint32_t& maxQueryCount,
 		uint32_t flags) const;
 	virtual ReturnValue __queryRemove(const Thing* thing, uint32_t count, uint32_t flags, Creature* actor = nullptr) const;
-	virtual Cylinder* __queryDestination(int32_t& index, const Thing* thing, Item** destItem,
-		uint32_t& flags);
+	virtual Cylinder* __queryDestination(int32_t& index, const Thing* thing, Item** destItem, uint32_t& flags);
 
 	virtual void __addThing(Creature* actor, Thing* thing);
 	virtual void __addThing(Creature* actor, int32_t index, Thing* thing);
@@ -147,19 +124,20 @@ public:
 	virtual void __startDecaying();
 
 private:
-	void onAddContainerItem(Item* item);
+	void onAddContainerItem(Item* item) const;
 	void onUpdateContainerItem(uint32_t index, Item* oldItem, Item* newItem) const;
 	void onRemoveContainerItem(uint32_t index, Item* item) const;
 
 	Container* getParentContainer();
 	void updateItemWeight(double diff);
-	std::ostringstream& getContentDescription(std::ostringstream& s) const;
+
+	ItemDeque itemlist;
 
 protected:
-	uint32_t maxSize, serializationCount;
-	double totalWeight;
+	double totalWeight = 0;
+	uint32_t maxSize = 0;
+	uint32_t serializationCount = 0;
 
-	ItemList itemlist;
 	friend class ContainerIterator;
 	friend class IOMapSerialize;
 };

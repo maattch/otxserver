@@ -2099,6 +2099,8 @@ void ProtocolGame::sendContainer(uint32_t cid, const Container* container, bool 
 		return;
 	}
 
+	uint8_t containerSize = std::min<uint32_t>(container->size(), 0xFF);
+
 	msg->addByte(0x6E);
 	msg->addByte(cid);
 
@@ -2107,11 +2109,13 @@ void ProtocolGame::sendContainer(uint32_t cid, const Container* container, bool 
 	msg->addByte(container->capacity());
 
 	msg->addByte(hasParent ? 0x01 : 0x00);
-	msg->addByte(std::min(container->size(), 255U));
+	msg->addByte(containerSize);
 
-	ItemList::const_iterator cit = container->getItems();
-	for (uint32_t i = 0; cit != container->getEnd() && i < 255; ++cit, ++i) {
-		msg->addItem(*cit);
+	for (Item* containerItem : container->getItemList()) {
+		msg->addItem(containerItem);
+		if (--containerSize == 0) {
+			break;
+		}
 	}
 }
 
@@ -2272,12 +2276,15 @@ void ProtocolGame::sendTradeItemRequest(const Player* _player, const Item* item,
 
 	msg->addString(_player->getName());
 	if (const Container* container = item->getContainer()) {
-		msg->addByte(std::min(255U, container->getItemHoldingCount() + 1));
+		uint8_t containerSize = std::min<uint32_t>(container->getItemHoldingCount() + 1, 0xFF);
+		msg->addByte(containerSize);
 		msg->addItem(item);
 
-		uint16_t i = 0;
-		for (ContainerIterator it = container->begin(); i < 255 && it != container->end(); ++it, ++i) {
+		for (ContainerIterator it = container->iterator(); it.hasNext(); it.advance()) {
 			msg->addItem(*it);
+			if (--containerSize == 0) {
+				break;
+			}
 		}
 	} else {
 		msg->addByte(1);

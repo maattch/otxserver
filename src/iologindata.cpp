@@ -1195,7 +1195,7 @@ bool IOLoginData::saveItems(const Player* player, const ItemBlockList& itemList,
 
 		Container* container = stack.first;
 		for (uint32_t i = 0; i < container->size(); ++i, ++runningId) {
-			item = container->getItem(i);
+			item = container->getItemByIndex(i);
 			if (Container* subContainer = item->getContainer()) {
 				stackList.push_back(Stack(subContainer, runningId));
 			}

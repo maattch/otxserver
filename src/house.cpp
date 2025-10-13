@@ -293,8 +293,8 @@ bool House::transferToDepot()
 			if ((*iit)->isPickupable()) {
 				moveList.push_back(*iit);
 			} else if ((tmpContainer = (*iit)->getContainer())) {
-				for (ItemList::const_iterator cit = tmpContainer->getItems(); cit != tmpContainer->getEnd(); ++cit) {
-					moveList.push_back(*cit);
+				for (Item* containerItem : tmpContainer->getItemList()) {
+					moveList.push_back(containerItem);
 				}
 			}
 		}
