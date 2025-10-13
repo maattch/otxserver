@@ -410,17 +410,6 @@ std::vector<int32_t> vectorAtoi(const std::vector<std::string>& strvec)
 	return vec;
 }
 
-#if !defined(_MSC_VER) || _MSC_VER < 1800
-double round(double v)
-{
-	if (v >= 0.0) {
-		return std::floor(v + 0.5);
-	} else {
-		return std::ceil(v - 0.5);
-	}
-}
-#endif
-
 uint32_t rand24b()
 {
 	return ((rand() << 12) ^ rand()) & 0xFFFFFF;
@@ -1628,6 +1617,25 @@ uint8_t clientFluidToServer(uint8_t clientFluid)
 	if (clientFluid >= size) {
 		return 0;
 	}
-
 	return clientToServerFluidMap[clientFluid];
+}
+
+// TODO: remove the serial thing on items or make it better
+std::string generateSerial()
+{
+	static constexpr char serial_chars[37] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
+	std::string serial;
+	serial.reserve(23);
+
+	for (uint8_t part = 0; part < 4; ++part) {
+		if (!serial.empty()) {
+			serial.push_back('-');
+		}
+
+		for (uint8_t i = 0; i < 5; ++i) {
+			serial.push_back(serial_chars[random_range(1, 37)]);
+		}
+	}
+	return serial;
 }

@@ -84,10 +84,6 @@ uint32_t rand24b();
 
 int32_t random_range(int32_t lowestNumber, int32_t highestNumber, DistributionType_t type = DISTRO_UNIFORM);
 
-#if !defined(_MSC_VER) || _MSC_VER < 1800
-double round(double v);
-#endif
-
 uint32_t adlerChecksum(uint8_t* data, size_t length);
 
 bool utf8ToLatin1(char* inText, std::string& outText);
@@ -132,3 +128,5 @@ std::string getFilePath(FileType_t type, std::string name = "");
 
 extern uint8_t serverFluidToClient(uint8_t serverFluid);
 extern uint8_t clientFluidToServer(uint8_t clientFluid);
+
+std::string generateSerial();

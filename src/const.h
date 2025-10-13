@@ -59,6 +59,25 @@ enum OperatingSystem_t
 	CLIENTOS_OTCLIENT_MAC = 12
 };
 
+enum ItemSlotBits_t : uint32_t
+{
+	SLOTP_HEAD     = 1 << 0,
+	SLOTP_NECKLACE = 1 << 1,
+	SLOTP_BACKPACK = 1 << 2,
+	SLOTP_ARMOR    = 1 << 3,
+	SLOTP_RIGHT    = 1 << 4,
+	SLOTP_LEFT     = 1 << 5,
+	SLOTP_LEGS     = 1 << 6,
+	SLOTP_FEET     = 1 << 7,
+	SLOTP_RING     = 1 << 8,
+	SLOTP_AMMO     = 1 << 9,
+	SLOTP_DEPOT    = 1 << 10,
+	SLOTP_TWO_HAND = 1 << 11,
+
+	SLOTP_HAND = (SLOTP_LEFT | SLOTP_RIGHT),
+	SLOTP_WHEREEVER = 0xFFFFFFFF,
+};
+
 enum ReportType_t
 {
 	REPORT_NAME = 0,

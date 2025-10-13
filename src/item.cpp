@@ -92,92 +92,10 @@ Item* Item::CreateItem(PropStream& propStream)
 	if (!propStream.getShort(type)) {
 		return nullptr;
 	}
-
 	return Item::CreateItem(type, 0);
 }
 
-bool Item::loadItem(xmlNodePtr node, Container* parent)
-{
-	if (!xmlStrcmp(node->name, (const xmlChar*)"item")) {
-		return false;
-	}
-
-	int32_t intValue;
-	std::string strValue;
-
-	Item* item = nullptr;
-	if (readXMLInteger(node, "id", intValue)) {
-		item = Item::CreateItem(intValue);
-	}
-
-	if (!item) {
-		return false;
-	}
-
-	if (readXMLString(node, "attributes", strValue)) {
-		auto attr = explodeString(strValue, ";");
-		for (auto it = attr.begin(); it != attr.end(); ++it) {
-			auto v = explodeString((*it), ",");
-			if (v.size() < 2) {
-				continue;
-			}
-
-			if (atoi(v[1].c_str()) || v[1] == "0") {
-				item->setAttribute(v[0].c_str(), atoi(v[1].c_str()));
-			} else {
-				item->setAttribute(v[0].c_str(), v[1]);
-			}
-		}
-	}
-
-	// compatibility
-	if (readXMLInteger(node, "subtype", intValue) || readXMLInteger(node, "subType", intValue)) {
-		item->setSubType(intValue);
-	}
-
-	if (readXMLInteger(node, "actionId", intValue) || readXMLInteger(node, "actionid", intValue)
-		|| readXMLInteger(node, "aid", intValue)) {
-		item->setActionId(intValue);
-	}
-
-	if (readXMLInteger(node, "uniqueId", intValue) || readXMLInteger(node, "uniqueid", intValue)
-		|| readXMLInteger(node, "uid", intValue)) {
-		item->setUniqueId(intValue);
-	}
-
-	if (readXMLString(node, "text", strValue)) {
-		item->setText(strValue);
-	}
-
-	if (item->getContainer()) {
-		loadContainer(node, item->getContainer());
-	}
-
-	if (parent) {
-		parent->addItem(item);
-	}
-
-	return true;
-}
-
-bool Item::loadContainer(xmlNodePtr parentNode, Container* parent)
-{
-	for (xmlNodePtr node = parentNode->children; node; node = node->next) {
-		if (node->type != XML_ELEMENT_NODE) {
-			continue;
-		}
-
-		if (!xmlStrcmp(node->name, (const xmlChar*)"item") && !loadItem(node, parent)) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-Item::Item(const uint16_t type, uint16_t amount /* = 0*/) :
-	ItemAttributes(),
-	m_id(type)
+Item::Item(const uint16_t type, uint16_t amount /* = 0*/) : m_id(type)
 {
 	setItemCount(1);
 	setDefaultDuration();
@@ -194,65 +112,34 @@ Item::Item(const uint16_t type, uint16_t amount /* = 0*/) :
 	} else if (it.charges) {
 		setCharges(amount ? amount : it.charges);
 	}
-
-	if (it.armorRndMin > 0 && it.armorRndMax > it.armorRndMin) {
-		setAttribute("armor", it.armorRndMin + rand() % (it.armorRndMax + 1 - it.armorRndMin));
-	}
-
-	if (it.defenseRndMin > 0 && it.defenseRndMax > it.defenseRndMin) {
-		setAttribute("defense", it.defenseRndMin + rand() % (it.defenseRndMax + 1 - it.defenseRndMin));
-	}
-
-	if (it.extraDefenseRndMin > 0 && it.extraDefenseRndMax > it.extraDefenseRndMin) {
-		if (it.extraDefenseChance == 0 || (it.extraDefenseChance >= rand() % 101)) {
-			setAttribute("extradefense", it.extraDefenseRndMin + rand() % (it.extraDefenseRndMax + 1 - it.extraDefenseRndMin));
-		}
-	}
-
-	if (it.attackRndMin > 0 && it.attackRndMax > it.attackRndMin) {
-		setAttribute("attack", it.attackRndMin + rand() % (it.attackRndMax - it.attackRndMin));
-	}
-
-	if (it.extraAttackRndMin > 0 && it.extraAttackRndMax > it.extraAttackRndMin) {
-		if (it.extraAttackChance == 0 || (it.extraAttackChance >= rand() % 101)) {
-			setAttribute("extraattack", it.extraAttackRndMin + rand() % (it.extraAttackRndMax + 1 - it.extraAttackRndMin));
-		}
-	}
-
-	if (it.attackSpeedRndMin > 0 && it.attackSpeedRndMax > it.attackSpeedRndMin) {
-		if (it.attackSpeedChance == 0 || (it.attackSpeedChance >= rand() % 101)) {
-			setAttribute("attackSpeed", it.attackSpeedRndMin + rand() % (it.attackSpeedRndMax + 1 - it.attackSpeedRndMin));
-		}
-	}
 }
 
 Item* Item::clone() const
 {
-	Item* tmp = Item::CreateItem(m_id, m_count);
-	if (!tmp) {
+	Item* cloneItem = Item::CreateItem(m_id, m_count);
+	if (!cloneItem) {
 		return nullptr;
 	}
 
-	if (!attributes || attributes->empty()) {
-		return tmp;
+	if (m_attributes && !m_attributes->empty()) {
+		cloneItem->m_attributes.reset(new AttributeMap(*m_attributes));
+		cloneItem->eraseAttribute("uid");
+		cloneItem->eraseAttribute("decaying");
 	}
-
-	tmp->createAttributes();
-	*tmp->attributes = *attributes;
-	tmp->eraseAttribute("uid");
-	return tmp;
+	return cloneItem;
 }
 
 void Item::copyAttributes(Item* item)
 {
-	if (item && item->attributes && !item->attributes->empty()) {
-		createAttributes();
-		*attributes = *item->attributes;
+	if (item->m_attributes && !item->m_attributes->empty()) {
+		m_attributes.reset(new AttributeMap(*item->m_attributes));
 		eraseAttribute("uid");
+	} else {
+		m_attributes.reset();
 	}
 
-	eraseAttribute("decaying");
 	m_duration = 0;
+	eraseAttribute("decaying");
 }
 
 void Item::makeUnique(Item* parent)
@@ -375,215 +262,176 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 {
 	switch (attr) {
 		case ATTR_COUNT: {
-			uint8_t _count;
-			if (!propStream.getByte(_count)) {
+			uint8_t count;
+			if (!propStream.getByte(count)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setSubType((uint16_t)_count);
+			setSubType(count);
 			break;
 		}
-
 		case ATTR_ACTION_ID: {
 			uint16_t aid;
-			if (!propStream.getShort(aid)) {
+			if (!propStream.getType<uint16_t>(aid)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("aid", aid);
+			setIntAttr("aid", aid);
 			break;
 		}
-
 		case ATTR_UNIQUE_ID: {
 			uint16_t uid;
-			if (!propStream.getShort(uid)) {
+			if (!propStream.getType<uint16_t>(uid)) {
 				return ATTR_READ_ERROR;
 			}
 
 			setUniqueId(uid);
 			break;
 		}
-
 		case ATTR_NAME: {
 			std::string name;
 			if (!propStream.getString(name)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("name", name);
+			setStrAttr("name", name);
 			break;
 		}
-
 		case ATTR_PLURALNAME: {
 			std::string name;
 			if (!propStream.getString(name)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("pluralname", name);
+			setStrAttr("pluralname", name);
 			break;
 		}
-
 		case ATTR_ARTICLE: {
 			std::string article;
 			if (!propStream.getString(article)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("article", article);
+			setStrAttr("article", article);
 			break;
 		}
-
-		case ATTR_CRITICALHITCHANCE: {
-			int32_t criticalHitChance;
-			if (!propStream.getLong((uint32_t&)criticalHitChance)) {
-				return ATTR_READ_ERROR;
-			}
-
-			setAttribute("criticalhitchance", criticalHitChance);
-			break;
-		}
-
 		case ATTR_ATTACK: {
 			int32_t attack;
 			if (!propStream.getLong((uint32_t&)attack)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("attack", attack);
+			setIntAttr("attack", attack);
 			break;
 		}
-
-		case ATTR_REDUCE_SKILL_LOSS: {
-			int32_t reduceSkillLoss;
-			if (!propStream.getLong((uint32_t&)reduceSkillLoss)) {
-				return ATTR_READ_ERROR;
-			}
-
-			setAttribute("recudeskillloss", reduceSkillLoss);
-			break;
-		}
-
 		case ATTR_EXTRAATTACK: {
 			int32_t attack;
 			if (!propStream.getLong((uint32_t&)attack)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("extraattack", attack);
+			setIntAttr("extraattack", attack);
 			break;
 		}
-
 		case ATTR_DEFENSE: {
 			int32_t defense;
 			if (!propStream.getLong((uint32_t&)defense)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("defense", defense);
+			setIntAttr("defense", defense);
 			break;
 		}
-
 		case ATTR_EXTRADEFENSE: {
 			int32_t defense;
 			if (!propStream.getLong((uint32_t&)defense)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("extradefense", defense);
+			setIntAttr("extradefense", defense);
 			break;
 		}
-
 		case ATTR_ARMOR: {
 			int32_t armor;
 			if (!propStream.getLong((uint32_t&)armor)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("armor", armor);
+			setIntAttr("armor", armor);
 			break;
 		}
-
 		case ATTR_ATTACKSPEED: {
 			int32_t attackSpeed;
 			if (!propStream.getLong((uint32_t&)attackSpeed)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("attackspeed", attackSpeed);
+			setIntAttr("attackspeed", attackSpeed);
 			break;
 		}
-
 		case ATTR_HITCHANCE: {
 			int32_t hitChance;
 			if (!propStream.getLong((uint32_t&)hitChance)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("hitchance", hitChance);
+			setIntAttr("hitchance", hitChance);
 			break;
 		}
-
 		case ATTR_SCRIPTPROTECTED: {
 			uint8_t protection;
 			if (!propStream.getByte(protection)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("scriptprotected", protection != 0);
+			setBoolAttr("scriptprotected", protection != 0);
 			break;
 		}
-
 		case ATTR_DUALWIELD: {
 			uint8_t wield;
 			if (!propStream.getByte(wield)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("dualwield", wield != 0);
+			setBoolAttr("dualwield", wield != 0);
 			break;
 		}
-
 		case ATTR_TEXT: {
 			std::string text;
 			if (!propStream.getString(text)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("text", text);
+			setStrAttr("text", text);
 			break;
 		}
-
 		case ATTR_WRITTENDATE: {
 			int32_t date;
 			if (!propStream.getLong((uint32_t&)date)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("date", date);
+			setIntAttr("date", date);
 			break;
 		}
-
 		case ATTR_WRITTENBY: {
 			std::string writer;
 			if (!propStream.getString(writer)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("writer", writer);
+			setStrAttr("writer", writer);
 			break;
 		}
-
 		case ATTR_DESC: {
 			std::string text;
 			if (!propStream.getString(text)) {
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("description", text);
+			setStrAttr("description", text);
 			break;
 		}
-
 		case ATTR_RUNE_CHARGES: {
 			uint8_t charges;
 			if (!propStream.getByte(charges)) {
@@ -593,7 +441,6 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			setSubType((uint16_t)charges);
 			break;
 		}
-
 		case ATTR_CHARGES: {
 			uint16_t charges;
 			if (!propStream.getShort(charges)) {
@@ -603,7 +450,6 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			setSubType(charges);
 			break;
 		}
-
 		case ATTR_DURATION: {
 			int32_t duration;
 			if (!propStream.getLong((uint32_t&)duration)) {
@@ -614,102 +460,133 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			m_duration = duration;
 			break;
 		}
-
 		case ATTR_DECAYING_STATE: {
 			uint8_t state;
 			if (!propStream.getByte(state)) {
 				return ATTR_READ_ERROR;
 			}
 
-			if ((ItemDecayState_t)state != DECAYING_FALSE) {
-				setAttribute("decaying", (int32_t)DECAYING_PENDING);
+			if (state != DECAYING_FALSE) {
+				setIntAttr("decaying", DECAYING_PENDING);
 			}
-
 			break;
 		}
 
 		// these should be handled through derived classes
 		// if these are called then something has changed in the items.otb since the map was saved
 		// just read the values
-
-		// Depot class
 		case ATTR_DEPOT_ID: {
-			uint16_t depot;
-			if (!propStream.getShort(depot)) {
+			if (!propStream.skip(2)) {
 				return ATTR_READ_ERROR;
 			}
-
 			break;
 		}
-
-		// Door class
 		case ATTR_HOUSEDOORID: {
-			uint8_t door;
-			if (!propStream.getByte(door)) {
+			if (!propStream.skip(1)) {
 				return ATTR_READ_ERROR;
 			}
-
 			break;
 		}
-
-		// Teleport class
 		case ATTR_TELE_DEST: {
-			TeleportDest* dest;
-			if (!propStream.getStruct(dest)) {
+			if (!propStream.skip(5)) {
 				return ATTR_READ_ERROR;
 			}
-
+			break;
+		}
+		case ATTR_SLEEPERGUID:
+		case ATTR_SLEEPSTART:
+		case ATTR_CONTAINER_ITEMS:
+		case ATTR_CRITICALHITCHANCE:
+		case ATTR_REDUCE_SKILL_LOSS: {
+			if (!propStream.skip(4)) {
+				return ATTR_READ_ERROR;
+			}
 			break;
 		}
 
-		// Bed class
-		case ATTR_SLEEPERGUID: {
-			uint32_t sleeper;
-			if (!propStream.getLong(sleeper)) {
+		// attributes
+		case ATTR_ATTRIBUTE_MAP_OLD: {
+			uint16_t size;
+			if (!propStream.getType<uint16_t>(size)) {
 				return ATTR_READ_ERROR;
 			}
 
-			break;
-		}
+			const bool unique = (getUniqueId() != 0);
 
-		case ATTR_SLEEPSTART: {
-			uint32_t sleepStart;
-			if (!propStream.getLong(sleepStart)) {
-				return ATTR_READ_ERROR;
+			auto& attributes = getAttributes();
+			for (uint16_t i = 0; i < size; i++) {
+				std::string key;
+				if (!propStream.getString(key)) {
+					return ATTR_READ_ERROR;
+				}
+
+				ItemAttributes itemAttr;
+				if (!itemAttr.unserialize_old(propStream)) {
+					return ATTR_READ_ERROR;
+				}
+
+				attributes.insert_or_assign(std::move(key), std::move(itemAttr));
 			}
 
-			break;
-		}
-
-		// Container class
-		case ATTR_CONTAINER_ITEMS: {
-			uint32_t _count;
-			propStream.getLong(_count);
-			return ATTR_READ_ERROR;
-		}
-
-		// ItemAttributes class
-		case ATTR_ATTRIBUTE_MAP: {
-			// TODO: fix that shit
-			bool unique = hasIntegerAttribute("uid"), ret = unserializeMap(propStream);
-			if (!unique && hasIntegerAttribute("uid")) { // unfortunately we have to do this
-				g_game.addUniqueItem(getUniqueId(), this);
+			ItemAttributes* itemAttr = getAttribute("uid");
+			if (!unique && itemAttr && itemAttr->isInt()) {
+				// unfortunately we have to do this
+				g_game.addUniqueItem(itemAttr->getInt(), this);
 			}
 
 			// this attribute has a custom behavior as well
 			if (getDecaying() != DECAYING_FALSE) {
 				setDecaying(DECAYING_PENDING);
 			}
+			break;
+		}
 
-			if (ret) {
-				break;
+		case ATTR_ATTRIBUTE_MAP: {
+			uint16_t version;
+			if (!propStream.getType<uint16_t>(version)) {
+				return ATTR_READ_ERROR;
 			}
+
+			UNUSED(version);
+
+			uint16_t size;
+			if (!propStream.getType<uint16_t>(size)) {
+				return ATTR_READ_ERROR;
+			}
+
+			const bool unique = (getUniqueId() != 0);
+
+			auto& attributes = getAttributes();
+			for (uint16_t i = 0; i < size; i++) {
+				std::string key;
+				if (!propStream.getString(key)) {
+					return ATTR_READ_ERROR;
+				}
+
+				ItemAttributes itemAttr;
+				if (!itemAttr.unserialize(propStream)) {
+					return ATTR_READ_ERROR;
+				}
+
+				attributes.insert_or_assign(std::move(key), std::move(itemAttr));
+			}
+
+			ItemAttributes* itemAttr = getAttribute("uid");
+			if (!unique && itemAttr && itemAttr->isInt()) {
+				// unfortunately we have to do this
+				g_game.addUniqueItem(itemAttr->getInt(), this);
+			}
+
+			// this attribute has a custom behavior as well
+			if (getDecaying() != DECAYING_FALSE) {
+				setDecaying(DECAYING_PENDING);
+			}
+			break;
 		}
 
 		default:
 			return ATTR_READ_ERROR;
 	}
-
 	return ATTR_READ_CONTINUE;
 }
 
@@ -744,11 +621,16 @@ bool Item::serializeAttr(PropWriteStream& propWriteStream) const
 		propWriteStream.addType(m_duration);
 	}
 
-	if (attributes && !attributes->empty()) {
+	if (m_attributes && !m_attributes->empty()) {
 		propWriteStream.addByte(ATTR_ATTRIBUTE_MAP);
-		serializeMap(propWriteStream);
-	}
+		propWriteStream.addType<uint16_t>(ITEM_ATTRIBUTES_VERSION); // serialization version, for future changes
+		propWriteStream.addType<uint16_t>(m_attributes->size());
 
+		for (const auto& [key, attr] : *m_attributes) {
+			propWriteStream.addString(key);
+			attr.serialize(propWriteStream);
+		}
+	}
 	return true;
 }
 
@@ -1729,7 +1611,7 @@ void Item::setActionId(int32_t aid, bool callEvent /* = true*/)
 		g_moveEvents.onRemoveTileItem(tile, this);
 	}
 
-	setAttribute("aid", aid);
+	setIntAttr("aid", aid);
 	if (tile) {
 		g_moveEvents.onAddTileItem(tile, this);
 	}
@@ -1759,7 +1641,7 @@ void Item::setUniqueId(int32_t uid)
 	}
 
 	if (g_game.addUniqueItem(uid, this)) {
-		setAttribute("uid", uid);
+		setIntAttr("uid", uid);
 	}
 }
 
@@ -1788,31 +1670,322 @@ void Item::__startDecaying()
 	g_game.startDecay(this);
 }
 
-void Item::generateSerial()
+uint32_t Item::countByType(const Item* item, int32_t checkType)
 {
-	std::string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-	std::string serial = "";
-	for (int32_t i = 1; i < 6; i++) {
-		int32_t l = rand() % (letters.length() - 1) + 1;
-		serial += letters.substr(l, 1);
+	if (checkType != -1 && checkType != static_cast<int32_t>(item->getSubType())) {
+		return 0;
 	}
-	serial += "-";
-	for (int32_t i = 1; i < 6; i++) {
-		int32_t l = rand() % (letters.length() - 1) + 1;
-		serial += letters.substr(l, 1);
-	}
-	serial += "-";
-	for (int32_t i = 1; i < 6; i++) {
-		int32_t l = rand() % (letters.length() - 1) + 1;
-		serial += letters.substr(l, 1);
-	}
-	serial += "-";
-	for (int32_t i = 1; i < 6; i++) {
-		int32_t l = rand() % (letters.length() - 1) + 1;
-		serial += letters.substr(l, 1);
+	return item->getItemCount();
+}
+
+//
+// ItemAttributes
+//
+ItemAttributes* Item::getAttribute(std::string_view key) const
+{
+	if (!m_attributes) {
+		return nullptr;
 	}
 
-	std::string key = "serial";
-	this->setAttribute(key.c_str(), serial);
-	serial = "";
+	auto it = m_attributes->find(key);
+	if (it != m_attributes->end()) {
+		return &it->second;
+	}
+	return nullptr;
+}
+
+bool Item::eraseAttribute(std::string_view key)
+{
+	if (!m_attributes) {
+		return false;
+	}
+
+	auto it = m_attributes->find(key);
+	if (it != m_attributes->end()) {
+		m_attributes->erase(it);
+		if (m_attributes->empty()) {
+			m_attributes.reset();
+		}
+		return true;
+	}
+	return false;
+}
+
+void Item::setStrAttr(const std::string& key, const std::string& value)
+{
+	getAttributes()[key] = ItemAttributes(value);
+}
+
+void Item::setIntAttr(const std::string& key, int64_t value)
+{
+	getAttributes()[key] = ItemAttributes(value);
+}
+
+void Item::setDoubleAttr(const std::string& key, double value)
+{
+	getAttributes()[key] = ItemAttributes(value);
+}
+
+void Item::setBoolAttr(const std::string& key, bool value)
+{
+	getAttributes()[key] = ItemAttributes(value);
+}
+
+bool Item::hasStrAttr(std::string_view key) const
+{
+	if (ItemAttributes* attr = getAttribute(key)) {
+		return attr->isString();
+	}
+	return false;
+}
+
+bool Item::hasIntAttr(std::string_view key) const
+{
+	if (ItemAttributes* attr = getAttribute(key)) {
+		return attr->isInt();
+	}
+	return false;
+}
+
+bool Item::hasDoubleAttr(std::string_view key) const
+{
+	if (ItemAttributes* attr = getAttribute(key)) {
+		return attr->isDouble();
+	}
+	return false;
+}
+
+bool Item::hasBoolAttr(std::string_view key) const
+{
+	if (ItemAttributes* attr = getAttribute(key)) {
+		return attr->isBool();
+	}
+	return false;
+}
+
+const std::string& Item::getName() const
+{
+	ItemAttributes* attr = getAttribute("name");
+	if (attr && attr->isString()) {
+		return attr->getString();
+	}
+	return items[m_id].name;
+}
+
+const std::string& Item::getPluralName() const
+{
+	ItemAttributes* attr = getAttribute("pluralname");
+	if (attr && attr->isString()) {
+		return attr->getString();
+	}
+	return items[m_id].pluralName;
+}
+
+const std::string& Item::getArticle() const
+{
+	ItemAttributes* attr = getAttribute("article");
+	if (attr && attr->isString()) {
+		return attr->getString();
+	}
+	return items[m_id].article;
+}
+
+bool Item::isScriptProtected() const
+{
+	ItemAttributes* attr = getAttribute("scriptprotected");
+	if (attr && attr->isBool()) {
+		return attr->getBool();
+	}
+	return false;
+}
+
+int32_t Item::getAttack() const
+{
+	ItemAttributes* attr = getAttribute("attack");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return items[m_id].attack;
+}
+
+int32_t Item::getReduceSkillLoss() const
+{
+	ItemAttributes* attr = getAttribute("reduceskillloss");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return items[m_id].reduceSkillLoss;
+}
+
+int32_t Item::getExtraAttack() const
+{
+	ItemAttributes* attr = getAttribute("extraattack");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return items[m_id].extraAttack;
+}
+
+int32_t Item::getDefense() const
+{
+	ItemAttributes* attr = getAttribute("defense");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return items[m_id].defense;
+}
+
+int32_t Item::getExtraDefense() const
+{
+	ItemAttributes* attr = getAttribute("extradefense");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return items[m_id].extraDefense;
+}
+
+int32_t Item::getArmor() const
+{
+	ItemAttributes* attr = getAttribute("armor");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return items[m_id].armor;
+}
+
+int32_t Item::getAttackSpeed() const
+{
+	ItemAttributes* attr = getAttribute("attackspeed");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return items[m_id].attackSpeed;
+}
+
+int32_t Item::getHitChance() const
+{
+	ItemAttributes* attr = getAttribute("hitchance");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return items[m_id].hitChance;
+}
+
+int32_t Item::getShootRange() const
+{
+	ItemAttributes* attr = getAttribute("shootrange");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return items[m_id].shootRange;
+}
+
+bool Item::isDualWield() const
+{
+	ItemAttributes* attr = getAttribute("dualwield");
+	if (attr && attr->isBool()) {
+		return attr->getBool();
+	}
+	return items[m_id].dualWield;
+}
+
+const std::string& Item::getSpecialDescription() const
+{
+	ItemAttributes* attr = getAttribute("description");
+	if (attr && attr->isString()) {
+		return attr->getString();
+	}
+
+	static const std::string emptyString;
+	return emptyString;
+}
+
+const std::string& Item::getText() const
+{
+	ItemAttributes* attr = getAttribute("text");
+	if (attr && attr->isString()) {
+		return attr->getString();
+	}
+	return items[m_id].text;
+}
+
+time_t Item::getDate() const
+{
+	ItemAttributes* attr = getAttribute("date");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return items[m_id].date;
+}
+
+const std::string& Item::getWriter() const
+{
+	ItemAttributes* attr = getAttribute("writer");
+	if (attr && attr->isString()) {
+		return attr->getString();
+	}
+	return items[m_id].writer;
+}
+
+int32_t Item::getActionId() const
+{
+	ItemAttributes* attr = getAttribute("aid");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return 0;
+}
+
+int32_t Item::getUniqueId() const
+{
+	ItemAttributes* attr = getAttribute("uid");
+	if (attr && attr->isInt()) {
+		return static_cast<int32_t>(attr->getInt());
+	}
+	return 0;
+}
+
+uint16_t Item::getCharges() const
+{
+	ItemAttributes* attr = getAttribute("charges");
+	if (attr && attr->isInt()) {
+		return static_cast<uint16_t>(attr->getInt());
+	}
+	return 0;
+}
+
+uint16_t Item::getFluidType() const
+{
+	ItemAttributes* attr = getAttribute("fluidtype");
+	if (attr && attr->isInt()) {
+		return static_cast<uint16_t>(attr->getInt());
+	}
+	return 0;
+}
+
+uint32_t Item::getOwner() const
+{
+	ItemAttributes* attr = getAttribute("owner");
+	if (attr && attr->isInt()) {
+		return static_cast<uint32_t>(attr->getInt());
+	}
+	return 0;
+}
+
+uint32_t Item::getCorpseOwner()
+{
+	ItemAttributes* attr = getAttribute("corpseowner");
+	if (attr && attr->isInt()) {
+		return static_cast<uint32_t>(attr->getInt());
+	}
+	return 0;
+}
+
+ItemDecayState_t Item::getDecaying() const
+{
+	ItemAttributes* attr = getAttribute("decaying");
+	if (attr && attr->isInt()) {
+		return static_cast<ItemDecayState_t>(attr->getInt());
+	}
+	return DECAYING_FALSE;
 }

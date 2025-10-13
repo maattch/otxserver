@@ -30,16 +30,15 @@ Attr_ReadValue Depot::readAttr(AttrTypes_t attr, PropStream& propStream)
 		return ATTR_READ_ERROR;
 	}
 
-	setAttribute("depotid", depotId);
+	setIntAttr("depotid", depotId);
 	return ATTR_READ_CONTINUE;
 }
 
 uint32_t Depot::getDepotId() const
 {
-	bool ok;
-	int32_t v = getIntegerAttribute("depotid", ok);
-	if (ok) {
-		return (uint32_t)v;
+	ItemAttributes* attr = getAttribute("depotid");
+	if (attr && attr->isInt()) {
+		return attr->getInt();
 	}
 	return 0;
 }

@@ -6647,16 +6647,8 @@ static int luaGetItemAttribute(lua_State* L)
 	}
 
 	const std::string key = otx::lua::getString(L, 2);
-
-	boost::any value = item->getAttribute(key.data());
-	if (value.type() == typeid(std::string)) {
-		otx::lua::pushString(L, boost::any_cast<std::string>(value));
-	} else if (value.type() == typeid(int32_t)) {
-		lua_pushnumber(L, boost::any_cast<int32_t>(value));
-	} else if (value.type() == typeid(float)) {
-		lua_pushnumber(L, boost::any_cast<float>(value));
-	} else if (value.type() == typeid(bool)) {
-		lua_pushboolean(L, boost::any_cast<bool>(value));
+	if (ItemAttributes* attr = item->getAttribute(key)) {
+		attr->pushToLua(L);
 	} else {
 		lua_pushnil(L);
 	}
@@ -6682,7 +6674,7 @@ static int luaDoItemSetAttribute(lua_State* L)
 			return 1;
 		}
 
-		const auto value = otx::lua::getNumber<int32_t>(L, 3);
+		const auto value = otx::lua::getNumber<int64_t>(L, 3);
 		if (key == "uid") {
 			if (value < 1000 || value > 0xFFFF) {
 				otx::lua::reportErrorEx(L, "UniqueId must be in range of 1000 to 65535.");
@@ -6697,11 +6689,16 @@ static int luaDoItemSetAttribute(lua_State* L)
 	}
 
 	if (otx::lua::isNumber(L, 3)) {
-		item->setAttribute(key.data(), otx::lua::getNumber<int32_t>(L, 3));
+		const auto value = otx::lua::getNumber<double>(L, 3);
+		if (value != std::round(value)) {
+			item->setDoubleAttr(key, value);
+		} else {
+			item->setIntAttr(key, value);
+		}
 	} else if (otx::lua::isBoolean(L, 3)) {
-		item->setAttribute(key.data(), otx::lua::getBoolean(L, 3));
+		item->setBoolAttr(key, otx::lua::getBoolean(L, 3));
 	} else if (otx::lua::isString(L, 3)) {
-		item->setAttribute(key.data(), otx::lua::getString(L, 3));
+		item->setStrAttr(key, otx::lua::getString(L, 3));
 	} else {
 		otx::lua::reportErrorEx(L, "Invalid attribute value.");
 		lua_pushnil(L);

@@ -694,10 +694,9 @@ void IOLoginData::loadItems(ItemMap& itemMap, DBResultPtr result)
 				std::clog << "[Warning - IOLoginData::loadItems] Unserialize error for item with id " << item->getID() << std::endl;
 			}
 
-			std::string serial = result->getString("serial");
-			if (serial != "") {
-				std::string key = "serial";
-				item->setAttribute(key.c_str(), serial);
+			const std::string serial = result->getString("serial");
+			if (!serial.empty()) {
+				item->setStrAttr("serial", serial);
 			}
 
 			itemMap[result->getNumber<int32_t>("sid")] = std::make_pair(item, result->getNumber<int32_t>("pid"));
@@ -1165,21 +1164,21 @@ bool IOLoginData::saveItems(const Player* player, const ItemBlockList& itemList,
 		PropWriteStream propWriteStream;
 		item->serializeAttr(propWriteStream);
 
-		std::string key = "serial";
-		boost::any value = item->getAttribute("serial");
-		if (value.empty()) {
-			item->generateSerial();
-			value = item->getAttribute("serial");
+		std::string serial;
+		ItemAttributes* attr = item->getAttribute("serial");
+		if (attr && attr->isString()) {
+			serial = attr->getString();
+			item->eraseAttribute("serial");
+		} else {
+			serial = generateSerial();
 		}
-
-		item->eraseAttribute("serial");
 
 		uint32_t attributesSize = 0;
 		const char* attributes = propWriteStream.getStream(attributesSize);
 
 		std::ostringstream buffer;
 		buffer << player->getGUID() << "," << it->first << "," << runningId << "," << item->getID() << ","
-			   << (int32_t)item->getSubType() << "," << g_database.escapeBlob(attributes, attributesSize) << "," << g_database.escapeString(boost::any_cast<std::string>(value).c_str());
+			   << item->getSubType() << "," << g_database.escapeBlob(attributes, attributesSize) << "," << g_database.escapeString(serial);
 		if (!stmt.addRow(buffer.str())) {
 			return false;
 		}
@@ -1203,21 +1202,21 @@ bool IOLoginData::saveItems(const Player* player, const ItemBlockList& itemList,
 			PropWriteStream propWriteStream;
 			item->serializeAttr(propWriteStream);
 
-			std::string key = "serial";
-			boost::any value = item->getAttribute(key.c_str());
-			if (value.empty()) {
-				item->generateSerial();
-				value = item->getAttribute(key.c_str());
+			std::string serial;
+			ItemAttributes* attr = item->getAttribute("serial");
+			if (attr && attr->isString()) {
+				serial = attr->getString();
+				item->eraseAttribute("serial");
+			} else {
+				serial = generateSerial();
 			}
-
-			item->eraseAttribute(key.c_str());
 
 			uint32_t attributesSize = 0;
 			const char* attributes = propWriteStream.getStream(attributesSize);
 
 			std::ostringstream buffer;
 			buffer << player->getGUID() << "," << stack.second << "," << runningId << "," << item->getID() << ","
-				   << (int32_t)item->getSubType() << "," << g_database.escapeBlob(attributes, attributesSize) << "," << g_database.escapeString(boost::any_cast<std::string>(value).c_str());
+				   << item->getSubType() << "," << g_database.escapeBlob(attributes, attributesSize) << "," << g_database.escapeString(serial);
 			if (!stmt.addRow(buffer.str())) {
 				return false;
 			}

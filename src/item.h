@@ -18,25 +18,22 @@
 #pragma once
 
 #include "fileloader.h"
-#include "itemattributes.h"
 #include "items.h"
 #include "raids.h"
 #include "thing.h"
 
 class Creature;
 class Player;
-
 class Container;
 class Depot;
-
 class TrashHolder;
 class Mailbox;
-
 class Teleport;
 class MagicField;
-
 class Door;
 class BedItem;
+
+static constexpr uint16_t ITEM_ATTRIBUTES_VERSION = 1;
 
 enum ITEMPROPERTY
 {
@@ -108,9 +105,11 @@ enum AttrTypes_t
 	ATTR_ARTICLE = 41,
 	ATTR_SCRIPTPROTECTED = 42,
 	ATTR_DUALWIELD = 43,
-	ATTR_CRITICALHITCHANCE = 44,
-	ATTR_REDUCE_SKILL_LOSS = 45,
-	ATTR_ATTRIBUTE_MAP = 128
+	ATTR_CRITICALHITCHANCE = 44, // unused
+	ATTR_REDUCE_SKILL_LOSS = 45, // unused
+
+	ATTR_ATTRIBUTE_MAP_OLD = 128,
+	ATTR_ATTRIBUTE_MAP = 129,
 };
 
 enum Attr_ReadValue
@@ -120,45 +119,196 @@ enum Attr_ReadValue
 	ATTR_READ_END
 };
 
-// from iomap.h
-#pragma pack(1)
-struct TeleportDest
-{
-	uint16_t _x, _y;
-	uint8_t _z;
-};
-#pragma pack()
-
 typedef std::list<Item*> ItemList;
 typedef std::vector<Item*> ItemVector;
 
-class Item : virtual public Thing, public ItemAttributes
+class ItemAttributes final
 {
 public:
+	constexpr ItemAttributes() = default;
+
+	template<typename T>
+	explicit ItemAttributes(const T& v) : value(v) {}
+
+	constexpr bool operator==(const ItemAttributes& o) const noexcept { return value == o.value; }
+	constexpr bool operator!=(const ItemAttributes& o) const noexcept { return !(*this == o); }
+
+	constexpr bool isBlank() noexcept { return value.index() == 0; }
+	constexpr bool isString() noexcept { return value.index() == 1; }
+	constexpr bool isInt() noexcept { return value.index() == 2; }
+	constexpr bool isDouble() noexcept { return value.index() == 3; }
+	constexpr bool isBool() noexcept { return value.index() == 4; }
+
+	constexpr const std::string& getString() const { return std::get<1>(value); }
+	constexpr int64_t getInt() const { return std::get<2>(value); }
+	constexpr double getDouble() const { return std::get<3>(value); }
+	constexpr bool getBool() const { return std::get<4>(value); }
+
+	void pushToLua(lua_State* L) const {
+		struct PushLuaVisitor
+		{
+			explicit PushLuaVisitor(lua_State* L) : L(L) {}
+			void operator()(std::monostate) { lua_pushnil(L); }
+			void operator()(const std::string& v) { lua_pushlstring(L, v.data(), v.size()); }
+			void operator()(int64_t v) { lua_pushnumber(L, v); }
+			void operator()(double v) { lua_pushnumber(L, v); }
+			void operator()(bool v) { lua_pushboolean(L, v); }
+			lua_State* L;
+		};
+		std::visit(PushLuaVisitor(L), value);
+	}
+
+	void serialize(PropWriteStream& propWriteStream) const {
+		propWriteStream.addByte(static_cast<uint8_t>(value.index()));
+		struct SerializeVisitor
+		{
+			explicit SerializeVisitor(PropWriteStream& propWriteStream) : propWriteStream(propWriteStream) {}
+			void operator()(std::monostate) {}
+			void operator()(const std::string& v) { propWriteStream.addLongString(v); }
+			void operator()(int64_t v) { propWriteStream.addType<int64_t>(v); }
+			void operator()(double v) { propWriteStream.addType<double>(v); }
+			void operator()(bool v) { propWriteStream.addType<bool>(v); }
+			PropWriteStream& propWriteStream;
+		};
+		std::visit(SerializeVisitor(propWriteStream), value);
+	}
+
+	bool unserialize_old(PropStream& propStream) {
+		uint8_t type;
+		if (!propStream.getByte(type)) {
+			return false;
+		}
+
+		switch (type) {
+			case 1: {
+				// String
+				std::string v;
+				if (!propStream.getLongString(v)) {
+					return false;
+				}
+
+				value = v;
+				break;
+			}
+			case 2: {
+				// Integer
+				int32_t v;
+				if (!propStream.getType<int32_t>(v)) {
+					return false;
+				}
+
+				value = static_cast<int64_t>(v);
+				break;
+			}
+			case 3: {
+				// Double
+				float v;
+				if (!propStream.getType<float>(v)) {
+					return false;
+				}
+
+				value = static_cast<double>(v);
+				break;
+			}
+			case 4: {
+				// Bool
+				uint8_t v;
+				if (!propStream.getType<uint8_t>(v)) {
+					return false;
+				}
+
+				value = (v != 0);
+				break;
+			}
+
+			default: {
+				value = std::monostate();
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool unserialize(PropStream& propStream) {
+		uint8_t type;
+		if (!propStream.getByte(type)) {
+			return false;
+		}
+
+		switch (type) {
+			case 1: {
+				// String
+				std::string v;
+				if (!propStream.getLongString(v)) {
+					return false;
+				}
+
+				value = v;
+				break;
+			}
+			case 2: {
+				// Integer
+				int64_t v;
+				if (!propStream.getType<int64_t>(v)) {
+					return false;
+				}
+
+				value = v;
+				break;
+			}
+			case 3: {
+				// Double
+				double v;
+				if (!propStream.getType<double>(v)) {
+					return false;
+				}
+
+				value = v;
+				break;
+			}
+			case 4: {
+				// Bool
+				bool v;
+				if (!propStream.getType<bool>(v)) {
+					return false;
+				}
+
+				value = v;
+				break;
+			}
+
+			default: {
+				value = std::monostate();
+				return false;
+			}
+		}
+		return true;
+	}
+
+private:
+	std::variant<std::monostate, std::string, int64_t, double, bool> value;
+};
+
+
+class Item : virtual public Thing
+{
+public:
+	Item(const uint16_t type, uint16_t amount = 0);
+	Item(const Item& i) : Thing(), m_id(i.m_id), m_count(i.m_count) {}
+	virtual ~Item() {}
+
 	static Items items;
 
 	// Factory member to create item of right type based on type
 	static Item* CreateItem(const uint16_t type, uint16_t amount = 0);
 	static Item* CreateItem(PropStream& propStream);
 
-	static bool loadItem(xmlNodePtr node, Container* parent);
-	static bool loadContainer(xmlNodePtr node, Container* parent);
-
-	// Constructor for items
-	Item(const uint16_t type, uint16_t amount = 0);
-	Item(const Item& i) :
-		Thing(),
-		ItemAttributes(i),
-		m_id(i.m_id),
-		m_count(i.m_count) {}
-	virtual ~Item() {}
-
 	virtual Item* clone() const;
 	virtual void copyAttributes(Item* item);
 	void makeUnique(Item* parent);
 
-	virtual Item* getItem() { return this; }
-	virtual const Item* getItem() const { return this; }
+	Item* getItem() override { return this; }
+	const Item* getItem() const override { return this; }
 
 	virtual Container* getContainer() { return nullptr; }
 	virtual const Container* getContainer() const { return nullptr; }
@@ -188,7 +338,6 @@ public:
 	static std::string getDescription(const ItemType& it, int32_t lookDistance, const Item* item = nullptr, int32_t subType = -1, bool addArticle = true);
 	static std::string getNameDescription(const ItemType& it, const Item* item = nullptr, int32_t subType = -1, bool addArticle = true);
 	static std::string getWeightDescription(double weight, bool stackable, uint32_t count = 1);
-	void generateSerial();
 
 	virtual std::string getDescription(int32_t lookDistance) const { return getDescription(items[m_id], lookDistance, this); }
 	std::string getNameDescription() const { return getNameDescription(items[m_id], this); }
@@ -196,6 +345,20 @@ public:
 
 	Player* getHoldingPlayer();
 	const Player* getHoldingPlayer() const;
+
+	// attributes
+	ItemAttributes* getAttribute(std::string_view key) const;
+	bool eraseAttribute(std::string_view key);
+
+	void setStrAttr(const std::string& key, const std::string& value);
+	void setIntAttr(const std::string& key, int64_t value);
+	void setDoubleAttr(const std::string& key, double value);
+	void setBoolAttr(const std::string& key, bool value);
+
+	bool hasStrAttr(std::string_view key) const;
+	bool hasIntAttr(std::string_view key) const;
+	bool hasDoubleAttr(std::string_view key) const;
+	bool hasBoolAttr(std::string_view key) const;
 
 	// serialization
 	virtual Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream);
@@ -205,24 +368,24 @@ public:
 
 	// Item attributes
 	void setDuration(int32_t time) { m_duration = time; }
-	void decreaseDuration(int32_t time);
-	int32_t getDuration() const;
+	void decreaseDuration(int32_t time) { m_duration -= time; }
+	int32_t getDuration() const { return m_duration; }
 
-	void setSpecialDescription(const std::string& description) { setAttribute("description", description); }
+	void setSpecialDescription(const std::string& description) { setStrAttr("description", description); }
 	void resetSpecialDescription() { eraseAttribute("description"); }
-	std::string getSpecialDescription() const;
+	const std::string& getSpecialDescription() const;
 
-	void setText(const std::string& text) { setAttribute("text", text); }
+	void setText(const std::string& text) { setStrAttr("text", text); }
 	void resetText() { eraseAttribute("text"); }
-	std::string getText() const;
+	const std::string& getText() const;
 
-	void setDate(time_t date) { setAttribute("date", (int32_t)date); }
+	void setDate(time_t date) { setIntAttr("date", date); }
 	void resetDate() { eraseAttribute("date"); }
 	time_t getDate() const;
 
-	void setWriter(std::string writer) { setAttribute("writer", writer); }
+	void setWriter(const std::string& writer) { setStrAttr("writer", writer); }
 	void resetWriter() { eraseAttribute("writer"); }
-	std::string getWriter() const;
+	const std::string& getWriter() const;
 
 	void setActionId(int32_t aid, bool callEvent = true);
 	void resetActionId(bool callEvent = true);
@@ -231,26 +394,26 @@ public:
 	void setUniqueId(int32_t uid);
 	int32_t getUniqueId() const;
 
-	void setCharges(uint16_t charges) { setAttribute("charges", charges); }
+	void setCharges(uint16_t charges) { setIntAttr("charges", charges); }
 	void resetCharges() { eraseAttribute("charges"); }
 	uint16_t getCharges() const;
 
-	void setFluidType(uint16_t fluidType) { setAttribute("fluidtype", fluidType); }
+	void setFluidType(uint16_t fluidType) { setIntAttr("fluidtype", fluidType); }
 	void resetFluidType() { eraseAttribute("fluidtype"); }
 	uint16_t getFluidType() const;
 
-	void setOwner(uint32_t owner) { setAttribute("owner", (int32_t)owner); }
+	void setOwner(uint32_t owner) { setIntAttr("owner", owner); }
 	uint32_t getOwner() const;
 
-	void setCorpseOwner(uint32_t corpseOwner) { setAttribute("corpseowner", (int32_t)corpseOwner); }
+	void setCorpseOwner(uint32_t corpseOwner) { setIntAttr("corpseowner", corpseOwner); }
 	uint32_t getCorpseOwner();
 
-	void setDecaying(ItemDecayState_t state) { setAttribute("decaying", (int32_t)state); }
+	void setDecaying(ItemDecayState_t state) { setIntAttr("decaying", state); }
 	ItemDecayState_t getDecaying() const;
 
-	std::string getName() const;
-	std::string getPluralName() const;
-	std::string getArticle() const;
+	const std::string& getName() const;
+	const std::string& getPluralName() const;
+	const std::string& getArticle() const;
 
 	bool isScriptProtected() const;
 	bool isDualWield() const;
@@ -283,7 +446,7 @@ public:
 
 	bool hasProperty(enum ITEMPROPERTY prop) const;
 	bool hasSubType() const { return items[m_id].hasSubType(); }
-	bool hasCharges() const { return hasIntegerAttribute("charges"); }
+	bool hasCharges() const { return hasIntAttr("charges"); }
 
 	bool canDecay();
 	virtual bool canRemove() const { return true; }
@@ -352,301 +515,48 @@ public:
 
 	static uint32_t countByType(const Item* item, int32_t checkType);
 
+#ifdef _MSC_VER
+	// MSVC C++17 does not support transparent lookup in unordered_map yet (only C++20 above)
+	struct StringViewLess
+	{
+		using is_transparent = void;
+		bool operator()(std::string_view lhs, std::string_view rhs) const noexcept {
+			return lhs < rhs;
+		}
+	};
+	using AttributeMap = std::map<std::string, ItemAttributes, StringViewLess>;
+#else
+	struct StringViewHash
+	{
+		using is_transparent = void;
+		std::size_t operator()(const std::string_view& sv) const {
+			return std::hash<std::string_view>{}(sv);
+		}
+	};
+	struct StringViewEqual
+	{
+		using is_transparent = void;
+		bool operator()(const std::string_view& lhs, const std::string_view& rhs) const noexcept {
+			return lhs == rhs;
+		}
+	};
+	using AttributeMap = std::unordered_map<std::string, ItemAttributes, StringViewHash, StringViewEqual>;
+#endif
+
+	AttributeMap& getAttributes() {
+		if (!m_attributes) {
+			m_attributes.reset(new AttributeMap);
+		}
+		return *m_attributes;
+	}
+
 protected:
-	Raid* m_raid = nullptr;
-	int32_t m_duration = 0;
+	Raid* m_raid = nullptr; // TOOD: move it out of item class
 	uint16_t m_id;
 	uint8_t m_count;
+
+private:
+	std::unique_ptr<AttributeMap> m_attributes;
+	int32_t m_duration = 0; // TOOD: move it out of item class
 	bool m_loadedFromMap = false;
 };
-
-inline std::string Item::getName() const
-{
-	bool ok;
-	std::string v = getStringAttribute("name", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].name;
-}
-
-inline std::string Item::getPluralName() const
-{
-	bool ok;
-	std::string v = getStringAttribute("pluralname", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].pluralName;
-}
-
-inline std::string Item::getArticle() const
-{
-	bool ok;
-	std::string v = getStringAttribute("article", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].article;
-}
-
-inline bool Item::isScriptProtected() const
-{
-	bool ok;
-	bool v = getBooleanAttribute("scriptprotected", ok);
-	if (ok) {
-		return v;
-	}
-
-	return false;
-}
-
-inline int32_t Item::getAttack() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("attack", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].attack;
-}
-
-inline int32_t Item::getReduceSkillLoss() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("reduceskillloss", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].reduceSkillLoss;
-}
-
-inline int32_t Item::getExtraAttack() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("extraattack", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].extraAttack;
-}
-
-inline int32_t Item::getDefense() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("defense", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].defense;
-}
-
-inline int32_t Item::getExtraDefense() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("extradefense", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].extraDefense;
-}
-
-inline int32_t Item::getArmor() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("armor", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].armor;
-}
-
-inline int32_t Item::getAttackSpeed() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("attackspeed", ok);
-	if (ok) {
-		return v;
-	}
-	return items[m_id].attackSpeed;
-}
-
-inline int32_t Item::getHitChance() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("hitchance", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].hitChance;
-}
-
-inline int32_t Item::getShootRange() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("shootrange", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].shootRange;
-}
-
-inline bool Item::isDualWield() const
-{
-	bool ok;
-	bool v = getBooleanAttribute("dualwield", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].dualWield;
-}
-
-inline void Item::decreaseDuration(int32_t time)
-{
-	m_duration -= time;
-}
-
-inline int32_t Item::getDuration() const
-{
-	return m_duration;
-}
-
-inline std::string Item::getSpecialDescription() const
-{
-	bool ok;
-	std::string v = getStringAttribute("description", ok);
-	if (ok) {
-		return v;
-	}
-
-	return "";
-}
-
-inline std::string Item::getText() const
-{
-	bool ok;
-	std::string v = getStringAttribute("text", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].text;
-}
-
-inline time_t Item::getDate() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("date", ok);
-	if (ok) {
-		return (time_t)v;
-	}
-
-	return items[m_id].date;
-}
-
-inline std::string Item::getWriter() const
-{
-	bool ok;
-	std::string v = getStringAttribute("writer", ok);
-	if (ok) {
-		return v;
-	}
-
-	return items[m_id].writer;
-}
-
-inline int32_t Item::getActionId() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("aid", ok);
-	if (ok) {
-		return v;
-	}
-
-	return 0;
-}
-
-inline int32_t Item::getUniqueId() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("uid", ok);
-	if (ok) {
-		return v;
-	}
-	return 0;
-}
-
-inline uint16_t Item::getCharges() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("charges", ok);
-	if (ok && v >= 0) {
-		return (uint16_t)v;
-	}
-	return 0;
-}
-
-inline uint16_t Item::getFluidType() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("fluidtype", ok);
-	if (ok && v >= 0) {
-		return (uint16_t)v;
-	}
-
-	return 0;
-}
-
-inline uint32_t Item::getOwner() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("owner", ok);
-	if (ok) {
-		return (uint32_t)v;
-	}
-
-	return 0;
-}
-
-inline uint32_t Item::getCorpseOwner()
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("corpseowner", ok);
-	if (ok) {
-		return (uint32_t)v;
-	}
-
-	return 0;
-}
-
-inline ItemDecayState_t Item::getDecaying() const
-{
-	bool ok;
-	int32_t v = getIntegerAttribute("decaying", ok);
-	if (ok) {
-		return (ItemDecayState_t)v;
-	}
-
-	return DECAYING_FALSE;
-}
-
-inline uint32_t Item::countByType(const Item* item, int32_t checkType)
-{
-	if (checkType != -1 && checkType != (int32_t)item->getSubType()) {
-		return 0;
-	}
-
-	return item->getItemCount();
-}

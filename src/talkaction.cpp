@@ -786,13 +786,13 @@ bool TalkAction::thingProporties(Creature* creature, const std::string& param)
 			if (action == "set" || action == "add" || action == "new") {
 				std::string type = parseParams(it, tokens.end()), key = parseParams(it, tokens.end()), value = parseParams(it, tokens.end());
 				if (type == "integer" || type == "number" || type == "int" || type == "num") {
-					item->setAttribute(key.c_str(), atoi(value.c_str()));
+					item->setIntAttr(key, atoi(value.c_str()));
 				} else if (type == "float" || type == "double") {
-					item->setAttribute(key.c_str(), (float)atof(value.c_str()));
+					item->setDoubleAttr(key, atof(value.c_str()));
 				} else if (type == "bool" || type == "boolean") {
-					item->setAttribute(key.c_str(), booleanString(value));
+					item->setBoolAttr(key, booleanString(value));
 				} else {
-					item->setAttribute(key.c_str(), value);
+					item->setStrAttr(key, value);
 				}
 			} else if (action == "erase" || action == "remove" || action == "delete") {
 				item->eraseAttribute(parseParams(it, tokens.end()).c_str());

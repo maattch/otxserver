@@ -49,7 +49,7 @@ Attr_ReadValue BedItem::readAttr(AttrTypes_t attr, PropStream& propStream)
 				return ATTR_READ_ERROR;
 			}
 
-			setAttribute("sleepstart", static_cast<int32_t>(sleepStart));
+			setIntAttr("sleepstart", sleepStart);
 			return ATTR_READ_CONTINUE;
 		}
 
@@ -163,8 +163,12 @@ void BedItem::wakeUp()
 
 void BedItem::regeneratePlayer(Player* player) const
 {
-	bool ok;
-	const int32_t sleepStart = getIntegerAttribute("sleepstart", ok);
+	int32_t sleepStart = 0;
+	ItemAttributes* attr = getAttribute("sleepstart");
+	if (attr && attr->isInt()) {
+		sleepStart = attr->getInt();
+	}
+
 	const int32_t sleptTime = time(nullptr) - sleepStart;
 	if (Condition* condition = player->getCondition(CONDITION_REGENERATION, CONDITIONID_DEFAULT)) {
 		int32_t regenAmount = sleptTime / 30;
@@ -210,7 +214,7 @@ void BedItem::updateAppearance(const Player* player)
 void BedItem::internalSetSleeper(const Player* player)
 {
 	m_sleeperGUID = player->getGUID();
-	setAttribute("sleepstart", static_cast<int32_t>(time(nullptr)));
+	setIntAttr("sleepstart", time(nullptr));
 	setSpecialDescription(player->getName() + " is sleeping there.");
 }
 

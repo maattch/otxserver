@@ -198,7 +198,6 @@
     <ClCompile Include="..\src\iomap.cpp" />
     <ClCompile Include="..\src\iomapserialize.cpp" />
     <ClCompile Include="..\src\item.cpp" />
-    <ClCompile Include="..\src\itemattributes.cpp" />
     <ClCompile Include="..\src\items.cpp" />
     <ClCompile Include="..\src\lua_functions.cpp" />
     <ClCompile Include="..\src\lua_definitions.cpp" />
@@ -278,7 +277,6 @@
     <ClInclude Include="..\src\iomap.h" />
     <ClInclude Include="..\src\iomapserialize.h" />
     <ClInclude Include="..\src\item.h" />
-    <ClInclude Include="..\src\itemattributes.h" />
     <ClInclude Include="..\src\itemloader.h" />
     <ClInclude Include="..\src\items.h" />
     <ClInclude Include="..\src\lockfree.h" />

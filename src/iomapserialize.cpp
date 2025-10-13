@@ -777,20 +777,20 @@ bool IOMapSerialize::saveItems(uint32_t& tileId, uint32_t houseId, const Tile* t
 		PropWriteStream propWriteStream;
 		item->serializeAttr(propWriteStream);
 
-		std::string key = "serial";
-		boost::any value = item->getAttribute(key.c_str());
-		if (value.empty()) {
-			item->generateSerial();
-			value = item->getAttribute(key.c_str());
+		std::string serial;
+		ItemAttributes* attr = item->getAttribute("serial");
+		if (attr && attr->isString()) {
+			serial = attr->getString();
+			item->eraseAttribute("serial");
+		} else {
+			serial = generateSerial();
 		}
-
-		item->eraseAttribute(key.c_str());
 
 		uint32_t attributesSize = 0;
 		const char* attributes = propWriteStream.getStream(attributesSize);
 
 		query << tileId << ", " << ++runningId << ", " << parentId << ", "
-			  << item->getID() << ", " << (int32_t)item->getSubType() << ", " << g_database.escapeBlob(attributes, attributesSize) << ", " << g_database.escapeString(boost::any_cast<std::string>(value).c_str());
+			  << item->getID() << ", " << item->getSubType() << ", " << g_database.escapeBlob(attributes, attributesSize) << ", " << g_database.escapeString(serial);
 		if (!stmt.addRow(query.str())) {
 			return false;
 		}

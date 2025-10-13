@@ -1217,7 +1217,7 @@ Item* Monster::createCorpse(DeathList deathList)
 	}
 
 	if (m_master) {
-		corpse->setAttribute("summon", true);
+		corpse->setBoolAttr("summon", true);
 		return corpse;
 	}
 
