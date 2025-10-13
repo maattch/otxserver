@@ -812,4 +812,4 @@ struct CombatDamage
 #define SWIMMING_OUTFIT 267
 #define GRATIS_PREMIUM 65535
 
-#define IS_IN_KEYRANGE(key, range) (key >= PSTRG_##range##_START && ((key - PSTRG_##range##_START) < PSTRG_##range##_SIZE))
+#define IS_IN_KEYRANGE(key, range) (key >= PSTRG_##range##_START && ((key - PSTRG_##range##_START) <= PSTRG_##range##_SIZE))
