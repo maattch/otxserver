@@ -18,7 +18,6 @@
 #pragma once
 
 #include "const.h"
-#include "enums.h"
 
 enum AddonRequirement_t
 {

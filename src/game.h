@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "enums.h"
 #include "item.h"
 #include "map.h"
 #include "monster.h"

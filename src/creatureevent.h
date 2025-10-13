@@ -18,7 +18,6 @@
 #pragma once
 
 #include "baseevents.h"
-#include "enums.h"
 #include "tile.h"
 
 enum CreatureEventType_t : uint64_t

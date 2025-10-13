@@ -1572,7 +1572,7 @@ bool fileExists(const std::string& filename)
 
 uint32_t adlerChecksum(uint8_t* data, size_t length)
 {
-	if (length > NETWORK_MAX_SIZE || !length) {
+	if (length > NETWORKMESSAGE_MAXSIZE || !length) {
 		return 0;
 	}
 

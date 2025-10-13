@@ -5188,7 +5188,7 @@ bool Player::isPremium() const
 
 void Player::addPremiumDays(int32_t days)
 {
-	if (m_premiumDays < GRATIS_PREMIUM) {
+	if (m_premiumDays < 0xFFFF) {
 		Account account = IOLoginData::getInstance()->loadAccount(m_accountId);
 		if (days < 0) {
 			account.premiumDays = std::max((uint32_t)0, uint32_t(account.premiumDays + (int32_t)days));

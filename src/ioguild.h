@@ -17,8 +17,6 @@
 
 #pragma once
 
-#include "enums.h"
-
 struct DeathEntry;
 typedef std::vector<DeathEntry> DeathList;
 

@@ -18,7 +18,6 @@
 #pragma once
 
 #include "const.h"
-#include "enums.h"
 #include "position.h"
 
 #include <boost/tokenizer.hpp>

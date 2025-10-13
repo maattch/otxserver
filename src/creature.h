@@ -20,7 +20,6 @@
 #include "condition.h"
 #include "const.h"
 #include "creatureevent.h"
-#include "enums.h"
 #include "map.h"
 
 #include <boost/any.hpp>

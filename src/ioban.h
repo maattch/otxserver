@@ -17,8 +17,6 @@
 
 #pragma once
 
-#include "enums.h"
-
 enum Ban_t
 {
 	BAN_NONE = 0,

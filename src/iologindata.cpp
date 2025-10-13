@@ -42,7 +42,7 @@ Account IOLoginData::loadAccount(uint32_t accountId, bool preLoad /* = false*/)
 	account.name = result->getString("name");
 	account.password = result->getString("password");
 	account.salt = result->getString("salt");
-	account.premiumDays = std::max((int32_t)0, std::min((int32_t)GRATIS_PREMIUM, result->getNumber<int32_t>("premdays")));
+	account.premiumDays = std::clamp<int32_t>(result->getNumber<int32_t>("premdays"), 0, 0xFFFF);
 	account.lastDay = result->getNumber<uint32_t>("lastday");
 	account.recoveryKey = result->getString("key");
 	account.warnings = result->getNumber<uint16_t>("warnings");
@@ -68,7 +68,7 @@ bool IOLoginData::loadAccount(Account& account, const std::string& name)
 	account.name = name;
 	account.password = result->getString("password");
 	account.salt = result->getString("salt");
-	account.premiumDays = std::max((int32_t)0, std::min((int32_t)GRATIS_PREMIUM, result->getNumber<int32_t>("premdays")));
+	account.premiumDays = std::clamp<int32_t>(result->getNumber<int32_t>("premdays"), 0, 0xFFFF);
 	account.lastDay = result->getNumber<uint32_t>("lastday");
 	account.recoveryKey = result->getString("key");
 	account.warnings = result->getNumber<uint16_t>("warnings");
@@ -294,7 +294,7 @@ void IOLoginData::removePremium(Account& account)
 {
 	bool save = false;
 	uint64_t timeNow = time(nullptr);
-	if (account.premiumDays != 0 && account.premiumDays != (uint16_t)GRATIS_PREMIUM) {
+	if (account.premiumDays != 0 && account.premiumDays != 0xFFFF) {
 		if (account.lastDay == 0) {
 			account.lastDay = timeNow;
 			save = true;

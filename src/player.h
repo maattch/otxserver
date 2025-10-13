@@ -21,7 +21,6 @@
 #include "creature.h"
 #include "cylinder.h"
 #include "depot.h"
-#include "enums.h"
 #include "group.h"
 #include "outfit.h"
 #include "scheduler.h"

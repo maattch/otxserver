@@ -95,7 +95,6 @@
     <ClInclude Include="..\src\definitions.h" />
     <ClInclude Include="..\src\depot.h" />
     <ClInclude Include="..\src\dispatcher.h" />
-    <ClInclude Include="..\src\enums.h" />
     <ClInclude Include="..\src\fileloader.h" />
     <ClInclude Include="..\src\game.h" />
     <ClInclude Include="..\src\globalevent.h" />

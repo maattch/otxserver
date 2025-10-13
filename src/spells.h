@@ -19,7 +19,6 @@
 
 #include "actions.h"
 #include "baseevents.h"
-#include "enums.h"
 #include "lua_definitions.h"
 #include "player.h"
 #include "talkaction.h"

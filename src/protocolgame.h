@@ -18,7 +18,6 @@
 #pragma once
 
 #include "creature.h"
-#include "enums.h"
 #include "protocol.h"
 
 class NetworkMessage;

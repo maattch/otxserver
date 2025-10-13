@@ -221,7 +221,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 	// Add premium days
 	if (otx::config::getBoolean(otx::config::FREE_PREMIUM)) {
-		output->add<uint16_t>(GRATIS_PREMIUM);
+		output->add<uint16_t>(0xFFFF);
 	} else {
 		output->add<uint16_t>(account.premiumDays);
 	}
