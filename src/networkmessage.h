@@ -139,7 +139,7 @@ public:
 private:
 	bool canAdd(size_t size) const noexcept { return (size + info.position) < MAX_BODY_LENGTH; }
 
-	bool canRead(size_t size) noexcept {
+	constexpr bool canRead(int32_t size) noexcept {
 		if ((info.position + size) > (info.length + INITIAL_BUFFER_POSITION) || size >= (NETWORKMESSAGE_MAXSIZE - info.position)) {
 			info.overrun = true;
 			return false;
@@ -148,11 +148,11 @@ private:
 	}
 
 protected:
+	uint8_t buffer[NETWORKMESSAGE_MAXSIZE];
+
 	struct {
 		MsgSize_t length{ 0 };
 		MsgSize_t position{ INITIAL_BUFFER_POSITION };
 		bool overrun{ false };
 	} info;
-
-	uint8_t buffer[NETWORKMESSAGE_MAXSIZE];
 };

@@ -58,8 +58,8 @@ namespace
 {
 	const int64_t gameStartTime = otx::util::mstime();
 
+	constexpr int32_t EVENT_DECAYINTERVAL = 250;
 	constexpr uint32_t EVENT_LIGHTINTERVAL = 10000;
-	constexpr uint32_t EVENT_DECAYINTERVAL = 250;
 	constexpr uint32_t STATE_DELAY = 1000;
 	constexpr uint32_t LUA_COLLECT_GARBAGE_INTERVAL = 5 * 60000; // (5m)
 
@@ -5597,7 +5597,7 @@ void Game::checkDecay()
 {
 	checkDecayEventId = addSchedulerTask(EVENT_DECAYINTERVAL, [this]() { checkDecay(); });
 
-	size_t bucket = (lastBucket + 1) % EVENT_DECAYBUCKETS;
+	int32_t bucket = (lastBucket + 1) % EVENT_DECAYBUCKETS;
 	for (DecayList::iterator it = decayItems[bucket].begin(); it != decayItems[bucket].end();) {
 		Item* item = *it;
 
@@ -5629,7 +5629,7 @@ void Game::checkDecay()
 			freeThing(item);
 		} else if (duration < EVENT_DECAYINTERVAL * EVENT_DECAYBUCKETS) {
 			it = decayItems[bucket].erase(it);
-			size_t newBucket = (bucket + ((duration + EVENT_DECAYINTERVAL / 2) / 1000)) % EVENT_DECAYBUCKETS;
+			int32_t newBucket = (bucket + ((duration + EVENT_DECAYINTERVAL / 2) / 1000)) % EVENT_DECAYBUCKETS;
 			if (newBucket == bucket) {
 				internalDecayItem(item);
 				freeThing(item);
@@ -6106,7 +6106,6 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 			kickAction = NONE;
 			break;
 		}
-
 		case ACTION_NAMEREPORT: {
 			int64_t banTime = -1;
 			PlayerBan_t tmp = static_cast<PlayerBan_t>(otx::config::getInteger(otx::config::NAME_REPORT_TYPE));
@@ -6129,7 +6128,6 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 			kickAction = static_cast<KickAction>(tmp);
 			break;
 		}
-
 		case ACTION_NOTATION: {
 			if (!IOBan::getInstance()->addNotation(account.number, reason,
 					comment, player->getGUID(), target->getGUID())) {
@@ -6143,8 +6141,8 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 			}
 
 			action = ACTION_BANISHMENT;
+			break;
 		}
-
 		case ACTION_BANISHMENT:
 		case ACTION_BANREPORT: {
 			bool deny = action != ACTION_BANREPORT;
@@ -6183,11 +6181,9 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 				}
 			}
 
-			IOBan::getInstance()->addPlayerBanishment(target->getGUID(), banTime, reason, action, comment,
-				player->getGUID(), tmp);
+			IOBan::getInstance()->addPlayerBanishment(target->getGUID(), banTime, reason, action, comment, player->getGUID(), tmp);
 			break;
 		}
-
 		case ACTION_BANFINAL:
 		case ACTION_BANREPORTFINAL: {
 			bool allow = action == ACTION_BANREPORTFINAL;
@@ -6217,10 +6213,8 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 				IOBan::getInstance()->addPlayerBanishment(target->getGUID(), -1, reason, action, comment,
 					player->getGUID(), static_cast<PlayerBan_t>(otx::config::getInteger(otx::config::NAME_REPORT_TYPE)));
 			}
-
 			break;
 		}
-
 		case ACTION_DELETION: {
 			// completely internal
 			account.warnings++;
@@ -6230,7 +6224,6 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 				player->sendCancel("Account is currently banned or already deleted.");
 				return false;
 			}
-
 			break;
 		}
 

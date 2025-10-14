@@ -962,7 +962,6 @@ bool Monster::pushCreature(Creature* creature)
 	dirVector.push_back(EAST);
 
 	std::shuffle(dirVector.begin(), dirVector.end(), getRandomGenerator());
-	Position monsterPos = creature->getPosition();
 
 	Tile* tile = nullptr;
 	for (DirVector::iterator it = dirVector.begin(); it != dirVector.end(); ++it) {
@@ -970,7 +969,6 @@ bool Monster::pushCreature(Creature* creature)
 			return true;
 		}
 	}
-
 	return false;
 }
 

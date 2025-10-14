@@ -793,11 +793,7 @@ static int luaGetPlayerLearnedInstantSpell(lua_State* L)
 	}
 
 	const std::string spellName = otx::lua::getString(L, 2);
-	if (InstantSpell* spell = g_spells.getInstantSpellByName(spellName)) {
-		lua_pushboolean(L, player->hasLearnedInstantSpell(spellName));
-	} else {
-		lua_pushboolean(L, false);
-	}
+	lua_pushboolean(L, player->hasLearnedInstantSpell(spellName));
 	return 1;
 }
 

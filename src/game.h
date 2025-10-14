@@ -136,7 +136,7 @@ typedef std::vector<std::pair<std::string, uint32_t>> Highscore;
 typedef std::list<Position> Trash;
 typedef std::map<int32_t, float> StageList;
 
-static constexpr uint32_t EVENT_DECAYBUCKETS = 4;
+static constexpr int32_t EVENT_DECAYBUCKETS = 4;
 static constexpr uint32_t EVENT_WARSINTERVAL = 450000;
 
 class Game final
@@ -733,7 +733,7 @@ private:
 	typedef std::list<Item*> DecayList;
 	DecayList decayItems[EVENT_DECAYBUCKETS];
 	DecayList toDecayItems;
-	size_t lastBucket;
+	int32_t lastBucket;
 
 	static const int32_t LIGHT_LEVEL_DAY = 250;
 	static const int32_t LIGHT_LEVEL_NIGHT = 40;
