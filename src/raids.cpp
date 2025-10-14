@@ -67,7 +67,7 @@ Raids::~Raids()
 
 bool Raids::parseRaidNode(xmlNodePtr raidNode, bool checkDuplicate, FileType_t pathing)
 {
-	if (xmlStrcmp(raidNode->name, (const xmlChar*)"raid")) {
+	if (xmlStrcmp(raidNode->name, reinterpret_cast<const xmlChar*>("raid"))) {
 		return false;
 	}
 
@@ -157,7 +157,7 @@ bool Raids::loadFromXml()
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"raids")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("raids"))) {
 		std::clog << "[Error - Raids::loadFromXml] Malformed raids file." << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -194,7 +194,7 @@ void Raids::checkRaids()
 
 	uint64_t now = otx::util::mstime();
 	for (RaidList::iterator it = raidList.begin(); it != raidList.end(); ++it) {
-		if ((*it)->isEnabled() && !(*it)->hasRef() && now > (lastRaidEnd + (*it)->getMargin()) && (MAX_RAND_RANGE * CHECK_RAIDS_INTERVAL / (*it)->getInterval()) >= (uint32_t)random_range(0, MAX_RAND_RANGE) && (*it)->startRaid()) {
+		if ((*it)->isEnabled() && !(*it)->hasRef() && now > (lastRaidEnd + (*it)->getMargin()) && (MAX_RAND_RANGE * CHECK_RAIDS_INTERVAL / (*it)->getInterval()) >= static_cast<uint32_t>(random_range(0, MAX_RAND_RANGE)) && (*it)->startRaid()) {
 			break;
 		}
 	}
@@ -271,7 +271,7 @@ bool Raid::loadFromXml(const std::string& _filename)
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"raid")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("raid"))) {
 		std::clog << "[Error - Raid::loadFromXml] Malformed raid file " << _filename << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -280,17 +280,17 @@ bool Raid::loadFromXml(const std::string& _filename)
 	std::string strValue;
 	for (xmlNodePtr eventNode = root->children; eventNode; eventNode = eventNode->next) {
 		RaidEvent* event = nullptr;
-		if (!xmlStrcmp(eventNode->name, (const xmlChar*)"announce")) {
+		if (!xmlStrcmp(eventNode->name, reinterpret_cast<const xmlChar*>("announce"))) {
 			event = new AnnounceEvent(this, ref);
-		} else if (!xmlStrcmp(eventNode->name, (const xmlChar*)"effect")) {
+		} else if (!xmlStrcmp(eventNode->name, reinterpret_cast<const xmlChar*>("effect"))) {
 			event = new EffectEvent(this, ref);
-		} else if (!xmlStrcmp(eventNode->name, (const xmlChar*)"itemspawn")) {
+		} else if (!xmlStrcmp(eventNode->name, reinterpret_cast<const xmlChar*>("itemspawn"))) {
 			event = new ItemSpawnEvent(this, ref);
-		} else if (!xmlStrcmp(eventNode->name, (const xmlChar*)"singlespawn")) {
+		} else if (!xmlStrcmp(eventNode->name, reinterpret_cast<const xmlChar*>("singlespawn"))) {
 			event = new SingleSpawnEvent(this, ref);
-		} else if (!xmlStrcmp(eventNode->name, (const xmlChar*)"areaspawn")) {
+		} else if (!xmlStrcmp(eventNode->name, reinterpret_cast<const xmlChar*>("areaspawn"))) {
 			event = new AreaSpawnEvent(this, ref);
-		} else if (!xmlStrcmp(eventNode->name, (const xmlChar*)"script")) {
+		} else if (!xmlStrcmp(eventNode->name, reinterpret_cast<const xmlChar*>("script"))) {
 			event = new ScriptEvent(this, ref);
 		} else {
 			continue;
@@ -396,9 +396,8 @@ bool RaidEvent::configureRaidEvent(xmlNodePtr eventNode)
 
 	int32_t intValue;
 	if (readXMLInteger(eventNode, "delay", intValue)) {
-		m_delay = std::max((int32_t)m_delay, intValue);
+		m_delay = std::max<int32_t>(m_delay, intValue);
 	}
-
 	return true;
 }
 
@@ -433,11 +432,11 @@ bool AnnounceEvent::configureRaidEvent(xmlNodePtr eventNode)
 			m_messageType = MSG_STATUS_CONSOLE_RED;
 		} else {
 			std::clog << "[Notice - AnnounceEvent::configureRaidEvent] Unknown type tag for announce event, using default: "
-					  << (int32_t)m_messageType << std::endl;
+					  << static_cast<int>(m_messageType) << std::endl;
 		}
 	} else {
 		std::clog << "[Notice - AnnounceEvent::configureRaidEvent] Missing type tag for announce event. Using default: "
-				  << (int32_t)m_messageType << std::endl;
+				  << static_cast<int>(m_messageType) << std::endl;
 	}
 
 	return true;
@@ -465,7 +464,7 @@ bool EffectEvent::configureRaidEvent(xmlNodePtr eventNode)
 			m_effect = getMagicEffect(strValue);
 		}
 	} else {
-		m_effect = (MagicEffect_t)intValue;
+		m_effect = static_cast<MagicEffect_t>(intValue);
 	}
 
 	if (!readXMLString(eventNode, "pos", strValue)) {
@@ -567,7 +566,7 @@ bool ItemSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 
 bool ItemSpawnEvent::executeEvent(const std::string&) const
 {
-	if (m_chance < (uint32_t)random_range(0, (int32_t)MAX_ITEM_CHANCE)) {
+	if (m_chance < static_cast<uint32_t>(random_range(0, MAX_ITEM_CHANCE))) {
 		return true;
 	}
 
@@ -581,7 +580,7 @@ bool ItemSpawnEvent::executeEvent(const std::string&) const
 	if (it.stackable && m_subType > 100) {
 		int32_t subCount = m_subType;
 		while (subCount > 0) {
-			int32_t stackCount = std::min(100, (int32_t)subCount);
+			int32_t stackCount = std::min<int32_t>(100, subCount);
 			subCount -= stackCount;
 
 			Item* newItem = Item::CreateItem(m_itemId, stackCount);
@@ -799,7 +798,7 @@ bool AreaSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 	}
 
 	for (xmlNodePtr monsterNode = eventNode->children; monsterNode; monsterNode = monsterNode->next) {
-		if (xmlStrcmp(monsterNode->name, (const xmlChar*)"monster")) {
+		if (xmlStrcmp(monsterNode->name, reinterpret_cast<const xmlChar*>("monster"))) {
 			continue;
 		}
 
@@ -865,7 +864,7 @@ bool AreaSpawnEvent::executeEvent(const std::string&) const
 			continue;
 		}
 
-		uint32_t amount = (uint32_t)random_range(spawn->min, spawn->max);
+		uint32_t amount = random_range(spawn->min, spawn->max);
 		for (uint32_t i = 0; i < amount; ++i) {
 			Monster* monster = Monster::createMonster(spawn->name);
 			if (!monster) {

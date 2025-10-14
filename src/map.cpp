@@ -278,61 +278,6 @@ bool Map::removeCreature(Creature* creature)
 
 void Map::getSpectatorsInternal(SpectatorVec& list, const Position& centerPos, int32_t minRangeX, int32_t maxRangeX, int32_t minRangeY, int32_t maxRangeY, int32_t minRangeZ, int32_t maxRangeZ, bool onlyPlayers) const
 {
-	/*
-	int32_t minoffset = centerPos.z - maxRangeZ, maxoffset = centerPos.z - minRangeZ,
-		x1 = std::min((int32_t)0xFFFF, std::max((int32_t)0, (centerPos.x + minRangeX + minoffset))),
-		y1 = std::min((int32_t)0xFFFF, std::max((int32_t)0, (centerPos.y + minRangeY + minoffset))),
-		x2 = std::min((int32_t)0xFFFF, std::max((int32_t)0, (centerPos.x + maxRangeX + maxoffset))),
-		y2 = std::min((int32_t)0xFFFF, std::max((int32_t)0, (centerPos.y + maxRangeY + maxoffset))),
-		startx1 = x1 - (x1 % FLOOR_SIZE), starty1 = y1 - (y1 % FLOOR_SIZE),
-		endx2 = x2 - (x2 % FLOOR_SIZE), endy2 = y2 - (y2 % FLOOR_SIZE);
-
-	QTreeLeafNode* startLeaf = getLeaf(startx1, starty1);
-	QTreeLeafNode* leafS = startLeaf;
-
-	QTreeLeafNode* leafE;
-	for(int32_t ny = starty1; ny <= endy2; ny += FLOOR_SIZE)
-	{
-		leafE = leafS;
-		for(int32_t nx = startx1; nx <= endx2; nx += FLOOR_SIZE)
-		{
-			if(leafE)
-			{
-				CreatureVector& nodeList = (onlyPlayers ? leafE->playerList : leafE->creatureList);
-				CreatureVector::const_iterator it = nodeList.begin();
-				if(it != nodeList.end())
-				{
-					do
-					{
-						const Position& pos = (*it)->getPosition();
-						if(pos.z < minRangeZ || pos.z > maxRangeZ)
-							continue;
-
-						int32_t offsetZ = centerPos.z - pos.z;
-						if(pos.y < (centerPos.y + minRangeY + offsetZ) || pos.y > (centerPos.y + maxRangeY + offsetZ))
-							continue;
-
-						if(pos.x < (centerPos.x + minRangeX + offsetZ) || pos.x > (centerPos.x + maxRangeX + offsetZ))
-							continue;
-
-						if(!checkForDuplicate || std::find(list.begin(), list.end(), *it) == list.end())
-							list.push_back(*it);
-					}
-					while(++it != nodeList.end());
-				}
-
-				leafE = leafE->stepEast();
-			}
-			else
-				leafE = getLeaf(nx + FLOOR_SIZE, ny);
-		}
-
-		if(leafS)
-			leafS = leafS->stepSouth();
-		else
-			leafS = getLeaf(startx1, ny + FLOOR_SIZE);
-	}
-	*/
 	int_fast16_t min_y = centerPos.y + minRangeY;
 	int_fast16_t min_x = centerPos.x + minRangeX;
 	int_fast16_t max_y = centerPos.y + maxRangeY;

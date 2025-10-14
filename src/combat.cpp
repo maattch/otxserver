@@ -437,13 +437,13 @@ bool Combat::setParam(CombatParam_t param, uint32_t value)
 {
 	switch (param) {
 		case COMBATPARAM_COMBATTYPE:
-			m_params.combatType = (CombatType_t)value;
+			m_params.combatType = static_cast<CombatType_t>(value);
 			return true;
 		case COMBATPARAM_EFFECT:
-			m_params.impactEffect = (MagicEffect_t)value;
+			m_params.impactEffect = static_cast<MagicEffect_t>(value);
 			return true;
 		case COMBATPARAM_DISTANCEEFFECT:
-			m_params.distanceEffect = (ShootEffect_t)value;
+			m_params.distanceEffect = static_cast<ShootEffect_t>(value);
 			return true;
 		case COMBATPARAM_BLOCKEDBYARMOR:
 			m_params.blockedByArmor = (value != 0);
@@ -467,22 +467,22 @@ bool Combat::setParam(CombatParam_t param, uint32_t value)
 			m_params.isAggressive = (value != 0);
 			return true;
 		case COMBATPARAM_DISPEL:
-			m_params.dispelType = (ConditionType_t)value;
+			m_params.dispelType = static_cast<ConditionType_t>(value);
 			return true;
 		case COMBATPARAM_USECHARGES:
 			m_params.useCharges = (value != 0);
 			return true;
 		case COMBATPARAM_HITEFFECT:
-			m_params.hitEffect = (MagicEffect_t)value;
+			m_params.hitEffect = static_cast<MagicEffect_t>(value);
 			return true;
 		case COMBATPARAM_HITCOLOR:
-			m_params.hitColor = (Color_t)value;
+			m_params.hitColor = static_cast<Color_t>(value);
 			return true;
 		case COMBATPARAM_ELEMENTDAMAGE:
 			m_params.elementDamage = value;
 			return true;
 		case COMBATPARAM_ELEMENTTYPE:
-			m_params.elementType = (CombatType_t)value;
+			m_params.elementType = static_cast<CombatType_t>(value);
 			return true;
 
 		default:
@@ -810,7 +810,7 @@ void Combat::doTargetCombat(Creature* caster, Creature* target, CombatDamage& da
 		g_game.addMagicEffect(target->getPosition(), params.impactEffect);
 	}
 
-	if (caster && params.distanceEffect != MAGIC_EFFECT_NONE) {
+	if (caster && params.distanceEffect != SHOOT_EFFECT_NONE) {
 		g_game.addDistanceEffect(caster->getPosition(), target->getPosition(), params.distanceEffect);
 	}
 
@@ -860,7 +860,7 @@ void Combat::doTargetCombat(Creature* caster, Creature* target, const CombatPara
 		g_game.addMagicEffect(target->getPosition(), params.impactEffect);
 	}
 
-	if (caster && params.distanceEffect != MAGIC_EFFECT_NONE) {
+	if (caster && params.distanceEffect != SHOOT_EFFECT_NONE) {
 		g_game.addDistanceEffect(caster->getPosition(), target->getPosition(), params.distanceEffect);
 	}
 
@@ -1465,7 +1465,7 @@ void MagicField::onStepInField(Creature* creature)
 				}
 			}
 
-			if (!harmful || (otx::util::mstime() - createTime) <= (uint32_t)otx::config::getInteger(otx::config::FIELD_OWNERSHIP) || creature->hasBeenAttacked(ownerId)) {
+			if (!harmful || (otx::util::mstime() - createTime) <= otx::config::getInteger(otx::config::FIELD_OWNERSHIP) || creature->hasBeenAttacked(ownerId)) {
 				condition->setParam(CONDITIONPARAM_OWNER, ownerId);
 			}
 		}

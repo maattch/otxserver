@@ -196,7 +196,7 @@ public:
 	bool hasCustomFlag(PlayerCustomFlags value) const { return m_group != nullptr && m_group->hasCustomFlag(value); }
 
 	void addBlessing(int16_t blessing) { m_blessings += blessing; }
-	bool hasBlessing(int16_t blessing) const { return ((m_blessings & ((int16_t)1 << blessing)) != 0); }
+	bool hasBlessing(int16_t blessing) const { return (m_blessings & (static_cast<int16_t>(1) << blessing)); }
 	void setPVPBlessing(bool value) { m_pvpBlessing = value; }
 	bool hasPVPBlessing() const { return m_pvpBlessing; }
 	uint16_t getBlessings() const;
@@ -665,19 +665,19 @@ public:
 	void sendContainers(ProtocolGame* target);
 
 	// inventory
-	void sendAddInventoryItem(slots_t slot, const Item* item)
+	void sendAddInventoryItem(uint8_t slot, const Item* item)
 	{
 		if (m_client) {
 			m_client->sendAddInventoryItem(slot, item);
 		}
 	}
-	void sendUpdateInventoryItem(slots_t slot, const Item* item)
+	void sendUpdateInventoryItem(uint8_t slot, const Item* item)
 	{
 		if (m_client) {
 			m_client->sendUpdateInventoryItem(slot, item);
 		}
 	}
-	void sendRemoveInventoryItem(slots_t slot, const Item*)
+	void sendRemoveInventoryItem(uint8_t slot)
 	{
 		if (m_client) {
 			m_client->sendRemoveInventoryItem(slot);
@@ -720,9 +720,8 @@ public:
 	void autoCloseContainers(const Container* container);
 
 	// inventory
-	void onAddInventoryItem(slots_t, Item*) {}
 	void onUpdateInventoryItem(Item* oldItem, Item* newItem);
-	void onRemoveInventoryItem(slots_t slot, Item* item);
+	void onRemoveInventoryItem(Item* item);
 
 	void sendCancel(const std::string& msg) const
 	{
@@ -1178,6 +1177,7 @@ private:
 	uint32_t m_rankId = 0;
 	uint32_t m_promotionLevel = 0;
 	uint32_t m_town = 0;
+	uint32_t m_managerNumber = 0;
 	uint32_t m_lossPercent[LOSS_LAST + 1] = { 100, 100, 100, 100, 100 };
 
 	int32_t m_mana = 0;
@@ -1187,7 +1187,6 @@ private:
 	int32_t m_soulMax = 100;
 	int32_t m_vocationId = 0;
 	int32_t m_groupId = 0;
-	int32_t m_managerNumber = 0;
 	int32_t managerNumber2 = 0;
 	int32_t m_purchaseCallback = -1;
 	int32_t m_saleCallback = -1;

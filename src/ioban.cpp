@@ -42,7 +42,7 @@ bool IOBan::isIpBanished(uint32_t ip, uint32_t mask /* = 0xFFFFFFFF*/) const
 		uint32_t value = result->getNumber<int32_t>("value"), param = result->getNumber<int32_t>("param");
 		if ((ip & mask & param) == (value & param & mask)) {
 			int32_t expires = result->getNumber<uint64_t>("expires");
-			if (expires > 0 && expires <= (int32_t)time(nullptr)) {
+			if (expires > 0 && expires <= time(nullptr)) {
 				removeIpBanishment(value, param);
 			} else if (!ret) {
 				ret = true;
@@ -87,8 +87,8 @@ bool IOBan::isAccountBanished(uint32_t account, uint32_t playerId /* = 0*/) cons
 		return false;
 	}
 
-	const int32_t expires = result->getNumber<int32_t>("expires");
-	if (expires <= 0 || expires > (int32_t)time(nullptr)) {
+	const auto expires = result->getNumber<int32_t>("expires");
+	if (expires <= 0 || expires > time(nullptr)) {
 		return true;
 	}
 
@@ -323,7 +323,7 @@ bool IOBan::getData(Ban& ban) const
 	}
 
 	ban.id = result->getNumber<int32_t>("id");
-	ban.type = (Ban_t)result->getNumber<int32_t>("type");
+	ban.type = static_cast<Ban_t>(result->getNumber<int32_t>("type"));
 	ban.value = result->getNumber<int32_t>("value");
 	ban.param = result->getNumber<int32_t>("param");
 	ban.expires = result->getNumber<uint64_t>("expires");
@@ -331,9 +331,8 @@ bool IOBan::getData(Ban& ban) const
 	ban.adminId = result->getNumber<int32_t>("admin_id");
 	ban.comment = result->getString("comment");
 	ban.reason = result->getNumber<int32_t>("reason");
-	ban.action = (ViolationAction_t)result->getNumber<int32_t>("action");
+	ban.action = static_cast<ViolationAction_t>(result->getNumber<uint8_t>("action"));
 	ban.statement = result->getString("statement");
-
 	return true;
 }
 
@@ -357,7 +356,7 @@ BansVec IOBan::getList(Ban_t type, uint32_t value /* = 0*/, uint32_t param /* = 
 		Ban tmp;
 		do {
 			tmp.id = result->getNumber<int32_t>("id");
-			tmp.type = (Ban_t)result->getNumber<int32_t>("type");
+			tmp.type = static_cast<Ban_t>(result->getNumber<int32_t>("type"));
 			tmp.value = result->getNumber<int32_t>("value");
 			tmp.param = result->getNumber<int32_t>("param");
 			tmp.expires = result->getNumber<uint64_t>("expires");
@@ -365,19 +364,17 @@ BansVec IOBan::getList(Ban_t type, uint32_t value /* = 0*/, uint32_t param /* = 
 			tmp.adminId = result->getNumber<int32_t>("admin_id");
 			tmp.comment = result->getString("comment");
 			tmp.reason = result->getNumber<int32_t>("reason");
-			tmp.action = (ViolationAction_t)result->getNumber<int32_t>("action");
+			tmp.action = static_cast<ViolationAction_t>(result->getNumber<uint8_t>("action"));
 			tmp.statement = result->getString("statement");
 			data.push_back(tmp);
 		} while (result->next());
 	}
-
 	return data;
 }
 
 bool IOBan::clearTemporials() const
 {
 	std::ostringstream query;
-
 	query << "UPDATE `bans` SET `active` = 0 WHERE `expires` <= " << time(nullptr) << " AND `expires` >= 0 AND `active` = 1 LIMIT 1;";
 	return g_database.executeQuery(query.str());
 }

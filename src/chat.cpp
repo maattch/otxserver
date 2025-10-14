@@ -118,7 +118,7 @@ ChatChannel::ChatChannel(uint16_t id, const std::string& name, uint16_t flags, u
 	m_vocationMap(vocationMap)
 {
 	if (hasFlag(CHANNELFLAG_LOGGED)) {
-		m_file.reset(new std::ofstream(getFilePath(FILE_TYPE_LOG, (std::string) "chat/" + otx::config::getString(otx::config::PREFIX_CHANNEL_LOGS) + m_name + (std::string) ".log").c_str(), std::ios::app | std::ios::out));
+		m_file.reset(new std::ofstream(getFilePath(FILE_TYPE_LOG, "chat/" + otx::config::getString(otx::config::PREFIX_CHANNEL_LOGS) + m_name + ".log").c_str(), std::ios::app | std::ios::out));
 		if (!m_file->is_open()) {
 			m_flags &= ~CHANNELFLAG_LOGGED;
 		}
@@ -286,7 +286,7 @@ bool Chat::loadFromXml()
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"channels")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("channels"))) {
 		std::clog << "[Error - Chat::loadFromXml] Malformed channels file" << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -303,7 +303,7 @@ bool Chat::loadFromXml()
 bool Chat::parseChannelNode(xmlNodePtr p)
 {
 	int32_t intValue;
-	if (xmlStrcmp(p->name, (const xmlChar*)"channel")) {
+	if (xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("channel"))) {
 		return false;
 	}
 
@@ -998,7 +998,7 @@ bool Chat::talk(Player* player, MessageClasses type, const std::string& text, ui
 				}
 			} else if (IOLoginData::getInstance()->playerExists(param1)) {
 				uint32_t guid;
-				IOLoginData::getInstance()->getGuidByName(guid, (std::string&)param1);
+				IOLoginData::getInstance()->getGuidByName(guid, param1);
 				if (IOGuild::getInstance()->hasGuild(guid)) {
 					if (param2.length() > 2) {
 						if (param2.length() < 21) {

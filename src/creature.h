@@ -363,7 +363,6 @@ public:
 	virtual void onTargetGain(Creature* target, int32_t points);
 	virtual void onTargetKilled(Creature* target);
 	virtual bool onKilledCreature(Creature* target, DeathEntry& entry);
-	std::string TransformExpToString(double& gainExp); // make by feetads
 	virtual void onGainExperience(double& gainExp, Creature* target, bool multiplied);
 	virtual void onGainSharedExperience(double& gainExp, Creature* target, bool multiplied);
 	virtual void onTargetBlockHit(Creature*, BlockType_t) {}
@@ -456,7 +455,7 @@ public:
 
 	const Position& getLastPosition() { return m_lastPosition; }
 	void setLastPosition(Position newLastPos) { m_lastPosition = newLastPos; }
-	static bool canSee(const Position& myPos, const Position& pos, uint32_t viewRangeX, uint32_t viewRangeY);
+	static bool canSee(const Position& myPos, const Position& pos, int32_t viewRangeX, int32_t viewRangeY);
 
 protected:
 	static const int32_t mapWalkWidth = Map::maxViewportX * 2 + 1;

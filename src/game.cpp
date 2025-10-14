@@ -323,7 +323,7 @@ void Game::setGameState(GameState_t newState)
 				}
 
 				Houses::getInstance()->check();
-				saveGameState((uint8_t)SAVE_PLAYERS | (uint8_t)SAVE_MAP | (uint8_t)SAVE_STATE);
+				saveGameState(SAVE_PLAYERS | SAVE_MAP | SAVE_STATE);
 				addDispatcherTask([this]() { shutdown(); });
 
 				g_scheduler.stop();
@@ -344,7 +344,7 @@ void Game::setGameState(GameState_t newState)
 				}
 
 				map->updateAuctions();
-				saveGameState((uint8_t)SAVE_PLAYERS | (uint8_t)SAVE_MAP | (uint8_t)SAVE_STATE);
+				saveGameState(SAVE_PLAYERS | SAVE_MAP | SAVE_STATE);
 				break;
 			}
 			case GAMESTATE_STARTUP:
@@ -478,7 +478,7 @@ void Game::cleanMapEx(uint32_t& count)
 
 		trash.clear();
 	} else if (otx::config::getBoolean(otx::config::CLEAN_PROTECTED_ZONES)) {
-		for (uint16_t z = 0; z < (uint16_t)MAP_MAX_LAYERS; z++) {
+		for (uint16_t z = 0; z < MAP_MAX_LAYERS; z++) {
 			for (uint16_t y = 1; y <= map->mapHeight; y++) {
 				for (uint16_t x = 1; x <= map->mapWidth; x++) {
 					if (!(tile = getTile(x, y, z)) || tile->hasFlag(TILESTATE_HOUSE) || !tile->getItemList()) {
@@ -504,7 +504,7 @@ void Game::cleanMapEx(uint32_t& count)
 			}
 		}
 	} else {
-		for (uint16_t z = 0; z < (uint16_t)MAP_MAX_LAYERS; z++) {
+		for (uint16_t z = 0; z < MAP_MAX_LAYERS; z++) {
 			for (uint16_t y = 1; y <= map->mapHeight; y++) {
 				for (uint16_t x = 1; x <= map->mapWidth; x++) {
 					if (!(tile = getTile(x, y, z)) || tile->hasFlag(TILESTATE_PROTECTIONZONE) || !tile->getItemList()) {
@@ -644,9 +644,8 @@ Cylinder* Game::internalGetCylinder(Player* player, const Position& pos)
 
 	// container
 	if (pos.y & 0x40) {
-		return player->getContainer((uint8_t)(pos.y & 0x0F));
+		return player->getContainer(pos.y & 0x0F);
 	}
-
 	return player;
 }
 
@@ -730,14 +729,14 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
 		}
 
 		int32_t subType = -1;
-		if (it.isFluidContainer() && index < int32_t(sizeof(reverseFluidMap) / sizeof(int8_t))) {
+		if (it.isFluidContainer() && index < static_cast<int32_t>(sizeof(reverseFluidMap) / sizeof(int8_t))) {
 			subType = reverseFluidMap[index];
 		}
 
 		return findItemOfType(player, it.id, true, subType);
 	}
 
-	return player->getInventoryItem((slots_t) static_cast<uint8_t>(pos.y));
+	return player->getInventoryItem(static_cast<slots_t>(pos.y));
 }
 
 void Game::internalGetPosition(Item* item, Position& pos, int16_t& stackpos)
@@ -753,7 +752,7 @@ void Game::internalGetPosition(Item* item, Position& pos, int16_t& stackpos)
 
 			Container* container = dynamic_cast<Container*>(item->getParent());
 			if (container) {
-				pos.y = ((uint16_t)((uint16_t)0x40) | ((uint16_t)player->getContainerID(container)));
+				pos.y = static_cast<uint16_t>(0x40) | static_cast<uint16_t>(player->getContainerID(container));
 				pos.z = container->__getIndexOfThing(item);
 				stackpos = pos.z;
 			} else {
@@ -780,8 +779,8 @@ void Game::loadNamesFromXml()
 
 	xmlNodePtr monster, root = xmlDocGetRootElement(doc);
 	for (monster = root->xmlChildrenNode; monster; monster = monster->next) {
-		if (xmlStrcmp(monster->name, (const xmlChar*)"monster") == 0) {
-			xmlChar* nameAttr = xmlGetProp(monster, (const xmlChar*)"name");
+		if (xmlStrcmp(monster->name, reinterpret_cast<const xmlChar*>("monster")) == 0) {
+			xmlChar* nameAttr = xmlGetProp(monster, reinterpret_cast<const xmlChar*>("name"));
 			if (nameAttr) {
 				std::string nameAttrStr = reinterpret_cast<const char*>(nameAttr);
 				xmlFree(nameAttr);
@@ -1725,7 +1724,7 @@ ReturnValue Game::internalMoveItem(Creature* actor, Cylinder* fromCylinder, Cyli
 
 	uint32_t m = maxQueryCount;
 	if (item->isStackable()) {
-		m = std::min((uint32_t)count, m);
+		m = std::min<uint32_t>(count, m);
 	}
 
 	Item* moveItem = item;
@@ -1758,7 +1757,7 @@ ReturnValue Game::internalMoveItem(Creature* actor, Cylinder* fromCylinder, Cyli
 	if (item->isStackable()) {
 		uint8_t n = 0;
 		if (toItem && toItem->getID() == item->getID()) {
-			n = std::min((uint32_t)100 - toItem->getItemCount(), m);
+			n = std::min<uint32_t>(100 - toItem->getItemCount(), m);
 			toCylinder->__updateThing(toItem, toItem->getID(), toItem->getItemCount() + n);
 			updateItem = toItem;
 		}
@@ -1888,7 +1887,7 @@ ReturnValue Game::internalMoveTradeItem(Creature* actor, Cylinder* fromCylinder,
 
 	uint32_t m = maxQueryCount;
 	if (item->isStackable()) {
-		m = std::min((uint32_t)count, m);
+		m = std::min<uint32_t>(count, m);
 	}
 
 	Item* moveItem = item;
@@ -1919,7 +1918,7 @@ ReturnValue Game::internalMoveTradeItem(Creature* actor, Cylinder* fromCylinder,
 	if (item->isStackable()) {
 		uint8_t n = 0;
 		if (toItem && toItem->getID() == item->getID()) {
-			n = std::min((uint32_t)100 - toItem->getItemCount(), m);
+			n = std::min<uint32_t>(100 - toItem->getItemCount(), m);
 			toCylinder->__updateThing(toItem, toItem->getID(), toItem->getItemCount() + n);
 			updateItem = toItem;
 		}
@@ -2017,9 +2016,10 @@ ReturnValue Game::internalAddItem(Creature* actor, Cylinder* toCylinder, Item* i
 
 	Item* toItem = *stackItem;
 	if (item->isStackable() && toItem) {
-		uint32_t m = std::min((uint32_t)item->getItemCount(), maxQueryCount), n = 0;
+		const auto m = std::min<uint32_t>(item->getItemCount(), maxQueryCount);
+		uint32_t n = 0;
 		if (toItem->getID() == item->getID()) {
-			n = std::min((uint32_t)100 - toItem->getItemCount(), m);
+			n = std::min<uint32_t>(100 - toItem->getItemCount(), m);
 			toCylinder->__updateThing(toItem, toItem->getID(), toItem->getItemCount() + n);
 		}
 
@@ -2106,14 +2106,14 @@ ReturnValue Game::internalPlayerAddItem(Creature* actor, Player* player, Item* i
 	bool dropOnMap, slots_t slot, Item** toItem)
 {
 	uint32_t remainderCount = 0, count = item->getItemCount();
-	ReturnValue ret = internalAddItem(actor, player, item, (int32_t)slot, 0, false, remainderCount, toItem);
+	ReturnValue ret = internalAddItem(actor, player, item, slot, 0, false, remainderCount, toItem);
 	if (ret == RET_NOERROR) {
 		return RET_NOERROR;
 	}
 
 	if (dropOnMap) {
 		if (!remainderCount) {
-			return internalAddItem(actor, player->getTile(), item, (int32_t)slot, FLAG_NOLIMIT);
+			return internalAddItem(actor, player->getTile(), item, slot, FLAG_NOLIMIT);
 		}
 
 		Item* remainderItem = Item::CreateItem(item->getID(), remainderCount);
@@ -2162,7 +2162,7 @@ Item* Game::findItemOfType(Cylinder* cylinder, const uint16_t itemId,
 	while (listContainer.size() > 0) {
 		container = listContainer.front();
 		listContainer.pop_front();
-		for (int32_t i = 0; i < (int32_t)container->size();) {
+		for (uint32_t i = 0; i < container->size();) {
 			if ((item = container->getItemByIndex(i))) {
 				if (item->getID() == itemId && (subType == -1 || subType == item->getSubType())) {
 					return item;
@@ -2183,7 +2183,7 @@ Item* Game::findItemOfType(Cylinder* cylinder, const uint16_t itemId,
 
 bool Game::removeItemOfType(Cylinder* cylinder, const uint16_t itemId, int32_t count, int32_t subType /* = -1*/, bool onlyContainers /* = false*/)
 {
-	if (!cylinder || ((int32_t)cylinder->__getItemTypeCount(itemId, subType) < count)) {
+	if (!cylinder || static_cast<int32_t>(cylinder->__getItemTypeCount(itemId, subType)) < count) {
 		return false;
 	}
 
@@ -2228,7 +2228,7 @@ bool Game::removeItemOfType(Cylinder* cylinder, const uint16_t itemId, int32_t c
 	while (listContainer.size() > 0 && count > 0) {
 		container = listContainer.front();
 		listContainer.pop_front();
-		for (int32_t i = 0; i < (int32_t)container->size() && count > 0;) {
+		for (uint32_t i = 0; i < container->size() && count > 0;) {
 			if ((item = container->getItemByIndex(i))) {
 				if (item->getID() == itemId) {
 					if (item->isStackable()) {
@@ -2341,7 +2341,7 @@ bool Game::removeMoney(Cylinder* cylinder, int64_t money, uint32_t flags /*= 0*/
 	while (listContainer.size() > 0) {
 		Container* container = listContainer.front();
 		listContainer.pop_front();
-		for (int32_t i = 0; i < (int32_t)container->size(); ++i) {
+		for (uint32_t i = 0; i < container->size(); ++i) {
 			Item* containerItem = container->getItemByIndex(i);
 			if ((tmpContainer = containerItem->getContainer())) {
 				listContainer.push_back(tmpContainer);
@@ -2371,7 +2371,7 @@ bool Game::removeMoney(Cylinder* cylinder, int64_t money, uint32_t flags /*= 0*/
 		internalRemoveItem(nullptr, item);
 		if (mit->first > money) {
 			// Remove a monetary value from an item
-			bool ret = addMoney(cylinder, (int64_t)(item->getWorth() - money), flags, canDrop);
+			bool ret = addMoney(cylinder, item->getWorth() - money, flags, canDrop);
 
 			if (!ret) {
 				if (Creature* creature = cylinder->getCreature()) // check if it's a creature
@@ -2379,7 +2379,7 @@ bool Game::removeMoney(Cylinder* cylinder, int64_t money, uint32_t flags /*= 0*/
 					if (Player* player = creature->getPlayer()) // check if it's a player
 					{
 						// We couldn't properly add the money(maybe we couldn't add the change given the parameter 'canDrop', so let's give the money back to the player
-						addMoney(cylinder, (int64_t)(moneyCount - getMoney(player)), flags, canDrop);
+						addMoney(cylinder, moneyCount - static_cast<int64_t>(getMoney(player)), flags, canDrop);
 					}
 				}
 				return false;
@@ -2394,7 +2394,7 @@ bool Game::removeMoney(Cylinder* cylinder, int64_t money, uint32_t flags /*= 0*/
 
 	moneyMap.clear();
 	// CUSTOM: Discount Money to Bank
-	if (money > 0 && p && (int64_t)p->m_balance >= money) {
+	if (money > 0 && p && static_cast<int64_t>(p->m_balance) >= money) {
 		p->m_balance -= money;
 		std::ostringstream ss;
 		ss.imbue(std::locale(""));
@@ -2439,7 +2439,7 @@ bool Game::addMoney(Cylinder* cylinder, int64_t money, uint32_t flags /*= 0*/, b
 				}
 			}
 
-			tmp -= std::min((int64_t)100, tmp);
+			tmp -= std::min<int64_t>(100, tmp);
 		} while (tmp > 0);
 	}
 	if (Creature* creature = cylinder->getCreature()) {
@@ -3307,7 +3307,7 @@ bool Game::playerWriteItem(const uint32_t playerId, const uint32_t windowTextId,
 	}
 
 	player->setWriteItem(nullptr);
-	if ((Container*)writeItem->getParent() == &player->m_transferContainer) {
+	if (dynamic_cast<Container*>(writeItem->getParent()) == &player->m_transferContainer) {
 		player->m_transferContainer.setParent(nullptr);
 		player->m_transferContainer.__removeThing(writeItem, writeItem->getItemCount());
 
@@ -3457,7 +3457,7 @@ bool Game::playerRequestTrade(const uint32_t playerId, const Position& pos, cons
 	}
 
 	Container* tradeContainer = tradeItem->getContainer();
-	if (tradeContainer && tradeContainer->getItemHoldingCount() + 1 > (uint32_t)otx::config::getInteger(otx::config::TRADE_LIMIT)) {
+	if (tradeContainer && (tradeContainer->getItemHoldingCount() + 1) > static_cast<uint32_t>(otx::config::getInteger(otx::config::TRADE_LIMIT))) {
 		player->sendCancelMessage(RET_YOUCANONLYTRADEUPTOX);
 		return false;
 	}
@@ -3721,7 +3721,7 @@ bool Game::playerLookInTrade(const uint32_t playerId, const bool lookAtCounterOf
 	}
 
 	Container* tradeContainer = tradeItem->getContainer();
-	if (!tradeContainer || index > (int32_t)tradeContainer->getItemHoldingCount()) {
+	if (!tradeContainer || index > static_cast<int32_t>(tradeContainer->getItemHoldingCount())) {
 		return false;
 	}
 
@@ -4486,7 +4486,7 @@ bool Game::playerSay(const uint32_t playerId, const uint16_t channelId, const Me
 		return internalCreatureSay(player, MSG_SPEAK_SAY, text, false);
 	}
 
-	if (g_talkActions.onPlayerSay(player, type == MSG_SPEAK_SAY ? (unsigned)CHANNEL_DEFAULT : channelId, text, false)) {
+	if (g_talkActions.onPlayerSay(player, (type == MSG_SPEAK_SAY ? static_cast<uint16_t>(CHANNEL_DEFAULT) : channelId), text, false)) {
 		return true;
 	}
 
@@ -5588,7 +5588,7 @@ void Game::internalDecayItem(Item* item)
 	} else {
 		ReturnValue ret = internalRemoveItem(nullptr, item);
 		if (ret != RET_NOERROR) {
-			std::clog << "> DEBUG: internalDecayItem failed, error code: " << (int32_t)ret << ", item id: " << item->getID() << std::endl;
+			std::clog << "> DEBUG: internalDecayItem failed, error code: " << static_cast<int>(ret) << ", item id: " << item->getID() << std::endl;
 		}
 	}
 }
@@ -6109,7 +6109,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 
 		case ACTION_NAMEREPORT: {
 			int64_t banTime = -1;
-			PlayerBan_t tmp = (PlayerBan_t)otx::config::getInteger(otx::config::NAME_REPORT_TYPE);
+			PlayerBan_t tmp = static_cast<PlayerBan_t>(otx::config::getInteger(otx::config::NAME_REPORT_TYPE));
 			if (tmp == PLAYERBAN_BANISHMENT) {
 				if (!length[0]) {
 					banTime = time(nullptr) + otx::config::getInteger(otx::config::BAN_LENGTH);
@@ -6126,7 +6126,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 				account.warnings++;
 			}
 
-			kickAction = (KickAction)tmp;
+			kickAction = static_cast<KickAction>(tmp);
 			break;
 		}
 
@@ -6137,8 +6137,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 				return false;
 			}
 
-			if (IOBan::getInstance()->getNotationsCount(account.number) < (uint32_t)
-					otx::config::getInteger(otx::config::NOTATIONS_TO_BAN)) {
+			if (IOBan::getInstance()->getNotationsCount(account.number) < static_cast<uint32_t>(otx::config::getInteger(otx::config::NOTATIONS_TO_BAN))) {
 				kickAction = NONE;
 				break;
 			}
@@ -6175,7 +6174,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 			}
 
 			banTime = -1;
-			PlayerBan_t tmp = (PlayerBan_t)otx::config::getInteger(otx::config::NAME_REPORT_TYPE);
+			PlayerBan_t tmp = static_cast<PlayerBan_t>(otx::config::getInteger(otx::config::NAME_REPORT_TYPE));
 			if (tmp == PLAYERBAN_BANISHMENT) {
 				if (!length[1]) {
 					banTime = time(nullptr) + otx::config::getInteger(otx::config::FINALBAN_LENGTH);
@@ -6216,7 +6215,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 
 			if (allow) {
 				IOBan::getInstance()->addPlayerBanishment(target->getGUID(), -1, reason, action, comment,
-					player->getGUID(), (PlayerBan_t)otx::config::getInteger(otx::config::NAME_REPORT_TYPE));
+					player->getGUID(), static_cast<PlayerBan_t>(otx::config::getInteger(otx::config::NAME_REPORT_TYPE)));
 			}
 
 			break;
@@ -6433,7 +6432,7 @@ std::string Game::getSearchString(const Position& fromPos, const Position& toPos
 
 	float tan;
 	if (dx) {
-		tan = (float)dy / (float)dx;
+		tan = static_cast<float>(dy) / dx;
 	} else {
 		tan = 10.;
 	}
@@ -6604,7 +6603,7 @@ bool Game::loadExperienceStages()
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"stages")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("stages"))) {
 		std::clog << "[Error - Game::loadExperienceStages] Malformed stages file" << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -6619,7 +6618,7 @@ bool Game::loadExperienceStages()
 
 	xmlNodePtr q = root->children;
 	while (q) {
-		if (!xmlStrcmp(q->name, (const xmlChar*)"stage")) {
+		if (!xmlStrcmp(q->name, reinterpret_cast<const xmlChar*>("stage"))) {
 			int32_t minLevel = 1;
 			if (readXMLInteger(q, "minlevel", intValue)) {
 				minLevel = std::max<int32_t>(1, intValue);
@@ -6980,7 +6979,7 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 
 void Game::prepareGlobalSave(uint8_t minutes)
 {
-	std::clog << "Game::prepareGlobalSave in " << (uint32_t)minutes << " minutes" << std::endl;
+	std::clog << "Game::prepareGlobalSave in " << static_cast<int>(minutes) << " minutes" << std::endl;
 	switch (minutes) {
 		case 5:
 			setGameState(GAMESTATE_CLOSING);

@@ -316,8 +316,8 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			break;
 		}
 		case ATTR_ATTACK: {
-			int32_t attack;
-			if (!propStream.getLong((uint32_t&)attack)) {
+			uint32_t attack;
+			if (!propStream.getType<uint32_t>(attack)) {
 				return ATTR_READ_ERROR;
 			}
 
@@ -325,8 +325,8 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			break;
 		}
 		case ATTR_EXTRAATTACK: {
-			int32_t attack;
-			if (!propStream.getLong((uint32_t&)attack)) {
+			uint32_t attack;
+			if (!propStream.getType<uint32_t>(attack)) {
 				return ATTR_READ_ERROR;
 			}
 
@@ -334,8 +334,8 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			break;
 		}
 		case ATTR_DEFENSE: {
-			int32_t defense;
-			if (!propStream.getLong((uint32_t&)defense)) {
+			uint32_t defense;
+			if (!propStream.getType<uint32_t>(defense)) {
 				return ATTR_READ_ERROR;
 			}
 
@@ -343,8 +343,8 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			break;
 		}
 		case ATTR_EXTRADEFENSE: {
-			int32_t defense;
-			if (!propStream.getLong((uint32_t&)defense)) {
+			uint32_t defense;
+			if (!propStream.getType<uint32_t>(defense)) {
 				return ATTR_READ_ERROR;
 			}
 
@@ -352,8 +352,8 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			break;
 		}
 		case ATTR_ARMOR: {
-			int32_t armor;
-			if (!propStream.getLong((uint32_t&)armor)) {
+			uint32_t armor;
+			if (!propStream.getType<uint32_t>(armor)) {
 				return ATTR_READ_ERROR;
 			}
 
@@ -361,8 +361,8 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			break;
 		}
 		case ATTR_ATTACKSPEED: {
-			int32_t attackSpeed;
-			if (!propStream.getLong((uint32_t&)attackSpeed)) {
+			uint32_t attackSpeed;
+			if (!propStream.getType<uint32_t>(attackSpeed)) {
 				return ATTR_READ_ERROR;
 			}
 
@@ -370,8 +370,8 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			break;
 		}
 		case ATTR_HITCHANCE: {
-			int32_t hitChance;
-			if (!propStream.getLong((uint32_t&)hitChance)) {
+			uint32_t hitChance;
+			if (!propStream.getType<uint32_t>(hitChance)) {
 				return ATTR_READ_ERROR;
 			}
 
@@ -406,8 +406,8 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			break;
 		}
 		case ATTR_WRITTENDATE: {
-			int32_t date;
-			if (!propStream.getLong((uint32_t&)date)) {
+			uint32_t date;
+			if (!propStream.getType<uint32_t>(date)) {
 				return ATTR_READ_ERROR;
 			}
 
@@ -438,7 +438,7 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 				return ATTR_READ_ERROR;
 			}
 
-			setSubType((uint16_t)charges);
+			setSubType(charges);
 			break;
 		}
 		case ATTR_CHARGES: {
@@ -451,8 +451,8 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 			break;
 		}
 		case ATTR_DURATION: {
-			int32_t duration;
-			if (!propStream.getLong((uint32_t&)duration)) {
+			uint32_t duration;
+			if (!propStream.getType<uint32_t>(duration)) {
 				return ATTR_READ_ERROR;
 			}
 
@@ -594,7 +594,7 @@ bool Item::unserializeAttr(PropStream& propStream)
 {
 	uint8_t attrType = ATTR_END;
 	while (propStream.getByte(attrType) && attrType != ATTR_END) {
-		switch (readAttr((AttrTypes_t)attrType, propStream)) {
+		switch (readAttr(static_cast<AttrTypes_t>(attrType), propStream)) {
 			case ATTR_READ_ERROR:
 				return false;
 
@@ -613,7 +613,7 @@ bool Item::serializeAttr(PropWriteStream& propWriteStream) const
 {
 	if (isStackable() || isFluidContainer() || isSplash()) {
 		propWriteStream.addByte(ATTR_COUNT);
-		propWriteStream.addByte((uint8_t)getSubType());
+		propWriteStream.addByte(getSubType());
 	}
 
 	if (m_duration != 0) {
@@ -748,9 +748,8 @@ bool Item::hasProperty(enum ITEMPROPERTY prop) const
 double Item::getWeight() const
 {
 	if (isStackable()) {
-		return items[m_id].weight * std::max((int32_t)1, (int32_t)m_count);
+		return items[m_id].weight * std::max<int32_t>(1, m_count);
 	}
-
 	return items[m_id].weight;
 }
 
@@ -796,11 +795,11 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 		bool begin = true;
 		if (it.weaponType == WEAPON_DIST && it.ammoType != AMMO_NONE) {
 			begin = false;
-			s << " (Range:" << int32_t(item ? item->getShootRange() : it.shootRange);
+			s << " (Range:" << (item ? item->getShootRange() : it.shootRange);
 			if (it.attack || it.extraAttack || (item && (item->getAttack() || item->getExtraAttack()))) {
-				s << ", Atk " << std::showpos << int32_t(item ? item->getAttack() : it.attack);
+				s << ", Atk " << std::showpos << (item ? item->getAttack() : it.attack);
 				if (it.extraAttack || (item && item->getExtraAttack())) {
-					s << " " << std::showpos << int32_t(item ? item->getExtraAttack() : it.extraAttack) << std::noshowpos;
+					s << " " << std::showpos << (item ? item->getExtraAttack() : it.extraAttack) << std::noshowpos;
 				}
 			}
 
@@ -882,7 +881,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 					s << ", ";
 				}
 
-				s << getSkillName(i) << " " << std::showpos << (int32_t)it.abilities->skills[i] << std::noshowpos;
+				s << getSkillName(i) << " " << std::showpos << it.abilities->skills[i] << std::noshowpos;
 			}
 
 			if (it.abilities->stats[STAT_MAGICLEVEL]) {
@@ -893,7 +892,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 					s << ", ";
 				}
 
-				s << "magic level " << std::showpos << (int32_t)it.abilities->stats[STAT_MAGICLEVEL] << std::noshowpos;
+				s << "magic level " << std::showpos << it.abilities->stats[STAT_MAGICLEVEL] << std::noshowpos;
 			}
 
 			int32_t show = it.abilities->absorb[COMBAT_ALL];
@@ -1044,7 +1043,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 					s << ", ";
 				}
 
-				s << "speed " << std::showpos << (int32_t)(it.abilities->speed / 2) << std::noshowpos;
+				s << "speed " << std::showpos << (it.abilities->speed / 2) << std::noshowpos;
 			}
 
 			if (it.abilities->invisible) {
@@ -1126,7 +1125,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 				s << ", ";
 			}
 
-			s << "Vol:" << (int32_t)it.maxItems << "";
+			s << "Vol:" << it.maxItems;
 		}
 
 		reduceSkillLoss = (item ? item->getReduceSkillLoss() : it.reduceSkillLoss);
@@ -1280,7 +1279,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 					s << ", ";
 				}
 
-				s << "speed " << std::showpos << (int32_t)(it.abilities->speed / 2) << std::noshowpos;
+				s << "speed " << std::showpos << (it.abilities->speed / 2) << std::noshowpos;
 			}
 
 			if (it.abilities->invisible) {
@@ -1332,7 +1331,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			}
 		}
 	} else if (it.isContainer()) {
-		s << " (Vol:" << (int32_t)it.maxItems;
+		s << " (Vol:" << it.maxItems;
 
 		reduceSkillLoss = (item ? item->getReduceSkillLoss() : it.reduceSkillLoss);
 		if (reduceSkillLoss != 0) {
@@ -1341,7 +1340,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 
 		s << ")";
 	} else if (it.isKey()) {
-		s << " (Key:" << (item ? (int32_t)item->getActionId() : 0) << ")";
+		s << " (Key:" << (item ? item->getActionId() : 0) << ")";
 	} else if (it.isFluidContainer()) {
 		if (subType > 0) {
 			s << " of " << (items[subType].name.length() ? items[subType].name : "unknown");
@@ -1384,7 +1383,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 		} else {
 			s << "Nothing is written on it";
 		}
-	} else if (it.levelDoor && item && item->getActionId() >= (int32_t)it.levelDoor && item->getActionId() <= ((int32_t)it.levelDoor + otx::config::getInteger(otx::config::MAXIMUM_DOOR_LEVEL))) {
+	} else if (it.levelDoor && item && item->getActionId() >= static_cast<int32_t>(it.levelDoor) && item->getActionId() <= (static_cast<int32_t>(it.levelDoor) + otx::config::getInteger(otx::config::MAXIMUM_DOOR_LEVEL))) {
 		s << " for level " << item->getActionId() - it.levelDoor;
 	}
 
@@ -1457,7 +1456,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 		}
 
 		if (it.wieldInfo & WIELDINFO_LEVEL) {
-			s << " of level " << (int32_t)it.minReqLevel << " or higher";
+			s << " of level " << it.minReqLevel << " or higher";
 		}
 
 		if (it.wieldInfo & WIELDINFO_MAGLV) {
@@ -1467,7 +1466,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 				s << " of";
 			}
 
-			s << " magic level " << (int32_t)it.minReqMagicLevel << " or higher";
+			s << " magic level " << it.minReqMagicLevel << " or higher";
 		}
 
 		s << ".";

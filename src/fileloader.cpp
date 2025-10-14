@@ -251,7 +251,7 @@ bool FileLoader::getProps(const NODE node, PropStream& props)
 {
 	uint32_t size;
 	if (const uint8_t* a = getProps(node, size)) {
-		props.init((char*)a, size);
+		props.init(reinterpret_cast<const char*>(a), size);
 		return true;
 	}
 
@@ -361,7 +361,7 @@ inline bool FileLoader::readBytes(uint8_t* buffer, int32_t size, int32_t pos)
 			m_cache_offset = pos - m_cached_data[i].base;
 
 			// get maximum read block size and calculate remaining bytes
-			reading = std::min(remain, (uint32_t)m_cached_data[i].size - m_cache_offset);
+			reading = std::min<uint32_t>(remain, m_cached_data[i].size - m_cache_offset);
 			remain = remain - reading;
 
 			// read it
@@ -380,7 +380,7 @@ inline bool FileLoader::readBytes(uint8_t* buffer, int32_t size, int32_t pos)
 		return false;
 	}
 
-	if (fread(buffer, 1, size, m_file) == (uint32_t)size) {
+	if (fread(buffer, 1, size, m_file) == static_cast<uint32_t>(size)) {
 		return true;
 	}
 
@@ -477,7 +477,7 @@ int32_t FileLoader::loadCacheBlock(uint32_t pos)
 
 	if (loading_cache == -1) {
 		for (i = 0; i < CACHE_BLOCKS; ++i) {
-			if ((long)(std::abs((long)m_cached_data[i].base - base_pos)) <= (long)(2 * m_cache_size)) {
+			if (std::abs(static_cast<long>(m_cached_data[i].base) - base_pos) <= (2 * static_cast<long>(m_cache_size))) {
 				continue;
 			}
 

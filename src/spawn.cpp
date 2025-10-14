@@ -57,7 +57,7 @@ bool Spawns::loadFromXml(const std::string& _filename)
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"spawns")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("spawns"))) {
 		std::clog << "[Error - Spawns::loadFromXml] Malformed spawns file." << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -74,7 +74,7 @@ bool Spawns::loadFromXml(const std::string& _filename)
 
 bool Spawns::parseSpawnNode(xmlNodePtr p, bool checkDuplicate)
 {
-	if (xmlStrcmp(p->name, (const xmlChar*)"spawn")) {
+	if (xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("spawn"))) {
 		return false;
 	}
 
@@ -123,7 +123,7 @@ bool Spawns::parseSpawnNode(xmlNodePtr p, bool checkDuplicate)
 
 	spawnList.push_back(spawn);
 	for (xmlNodePtr tmpNode = p->children; tmpNode; tmpNode = tmpNode->next) {
-		if (!xmlStrcmp(tmpNode->name, (const xmlChar*)"monster")) {
+		if (!xmlStrcmp(tmpNode->name, reinterpret_cast<const xmlChar*>("monster"))) {
 			if (!readXMLString(tmpNode, "name", strValue)) {
 				continue;
 			}
@@ -157,11 +157,11 @@ bool Spawns::parseSpawnNode(xmlNodePtr p, bool checkDuplicate)
 
 			Direction direction = NORTH;
 			if (readXMLInteger(tmpNode, "direction", intValue) && direction >= EAST && direction <= WEST) {
-				direction = (Direction)intValue;
+				direction = static_cast<Direction>(intValue);
 			}
 
 			spawn->addMonster(name, placePos, direction, interval);
-		} else if (!xmlStrcmp(tmpNode->name, (const xmlChar*)"npc")) {
+		} else if (!xmlStrcmp(tmpNode->name, reinterpret_cast<const xmlChar*>("npc"))) {
 			if (!readXMLString(tmpNode, "name", strValue)) {
 				continue;
 			}
@@ -182,7 +182,7 @@ bool Spawns::parseSpawnNode(xmlNodePtr p, bool checkDuplicate)
 
 			Direction direction = NORTH;
 			if (readXMLInteger(tmpNode, "direction", intValue) && direction >= EAST && direction <= WEST) {
-				direction = (Direction)intValue;
+				direction = static_cast<Direction>(intValue);
 			}
 
 			Npc* npc = Npc::createNpc(name);
@@ -353,7 +353,7 @@ void Spawn::checkSpawn()
 		spawnMonster(spawnId, sb.mType, sb.pos, sb.direction);
 		uint32_t minSpawnCount = otx::config::getInteger(otx::config::RATE_SPAWN_MIN),
 				 maxSpawnCount = otx::config::getInteger(otx::config::RATE_SPAWN_MAX);
-		if (++spawnCount >= (uint32_t)random_range(minSpawnCount, maxSpawnCount)) {
+		if (++spawnCount >= static_cast<uint32_t>(random_range(minSpawnCount, maxSpawnCount))) {
 			break;
 		}
 	}
@@ -392,7 +392,7 @@ bool Spawn::addMonster(const std::string& _name, const Position& _pos, Direction
 	sb.interval = _interval;
 	sb.lastSpawn = 0;
 
-	uint32_t spawnId = (int32_t)m_spawnMap.size() + 1;
+	uint32_t spawnId = m_spawnMap.size() + 1;
 	m_spawnMap[spawnId] = sb;
 	return true;
 }

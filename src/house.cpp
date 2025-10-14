@@ -523,7 +523,7 @@ bool AccessList::isInList(const Player* player)
 	}
 
 	for (GuildList::iterator git = guildList.begin(); git != guildList.end(); ++git) {
-		if (git->first == player->getGuildId() && ((uint32_t)git->second == player->getRankId() || git->second == -1)) {
+		if (git->first == player->getGuildId() && (git->second == static_cast<int32_t>(player->getRankId()) || git->second == -1)) {
 			return true;
 		}
 	}
@@ -674,7 +674,7 @@ bool Houses::loadFromXml(std::string filename)
 	}
 
 	xmlNodePtr houseNode, root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"houses")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("houses"))) {
 		std::clog << "[Error - Houses::loadFromXml] Malformed houses file." << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -685,7 +685,7 @@ bool Houses::loadFromXml(std::string filename)
 
 	houseNode = root->children;
 	while (houseNode) {
-		if (xmlStrcmp(houseNode->name, (const xmlChar*)"house")) {
+		if (xmlStrcmp(houseNode->name, reinterpret_cast<const xmlChar*>("house"))) {
 			houseNode = houseNode->next;
 			continue;
 		}

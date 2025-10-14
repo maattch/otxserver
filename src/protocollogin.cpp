@@ -199,7 +199,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 			output->add<uint32_t>(otx::config::getIPNumber());
 			output->add<uint16_t>(otx::config::getInteger(otx::config::GAME_PORT));
 		} else {
-			output->addByte((uint8_t)account.charList.size());
+			output->addByte(account.charList.size());
 		}
 
 		for (const std::string& charName : account.charList) {

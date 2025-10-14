@@ -96,33 +96,33 @@ void ProtocolStatus::sendStatusString()
 
 	setRawMessages(true);
 
-	xmlDocPtr doc = xmlNewDoc((const xmlChar*)"1.0");
-	doc->children = xmlNewDocNode(doc, nullptr, (const xmlChar*)"tsqp", nullptr);
+	xmlDocPtr doc = xmlNewDoc(reinterpret_cast<const xmlChar*>("1.0"));
+	doc->children = xmlNewDocNode(doc, nullptr, reinterpret_cast<const xmlChar*>("tsqp"), nullptr);
 	xmlNodePtr root = doc->children;
 
 	char buffer[90];
-	xmlSetProp(root, (const xmlChar*)"version", (const xmlChar*)"1.0");
+	xmlSetProp(root, reinterpret_cast<const xmlChar*>("version"), reinterpret_cast<const xmlChar*>("1.0"));
 
-	xmlNodePtr p = xmlNewNode(nullptr, (const xmlChar*)"serverinfo");
+	xmlNodePtr p = xmlNewNode(nullptr, reinterpret_cast<const xmlChar*>("serverinfo"));
 	sprintf(buffer, "%u", static_cast<uint32_t>(g_game.getUptime()));
-	xmlSetProp(p, (const xmlChar*)"uptime", (const xmlChar*)buffer);
-	xmlSetProp(p, (const xmlChar*)"ip", (const xmlChar*)otx::config::getString(otx::config::IP).c_str());
-	xmlSetProp(p, (const xmlChar*)"servername", (const xmlChar*)otx::config::getString(otx::config::SERVER_NAME).c_str());
-	sprintf(buffer, "%d", (int32_t)otx::config::getInteger(otx::config::LOGIN_PORT));
-	xmlSetProp(p, (const xmlChar*)"port", (const xmlChar*)buffer);
-	xmlSetProp(p, (const xmlChar*)"location", (const xmlChar*)otx::config::getString(otx::config::LOCATION).c_str());
-	xmlSetProp(p, (const xmlChar*)"url", (const xmlChar*)otx::config::getString(otx::config::URL).c_str());
-	xmlSetProp(p, (const xmlChar*)"server", (const xmlChar*)SOFTWARE_NAME);
-	xmlSetProp(p, (const xmlChar*)"version", (const xmlChar*)SOFTWARE_VERSION);
-	xmlSetProp(p, (const xmlChar*)"client", (const xmlChar*)CLIENT_VERSION_STRING);
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("uptime"), reinterpret_cast<const xmlChar*>(buffer));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("ip"), reinterpret_cast<const xmlChar*>(otx::config::getString(otx::config::IP).c_str()));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("servername"), reinterpret_cast<const xmlChar*>(otx::config::getString(otx::config::SERVER_NAME).c_str()));
+	sprintf(buffer, "%d", static_cast<int32_t>(otx::config::getInteger(otx::config::LOGIN_PORT)));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("port"), reinterpret_cast<const xmlChar*>(buffer));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("location"), reinterpret_cast<const xmlChar*>(otx::config::getString(otx::config::LOCATION).c_str()));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("url"), reinterpret_cast<const xmlChar*>(otx::config::getString(otx::config::URL).c_str()));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("server"), reinterpret_cast<const xmlChar*>(SOFTWARE_NAME));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("version"), reinterpret_cast<const xmlChar*>(SOFTWARE_VERSION));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("client"), reinterpret_cast<const xmlChar*>(CLIENT_VERSION_STRING));
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(nullptr, (const xmlChar*)"owner");
-	xmlSetProp(p, (const xmlChar*)"name", (const xmlChar*)otx::config::getString(otx::config::OWNER_NAME).c_str());
-	xmlSetProp(p, (const xmlChar*)"email", (const xmlChar*)otx::config::getString(otx::config::OWNER_EMAIL).c_str());
+	p = xmlNewNode(nullptr, reinterpret_cast<const xmlChar*>("owner"));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("name"), reinterpret_cast<const xmlChar*>(otx::config::getString(otx::config::OWNER_NAME).c_str()));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("email"), reinterpret_cast<const xmlChar*>(otx::config::getString(otx::config::OWNER_EMAIL).c_str()));
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(nullptr, (const xmlChar*)"players");
+	p = xmlNewNode(nullptr, reinterpret_cast<const xmlChar*>("players"));
 
 	uint32_t realOnline = 0;
 	uint32_t uniqueOnline = 0;
@@ -142,54 +142,51 @@ void ProtocolStatus::sendStatusString()
 	}
 
 	sprintf(buffer, "%d", realOnline);
-	xmlSetProp(p, (const xmlChar*)"online", (const xmlChar*)buffer);
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("online"), reinterpret_cast<const xmlChar*>(buffer));
 
 	sprintf(buffer, "%d", uniqueOnline);
-	xmlSetProp(p, (const xmlChar*)"unique", (const xmlChar*)buffer);
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("unique"), reinterpret_cast<const xmlChar*>(buffer));
 
-	sprintf(buffer, "%d", (int32_t)otx::config::getInteger(otx::config::MAX_PLAYERS));
-	xmlSetProp(p, (const xmlChar*)"max", (const xmlChar*)buffer);
+	sprintf(buffer, "%d", static_cast<int32_t>(otx::config::getInteger(otx::config::MAX_PLAYERS)));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("max"), reinterpret_cast<const xmlChar*>(buffer));
 
 	sprintf(buffer, "%d", g_game.getPlayersRecord());
-	xmlSetProp(p, (const xmlChar*)"peak", (const xmlChar*)buffer);
-
-	// this get function in game.cpp with limit = 1 by IP (Unique Players) to otservlist. Xinn can check here https://github.com/FeTads/otxserver/blob/a9bef7ac0fe7584a924a7426aae0f44ec372fe12/sources/game.cpp#L7108
-	// sprintf(buffer, "%d", g_game.getUniquePlayersOnline());
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("peak"), reinterpret_cast<const xmlChar*>(buffer));
 
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(nullptr, (const xmlChar*)"monsters");
+	p = xmlNewNode(nullptr, reinterpret_cast<const xmlChar*>("monsters"));
 	sprintf(buffer, "%d", g_game.getMonstersOnline());
-	xmlSetProp(p, (const xmlChar*)"total", (const xmlChar*)buffer);
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("total"), reinterpret_cast<const xmlChar*>(buffer));
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(nullptr, (const xmlChar*)"npcs");
+	p = xmlNewNode(nullptr, reinterpret_cast<const xmlChar*>("npcs"));
 	sprintf(buffer, "%d", g_game.getNpcsOnline());
-	xmlSetProp(p, (const xmlChar*)"total", (const xmlChar*)buffer);
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("total"), reinterpret_cast<const xmlChar*>(buffer));
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(nullptr, (const xmlChar*)"map");
-	xmlSetProp(p, (const xmlChar*)"name", (const xmlChar*)otx::config::getString(otx::config::MAP_NAME).c_str());
-	xmlSetProp(p, (const xmlChar*)"author", (const xmlChar*)otx::config::getString(otx::config::MAP_AUTHOR).c_str());
+	p = xmlNewNode(nullptr, reinterpret_cast<const xmlChar*>("map"));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("name"), reinterpret_cast<const xmlChar*>(otx::config::getString(otx::config::MAP_NAME).c_str()));
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("author"), reinterpret_cast<const xmlChar*>(otx::config::getString(otx::config::MAP_AUTHOR).c_str()));
 
 	uint32_t mapWidth, mapHeight;
 	g_game.getMapDimensions(mapWidth, mapHeight);
 	sprintf(buffer, "%u", mapWidth);
-	xmlSetProp(p, (const xmlChar*)"width", (const xmlChar*)buffer);
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("width"), reinterpret_cast<const xmlChar*>(buffer));
 	sprintf(buffer, "%u", mapHeight);
 
-	xmlSetProp(p, (const xmlChar*)"height", (const xmlChar*)buffer);
+	xmlSetProp(p, reinterpret_cast<const xmlChar*>("height"), reinterpret_cast<const xmlChar*>(buffer));
 	xmlAddChild(root, p);
 
-	xmlNewTextChild(root, nullptr, (const xmlChar*)"motd", (const xmlChar*)otx::config::getString(otx::config::MOTD).c_str());
+	xmlNewTextChild(root, nullptr, reinterpret_cast<const xmlChar*>("motd"), reinterpret_cast<const xmlChar*>(otx::config::getString(otx::config::MOTD).c_str()));
 
 	xmlChar* s = nullptr;
 	int32_t len = 0;
-	xmlDocDumpMemory(doc, (xmlChar**)&s, &len);
+	xmlDocDumpMemory(doc, &s, &len);
 
 	std::string xml;
 	if (s) {
-		xml = std::string((char*)s, len);
+		xml = std::string(reinterpret_cast<char*>(s), len);
 	}
 
 	xmlFree(s);
@@ -210,7 +207,7 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 		output->addString(otx::config::getString(otx::config::IP).c_str());
 
 		char buffer[10];
-		sprintf(buffer, "%d", (int32_t)otx::config::getInteger(otx::config::LOGIN_PORT));
+		sprintf(buffer, "%d", static_cast<int32_t>(otx::config::getInteger(otx::config::LOGIN_PORT)));
 		output->addString(buffer);
 	}
 
@@ -231,7 +228,7 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
 	if (requestedInfo & REQUEST_PLAYERS_INFO) {
 		output->addByte(0x20);
 		output->add<uint32_t>(g_game.getPlayersOnline());
-		output->add<uint32_t>((uint32_t)otx::config::getInteger(otx::config::MAX_PLAYERS));
+		output->add<uint32_t>(otx::config::getInteger(otx::config::MAX_PLAYERS));
 		output->add<uint32_t>(g_game.getPlayersRecord());
 	}
 

@@ -188,12 +188,12 @@ public:
 	bool isGuild() const;
 
 	uint32_t getDoorsCount() const { return doorList.size(); }
-	uint32_t getBedsCount() const { return (uint32_t)std::ceil((double)bedsList.size() / 2); }
+	uint32_t getBedsCount() const { return std::ceil(bedsList.size() / 2.0); }
 	uint32_t getTilesCount() const { return houseTiles.size(); }
 
-	bool hasSyncFlag(syncflags_t flag) const { return ((syncFlags & (uint32_t)flag) == (uint32_t)flag); }
-	void setSyncFlag(syncflags_t flag) { syncFlags |= (uint32_t)flag; }
-	void resetSyncFlag(syncflags_t flag) { syncFlags &= ~(uint32_t)flag; }
+	bool hasSyncFlag(uint32_t flag) const { return (syncFlags & flag); }
+	void setSyncFlag(uint32_t flag) { syncFlags |= flag; }
+	void resetSyncFlag(uint32_t flag) { syncFlags &= ~flag; }
 
 	bool canEditAccessList(uint32_t listId, const Player* player);
 	void setAccessList(uint32_t listId, const std::string& textlist, bool teleport = true);

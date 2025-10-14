@@ -39,7 +39,7 @@ bool Vocations::loadFromXml()
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"vocations")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("vocations"))) {
 		std::clog << "[Error - Vocations::loadFromXml] Malformed vocations file." << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -49,7 +49,7 @@ bool Vocations::loadFromXml()
 	int32_t intValue;
 	float floatValue;
 	for (xmlNodePtr p = root->children; p; p = p->next) {
-		if (xmlStrcmp(p->name, (const xmlChar*)"vocation")) {
+		if (xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("vocation"))) {
 			continue;
 		}
 
@@ -132,7 +132,7 @@ bool Vocations::loadFromXml()
 		}
 
 		for (xmlNodePtr configNode = p->children; configNode; configNode = configNode->next) {
-			if (!xmlStrcmp(configNode->name, (const xmlChar*)"skill")) {
+			if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("skill"))) {
 				if (readXMLFloat(configNode, "fist", floatValue)) {
 					vocation.skillMultipliers[SKILL_FIST] = floatValue;
 				}
@@ -180,7 +180,7 @@ bool Vocations::loadFromXml()
 				}
 
 				if (readXMLInteger(configNode, "id", intValue)) {
-					skills_t skill = (skills_t)intValue;
+					const auto skill = static_cast<skills_t>(intValue);
 					if (skill < SKILL_FIRST || skill >= SKILL__LAST) {
 						std::clog << "[Error - Vocations::loadFromXml] No valid skill id (" << intValue << ")." << std::endl;
 						continue;
@@ -194,7 +194,7 @@ bool Vocations::loadFromXml()
 						vocation.skillMultipliers[skill] = floatValue;
 					}
 				}
-			} else if (!xmlStrcmp(configNode->name, (const xmlChar*)"formula")) {
+			} else if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("formula"))) {
 				if (readXMLFloat(configNode, "meleeDamage", floatValue)) {
 					vocation.formulaMultipliers[MULTIPLIER_MELEE] = floatValue;
 				}
@@ -219,7 +219,7 @@ bool Vocations::loadFromXml()
 				if (readXMLFloat(configNode, "armor", floatValue)) {
 					vocation.formulaMultipliers[MULTIPLIER_ARMOR] = floatValue;
 				}
-			} else if (!xmlStrcmp(configNode->name, (const xmlChar*)"absorb")) {
+			} else if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("absorb"))) {
 				if (readXMLInteger(configNode, "percentAll", intValue)) {
 					for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 						vocation.absorb[i] = intValue;
@@ -276,7 +276,7 @@ bool Vocations::loadFromXml()
 				if (readXMLInteger(configNode, "percentUndefined", intValue)) {
 					vocation.absorb[COMBATINDEX_UNDEFINEDDAMAGE] = intValue;
 				}
-			} else if (!xmlStrcmp(configNode->name, (const xmlChar*)"reflect")) {
+			} else if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("reflect"))) {
 				if (readXMLInteger(configNode, "percentAll", intValue)) {
 					for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 						vocation.reflect[REFLECT_PERCENT][i] = intValue;

@@ -49,7 +49,7 @@ int32_t MoveEventScript::luaCallFunction(lua_State* L)
 	if (MoveEventScript::event->getEventType() == MOVE_EVENT_EQUIP || MoveEventScript::event->getEventType() == MOVE_EVENT_DE_EQUIP) {
 		ScriptEnvironment& env = otx::lua::getScriptEnv();
 		bool boolean = otx::lua::popBoolean(L);
-		slots_t slot = (slots_t)otx::lua::popNumber(L);
+		slots_t slot = static_cast<slots_t>(otx::lua::popNumber(L));
 
 		Item* item = env.getItemByUID(otx::lua::popNumber(L));
 		if (!item) {
@@ -829,7 +829,7 @@ bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slot
 	}
 
 	if (!player->hasFlag(PlayerFlag_IgnoreEquipCheck) && moveEvent->getWieldInfo() != 0) {
-		if (player->getLevel() < (uint32_t)moveEvent->getReqLevel() || player->getMagicLevel() < (uint32_t)moveEvent->getReqMagLv()) {
+		if (player->getLevel() < static_cast<uint32_t>(moveEvent->getReqLevel()) || player->getMagicLevel() < static_cast<uint32_t>(moveEvent->getReqMagLv())) {
 			return false;
 		}
 
@@ -858,12 +858,12 @@ bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slot
 	}
 
 	if (it.abilities->invisible) {
-		Condition* condition = Condition::createCondition((ConditionId_t)slot, CONDITION_INVISIBLE, -1, 0);
+		Condition* condition = Condition::createCondition(static_cast<ConditionId_t>(slot), CONDITION_INVISIBLE, -1, 0);
 		player->addCondition(condition);
 	}
 
 	if (it.abilities->manaShield) {
-		Condition* condition = Condition::createCondition((ConditionId_t)slot, CONDITION_MANASHIELD, -1, 0);
+		Condition* condition = Condition::createCondition(static_cast<ConditionId_t>(slot), CONDITION_MANASHIELD, -1, 0);
 		player->addCondition(condition);
 	}
 
@@ -877,7 +877,7 @@ bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slot
 	}
 
 	if (it.abilities->regeneration) {
-		Condition* condition = Condition::createCondition((ConditionId_t)slot, CONDITION_REGENERATION, -1, 0);
+		Condition* condition = Condition::createCondition(static_cast<ConditionId_t>(slot), CONDITION_REGENERATION, -1, 0);
 		if (it.abilities->healthGain) {
 			condition->setParam(CONDITIONPARAM_HEALTHGAIN, it.abilities->healthGain);
 		}
@@ -900,14 +900,14 @@ bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slot
 	bool needUpdateSkills = false;
 	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		if (it.abilities->skills[i]) {
-			player->setVarSkill((skills_t)i, it.abilities->skills[i]);
+			player->setVarSkill(static_cast<skills_t>(i), it.abilities->skills[i]);
 			if (!needUpdateSkills) {
 				needUpdateSkills = true;
 			}
 		}
 
 		if (it.abilities->skillsPercent[i]) {
-			player->setVarSkill((skills_t)i, (int32_t)(player->getSkillLevel(i) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill(static_cast<skills_t>(i), (player->getSkillLevel(i) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
 			if (!needUpdateSkills) {
 				needUpdateSkills = true;
 			}
@@ -921,14 +921,14 @@ bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slot
 	bool needUpdateStats = false;
 	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
 		if (it.abilities->stats[s]) {
-			player->setVarStats((stats_t)s, it.abilities->stats[s]);
+			player->setVarStats(static_cast<stats_t>(s), it.abilities->stats[s]);
 			if (!needUpdateStats) {
 				needUpdateStats = true;
 			}
 		}
 
 		if (it.abilities->statsPercent[s]) {
-			player->setVarStats((stats_t)s, (int32_t)(player->getDefaultStats((stats_t)s) * ((it.abilities->statsPercent[s] - 100) / 100.f)));
+			player->setVarStats(static_cast<stats_t>(s), (player->getDefaultStats(static_cast<stats_t>(s)) * ((it.abilities->statsPercent[s] - 100) / 100.f)));
 			if (!needUpdateStats) {
 				needUpdateStats = true;
 			}
@@ -959,11 +959,11 @@ bool MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, slots_t slot
 	}
 
 	if (it.abilities->invisible) {
-		player->removeCondition(CONDITION_INVISIBLE, (ConditionId_t)slot);
+		player->removeCondition(CONDITION_INVISIBLE, static_cast<ConditionId_t>(slot));
 	}
 
 	if (it.abilities->manaShield) {
-		player->removeCondition(CONDITION_MANASHIELD, (ConditionId_t)slot);
+		player->removeCondition(CONDITION_MANASHIELD, static_cast<ConditionId_t>(slot));
 	}
 
 	if (it.abilities->speed) {
@@ -976,19 +976,19 @@ bool MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, slots_t slot
 	}
 
 	if (it.abilities->regeneration) {
-		player->removeCondition(CONDITION_REGENERATION, (ConditionId_t)slot);
+		player->removeCondition(CONDITION_REGENERATION, static_cast<ConditionId_t>(slot));
 	}
 
 	bool needUpdateSkills = false;
 	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		if (it.abilities->skills[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill((skills_t)i, -it.abilities->skills[i]);
+			player->setVarSkill(static_cast<skills_t>(i), -it.abilities->skills[i]);
 		}
 
 		if (it.abilities->skillsPercent[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill((skills_t)i, -(int32_t)(player->getSkillLevel(i) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill(static_cast<skills_t>(i), -(player->getSkillLevel(i) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
 		}
 	}
 
@@ -1000,12 +1000,12 @@ bool MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, slots_t slot
 	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
 		if (it.abilities->stats[s]) {
 			needUpdateStats = true;
-			player->setVarStats((stats_t)s, -it.abilities->stats[s]);
+			player->setVarStats(static_cast<stats_t>(s), -it.abilities->stats[s]);
 		}
 
 		if (it.abilities->statsPercent[s]) {
 			needUpdateStats = true;
-			player->setVarStats((stats_t)s, -(int32_t)(player->getDefaultStats((stats_t)s) * ((it.abilities->statsPercent[s] - 100) / 100.f)));
+			player->setVarStats(static_cast<stats_t>(s), -(player->getDefaultStats(static_cast<stats_t>(s)) * ((it.abilities->statsPercent[s] - 100) / 100.f)));
 		}
 	}
 

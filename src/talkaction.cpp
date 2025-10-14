@@ -403,7 +403,7 @@ bool TalkAction::houseBuy(Creature* creature, const std::string&)
 		return false;
 	}
 
-	if ((uint32_t)g_game.getMoney(player) < house->getPrice() || !g_game.removeMoney(player, house->getPrice())) {
+	if (g_game.getMoney(player) < house->getPrice() || !g_game.removeMoney(player, house->getPrice())) {
 		player->sendCancel("You do not have enough money.");
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
 		return false;
@@ -832,7 +832,7 @@ bool TalkAction::thingProporties(Creature* creature, const std::string& param)
 			} else if (action == "basespeed") {
 				_creature->setBaseSpeed(atoi(parseParams(it, tokens.end()).c_str()));
 			} else if (action == "droploot") {
-				_creature->setDropLoot((lootDrop_t)atoi(parseParams(it, tokens.end()).c_str()));
+				_creature->setDropLoot(static_cast<lootDrop_t>(atoi(parseParams(it, tokens.end()).c_str())));
 			} else if (action == "lossskill") {
 				_creature->setLossSkill(booleanString(parseParams(it, tokens.end())));
 			} else if (action == "storage") {
@@ -850,14 +850,14 @@ bool TalkAction::thingProporties(Creature* creature, const std::string& param)
 				_creature->setEmblem(getEmblems(parseParams(it, tokens.end())));
 				g_game.updateCreatureEmblem(_creature);
 			} else if (action == "speaktype") {
-				_creature->setSpeakType((MessageClasses)atoi(parseParams(it, tokens.end()).c_str()));
+				_creature->setSpeakType(static_cast<MessageClasses>(atoi(parseParams(it, tokens.end()).c_str())));
 			} else if (Player* _player = _creature->getPlayer()) {
 				if (action == "fyi") {
 					_player->sendFYIBox(parseParams(it, tokens.end()).c_str());
 				} else if (action == "tutorial") {
 					_player->sendTutorial(atoi(parseParams(it, tokens.end()).c_str()));
 				} else if (action == "guildlevel") {
-					_player->setGuildLevel((GuildLevel_t)atoi(parseParams(it, tokens.end()).c_str()));
+					_player->setGuildLevel(static_cast<GuildLevel_t>(atoi(parseParams(it, tokens.end()).c_str())));
 				} else if (action == "guildrank") {
 					_player->setRankId(atoi(parseParams(it, tokens.end()).c_str()));
 				} else if (action == "guildnick") {
@@ -990,7 +990,7 @@ bool TalkAction::banishmentInfo(Creature* creature, const std::string& param)
 
 	if (!ban.value) {
 		otx::util::to_lower_string(what);
-		player->sendCancel("Invalid " + what + (std::string) " name or id.");
+		player->sendCancel("Invalid " + what + " name or id.");
 		return true;
 	}
 
@@ -1009,7 +1009,7 @@ bool TalkAction::banishmentInfo(Creature* creature, const std::string& param)
 
 	std::string end = "Banishment will be lifted at:\n";
 	if (deletion) {
-		end = what + (std::string) " won't be undeleted";
+		end = what + " won't be undeleted";
 	}
 
 	std::ostringstream ss;

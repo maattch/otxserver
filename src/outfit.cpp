@@ -30,7 +30,7 @@
 
 bool Outfits::parseOutfitNode(xmlNodePtr p)
 {
-	if (xmlStrcmp(p->name, (const xmlChar*)"outfit")) {
+	if (xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("outfit"))) {
 		return false;
 	}
 
@@ -90,7 +90,7 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 	}
 
 	for (xmlNodePtr listNode = p->children; listNode != nullptr; listNode = listNode->next) {
-		if (xmlStrcmp(listNode->name, (const xmlChar*)"list")) {
+		if (xmlStrcmp(listNode->name, reinterpret_cast<const xmlChar*>("list"))) {
 			continue;
 		}
 
@@ -177,7 +177,7 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 		}
 
 		for (xmlNodePtr configNode = listNode->children; configNode != nullptr; configNode = configNode->next) {
-			if (!xmlStrcmp(configNode->name, (const xmlChar*)"reflect")) {
+			if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("reflect"))) {
 				if (readXMLInteger(configNode, "percentAll", intValue)) {
 					for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 						outfit.reflect[REFLECT_PERCENT][i] += intValue;
@@ -317,7 +317,7 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 				if (readXMLInteger(configNode, "chanceUndefined", intValue)) {
 					outfit.reflect[REFLECT_CHANCE][COMBATINDEX_UNDEFINEDDAMAGE] += intValue;
 				}
-			} else if (!xmlStrcmp(configNode->name, (const xmlChar*)"absorb")) {
+			} else if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("absorb"))) {
 				if (readXMLInteger(configNode, "percentAll", intValue)) {
 					for (uint16_t i = COMBATINDEX_FIRST; i <= COMBATINDEX_LAST; ++i) {
 						outfit.absorb[i] += intValue;
@@ -387,7 +387,7 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 				if (readXMLInteger(configNode, "percentUndefined", intValue)) {
 					outfit.absorb[COMBATINDEX_UNDEFINEDDAMAGE] += intValue;
 				}
-			} else if (!xmlStrcmp(configNode->name, (const xmlChar*)"skills")) {
+			} else if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("skills"))) {
 				if (readXMLInteger(configNode, "fist", intValue)) {
 					outfit.skills[SKILL_FIST] += intValue;
 				}
@@ -471,7 +471,7 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 					outfit.skillsPercent[SKILL_AXE] += intValue;
 					outfit.skillsPercent[SKILL_DIST] += intValue;
 				}
-			} else if (!xmlStrcmp(configNode->name, (const xmlChar*)"stats")) {
+			} else if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("stats"))) {
 				if (readXMLInteger(configNode, "maxHealth", intValue)) {
 					outfit.stats[STAT_MAXHEALTH] = intValue;
 				}
@@ -511,7 +511,7 @@ bool Outfits::parseOutfitNode(xmlNodePtr p)
 				if (readXMLInteger(configNode, "magLevelPercent", intValue) || readXMLInteger(configNode, "magicLevelPercent", intValue)) {
 					outfit.statsPercent[STAT_MAGICLEVEL] = intValue;
 				}
-			} else if (!xmlStrcmp(configNode->name, (const xmlChar*)"suppress")) {
+			} else if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("suppress"))) {
 				if (readXMLString(configNode, "poison", strValue) && booleanString(strValue)) {
 					outfit.conditionSuppressions |= CONDITION_POISON;
 				}
@@ -645,7 +645,7 @@ bool Outfits::loadFromXml()
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"outfits")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("outfits"))) {
 		std::clog << "[Error - Outfits::loadFromXml] Malformed outfits file." << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -710,7 +710,7 @@ bool Outfits::addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, 
 	}
 
 	Outfit outfit = it->second;
-	if (outfit.requirement != (AddonRequirement_t)addons && (outfit.requirement != REQUIREMENT_ANY || !addons)) {
+	if (outfit.requirement != addons && (outfit.requirement != REQUIREMENT_ANY || !addons)) {
 		return false;
 	}
 
@@ -758,12 +758,12 @@ bool Outfits::addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, 
 	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		if (outfit.skills[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill((skills_t)i, outfit.skills[i]);
+			player->setVarSkill(static_cast<skills_t>(i), outfit.skills[i]);
 		}
 
 		if (outfit.skillsPercent[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill((skills_t)i, (int32_t)(player->getSkillLevel(i) * ((outfit.skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill(static_cast<skills_t>(i), (player->getSkillLevel(i) * ((outfit.skillsPercent[i] - 100) / 100.f)));
 		}
 	}
 
@@ -775,12 +775,12 @@ bool Outfits::addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, 
 	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
 		if (outfit.stats[s]) {
 			needUpdateStats = true;
-			player->setVarStats((stats_t)s, outfit.stats[s]);
+			player->setVarStats(static_cast<stats_t>(s), outfit.stats[s]);
 		}
 
 		if (outfit.statsPercent[s]) {
 			needUpdateStats = true;
-			player->setVarStats((stats_t)s, (int32_t)(player->getDefaultStats((stats_t)s) * ((outfit.statsPercent[s] - 100) / 100.f)));
+			player->setVarStats(static_cast<stats_t>(s), (player->getDefaultStats(static_cast<stats_t>(s)) * ((outfit.statsPercent[s] - 100) / 100.f)));
 		}
 	}
 
@@ -830,12 +830,12 @@ bool Outfits::removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t se
 	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		if (outfit.skills[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill((skills_t)i, -outfit.skills[i]);
+			player->setVarSkill(static_cast<skills_t>(i), -outfit.skills[i]);
 		}
 
 		if (outfit.skillsPercent[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill((skills_t)i, -(int32_t)(player->getSkillLevel(i) * ((outfit.skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill(static_cast<skills_t>(i), -(player->getSkillLevel(i) * ((outfit.skillsPercent[i] - 100) / 100.f)));
 		}
 	}
 
@@ -847,12 +847,12 @@ bool Outfits::removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t se
 	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
 		if (outfit.stats[s]) {
 			needUpdateStats = true;
-			player->setVarStats((stats_t)s, -outfit.stats[s]);
+			player->setVarStats(static_cast<stats_t>(s), -outfit.stats[s]);
 		}
 
 		if (outfit.statsPercent[s]) {
 			needUpdateStats = true;
-			player->setVarStats((stats_t)s, -(int32_t)(player->getDefaultStats((stats_t)s) * ((outfit.statsPercent[s] - 100) / 100.f)));
+			player->setVarStats(static_cast<stats_t>(s), -(player->getDefaultStats(static_cast<stats_t>(s)) * ((outfit.statsPercent[s] - 100) / 100.f)));
 		}
 	}
 

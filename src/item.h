@@ -22,6 +22,8 @@
 #include "raids.h"
 #include "thing.h"
 
+#include <variant>
+
 class Creature;
 class Player;
 class Container;
@@ -490,7 +492,7 @@ public:
 	int32_t getElementDamage() const { return items[m_id].hasAbilities() ? items[m_id].abilities->elementDamage : 0; }
 
 	uint16_t getItemCount() const { return m_count; }
-	void setItemCount(uint16_t n) { m_count = std::max((uint16_t)1, n); }
+	void setItemCount(uint16_t n) { m_count = std::max<uint16_t>(1, n); }
 
 	uint16_t getSubType() const;
 	void setSubType(uint16_t n);

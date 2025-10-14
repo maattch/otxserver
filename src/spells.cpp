@@ -1046,21 +1046,21 @@ void Spell::postSpell(Player* player) const
 void Spell::postSpell(Player* player, uint32_t manaCost, uint32_t soulCost) const
 {
 	if (manaCost > 0) {
-		player->changeMana(-(int32_t)manaCost);
+		player->changeMana(-static_cast<int32_t>(manaCost));
 		if (!player->hasFlag(PlayerFlag_NotGainMana) && (player->getZone() != ZONE_HARDCORE || otx::config::getBoolean(otx::config::PVPZONE_ADDMANASPENT))) {
 			player->addManaSpent(manaCost);
 		}
 	}
 
 	if (soulCost > 0) {
-		player->changeSoul(-(int32_t)soulCost);
+		player->changeSoul(-static_cast<int32_t>(soulCost));
 	}
 }
 
 int32_t Spell::getManaCost(const Player* player) const
 {
 	if (player && manaPercent) {
-		return (int32_t)std::floor((double)(player->getMaxMana() * manaPercent) / 100.);
+		return std::floor((player->getMaxMana() * manaPercent) / 100.0);
 	}
 	return mana;
 }
@@ -1400,7 +1400,7 @@ bool InstantSpell::SummonMonster(const InstantSpell* spell, Creature* creature, 
 		return false;
 	}
 
-	int32_t manaCost = (int32_t)(mType->manaCost * otx::config::getDouble(otx::config::RATE_MONSTER_MANA));
+	int32_t manaCost = mType->manaCost * otx::config::getDouble(otx::config::RATE_MONSTER_MANA);
 	if (!player->hasFlag(PlayerFlag_CanSummonAll)) {
 		if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
 			if (player->getSkull() == SKULL_BLACK) {
@@ -1428,7 +1428,7 @@ bool InstantSpell::SummonMonster(const InstantSpell* spell, Creature* creature, 
 			return false;
 		}
 
-		if ((int32_t)player->getSummonCount() >= otx::config::getInteger(otx::config::MAX_PLAYER_SUMMONS)) {
+		if (static_cast<int32_t>(player->getSummonCount()) >= otx::config::getInteger(otx::config::MAX_PLAYER_SUMMONS)) {
 			player->sendCancel("You cannot summon more creatures.");
 			if (!player->isGhost()) {
 				player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -1439,7 +1439,7 @@ bool InstantSpell::SummonMonster(const InstantSpell* spell, Creature* creature, 
 
 	ReturnValue ret = g_game.placeSummon(creature, param);
 	if (ret == RET_NOERROR) {
-		spell->postSpell(player, (uint32_t)manaCost, (uint32_t)spell->getSoulCost());
+		spell->postSpell(player, manaCost, spell->getSoulCost());
 		player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_WRAPS_BLUE); //
 		return true;
 	}
@@ -1609,7 +1609,7 @@ ReturnValue ConjureSpell::internalConjureItem(Player* player, uint32_t conjureId
 	std::list<Container*> containers;
 	Item *item = nullptr, *fromItem = nullptr;
 	for (int32_t i = SLOT_FIRST; i < SLOT_LAST; ++i) {
-		if (!(item = player->getInventoryItem((slots_t)i))) {
+		if (!(item = player->getInventoryItem(static_cast<slots_t>(i)))) {
 			continue;
 		}
 
@@ -1646,7 +1646,7 @@ ReturnValue ConjureSpell::internalConjureItem(Player* player, uint32_t conjureId
 			return ret;
 		}
 
-		g_game.transformItem(fromItem, reagentId, (int32_t)(fromItem->getItemCount() - 1));
+		g_game.transformItem(fromItem, reagentId, static_cast<int32_t>(fromItem->getItemCount()) - 1);
 	} else {
 		g_game.transformItem(fromItem, conjureId, conjureCount);
 	}
@@ -1824,7 +1824,7 @@ bool RuneSpell::Convince(const RuneSpell* spell, Creature* creature, const Posit
 			}
 		}
 
-		if ((int32_t)player->getSummonCount() >= otx::config::getInteger(otx::config::MAX_PLAYER_SUMMONS)) {
+		if (static_cast<int32_t>(player->getSummonCount()) >= otx::config::getInteger(otx::config::MAX_PLAYER_SUMMONS)) {
 			player->sendCancelMessage(RET_NOTPOSSIBLE);
 			if (!player->isGhost()) {
 				player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -1861,7 +1861,7 @@ bool RuneSpell::Convince(const RuneSpell* spell, Creature* creature, const Posit
 
 	int32_t manaCost = 0;
 	if (Monster* monster = convinceCreature->getMonster()) {
-		manaCost = (int32_t)(monster->getManaCost() * otx::config::getDouble(otx::config::RATE_MONSTER_MANA));
+		manaCost = monster->getManaCost() * otx::config::getDouble(otx::config::RATE_MONSTER_MANA);
 	}
 
 	if (!player->hasFlag(PlayerFlag_HasInfiniteMana) && player->getMana() < manaCost) {
@@ -1880,7 +1880,7 @@ bool RuneSpell::Convince(const RuneSpell* spell, Creature* creature, const Posit
 		return false;
 	}
 
-	spell->postSpell(player, (uint32_t)manaCost, (uint32_t)spell->getSoulCost());
+	spell->postSpell(player, static_cast<uint32_t>(manaCost), static_cast<uint32_t>(spell->getSoulCost()));
 	g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_WRAPS_RED);
 	return true;
 }
@@ -1988,7 +1988,7 @@ bool RuneSpell::executeUse(Player* player, Item* item, const PositionEx& posFrom
 	if (result) {
 		Spell::postSpell(player);
 		if (hasCharges && item && otx::config::getBoolean(otx::config::REMOVE_RUNE_CHARGES)) {
-			g_game.transformItem(item, item->getID(), std::max((int32_t)0, ((int32_t)item->getItemCount()) - 1));
+			g_game.transformItem(item, item->getID(), std::max<int32_t>(0, item->getItemCount() - 1));
 		}
 	}
 

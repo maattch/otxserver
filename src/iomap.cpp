@@ -91,7 +91,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 	}
 
 	uint32_t type = 0;
-	NODE root = f.getChildNode((NODE)nullptr, type);
+	NODE root = f.getChildNode(nullptr, type);
 
 	PropStream propStream;
 	if (!f.getProps(root, propStream)) {
@@ -125,7 +125,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 		return false;
 	}
 
-	if (headerMajorItems > (uint32_t)Items::dwMajorVersion) {
+	if (headerMajorItems > Items::dwMajorVersion) {
 		setLastErrorString("The map was saved with a different items.otb version, an upgraded items.otb is required.");
 		return false;
 	}
@@ -136,7 +136,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 		return false;
 	}
 
-	if (headerMinorItems > (uint32_t)Items::dwMinorVersion) {
+	if (headerMinorItems > Items::dwMinorVersion) {
 		setLastErrorString("This map needs an updated items.otb.");
 	}
 
@@ -486,7 +486,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 						tile = createTile(ground, nullptr, px, py, pz);
 					}
 
-					tile->setFlag((tileflags_t)flags);
+					tile->setFlag(flags);
 					map->setTile(px, py, pz, tile);
 				} else {
 					setLastErrorString("Unknown tile node.");

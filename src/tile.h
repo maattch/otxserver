@@ -190,9 +190,9 @@ public:
 	bool hasProperty(enum ITEMPROPERTY prop) const;
 	bool hasProperty(Item* exclude, enum ITEMPROPERTY prop) const;
 
-	bool hasFlag(tileflags_t flag) const { return ((m_flags & (uint32_t)flag) == (uint32_t)flag); }
-	void setFlag(tileflags_t flag) { m_flags |= (uint32_t)flag; }
-	void resetFlag(tileflags_t flag) { m_flags &= ~(uint32_t)flag; }
+	bool hasFlag(uint32_t flag) const { return (m_flags & flag); }
+	void setFlag(uint32_t flag) { m_flags |= flag; }
+	void resetFlag(uint32_t flag) { m_flags &= ~flag; }
 
 	bool positionChange() const { return hasFlag(TILESTATE_TELEPORT); }
 	bool floorChange(FloorChange_t change = CHANGE_NONE) const

@@ -437,7 +437,7 @@ bool Party::canUseSharedExperience(const Player* player, uint32_t highestLevel /
 		return false;
 	}
 
-	if (player->getLevel() < (uint32_t)std::ceil((double)highestLevel * otx::config::getDouble(otx::config::PARTY_DIFFERENCE)) || !Position::areInRange(Position(otx::config::getInteger(otx::config::PARTY_RADIUS_X), otx::config::getInteger(otx::config::PARTY_RADIUS_Y), otx::config::getInteger(otx::config::PARTY_RADIUS_Z)), leader->getPosition(), player->getPosition())) {
+	if (player->getLevel() < static_cast<uint32_t>(std::ceil(highestLevel * otx::config::getDouble(otx::config::PARTY_DIFFERENCE))) || !Position::areInRange(Position(otx::config::getInteger(otx::config::PARTY_RADIUS_X), otx::config::getInteger(otx::config::PARTY_RADIUS_Y), otx::config::getInteger(otx::config::PARTY_RADIUS_Z)), leader->getPosition(), player->getPosition())) {
 		return false;
 	}
 

@@ -848,7 +848,7 @@ enum GuildLevel_t
 	GUILDLEVEL_LEADER
 };
 
-enum Channels_t
+enum Channels_t : uint16_t
 {
 	CHANNEL_GUILD = 0x00,
 	CHANNEL_PARTY = 0x01,

@@ -299,7 +299,7 @@ bool Items::loadFromXml()
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"items")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("items"))) {
 		xmlFreeDoc(doc);
 		std::clog << "[Warning - Items::loadFromXml] Malformed items file." << std::endl;
 		return false;
@@ -307,7 +307,7 @@ bool Items::loadFromXml()
 
 	std::string strValue, endValue;
 	for (xmlNodePtr node = root->children; node; node = node->next) {
-		if (xmlStrcmp(node->name, (const xmlChar*)"item")) {
+		if (xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("item"))) {
 			continue;
 		}
 
@@ -776,7 +776,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 			}
 		} else if (tmpStrValue == "duration") {
 			if (readXMLInteger(itemAttributesNode, "value", intValue)) {
-				it.decayTime = std::max((int32_t)0, intValue);
+				it.decayTime = std::max<int32_t>(0, intValue);
 			}
 		} else if (tmpStrValue == "showduration") {
 			if (readXMLInteger(itemAttributesNode, "value", intValue)) {

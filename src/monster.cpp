@@ -69,13 +69,13 @@ Monster::Monster(MonsterType* _mType) :
 	m_currentOutfit = mType->outfit;
 
 	double multiplier = otx::config::getDouble(otx::config::RATE_MONSTER_HEALTH);
-	m_health = (int32_t)(mType->health * multiplier);
+	m_health *= multiplier;
 	healthMin = mType->healthMin, m_healthMax = mType->healthMax;
 	if (healthMin > 0) {
 		m_healthMax = random_range(healthMin, m_healthMax);
 	}
 
-	m_healthMax = (int32_t)(m_healthMax * multiplier);
+	m_healthMax *= multiplier;
 	m_baseSpeed = mType->baseSpeed;
 	m_internalLight.level = mType->lightLevel;
 	m_internalLight.color = mType->lightColor;
@@ -492,7 +492,7 @@ BlockType_t Monster::blockHit(Creature* attacker, CombatType_t combatType, int32
 		return blockType;
 	}
 
-	damage = (int32_t)std::ceil(damage * ((float)(100 - elementMod) / 100));
+	damage = std::ceil(damage * ((100.0 - elementMod) / 100.0));
 	if (damage > 0) {
 		return blockType;
 	}
@@ -666,7 +666,7 @@ void Monster::doAttacking(uint32_t interval)
 
 		bool inRange = false;
 		if (canUseSpell(myPos, targetPos, *it, interval, inRange)) {
-			if (it->chance >= (uint32_t)random_range(1, 100)) {
+			if (it->chance >= static_cast<uint32_t>(random_range(1, 100))) {
 				if (updateLook) {
 					updateLookDirection();
 					updateLook = false;
@@ -679,8 +679,8 @@ void Monster::doAttacking(uint32_t interval)
 					multiplier = otx::config::getDouble(otx::config::RATE_MONSTER_ATTACK);
 				}
 
-				minCombatValue = (int32_t)(it->minCombatValue * multiplier);
-				maxCombatValue = (int32_t)(it->maxCombatValue * multiplier);
+				minCombatValue = (it->minCombatValue * multiplier);
+				maxCombatValue = (it->maxCombatValue * multiplier);
 
 				it->spell->castSpell(this, m_attackedCreature);
 				if (it->isMelee) {
@@ -716,7 +716,7 @@ bool Monster::canUseAttack(const Position& pos, const Creature* target) const
 
 	const Position& targetPos = target->getPosition();
 	for (SpellList::iterator it = mType->spellAttackList.begin(); it != mType->spellAttackList.end(); ++it) {
-		if ((*it).range != 0 && std::max(std::abs(pos.x - targetPos.x), std::abs(pos.y - targetPos.y)) <= (int32_t)(*it).range) {
+		if ((*it).range != 0 && std::max<int32_t>(std::abs(pos.x - targetPos.x), std::abs(pos.y - targetPos.y)) <= static_cast<int32_t>((*it).range)) {
 			return g_game.isSightClear(pos, targetPos, true);
 		}
 	}
@@ -739,7 +739,7 @@ bool Monster::canUseSpell(const Position& pos, const Position& targetPos,
 		}
 	}
 
-	if (!sb.range || std::max(std::abs(pos.x - targetPos.x), std::abs(pos.y - targetPos.y)) <= (int32_t)sb.range) {
+	if (sb.range != 0 || std::max<int32_t>(std::abs(pos.x - targetPos.x), std::abs(pos.y - targetPos.y)) <= static_cast<int32_t>(sb.range)) {
 		return true;
 	}
 
@@ -758,7 +758,7 @@ void Monster::onThinkTarget(uint32_t interval)
 		targetChangeCooldown -= interval;
 		if (targetChangeCooldown <= 0) {
 			targetChangeCooldown = 0;
-			targetChangeTicks = (uint32_t)mType->changeTargetSpeed;
+			targetChangeTicks = static_cast<uint32_t>(mType->changeTargetSpeed);
 		} else {
 			canChangeTarget = false;
 		}
@@ -769,12 +769,12 @@ void Monster::onThinkTarget(uint32_t interval)
 	}
 
 	targetChangeTicks += interval;
-	if (targetChangeTicks < (uint32_t)mType->changeTargetSpeed) {
+	if (targetChangeTicks < static_cast<uint32_t>(mType->changeTargetSpeed)) {
 		return;
 	}
 
 	targetChangeTicks = 0;
-	targetChangeCooldown = (uint32_t)mType->changeTargetSpeed;
+	targetChangeCooldown = mType->changeTargetSpeed;
 	if (mType->changeTargetChance < random_range(1, 100)) {
 		return;
 	}
@@ -810,7 +810,7 @@ void Monster::doHealing(uint32_t interval)
 			}
 		}
 
-		if ((it->chance >= (uint32_t)random_range(1, 100))) {
+		if ((it->chance >= static_cast<uint32_t>(random_range(1, 100)))) {
 			minCombatValue = it->minCombatValue;
 			maxCombatValue = it->maxCombatValue;
 			it->spell->castSpell(this, this);
@@ -818,9 +818,9 @@ void Monster::doHealing(uint32_t interval)
 	}
 
 	if (!isSummon()) {
-		if (mType->maxSummons < 0 || (int32_t)m_summons.size() < mType->maxSummons) {
+		if (mType->maxSummons < 0 || static_cast<int32_t>(m_summons.size()) < mType->maxSummons) {
 			for (SummonList::iterator it = mType->summonList.begin(); it != mType->summonList.end(); ++it) {
-				if ((int32_t)m_summons.size() >= mType->maxSummons) {
+				if (static_cast<int32_t>(m_summons.size()) >= mType->maxSummons) {
 					break;
 				}
 
@@ -847,7 +847,7 @@ void Monster::doHealing(uint32_t interval)
 					continue;
 				}
 
-				if ((it->chance >= (uint32_t)random_range(1, 100))) {
+				if ((it->chance >= static_cast<uint32_t>(random_range(1, 100)))) {
 					if (Monster* summon = Monster::createMonster(it->name)) {
 						addSummon(summon);
 						if (g_game.placeCreature(summon, getPosition())) {
@@ -879,7 +879,7 @@ void Monster::onThinkYell(uint32_t interval)
 	}
 
 	yellTicks = 0;
-	if (mType->voiceVector.empty() || (mType->yellChance < (uint32_t)random_range(1, 100))) {
+	if (mType->voiceVector.empty() || (mType->yellChance < static_cast<uint32_t>(random_range(1, 100)))) {
 		return;
 	}
 
@@ -1020,7 +1020,7 @@ bool Monster::getNextStep(Direction& dir, uint32_t& flags)
 			if (m_attackedCreature && m_attackedCreature == m_followCreature) {
 				if (isFleeing()) {
 					result = getDanceStep(getPosition(), dir, false, false);
-				} else if (mType->staticAttackChance < (uint32_t)random_range(1, 100)) {
+				} else if (mType->staticAttackChance < static_cast<uint32_t>(random_range(1, 100))) {
 					result = getDanceStep(getPosition(), dir);
 				}
 			}
@@ -1303,8 +1303,8 @@ bool Monster::getCombatValues(int32_t& min, int32_t& max)
 		multiplier = otx::config::getDouble(otx::config::RATE_MONSTER_ATTACK);
 	}
 
-	min = (int32_t)(minCombatValue * multiplier);
-	max = (int32_t)(maxCombatValue * multiplier);
+	min = (minCombatValue * multiplier);
+	max = (maxCombatValue * multiplier);
 	return true;
 }
 
@@ -1429,7 +1429,7 @@ bool Monster::isWalkable() const
 
 bool Monster::hasRecentBattle() const
 {
-	return lastDamage && (uint64_t)otx::util::mstime() < (lastDamage + 30000);
+	return lastDamage && otx::util::mstime() < (lastDamage + 30000);
 }
 
 bool Monster::isFleeing() const

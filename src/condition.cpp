@@ -63,11 +63,10 @@ bool Condition::unserialize(PropStream& propStream)
 {
 	uint8_t attrType;
 	while (propStream.getByte(attrType) && attrType != CONDITIONATTR_END) {
-		if (!unserializeProp((ConditionAttr_t)attrType, propStream)) {
+		if (!unserializeProp(static_cast<ConditionAttr_t>(attrType), propStream)) {
 			return false;
 		}
 	}
-
 	return true;
 }
 
@@ -80,7 +79,7 @@ bool Condition::unserializeProp(ConditionAttr_t attr, PropStream& propStream)
 				return false;
 			}
 
-			conditionType = (ConditionType_t)value;
+			conditionType = static_cast<ConditionType_t>(value);
 			return true;
 		}
 
@@ -90,7 +89,7 @@ bool Condition::unserializeProp(ConditionAttr_t attr, PropStream& propStream)
 				return false;
 			}
 
-			id = (ConditionId_t)value;
+			id = static_cast<ConditionId_t>(value);
 			return true;
 		}
 
@@ -137,19 +136,19 @@ bool Condition::unserializeProp(ConditionAttr_t attr, PropStream& propStream)
 bool Condition::serialize(PropWriteStream& propWriteStream)
 {
 	propWriteStream.addByte(CONDITIONATTR_TYPE);
-	propWriteStream.addType((uint32_t)conditionType);
+	propWriteStream.addType<uint32_t>(conditionType);
 
 	propWriteStream.addByte(CONDITIONATTR_ID);
-	propWriteStream.addType((uint32_t)id);
+	propWriteStream.addType<uint32_t>(id);
 
 	propWriteStream.addByte(CONDITIONATTR_TICKS);
-	propWriteStream.addType((int32_t)ticks);
+	propWriteStream.addType<int32_t>(ticks);
 
 	propWriteStream.addByte(CONDITIONATTR_BUFF);
-	propWriteStream.addType((uint8_t)(buff ? 1 : 0));
+	propWriteStream.addByte(buff ? 1 : 0);
 
 	propWriteStream.addByte(CONDITIONATTR_SUBID);
-	propWriteStream.addType((uint32_t)subId);
+	propWriteStream.addType<uint32_t>(subId);
 	return true;
 }
 
@@ -181,13 +180,13 @@ bool Condition::executeCondition(Creature* creature, int32_t interval)
 		return true;
 	}
 
-	ticks = std::max((int32_t)0, (ticks - interval));
+	ticks = std::max<int32_t>(0, ticks - interval);
 	return (endTime >= otx::util::mstime());
 }
 
 Condition* Condition::createCondition(ConditionId_t _id, ConditionType_t _type, int32_t _ticks, int32_t param /* = 0*/, bool _buff /* = false*/, uint32_t _subId /* = 0*/)
 {
-	switch ((int32_t)_type) {
+	switch (_type) {
 		case CONDITION_FIRE:
 		case CONDITION_ENERGY:
 		case CONDITION_POISON:
@@ -287,7 +286,7 @@ Condition* Condition::createCondition(PropStream& propStream)
 		return nullptr;
 	}
 
-	return createCondition((ConditionId_t)_id, (ConditionType_t)_type, _ticks, 0, (_buff != 0), _subId);
+	return createCondition(static_cast<ConditionId_t>(_id), static_cast<ConditionType_t>(_type), _ticks, 0, (_buff != 0), _subId);
 }
 
 bool Condition::updateCondition(const Condition* addCondition)
@@ -453,7 +452,7 @@ void ConditionAttributes::updatePercentSkills(Player* player)
 {
 	for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		if (skillsPercent[i]) {
-			skills[i] += (int32_t)(player->getSkillLevel(i) * ((skillsPercent[i] - 100) / 100.f));
+			skills[i] += player->getSkillLevel(i) * ((skillsPercent[i] - 100) / 100.f);
 		}
 	}
 }
@@ -462,7 +461,7 @@ void ConditionAttributes::updatePercentStats(Player* player)
 {
 	for (int32_t i = STAT_FIRST; i <= STAT_LAST; ++i) {
 		if (statsPercent[i]) {
-			stats[i] += (int32_t)(player->getDefaultStats((stats_t)i) * ((statsPercent[i] - 100) / 100.f));
+			stats[i] += player->getDefaultStats(static_cast<stats_t>(i)) * ((statsPercent[i] - 100) / 100.f);
 		}
 	}
 }
@@ -475,7 +474,7 @@ void ConditionAttributes::updateSkills(Player* player)
 			continue;
 		}
 
-		player->setVarSkill((skills_t)i, skills[i]);
+		player->setVarSkill(i, skills[i]);
 		if (!needUpdateSkills) {
 			needUpdateSkills = true;
 		}
@@ -494,7 +493,7 @@ void ConditionAttributes::updateStats(Player* player)
 			continue;
 		}
 
-		player->setVarStats((stats_t)i, stats[i]);
+		player->setVarStats(static_cast<stats_t>(i), stats[i]);
 		if (!needUpdateStats) {
 			needUpdateStats = true;
 		}
@@ -524,7 +523,7 @@ void ConditionAttributes::endCondition(Creature* creature, ConditionEnd_t)
 		}
 
 		needUpdateSkills = true;
-		player->setVarSkill((skills_t)i, -skills[i]);
+		player->setVarSkill(i, -skills[i]);
 	}
 
 	if (needUpdateSkills) {
@@ -538,7 +537,7 @@ void ConditionAttributes::endCondition(Creature* creature, ConditionEnd_t)
 		}
 
 		needUpdateStats = true;
-		player->setVarStats((stats_t)i, -stats[i]);
+		player->setVarStats(static_cast<stats_t>(i), -stats[i]);
 	}
 
 	if (needUpdateStats) {
@@ -599,51 +598,51 @@ bool ConditionAttributes::setParam(ConditionParam_t param, int32_t value)
 			return true;
 
 		case CONDITIONPARAM_STAT_MAXHEALTHPERCENT:
-			statsPercent[STAT_MAXHEALTH] = std::max((int32_t)0, value);
+			statsPercent[STAT_MAXHEALTH] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_STAT_MAXMANAPERCENT:
-			statsPercent[STAT_MAXMANA] = std::max((int32_t)0, value);
+			statsPercent[STAT_MAXMANA] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_STAT_SOULPERCENT:
-			statsPercent[STAT_SOUL] = std::max((int32_t)0, value);
+			statsPercent[STAT_SOUL] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_STAT_MAGICLEVELPERCENT:
-			statsPercent[STAT_MAGICLEVEL] = std::max((int32_t)0, value);
+			statsPercent[STAT_MAGICLEVEL] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_SKILL_MELEEPERCENT:
-			skillsPercent[SKILL_CLUB] = skillsPercent[SKILL_AXE] = skillsPercent[SKILL_SWORD] = std::max((int32_t)0, value);
+			skillsPercent[SKILL_CLUB] = skillsPercent[SKILL_AXE] = skillsPercent[SKILL_SWORD] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_SKILL_FISTPERCENT:
-			skillsPercent[SKILL_FIST] = std::max((int32_t)0, value);
+			skillsPercent[SKILL_FIST] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_SKILL_CLUBPERCENT:
-			skillsPercent[SKILL_CLUB] = std::max((int32_t)0, value);
+			skillsPercent[SKILL_CLUB] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_SKILL_SWORDPERCENT:
-			skillsPercent[SKILL_SWORD] = std::max((int32_t)0, value);
+			skillsPercent[SKILL_SWORD] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_SKILL_AXEPERCENT:
-			skillsPercent[SKILL_AXE] = std::max((int32_t)0, value);
+			skillsPercent[SKILL_AXE] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_SKILL_DISTANCEPERCENT:
-			skillsPercent[SKILL_DIST] = std::max((int32_t)0, value);
+			skillsPercent[SKILL_DIST] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_SKILL_SHIELDPERCENT:
-			skillsPercent[SKILL_SHIELD] = std::max((int32_t)0, value);
+			skillsPercent[SKILL_SHIELD] = std::max<int32_t>(0, value);
 			return true;
 
 		case CONDITIONPARAM_SKILL_FISHINGPERCENT:
-			skillsPercent[SKILL_FISH] = std::max((int32_t)0, value);
+			skillsPercent[SKILL_FISH] = std::max<int32_t>(0, value);
 			return true;
 
 		default:
@@ -1022,7 +1021,7 @@ bool ConditionDamage::serialize(PropWriteStream& propWriteStream)
 	}
 
 	propWriteStream.addByte(CONDITIONATTR_DELAYED);
-	propWriteStream.addType((uint8_t)delayed);
+	propWriteStream.addType(delayed ? 1 : 0);
 
 	propWriteStream.addByte(CONDITIONATTR_PERIODDAMAGE);
 	propWriteStream.addType(periodDamage);
@@ -1113,7 +1112,7 @@ bool ConditionDamage::init()
 	if (startDamage > maxDamage) {
 		startDamage = maxDamage;
 	} else if (!startDamage) {
-		startDamage = std::max((int32_t)1, (int32_t)std::ceil(((float)amount / 20.0)));
+		startDamage = std::max<int32_t>(1, std::ceil(amount / 20.0));
 	}
 
 	std::list<int32_t> list;
@@ -1339,15 +1338,15 @@ void ConditionDamage::generateDamageList(int32_t amount, int32_t start, std::lis
 	float x1, x2;
 	for (int32_t i = start; i > 0; --i) {
 		med = ((start + 1 - i) * amount) / start;
-		x1 = std::fabs(1.0 - (((float)sum) + i) / med);
-		x2 = std::fabs(1.0 - (((float)sum) / med));
+		x1 = std::fabs(1.0 - (static_cast<double>(sum) + i) / med);
+		x2 = std::fabs(1.0 - (static_cast<double>(sum) / med));
 
 		while (x1 < x2) {
 			sum += i;
 			list.push_back(i);
 
-			x1 = std::fabs(1.0 - (((float)sum) + i) / med);
-			x2 = std::fabs(1.0 - (((float)sum) / med));
+			x1 = std::fabs(1.0 - (static_cast<double>(sum) + i) / med);
+			x2 = std::fabs(1.0 - (static_cast<double>(sum) / med));
 		}
 	}
 }
@@ -1369,8 +1368,8 @@ void ConditionSpeed::setFormulaVars(float _mina, float _minb, float _maxa, float
 
 void ConditionSpeed::getFormulaValues(int32_t var, int32_t& min, int32_t& max) const
 {
-	min = (int32_t)std::ceil(var * 1.f * mina + minb);
-	max = (int32_t)std::ceil(var * 1.f * maxa + maxb);
+	min = std::ceil(var * mina + minb);
+	max = std::ceil(var * maxa + maxb);
 }
 
 bool ConditionSpeed::setParam(ConditionParam_t param, int32_t value)

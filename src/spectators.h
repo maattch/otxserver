@@ -786,7 +786,7 @@ private:
 		}
 	}
 
-	void sendAddInventoryItem(slots_t slot, const Item* item)
+	void sendAddInventoryItem(uint8_t slot, const Item* item)
 	{
 		if (!m_owner) {
 			return;
@@ -797,7 +797,7 @@ private:
 			it->first->sendAddInventoryItem(slot, item);
 		}
 	}
-	void sendUpdateInventoryItem(slots_t slot, const Item* item)
+	void sendUpdateInventoryItem(uint8_t slot, const Item* item)
 	{
 		if (!m_owner) {
 			return;
@@ -808,7 +808,7 @@ private:
 			it->first->sendUpdateInventoryItem(slot, item);
 		}
 	}
-	void sendRemoveInventoryItem(slots_t slot)
+	void sendRemoveInventoryItem(uint8_t slot)
 	{
 		if (!m_owner) {
 			return;

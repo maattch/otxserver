@@ -125,9 +125,8 @@ uint32_t Tile::getCreatureCount() const
 uint32_t Tile::getItemCount() const
 {
 	if (const TileItemVector* items = getItemList()) {
-		return (uint32_t)items->size();
+		return items->size();
 	}
-
 	return 0;
 }
 
@@ -304,7 +303,7 @@ Item* Tile::getItemByTopOrder(uint32_t topOrder)
 		for (ItemVector::reverse_iterator it = ItemVector::reverse_iterator(items->getEndTopItem()),
 										  end = ItemVector::reverse_iterator(items->getBeginTopItem());
 			it != end; ++it) {
-			if (Item::items[(*it)->getID()].alwaysOnTopOrder == (int32_t)topOrder) {
+			if (Item::items[(*it)->getID()].alwaysOnTopOrder == static_cast<int32_t>(topOrder)) {
 				return (*it);
 			}
 		}
@@ -814,7 +813,7 @@ ReturnValue Tile::__queryAdd(int32_t, const Thing* thing, uint32_t,
 ReturnValue Tile::__queryMaxCount(int32_t, const Thing*, uint32_t count, uint32_t& maxQueryCount,
 	uint32_t) const
 {
-	maxQueryCount = std::max((uint32_t)1, count);
+	maxQueryCount = std::max<uint32_t>(1, count);
 	return RET_NOERROR;
 }
 
@@ -879,7 +878,7 @@ Cylinder* Tile::__queryDestination(int32_t&, const Thing*, Item** destItem,
 					break;
 			}
 
-			if (!tmpTile || !tmpTile->floorChange((FloorChange_t)i)) {
+			if (!tmpTile || !tmpTile->floorChange(static_cast<FloorChange_t>(i))) {
 				continue;
 			}
 
@@ -1199,14 +1198,14 @@ void Tile::__replaceThing(uint32_t index, Thing* thing)
 
 	if (!oldItem) {
 		if (CreatureVector* creatures = getCreatures()) {
-			if (pos < (int32_t)creatures->size()) {
+			if (pos < static_cast<int32_t>(creatures->size())) {
 #ifdef __DEBUG_MOVESYS__
 				std::clog << "[Failure - Tile::__replaceThing] Update object is a creature" << std::endl;
 #endif
 				return /* RET_NOTPOSSIBLE*/;
 			}
 
-			pos -= (uint32_t)creatures->size();
+			pos -= static_cast<int32_t>(creatures->size());
 		}
 	}
 
@@ -1364,7 +1363,7 @@ void Tile::__removeThing(Thing* thing, uint32_t count)
 		ItemVector::iterator it = std::find(items->getBeginDownItem(), items->getEndDownItem(), item);
 		if (it != items->end()) {
 			if (item->isStackable() && count != item->getItemCount()) {
-				uint8_t newCount = (uint8_t)std::max((int32_t)0, (int32_t)(item->getItemCount() - count));
+				const uint16_t newCount = std::max<int32_t>(0, item->getItemCount() - count);
 				updateTileFlags(item, true);
 
 				item->setItemCount(newCount);
@@ -1545,11 +1544,11 @@ Thing* Tile::__getThing(uint32_t index) const
 	}
 
 	if (const CreatureVector* creatures = getCreatures()) {
-		if (index < (uint32_t)creatures->size()) {
+		if (index < creatures->size()) {
 			return creatures->at(index);
 		}
 
-		index -= (uint32_t)creatures->size();
+		index -= creatures->size();
 	}
 
 	if (items && index < items->getDownItemCount()) {

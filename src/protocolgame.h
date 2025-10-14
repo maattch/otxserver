@@ -261,9 +261,9 @@ private:
 	void sendCloseContainer(uint32_t cid);
 
 	// inventory
-	void sendAddInventoryItem(slots_t slot, const Item* item);
-	void sendUpdateInventoryItem(slots_t slot, const Item* item);
-	void sendRemoveInventoryItem(slots_t slot);
+	void sendAddInventoryItem(uint8_t slot, const Item* item);
+	void sendUpdateInventoryItem(uint8_t slot, const Item* item);
+	void sendRemoveInventoryItem(uint8_t slot);
 
 	// rule violation window
 	void parseViolationWindow(NetworkMessage& msg);
@@ -316,9 +316,9 @@ private:
 	void RemoveContainerItem(OutputMessage_ptr msg, uint8_t cid, uint8_t slot);
 
 	// inventory
-	void AddInventoryItem(OutputMessage_ptr msg, slots_t slot, const Item* item);
-	void UpdateInventoryItem(OutputMessage_ptr msg, slots_t slot, const Item* item);
-	void RemoveInventoryItem(OutputMessage_ptr msg, slots_t slot);
+	void AddInventoryItem(OutputMessage_ptr msg, uint8_t slot, const Item* item);
+	void UpdateInventoryItem(OutputMessage_ptr msg, uint8_t slot, const Item* item);
+	void RemoveInventoryItem(OutputMessage_ptr msg, uint8_t slot);
 
 	// shop
 	void AddShopItem(OutputMessage_ptr msg, const ShopInfo& item);

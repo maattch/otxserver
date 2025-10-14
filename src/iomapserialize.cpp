@@ -155,7 +155,7 @@ bool IOMapSerialize::updateHouses()
 
 		query << "SELECT `price` FROM `houses` WHERE `id` = " << house->getId() << " LIMIT 1";
 		if (DBResultPtr result = g_database.storeQuery(query.str())) {
-			if ((uint32_t)result->getNumber<int32_t>("price") != house->getPrice()) {
+			if (result->getNumber<uint32_t>("price") != house->getPrice()) {
 				house->setSyncFlag(House::HOUSE_SYNC_UPDATE);
 			}
 
@@ -266,7 +266,7 @@ bool IOMapSerialize::saveHouse(House* house)
 		}
 
 		query.str("");
-		query << house->getId() << ", " << (int32_t)door->getDoorId() << ", " << g_database.escapeString(listText);
+		query << house->getId() << ", " << static_cast<int>(door->getDoorId()) << ", " << g_database.escapeString(listText);
 		if (!queryInsert.addRow(query.str())) {
 			return false;
 		}
@@ -448,7 +448,7 @@ bool IOMapSerialize::loadMapBinary(Map* map)
 			uint32_t itemCount = 0;
 			propStream.getLong(itemCount);
 
-			Position pos(x, y, (int16_t)z);
+			Position pos(x, y, z);
 			if (house && house->hasPendingTransfer()) {
 				if (Player* player = g_game.getPlayerByGuidEx(house->getOwner())) {
 					Depot* depot = player->getDepot(player->getTown(), true);
@@ -529,7 +529,7 @@ bool IOMapSerialize::loadMapBinaryTileBased(Map* map)
 			uint32_t itemCount = 0;
 			propStream.getLong(itemCount);
 
-			Position pos(x, y, (int16_t)z);
+			Position pos(x, y, z);
 			if (house && house->hasPendingTransfer()) {
 				if (Player* player = g_game.getPlayerByGuidEx(house->getOwner())) {
 					Depot* depot = player->getDepot(player->getTown(), true);

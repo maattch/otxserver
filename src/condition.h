@@ -24,7 +24,7 @@ class Creature;
 class Player;
 class PropStream;
 
-enum ConditionType_t
+enum ConditionType_t : uint32_t
 {
 	CONDITION_NONE = 0,
 	CONDITION_POISON = 1 << 0,

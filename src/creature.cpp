@@ -100,7 +100,7 @@ Creature::~Creature()
 	m_eventsList.clear();
 }
 
-bool Creature::canSee(const Position& myPos, const Position& pos, uint32_t viewRangeX, uint32_t viewRangeY)
+bool Creature::canSee(const Position& myPos, const Position& pos, int32_t viewRangeX, int32_t viewRangeY)
 {
 	if (myPos.z <= 7) {
 		// we are on ground level or above (7 -> 0)
@@ -118,8 +118,11 @@ bool Creature::canSee(const Position& myPos, const Position& pos, uint32_t viewR
 		}
 	}
 
-	int32_t offsetz = myPos.z - pos.z;
-	return (((uint32_t)pos.x >= myPos.x - viewRangeX + offsetz) && ((uint32_t)pos.x <= myPos.x + viewRangeX + offsetz) && ((uint32_t)pos.y >= myPos.y - viewRangeY + offsetz) && ((uint32_t)pos.y <= myPos.y + viewRangeY + offsetz));
+	const int32_t offsetz = myPos.getZ() - pos.getZ();
+	return ((pos.getX() >= myPos.getX() - viewRangeX + offsetz)
+		 && (pos.getX() <= myPos.getX() + viewRangeX + offsetz)
+		 && (pos.getY() >= myPos.getY() - viewRangeY + offsetz)
+		 && (pos.getY() <= myPos.getY() + viewRangeY + offsetz));
 }
 
 bool Creature::canSee(const Position& pos) const
@@ -191,7 +194,7 @@ void Creature::onThink(uint32_t interval)
 
 	m_blockTicks += interval;
 	if (m_blockTicks >= 1000) {
-		m_blockCount = std::min((uint32_t)m_blockCount + 1, (uint32_t)2);
+		m_blockCount = std::min<uint32_t>(m_blockCount + 1, 2);
 		m_blockTicks = 0;
 	}
 
@@ -912,7 +915,7 @@ void Creature::changeHealth(int32_t healthChange)
 	if (healthChange > 0) {
 		m_health += std::min(healthChange, getMaxHealth() - m_health);
 	} else {
-		m_health = std::max((int32_t)0, m_health + healthChange);
+		m_health = std::max<int32_t>(0, m_health + healthChange);
 	}
 
 	g_game.addCreatureHealth(this);
@@ -1009,9 +1012,8 @@ BlockType_t Creature::blockHit(Creature* attacker, CombatType_t combatType, int3
 			int32_t armorValue = getArmor(), minArmorReduction = 0,
 					maxArmorReduction = 0;
 			if (armorValue > 1) {
-				minArmorReduction = (int32_t)std::ceil(armorValue * 0.475);
-				maxArmorReduction = (int32_t)std::ceil(
-					((armorValue * 0.475) - 1) + minArmorReduction);
+				minArmorReduction = std::ceil(armorValue * 0.475);
+				maxArmorReduction = std::ceil(((armorValue * 0.475) - 1) + minArmorReduction);
 			} else if (armorValue == 1) {
 				minArmorReduction = 1;
 				maxArmorReduction = 1;
@@ -1141,7 +1143,7 @@ double Creature::getDamageRatio(Creature* attacker) const
 
 double Creature::getGainedExperience(Creature* attacker) const
 {
-	return getDamageRatio(attacker) * (double)getLostExperience();
+	return getDamageRatio(attacker) * getLostExperience();
 }
 
 void Creature::addDamagePoints(Creature* attacker, int32_t damagePoints)
@@ -1346,31 +1348,6 @@ bool Creature::onKilledCreature(Creature* target, DeathEntry& entry)
 	return ret;
 }
 
-std::string Creature::TransformExpToString(double& gainExp)
-{
-	std::stringstream sss;
-	const long long TRILHAO = 1000000000000LL;
-	const long long BILHAO = 1000000000LL;
-	const long long MILHAO = 1000000LL;
-	const long long MIL = 1000LL;
-
-	sss << "+" << std::fixed << std::setprecision(2); // Defina a precisão de todos os casos
-
-	if ((uint64_t)gainExp >= TRILHAO) {
-		sss << (double)(gainExp / TRILHAO) << " Tri Exp";
-	} else if ((uint64_t)gainExp >= BILHAO) {
-		sss << (double)(gainExp / BILHAO) << " Bi Exp";
-	} else if ((uint64_t)gainExp >= MILHAO) {
-		sss << (double)(gainExp / MILHAO) << " Mi Exp";
-	} else if ((uint64_t)gainExp >= MIL) {
-		sss << (double)(gainExp / MIL) << "K Exp";
-	} else {
-		sss << (double)(gainExp) << " Exp";
-	}
-
-	return sss.str();
-}
-
 void Creature::onGainExperience(double& gainExp, Creature* target, bool multiplied)
 {
 	if (gainExp <= 0) {
@@ -1391,42 +1368,16 @@ void Creature::onGainExperience(double& gainExp, Creature* target, bool multipli
 
 	const Position& targetPos = getPosition();
 
-	SpectatorVec list;
-	g_game.getSpectators(list, targetPos, false, true, Map::maxViewportX, Map::maxViewportX,
-		Map::maxViewportY, Map::maxViewportY);
-
 	std::ostringstream ss;
-	ss << ucfirst(getNameDescription()) << " gained " << (uint64_t)gainExp << " experience points.";
+	ss << ucfirst(getNameDescription()) << " gained " << static_cast<uint64_t>(gainExp) << " experience points.";
 
-	SpectatorVec textList;
-	for (Creature* spectator : list) {
-		if (spectator != this) {
-			textList.insert(spectator);
-		}
-	}
-
-	std::string sss;
-	if (otx::config::getBoolean(otx::config::USEEXP_IN_K)) {
-		sss = TransformExpToString((double&)gainExp);
-	}
-
-	MessageDetails* details = nullptr;
-	if (!otx::config::getBoolean(otx::config::USEEXP_IN_K)) {
-		details = new MessageDetails((uint32_t)gainExp, (Color_t)color);
-		g_game.addStatsMessage(textList, MSG_EXPERIENCE_OTHERS, ss.str(), targetPos, details);
-	} else {
-		uint16_t colorExp = otx::config::getInteger(otx::config::EXPERIENCE_COLOR);
-		g_game.addAnimatedText(targetPos, (Color_t)colorExp, sss);
-	}
+	const auto colorExp = static_cast<Color_t>(otx::config::getInteger(otx::config::EXPERIENCE_COLOR));
+	g_game.addAnimatedText(targetPos, colorExp, std::to_string(static_cast<uint64_t>(gainExp)));
 
 	if (Player* player = getPlayer()) {
 		ss.str("");
-		ss << "You gained " << (uint64_t)gainExp << " experience points.";
-		player->sendStatsMessage(MSG_EXPERIENCE, ss.str(), targetPos, details);
-	}
-
-	if (details) {
-		delete details;
+		ss << "You gained " << static_cast<uint64_t>(gainExp) << " experience points.";
+		player->sendTextMessage(MSG_EXPERIENCE, ss.str());
 	}
 }
 
@@ -1450,42 +1401,16 @@ void Creature::onGainSharedExperience(double& gainExp, Creature* target, bool mu
 
 	const Position& targetPos = getPosition();
 
-	SpectatorVec list;
-	g_game.getSpectators(list, targetPos, false, true, Map::maxViewportX, Map::maxViewportX,
-		Map::maxViewportY, Map::maxViewportY);
-
 	std::ostringstream ss;
-	ss << ucfirst(getNameDescription()) << " gained " << (uint64_t)gainExp << " experience points.";
+	ss << ucfirst(getNameDescription()) << " gained " << static_cast<uint64_t>(gainExp) << " experience points.";
 
-	SpectatorVec textList;
-	for (Creature* spectator : list) {
-		if (spectator != this) {
-			textList.insert(spectator);
-		}
-	}
-
-	std::string sss;
-	if (otx::config::getBoolean(otx::config::USEEXP_IN_K)) {
-		sss = TransformExpToString((double&)gainExp);
-	}
-
-	MessageDetails* details = nullptr;
-	if (!otx::config::getBoolean(otx::config::USEEXP_IN_K)) {
-		details = new MessageDetails((uint32_t)gainExp, (Color_t)color);
-		g_game.addStatsMessage(textList, MSG_EXPERIENCE_OTHERS, ss.str(), targetPos, details);
-	} else {
-		uint16_t colorExp = otx::config::getInteger(otx::config::EXPERIENCE_COLOR);
-		g_game.addAnimatedText(targetPos, (Color_t)colorExp, sss);
-	}
+	const auto colorExp = static_cast<Color_t>(otx::config::getInteger(otx::config::EXPERIENCE_COLOR));
+	g_game.addAnimatedText(targetPos, colorExp, std::to_string(static_cast<uint64_t>(gainExp)));
 
 	if (Player* player = getPlayer()) {
 		ss.str("");
-		ss << "You gained " << (uint64_t)gainExp << " experience points.";
-		player->sendStatsMessage(MSG_EXPERIENCE, ss.str(), targetPos, details);
-	}
-
-	if (details) {
-		delete details;
+		ss << "You gained " << static_cast<uint64_t>(gainExp) << " experience points.";
+		player->sendTextMessage(MSG_EXPERIENCE, ss.str());
 	}
 }
 
@@ -1670,7 +1595,7 @@ bool Creature::hasCondition(ConditionType_t type, int32_t subId /* = 0*/, bool c
 
 	Condition* condition = nullptr;
 	for (ConditionList::const_iterator it = m_conditions.begin(); it != m_conditions.end(); ++it) {
-		if (!(condition = *it) || condition->getType() != type || (subId != -1 && condition->getSubId() != (uint32_t)subId)) {
+		if (!(condition = *it) || condition->getType() != type || (subId != -1 && condition->getSubId() != static_cast<uint32_t>(subId))) {
 			continue;
 		}
 
@@ -1684,17 +1609,17 @@ bool Creature::hasCondition(ConditionType_t type, int32_t subId /* = 0*/, bool c
 
 bool Creature::isImmune(CombatType_t type) const
 {
-	return ((getDamageImmunities() & (uint32_t)type) == (uint32_t)type);
+	return (getDamageImmunities() & static_cast<uint32_t>(type));
 }
 
 bool Creature::isImmune(ConditionType_t type) const
 {
-	return ((getConditionImmunities() & (uint32_t)type) == (uint32_t)type);
+	return (getConditionImmunities() & static_cast<uint32_t>(type));
 }
 
 bool Creature::isSuppress(ConditionType_t type) const
 {
-	return ((getConditionSuppressions() & (uint32_t)type) == (uint32_t)type);
+	return (getConditionSuppressions() & static_cast<uint32_t>(type));
 }
 
 std::string Creature::getDescription(int32_t) const

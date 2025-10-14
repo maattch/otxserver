@@ -195,22 +195,16 @@ std::string ucfirst(std::string source)
 
 std::string ucwords(std::string source)
 {
-	bool tmp = true;
-	for (uint16_t i = 0; i < (uint16_t)source.length(); ++i) {
-		if (source[i] == ' ') {
-			tmp = true;
-		} else if (tmp) {
-			source[i] = upchar(source[i]);
-			tmp = false;
-		}
+	const size_t index = source.find_first_not_of(' ');
+	if (index != std::string::npos) {
+		source[index] = static_cast<char>(std::tolower(static_cast<uint8_t>(source[index])));
 	}
-
 	return source;
 }
 
 bool readXMLInteger(xmlNodePtr node, const char* tag, int32_t& value)
 {
-	char* nodeValue = (char*)xmlGetProp(node, (xmlChar*)tag);
+	char* nodeValue = reinterpret_cast<char*>(xmlGetProp(node, reinterpret_cast<const xmlChar*>(tag)));
 	if (!nodeValue) {
 		return false;
 	}
@@ -222,7 +216,7 @@ bool readXMLInteger(xmlNodePtr node, const char* tag, int32_t& value)
 
 bool readXMLInteger64(xmlNodePtr node, const char* tag, int64_t& value)
 {
-	char* nodeValue = (char*)xmlGetProp(node, (xmlChar*)tag);
+	char* nodeValue = reinterpret_cast<char*>(xmlGetProp(node, reinterpret_cast<const xmlChar*>(tag)));
 	if (!nodeValue) {
 		return false;
 	}
@@ -234,7 +228,7 @@ bool readXMLInteger64(xmlNodePtr node, const char* tag, int64_t& value)
 
 bool readXMLFloat(xmlNodePtr node, const char* tag, float& value)
 {
-	char* nodeValue = (char*)xmlGetProp(node, (xmlChar*)tag);
+	char* nodeValue = reinterpret_cast<char*>(xmlGetProp(node, reinterpret_cast<const xmlChar*>(tag)));
 	if (!nodeValue) {
 		return false;
 	}
@@ -246,7 +240,7 @@ bool readXMLFloat(xmlNodePtr node, const char* tag, float& value)
 
 bool readXMLString(xmlNodePtr node, const char* tag, std::string& value)
 {
-	char* nodeValue = (char*)xmlGetProp(node, (xmlChar*)tag);
+	auto nodeValue = reinterpret_cast<char*>(xmlGetProp(node, reinterpret_cast<const xmlChar*>(tag)));
 	if (!nodeValue) {
 		return false;
 	}
@@ -261,7 +255,7 @@ bool readXMLString(xmlNodePtr node, const char* tag, std::string& value)
 
 bool readXMLContentString(xmlNodePtr node, std::string& value)
 {
-	char* nodeValue = (char*)xmlNodeGetContent(node);
+	auto nodeValue = reinterpret_cast<char*>(xmlNodeGetContent(node));
 	if (!nodeValue) {
 		return false;
 	}
@@ -279,7 +273,7 @@ bool parseXMLContentString(xmlNodePtr node, std::string& value)
 	bool result = false;
 	std::string compareValue;
 	while (node) {
-		if (xmlStrcmp(node->name, (const xmlChar*)"text") && node->type != XML_CDATA_SECTION_NODE) {
+		if (xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("text")) && node->type != XML_CDATA_SECTION_NODE) {
 			node = node->next;
 			continue;
 		}
@@ -332,14 +326,14 @@ bool utf8ToLatin1(char* inText, std::string& outText)
 	int32_t outLen = inLen << 1;
 	uint8_t* outBuf = new uint8_t[outLen];
 
-	int32_t res = UTF8Toisolat1(outBuf, &outLen, (uint8_t*)inText, &inLen);
+	int32_t res = UTF8Toisolat1(outBuf, &outLen, reinterpret_cast<uint8_t*>(inText), &inLen);
 	if (res < 0) {
 		delete[] outBuf;
 		return false;
 	}
 
 	outBuf[outLen] = '\0';
-	outText = (char*)outBuf;
+	outText = reinterpret_cast<char*>(outBuf);
 
 	delete[] outBuf;
 	return true;
@@ -360,14 +354,14 @@ bool latin1ToUtf8(char* inText, std::string& outText)
 	int32_t outLen = inLen << 1;
 	uint8_t* outBuf = new uint8_t[outLen];
 
-	int32_t res = isolat1ToUTF8(outBuf, &outLen, (uint8_t*)inText, &inLen);
+	int32_t res = isolat1ToUTF8(outBuf, &outLen, reinterpret_cast<uint8_t*>(inText), &inLen);
 	if (res < 0) {
 		delete[] outBuf;
 		return false;
 	}
 
 	outBuf[outLen] = '\0';
-	outText = (char*)outBuf;
+	outText = reinterpret_cast<char*>(outBuf);
 
 	delete[] outBuf;
 	return true;
@@ -463,12 +457,13 @@ int32_t random_range(int32_t lowestNumber, int32_t highestNumber, DistributionTy
 			return uniform_random(lowestNumber, highestNumber);
 		case DISTRO_NORMAL:
 			return normal_random(lowestNumber, highestNumber);
+
 		default:
 			break;
 	}
 
 	const float randMax = 16777216;
-	return (lowestNumber + int32_t(float(highestNumber - lowestNumber) * float(1.f - sqrt((1.f * rand24b()) / randMax))));
+	return lowestNumber + (highestNumber - lowestNumber) * (1.f - sqrt((1.f * rand24b()) / randMax));
 }
 
 char upchar(char character)
@@ -607,9 +602,9 @@ std::string generateRecoveryKey(int32_t fieldCount, int32_t fieldLenght, bool mi
 				}
 			} else {
 				if (mixCase && !random_range(0, 1)) {
-					character = (char)random_range(97, 122);
+					character = static_cast<char>(random_range(97, 122));
 				} else {
-					character = (char)random_range(65, 90);
+					character = static_cast<char>(random_range(65, 90));
 				}
 
 				if (character != lastCharacter) {
@@ -663,9 +658,8 @@ std::string formatDate(time_t _time /* = 0*/)
 	if (tms) {
 		s << tms->tm_mday << "/" << (tms->tm_mon + 1) << "/" << (tms->tm_year + 1900) << " " << tms->tm_hour << ":" << tms->tm_min << ":" << tms->tm_sec;
 	} else {
-		s << "UNIX Time: " << (int32_t)_time;
+		s << "UNIX Time: " << _time;
 	}
-
 	return s.str();
 }
 
@@ -680,9 +674,8 @@ std::string formatDateEx(time_t _time /* = 0*/, std::string format /* = "%d %b %
 	if (tms) {
 		strftime(buffer, 25, format.c_str(), tms);
 	} else {
-		sprintf(buffer, "UNIX Time: %d", (int32_t)_time);
+		sprintf(buffer, "UNIX Time: %d", static_cast<int32_t>(_time));
 	}
-
 	return buffer;
 }
 
@@ -1476,7 +1469,7 @@ std::string parseVocationString(StringVec vocStringVec)
 
 bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, StringVec& vocStringVec, std::string& errorStr)
 {
-	if (xmlStrcmp(vocationNode->name, (const xmlChar*)"vocation")) {
+	if (xmlStrcmp(vocationNode->name, reinterpret_cast<const xmlChar*>("vocation"))) {
 		return true;
 	}
 

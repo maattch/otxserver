@@ -38,11 +38,8 @@ typedef std::list<Direction> DirList;
 class Position
 {
 public:
-	Position() :
-		x(0),
-		y(0),
-		z(0) {}
-	~Position() {}
+	Position() = default;
+	Position(uint16_t x, uint16_t y, uint16_t z) : x(x), y(y), z(z) {}
 
 	template<uint16_t deltax, uint16_t deltay, uint16_t deltaz>
 	inline static bool areInRange(const Position& p1, const Position& p2)
@@ -60,6 +57,10 @@ public:
 	{
 		return !(std::abs(float(p1.x - p2.x)) > r.x || std::abs(float(p1.y - p2.y)) > r.y || std::abs(float(p1.z - p2.z)) > r.z);
 	}
+
+	int32_t getX() const { return x; }
+	int32_t getY() const { return y; }
+	int16_t getZ() const { return z; }
 
 	//--TFS 1.X METHODS--//
 	static int_fast32_t getOffsetX(const Position& p1, const Position& p2)
@@ -87,12 +88,6 @@ public:
 		return std::abs(Position::getOffsetZ(p1, p2));
 	}
 	//--END OF TFS 1.X METHODS--//
-
-	Position(uint16_t _x, uint16_t _y, uint16_t _z) :
-		x(_x),
-		y(_y),
-		z(_z) {}
-	uint16_t x, y, z;
 
 	bool operator<(const Position& p) const
 	{
@@ -147,6 +142,10 @@ public:
 	{
 		return Position(x - p1.x, y - p1.y, z - p1.z);
 	}
+
+	uint16_t x = 0;
+	uint16_t y = 0;
+	uint16_t z = 0;
 };
 
 std::ostream& operator<<(std::ostream&, const Position&);

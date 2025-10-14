@@ -395,8 +395,6 @@ bool otx::config::load()
 	bool_array[SAVE_GLOBAL_STORAGE] = getConfigBoolean(L, "saveGlobalStorage", true);
 	bool_array[SAVE_PLAYER_DATA] = getConfigBoolean(L, "savePlayerData", true);
 	bool_array[INGAME_GUILD_MANAGEMENT] = getConfigBoolean(L, "ingameGuildManagement", true);
-	bool_array[USEDAMAGE_IN_K] = getConfigBoolean(L, "modifyDamageInK", false);
-	bool_array[USEEXP_IN_K] = getConfigBoolean(L, "modifyExperienceInK", false);
 	bool_array[EXTERNAL_GUILD_WARS_MANAGEMENT] = getConfigBoolean(L, "externalGuildWarsManagement", false);
 	bool_array[HOUSE_BUY_AND_SELL] = getConfigBoolean(L, "buyableAndSellableHouses", true);
 	bool_array[HOUSE_NEED_PREMIUM] = getConfigBoolean(L, "houseNeedPremium", true);

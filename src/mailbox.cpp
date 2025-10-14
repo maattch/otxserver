@@ -70,7 +70,7 @@ ReturnValue Mailbox::__queryAdd(int32_t, const Thing* thing, uint32_t,
 ReturnValue Mailbox::__queryMaxCount(int32_t, const Thing*, uint32_t count, uint32_t& maxQueryCount,
 	uint32_t) const
 {
-	maxQueryCount = std::max((uint32_t)1, count);
+	maxQueryCount = std::max<uint32_t>(1, count);
 	return RET_NOERROR;
 }
 

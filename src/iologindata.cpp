@@ -378,7 +378,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	player->m_nameDescription += result->getString("description");
 	player->setSex(result->getNumber<int32_t>("sex"));
 	if (otx::config::getBoolean(otx::config::STORE_DIRECTION)) {
-		player->setDirection((Direction)result->getNumber<int32_t>("direction"));
+		player->setDirection(static_cast<Direction>(result->getNumber<uint8_t>("direction")));
 	}
 
 	player->m_vocationId = result->getNumber<int32_t>("vocation");
@@ -390,7 +390,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		return false;
 	}
 
-	player->m_level = std::max((uint32_t)1, (uint32_t)result->getNumber<int32_t>("level"));
+	player->m_level = std::max<uint32_t>(1, result->getNumber<uint32_t>("level"));
 
 	uint64_t currExpCount = Player::getExpForLevel(player->m_level), nextExpCount = Player::getExpForLevel(player->m_level + 1), experience = result->getNumber<uint64_t>("experience");
 	if (experience < currExpCount || experience > nextExpCount) {
@@ -476,10 +476,10 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	player->m_currentOutfit = player->m_defaultOutfit;
 	Skulls_t skull = SKULL_RED;
 	if (otx::config::getBoolean(otx::config::USE_BLACK_SKULL)) {
-		skull = (Skulls_t)result->getNumber<int32_t>("skull");
+		skull = static_cast<Skulls_t>(result->getNumber<uint8_t>("skull"));
 	}
 
-	player->setSkullEnd((time_t)result->getNumber<int32_t>("skulltime"), true, skull);
+	player->setSkullEnd(result->getNumber<int64_t>("skulltime"), true, skull);
 	player->m_saving = result->getNumber<int32_t>("save") != 0;
 
 	player->m_town = result->getNumber<int32_t>("town_id");
@@ -514,7 +514,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		if ((result = g_database.storeQuery(query.str()))) {
 			player->m_guildId = result->getNumber<int32_t>("guildid");
 			player->m_guildName = result->getString("guildname");
-			player->m_guildLevel = (GuildLevel_t)result->getNumber<int32_t>("level");
+			player->m_guildLevel = static_cast<GuildLevel_t>(result->getNumber<uint8_t>("level"));
 
 			player->m_rankId = rankId;
 			player->m_rankName = result->getString("rank");
@@ -549,7 +549,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		query << "SELECT `guild_id` FROM `guild_invites` WHERE `player_id` = " << player->getGUID();
 		if ((result = g_database.storeQuery(query.str()))) {
 			do {
-				player->m_invitationsList.push_back((uint32_t)result->getNumber<int32_t>("guild_id"));
+				player->m_invitationsList.push_back(result->getNumber<uint32_t>("guild_id"));
 			} while (result->next());
 		}
 	}
@@ -777,17 +777,17 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	}
 
 	query << ", ";
-	query << "`level` = " << std::max((uint32_t)1, player->getLevel()) << ", ";
+	query << "`level` = " << std::max<uint32_t>(1, player->getLevel()) << ", ";
 	query << "`group_id` = " << player->m_groupId << ", ";
 	query << "`health` = " << player->m_health << ", ";
 	query << "`healthmax` = " << player->m_healthMax << ", ";
 	query << "`experience` = " << player->getExperience() << ", ";
-	query << "`lookbody` = " << (uint32_t)player->m_defaultOutfit.lookBody << ", ";
-	query << "`lookfeet` = " << (uint32_t)player->m_defaultOutfit.lookFeet << ", ";
-	query << "`lookhead` = " << (uint32_t)player->m_defaultOutfit.lookHead << ", ";
-	query << "`looklegs` = " << (uint32_t)player->m_defaultOutfit.lookLegs << ", ";
-	query << "`looktype` = " << (uint32_t)player->m_defaultOutfit.lookType << ", ";
-	query << "`lookaddons` = " << (uint32_t)player->m_defaultOutfit.lookAddons << ", ";
+	query << "`looktype` = " << player->m_defaultOutfit.lookType << ", ";
+	query << "`lookbody` = " << static_cast<int>(player->m_defaultOutfit.lookBody) << ", ";
+	query << "`lookfeet` = " << static_cast<int>(player->m_defaultOutfit.lookFeet) << ", ";
+	query << "`lookhead` = " << static_cast<int>(player->m_defaultOutfit.lookHead) << ", ";
+	query << "`looklegs` = " << static_cast<int>(player->m_defaultOutfit.lookLegs) << ", ";
+	query << "`lookaddons` = " << static_cast<int>(player->m_defaultOutfit.lookAddons) << ", ";
 	query << "`maglevel` = " << player->m_magLevel << ", ";
 	query << "`mana` = " << player->m_mana << ", ";
 	query << "`manamax` = " << player->m_manaMax << ", ";
@@ -811,7 +811,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	query << "`skulltime` = " << player->getSkullEnd() << ", ";
 	query << "`promotion` = " << player->m_promotionLevel << ", ";
 	if (otx::config::getBoolean(otx::config::STORE_DIRECTION)) {
-		query << "`direction` = " << (uint32_t)player->getDirection() << ", ";
+		query << "`direction` = " << static_cast<int>(player->getDirection()) << ", ";
 	}
 
 	if (!player->isVirtual()) {
@@ -837,11 +837,11 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	const char* conditions = propWriteStream.getStream(conditionsSize);
 	query << "`conditions` = " << g_database.escapeBlob(conditions, conditionsSize) << ", ";
 
-	query << "`loss_experience` = " << (uint32_t)player->getLossPercent(LOSS_EXPERIENCE) << ", ";
-	query << "`loss_mana` = " << (uint32_t)player->getLossPercent(LOSS_MANA) << ", ";
-	query << "`loss_skills` = " << (uint32_t)player->getLossPercent(LOSS_SKILLS) << ", ";
-	query << "`loss_containers` = " << (uint32_t)player->getLossPercent(LOSS_CONTAINERS) << ", ";
-	query << "`loss_items` = " << (uint32_t)player->getLossPercent(LOSS_ITEMS) << ", ";
+	query << "`loss_experience` = " << player->getLossPercent(LOSS_EXPERIENCE) << ", ";
+	query << "`loss_mana` = " << player->getLossPercent(LOSS_MANA) << ", ";
+	query << "`loss_skills` = " << player->getLossPercent(LOSS_SKILLS) << ", ";
+	query << "`loss_containers` = " << player->getLossPercent(LOSS_CONTAINERS) << ", ";
+	query << "`loss_items` = " << player->getLossPercent(LOSS_ITEMS) << ", ";
 
 	query << "`lastlogout` = " << player->getLastLogout() << ", ";
 	if (otx::config::getBoolean(otx::config::BLESSINGS) && (player->isPremium() || !otx::config::getBoolean(otx::config::BLESSING_ONLY_PREMIUM))) {
@@ -1641,7 +1641,8 @@ bool IOLoginData::createCharacter(uint32_t accountId, std::string characterName,
 		lookType = 128;
 	}
 
-	uint32_t level = otx::config::getInteger(otx::config::START_LEVEL), tmpLevel = std::min((uint32_t)7, (level - 1));
+	uint32_t level = otx::config::getInteger(otx::config::START_LEVEL);
+	uint32_t tmpLevel = std::min<int32_t>(7, level - 1);
 	uint64_t exp = 0;
 	if (level > 1) {
 		exp = Player::getExpForLevel(level);
@@ -1796,7 +1797,7 @@ bool IOLoginData::getUnjustifiedDates(uint32_t guid, std::vector<time_t>& dateLi
 	}
 
 	do {
-		dateList.push_back((time_t)result->getNumber<int32_t>("date"));
+		dateList.push_back(result->getNumber<int64_t>("date"));
 	} while (result->next());
 	return true;
 }

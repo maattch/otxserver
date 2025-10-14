@@ -126,7 +126,7 @@ public:
 	inline bool writeData(const void* data, int32_t size, bool unescape)
 	{
 		for (int32_t i = 0; i < size; ++i) {
-			uint8_t c = *(((uint8_t*)data) + i);
+			uint8_t c = *(reinterpret_cast<const uint8_t*>(data) + i);
 			if (unescape && (c == NODE_START || c == NODE_END || c == ESCAPE_CHAR)) {
 				uint8_t tmp = ESCAPE_CHAR;
 
@@ -195,11 +195,11 @@ public:
 	template<typename T>
 	inline bool getType(T& ret)
 	{
-		if (size() < (int32_t)sizeof(T)) {
+		if (size() < static_cast<int32_t>(sizeof(T))) {
 			return false;
 		}
 
-		ret = *((T*)p);
+		std::memcpy(&ret, p, sizeof(T));
 		p += sizeof(T);
 		return true;
 	}
@@ -207,12 +207,12 @@ public:
 	template<typename T>
 	inline bool getStruct(T*& ret)
 	{
-		if (size() < (int32_t)sizeof(T)) {
+		if (size() < static_cast<int32_t>(sizeof(T))) {
 			ret = nullptr;
 			return false;
 		}
 
-		ret = (T*)p;
+		std::memcpy(ret, p, sizeof(T));
 		p += sizeof(T);
 		return true;
 	}
@@ -225,12 +225,12 @@ public:
 	inline bool getFloat(float& ret)
 	{
 		// ugly hack, but it makes reading not depending on arch
-		if (size() < (int32_t)sizeof(uint32_t)) {
+		if (size() < static_cast<int32_t>(sizeof(uint32_t))) {
 			return false;
 		}
 
 		float f;
-		memcpy(&f, (uint32_t*)p, sizeof(uint32_t));
+		std::memcpy(&f, p, sizeof(uint32_t));
 
 		ret = f;
 		p += sizeof(uint32_t);
@@ -245,7 +245,7 @@ public:
 
 	inline bool getString(std::string& ret, uint16_t strLen)
 	{
-		if (size() < (int32_t)strLen) {
+		if (size() < static_cast<int32_t>(strLen)) {
 			return false;
 		}
 
@@ -266,7 +266,7 @@ public:
 			return false;
 		}
 
-		if (size() < (int32_t)strLen) {
+		if (size() < static_cast<int32_t>(strLen)) {
 			return false;
 		}
 

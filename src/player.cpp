@@ -335,18 +335,13 @@ int32_t Player::getArmor() const
 {
 	int32_t i = SLOT_FIRST, armor = 0;
 	for (; i < SLOT_LAST; ++i) {
-		if (Item* item = getInventoryItem((slots_t)i)) {
+		if (Item* item = getInventoryItem(static_cast<slots_t>(i))) {
 			if (item->getWieldPosition() == i) {
 				armor += item->getArmor();
 			}
 		}
 	}
-
-	if (m_vocation->formulaMultipliers[MULTIPLIER_ARMOR] != 1.0) {
-		return int32_t(armor * m_vocation->formulaMultipliers[MULTIPLIER_ARMOR]);
-	}
-
-	return armor;
+	return armor * m_vocation->formulaMultipliers[MULTIPLIER_ARMOR];
 }
 
 int32_t Player::getDefense() const
@@ -407,7 +402,7 @@ int32_t Player::getDefense() const
 
 	defenseValue += extraDefense;
 	defenseValue *= m_vocation->formulaMultipliers[MULTIPLIER_DEFENSE];
-	return ((int32_t)std::ceil(((float)(defenseSkill * (defenseValue * 0.015)) + (defenseValue * 0.1)) * defenseFactor));
+	return std::ceil(((defenseSkill * (defenseValue * 0.015)) + (defenseValue * 0.1)) * defenseFactor);
 }
 
 float Player::getAttackFactor() const
@@ -474,9 +469,9 @@ void Player::sendIcons() const
 		icons |= ICON_PZBLOCK;
 	}
 
-	// Tibia m_client debugs with 10 or more icons
+	// Tibia client debugs with 10 or more icons
 	// so let's prevent that from happening.
-	std::bitset<20> icon_bitset((uint64_t)icons);
+	std::bitset<20> icon_bitset(icons);
 	for (size_t i = 0, size = icon_bitset.size(); i < size; ++i) {
 		if (icon_bitset.count() < 10) {
 			break;
@@ -498,7 +493,7 @@ void Player::updateInventoryWeight()
 	}
 
 	for (int32_t i = SLOT_FIRST; i < SLOT_LAST; ++i) {
-		if (Item* item = getInventoryItem((slots_t)i)) {
+		if (Item* item = getInventoryItem(static_cast<slots_t>(i))) {
 			m_inventoryWeight += item->getWeight();
 		}
 	}
@@ -535,7 +530,7 @@ void Player::addSkillAdvance(skills_t skill, uint64_t count, bool useMultiplier 
 	}
 
 	if (useMultiplier) {
-		count = uint64_t((double)count * m_rates[skill] * otx::config::getDouble(otx::config::RATE_SKILL));
+		count *=  m_rates[skill] * otx::config::getDouble(otx::config::RATE_SKILL);
 	}
 
 	std::ostringstream s;
@@ -643,9 +638,6 @@ int32_t Player::getContainerID(const Container* container) const
 
 void Player::addContainer(uint32_t cid, Container* container)
 {
-#ifdef __DEBUG__
-	std::clog << getName() << ", addContainer: " << (int32_t)cid << std::endl;
-#endif
 	if (cid > 0xF) {
 		return;
 	}
@@ -668,10 +660,6 @@ void Player::closeContainer(uint32_t cid)
 			break;
 		}
 	}
-#ifdef __DEBUG__
-
-	std::clog << getName() << ", closeContainer: " << (int32_t)cid << std::endl;
-#endif
 }
 
 bool Player::canOpenCorpse(uint32_t ownerId)
@@ -697,7 +685,7 @@ void Player::dropLoot(Container* corpse)
 		--bless;
 	}
 
-	uint32_t itemLoss = (uint32_t)std::floor((5. + loss) * m_lossPercent[LOSS_ITEMS] / 1000.);
+	uint32_t itemLoss = std::floor((5.0 + loss) * m_lossPercent[LOSS_ITEMS] / 1000.0);
 	for (int32_t i = SLOT_FIRST; i < SLOT_LAST; ++i) {
 		Item* item = m_inventory[i];
 		if (!item) {
@@ -707,7 +695,7 @@ void Player::dropLoot(Container* corpse)
 		uint32_t tmp = random_range(1, 100);
 		if (m_skull > SKULL_WHITE || (item->getContainer() && tmp < loss) || (!item->getContainer() && tmp < itemLoss)) {
 			g_game.internalMoveItem(nullptr, this, corpse, INDEX_WHEREEVER, item, item->getItemCount(), 0);
-			sendRemoveInventoryItem((slots_t)i, m_inventory[(slots_t)i]);
+			sendRemoveInventoryItem(i);
 		}
 	}
 }
@@ -1307,12 +1295,12 @@ void Player::onCreatureAppear(const Creature* creature)
 
 	Item* item = nullptr;
 	for (int32_t slot = SLOT_FIRST; slot < SLOT_LAST; ++slot) {
-		if (!(item = getInventoryItem((slots_t)slot))) {
+		if (!(item = getInventoryItem(static_cast<slots_t>(slot)))) {
 			continue;
 		}
 
 		item->__startDecaying();
-		g_moveEvents.onPlayerEquip(this, item, (slots_t)slot, false);
+		g_moveEvents.onPlayerEquip(this, item, static_cast<slots_t>(slot), false);
 	}
 
 	if (BedItem* bed = g_game.getBedBySleeper(m_guid)) {
@@ -1325,11 +1313,12 @@ void Player::onCreatureAppear(const Creature* creature)
 	}
 
 	if (m_lastLogout != 0 && m_stamina < STAMINA_MAX) {
-		int64_t ticks = (int64_t)time(nullptr) - m_lastLogout - 600;
+		int64_t ticks = time(nullptr) - m_lastLogout - 600;
 		if (ticks > 0) {
-			ticks = (int64_t)((double)(ticks * 1000) / otx::config::getDouble(otx::config::RATE_STAMINA_GAIN));
-			int64_t premium = otx::config::getInteger(otx::config::STAMINA_LIMIT_TOP) * 60000, period = ticks;
-			if ((int64_t)m_stamina <= premium) {
+			ticks = (ticks * 1000.0) / otx::config::getDouble(otx::config::RATE_STAMINA_GAIN);
+			int64_t premium = otx::config::getInteger(otx::config::STAMINA_LIMIT_TOP) * 60000;
+			int64_t period = ticks;
+			if (static_cast<int64_t>(m_stamina) <= premium) {
 				period += m_stamina;
 				if (period > premium) {
 					period -= premium;
@@ -1341,7 +1330,7 @@ void Player::onCreatureAppear(const Creature* creature)
 			}
 
 			if (period > 0) {
-				ticks = (int64_t)((otx::config::getDouble(otx::config::RATE_STAMINA_GAIN) * period) / otx::config::getDouble(otx::config::RATE_STAMINA_THRESHOLD));
+				ticks = (otx::config::getDouble(otx::config::RATE_STAMINA_GAIN) * period) / otx::config::getDouble(otx::config::RATE_STAMINA_THRESHOLD);
 				if (m_stamina + ticks > STAMINA_MAX) {
 					ticks = STAMINA_MAX - m_stamina;
 				}
@@ -1355,7 +1344,7 @@ void Player::onCreatureAppear(const Creature* creature)
 
 	int32_t offlineTime;
 	if (getLastLogout()) {
-		offlineTime = std::min((int32_t)(time(nullptr) - getLastLogout()), 86400 * 21);
+		offlineTime = std::min<int32_t>(time(nullptr) - getLastLogout(), 86400 * 21);
 	} else {
 		offlineTime = 0;
 	}
@@ -1409,16 +1398,16 @@ void Player::onCreatureAppear(const Creature* creature)
 
 				if (m_offlineTrainingSkill == SKILL_CLUB || m_offlineTrainingSkill == SKILL_SWORD || m_offlineTrainingSkill == SKILL_AXE) {
 					float modifier = voc->attackSpeed / 1000.f;
-					addOfflineTrainingTries((skills_t)m_offlineTrainingSkill, (trainingTime / modifier) / 2);
+					addOfflineTrainingTries(static_cast<skills_t>(m_offlineTrainingSkill), (trainingTime / modifier) / 2);
 				} else if (m_offlineTrainingSkill == SKILL_DIST) {
 					float modifier = voc->attackSpeed / 1000.f;
-					addOfflineTrainingTries((skills_t)m_offlineTrainingSkill, (trainingTime / modifier) / 4);
+					addOfflineTrainingTries(static_cast<skills_t>(m_offlineTrainingSkill), (trainingTime / modifier) / 4);
 				} else if (m_offlineTrainingSkill == SKILL__MAGLEVEL) {
 					int32_t gainTicks = voc->gainTicks[GAIN_MANA] << 1;
 					if (!gainTicks) {
 						gainTicks = 1;
 					}
-					addOfflineTrainingTries(SKILL__MAGLEVEL, (int32_t)((float)trainingTime * ((float)voc->gainAmount[GAIN_MANA] / (float)gainTicks)));
+					addOfflineTrainingTries(SKILL__MAGLEVEL, trainingTime * (voc->gainAmount[GAIN_MANA] / static_cast<double>(gainTicks)));
 				}
 
 				if (addOfflineTrainingTries(SKILL_SHIELD, trainingTime / 4)) {
@@ -1536,11 +1525,11 @@ void Player::onCreatureDisappear(const Creature* creature, bool isLogout)
 
 	Item* item = nullptr;
 	for (int32_t slot = SLOT_FIRST; slot < SLOT_LAST; ++slot) {
-		if (!(item = getInventoryItem((slots_t)slot))) {
+		if (!(item = getInventoryItem(static_cast<slots_t>(slot)))) {
 			continue;
 		}
 
-		g_moveEvents.onPlayerDeEquip(this, item, (slots_t)slot, false);
+		g_moveEvents.onPlayerDeEquip(this, item, static_cast<slots_t>(slot), false);
 	}
 
 	if (m_eventWalk) {
@@ -1785,7 +1774,7 @@ void Player::onUpdateInventoryItem(Item* oldItem, Item* newItem)
 	}
 }
 
-void Player::onRemoveInventoryItem(slots_t, Item* item)
+void Player::onRemoveInventoryItem(Item* item)
 {
 	if (m_tradeState == TRADE_TRANSFER) {
 		return;
@@ -1853,10 +1842,9 @@ bool Player::canDoAction() const
 uint32_t Player::getNextActionTime(bool scheduler /* = true*/) const
 {
 	if (!scheduler) {
-		return (uint32_t)std::max((int64_t)0, ((int64_t)m_nextAction - otx::util::mstime()));
+		return std::max<int64_t>(0, m_nextAction - otx::util::mstime());
 	}
-
-	return (uint32_t)std::max((int64_t)SCHEDULER_MINTICKS, ((int64_t)m_nextAction - otx::util::mstime()));
+	return std::max<int64_t>(SCHEDULER_MINTICKS, m_nextAction - otx::util::mstime());
 }
 
 bool Player::canDoExAction() const
@@ -1933,9 +1921,8 @@ bool Player::isMuted(uint16_t channelId, MessageClasses type, int32_t& time)
 	}
 
 	if (muteTicks) {
-		time = (uint32_t)muteTicks / 1000;
+		time = muteTicks / 1000;
 	}
-
 	return type != MSG_NPC_TO && (type != MSG_CHANNEL || (channelId != CHANNEL_GUILD && !g_chat.isPrivateChannel(channelId)));
 }
 
@@ -2008,7 +1995,7 @@ void Player::addManaSpent(uint64_t amount, bool useMultiplier /* = true*/)
 	}
 
 	if (useMultiplier) {
-		amount = uint64_t((double)amount * m_rates[SKILL__MAGLEVEL] * otx::config::getDouble(otx::config::RATE_MAGIC));
+		amount *= m_rates[SKILL__MAGLEVEL] * otx::config::getDouble(otx::config::RATE_MAGIC);
 	}
 
 	std::ostringstream s;
@@ -2228,7 +2215,7 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 	}
 
 	if (m_vocation->formulaMultipliers[MULTIPLIER_MAGICDEFENSE] != 1.0 && combatType != COMBAT_PHYSICALDAMAGE && combatType != COMBAT_NONE && combatType != COMBAT_UNDEFINEDDAMAGE && combatType != COMBAT_DROWNDAMAGE) {
-		damage -= (int32_t)std::ceil((double)(damage * m_vocation->formulaMultipliers[MULTIPLIER_MAGICDEFENSE]) / 100.);
+		damage -= std::ceil((damage * m_vocation->formulaMultipliers[MULTIPLIER_MAGICDEFENSE]) / 100.);
 	}
 
 	if (damage <= 0) {
@@ -2244,7 +2231,7 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 
 	Item* item = nullptr;
 	for (int32_t slot = SLOT_FIRST; slot < SLOT_LAST; ++slot) {
-		if (!(item = getInventoryItem((slots_t)slot)) || item->isRemoved() || (g_moveEvents.hasEquipEvent(item) && !isItemAbilityEnabled((slots_t)slot))) {
+		if (!(item = getInventoryItem(static_cast<slots_t>(slot))) || item->isRemoved() || (g_moveEvents.hasEquipEvent(item) && !isItemAbilityEnabled(slot))) {
 			continue;
 		}
 
@@ -2255,28 +2242,28 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 
 		bool transform = false;
 		if (it.abilities->absorb[combatIndex]) {
-			blocked += (int32_t)std::ceil((double)(damage * it.abilities->absorb[combatIndex]) / 100.);
+			blocked += std::ceil((damage * it.abilities->absorb[combatIndex]) / 100.);
 			if (item->hasCharges()) {
 				transform = true;
 			}
 		}
 
 		if (field && it.abilities->fieldAbsorb[combatIndex]) {
-			blocked += (int32_t)std::ceil((double)(damage * it.abilities->fieldAbsorb[combatIndex]) / 100.);
+			blocked += std::ceil((damage * it.abilities->fieldAbsorb[combatIndex]) / 100.);
 			if (item->hasCharges()) {
 				transform = true;
 			}
 		}
 
 		if (reflect && it.abilities->reflect[REFLECT_PERCENT][combatIndex] && it.abilities->reflect[REFLECT_CHANCE][combatIndex] >= random_range(1, 100)) {
-			reflected += (int32_t)std::ceil((double)(damage * it.abilities->reflect[REFLECT_PERCENT][combatIndex]) / 100.);
+			reflected += std::ceil((damage * it.abilities->reflect[REFLECT_PERCENT][combatIndex]) / 100.);
 			if (item->hasCharges()) {
 				transform = true;
 			}
 		}
 
 		if (!element && transform) {
-			g_game.transformItem(item, item->getID(), std::max((int32_t)0, (int32_t)item->getCharges() - 1));
+			g_game.transformItem(item, item->getID(), std::max<int32_t>(0, item->getCharges() - 1));
 		}
 	}
 	/*
@@ -2295,11 +2282,11 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 		}
 	*/
 	if (m_vocation->absorb[combatIndex]) {
-		blocked += (int32_t)std::ceil((double)(damage * m_vocation->absorb[combatIndex]) / 100.);
+		blocked += std::ceil((damage * m_vocation->absorb[combatIndex]) / 100.);
 	}
 
 	if (reflect && m_vocation->getReflect(combatIndex)) {
-		reflected += (int32_t)std::ceil((double)(damage * m_vocation->getReflect(combatIndex)) / 100.);
+		reflected += std::ceil((damage * m_vocation->getReflect(combatIndex)) / 100.);
 	}
 
 	if (otx::config::getBoolean(otx::config::USE_MAX_ABSORBALL)) {
@@ -2348,7 +2335,7 @@ bool Player::onDeath()
 	} else if (m_skull < SKULL_RED) {
 		Item* item = nullptr;
 		for (int32_t i = SLOT_FIRST; ((!preventDrop || !preventLoss) && i < SLOT_LAST); ++i) {
-			if (!(item = getInventoryItem((slots_t)i)) || item->isRemoved() || (g_moveEvents.hasEquipEvent(item) && !isItemAbilityEnabled((slots_t)i))) {
+			if (!(item = getInventoryItem(static_cast<slots_t>(i))) || item->isRemoved() || (g_moveEvents.hasEquipEvent(item) && !isItemAbilityEnabled(i))) {
 				continue;
 			}
 
@@ -2369,7 +2356,7 @@ bool Player::onDeath()
 				}
 			}
 
-			reduceItem = getEquippedItem((slots_t)i);
+			reduceItem = getEquippedItem(static_cast<slots_t>(i));
 			if (reduceItem) {
 				int32_t tempReduceSkillLoss = reduceItem->getReduceSkillLoss();
 				if (tempReduceSkillLoss != 0) {
@@ -2412,29 +2399,30 @@ bool Player::onDeath()
 	bool usePVPBlessing = false;
 	if (preventLoss) {
 		setLossSkill(false);
-		g_game.transformItem(preventLoss, preventLoss->getID(), std::max(0, (int32_t)preventLoss->getCharges() - 1));
-	} else if (m_pvpBlessing && (int32_t)std::floor((100. * pvpDamage) / std::max(1U, totalDamage)) >= otx::config::getInteger(otx::config::PVP_BLESSING_THRESHOLD)) {
+		g_game.transformItem(preventLoss, preventLoss->getID(), std::max<int32_t>(0, preventLoss->getCharges() - 1));
+	} else if (m_pvpBlessing && static_cast<int32_t>(std::floor((100. * pvpDamage) / std::max(1U, totalDamage))) >= otx::config::getInteger(otx::config::PVP_BLESSING_THRESHOLD)) {
 		usePVPBlessing = true;
 	}
 
 	if (preventDrop && preventDrop != preventLoss && !usePVPBlessing) {
-		g_game.transformItem(preventDrop, preventDrop->getID(), std::max(0, (int32_t)preventDrop->getCharges() - 1));
+		g_game.transformItem(preventDrop, preventDrop->getID(), std::max<int32_t>(0, preventDrop->getCharges() - 1));
 	}
 
 	removeConditions(CONDITIONEND_DEATH);
 	if (m_skillLoss) {
-		double reduction = 1.;
+		double reduction = 1.0;
 		if (otx::config::getBoolean(otx::config::FAIRFIGHT_REDUCTION) && opponents > m_level) {
-			reduction -= (double)m_level / opponents;
+			reduction -= static_cast<double>(m_level) / opponents;
 		}
 
-		uint64_t lossExperience = (uint64_t)std::floor(reduction * getLostExperience()), currExperience = m_experience;
+		uint64_t lossExperience = std::floor(reduction * getLostExperience());
+		uint64_t currExperience = m_experience;
 		if (reduceSkillLoss > 0) {
 			lossExperience = (lossExperience - (lossExperience * reduceSkillLoss / 100));
 		}
 
 		removeExperience(lossExperience, false);
-		double percent = 1. - ((double)(currExperience - lossExperience) / std::max((uint64_t)1, currExperience));
+		double percent = 1.0 - ((currExperience - static_cast<double>(lossExperience)) / std::max<uint64_t>(1, currExperience));
 
 		// magic m_level loss
 		uint64_t sumMana = 0, lostMana = 0;
@@ -2443,7 +2431,7 @@ bool Player::onDeath()
 		}
 
 		sumMana += m_manaSpent;
-		lostMana = (uint64_t)std::ceil((percent * m_lossPercent[LOSS_MANA] / 100.) * sumMana);
+		lostMana = std::ceil((percent * m_lossPercent[LOSS_MANA] / 100.) * sumMana);
 		while (lostMana > m_manaSpent && m_magLevel > 0) {
 			lostMana -= m_manaSpent;
 			m_manaSpent = m_vocation->getReqMana(m_magLevel);
@@ -2472,7 +2460,7 @@ bool Player::onDeath()
 			}
 
 			sumSkillTries += m_skills[i].tries;
-			lostSkillTries = (uint64_t)std::ceil((percent * m_lossPercent[LOSS_SKILLS] / 100.) * sumSkillTries);
+			lostSkillTries = std::ceil((percent * m_lossPercent[LOSS_SKILLS] / 100.) * sumSkillTries);
 			if (reduceSkillLoss > 0) {
 				lostSkillTries = (lostSkillTries - (lostSkillTries * reduceSkillLoss / 100));
 			}
@@ -2599,8 +2587,7 @@ void Player::addCooldown(uint32_t ticks, uint16_t spellId)
 
 void Player::addExhaust(uint32_t ticks, Exhaust_t exhaust)
 {
-	if (Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT,
-			CONDITION_EXHAUST, ticks, 0, false, (int32_t)exhaust)) {
+	if (Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST, ticks, 0, false, exhaust)) {
 		addCondition(condition);
 	}
 }
@@ -2719,7 +2706,7 @@ bool Player::addVIP(uint32_t _guid, const std::string& name, bool online, bool l
 		return false;
 	}
 
-	if (!loading && m_VIPList.size() > (size_t)(m_group ? m_group->getMaxVips(isPremium()) : otx::config::getInteger(otx::config::VIPLIST_DEFAULT_LIMIT))) {
+	if (!loading && m_VIPList.size() > (m_group ? m_group->getMaxVips(isPremium()) : static_cast<uint32_t>(otx::config::getInteger(otx::config::VIPLIST_DEFAULT_LIMIT)))) {
 		sendTextMessage(MSG_STATUS_SMALL, "You cannot add more buddies.");
 		return false;
 	}
@@ -2946,7 +2933,7 @@ ReturnValue Player::__queryAdd(int32_t index, const Thing* thing, uint32_t count
 	if (ret == RET_NOERROR || ret == RET_NOTENOUGHROOM) {
 		// need an exchange with source?
 		Item* tmpItem = nullptr;
-		if ((tmpItem = getInventoryItem((slots_t)index)) && (!tmpItem->isStackable() || tmpItem->getID() != item->getID())) {
+		if ((tmpItem = getInventoryItem(static_cast<slots_t>(index))) && (!tmpItem->isStackable() || tmpItem->getID() != item->getID())) {
 			return RET_NEEDEXCHANGE;
 		}
 
@@ -2954,7 +2941,7 @@ ReturnValue Player::__queryAdd(int32_t index, const Thing* thing, uint32_t count
 			return RET_NOTENOUGHCAPACITY;
 		}
 
-		if (!g_moveEvents.onPlayerEquip(self, const_cast<Item*>(item), (slots_t)index, true)) {
+		if (!g_moveEvents.onPlayerEquip(self, const_cast<Item*>(item), static_cast<slots_t>(index), true)) {
 			return RET_CANNOTBEDRESSED;
 		}
 	}
@@ -2964,17 +2951,16 @@ ReturnValue Player::__queryAdd(int32_t index, const Thing* thing, uint32_t count
 			self->setLastAttack(otx::util::mstime());
 		}
 
-		Item* tmpItem = m_inventory[(slots_t)index];
+		Item* tmpItem = m_inventory[index];
 		if (ret == RET_NOTENOUGHROOM && g_game.internalAddItem(nullptr, self, tmpItem, INDEX_WHEREEVER) == RET_NOERROR) {
-			self->sendRemoveInventoryItem((slots_t)index, tmpItem);
-			self->onRemoveInventoryItem((slots_t)index, tmpItem);
+			self->sendRemoveInventoryItem(index);
+			self->onRemoveInventoryItem(tmpItem);
 
-			self->m_inventory[(slots_t)index] = nullptr;
+			self->m_inventory[index] = nullptr;
 			self->m_inventoryWeight -= tmpItem->getWeight();
 			self->sendStats();
 		}
 	}
-
 	return ret;
 }
 
@@ -3231,9 +3217,7 @@ void Player::__addThing(Creature*, int32_t index, Thing* thing)
 	m_inventory[index] = item;
 
 	// send to client
-	sendAddInventoryItem((slots_t)index, item);
-	// event methods
-	onAddInventoryItem((slots_t)index, item);
+	sendAddInventoryItem(index, item);
 }
 
 void Player::__updateThing(Thing* thing, uint16_t itemId, uint32_t count)
@@ -3258,7 +3242,8 @@ void Player::__updateThing(Thing* thing, uint16_t itemId, uint32_t count)
 	item->setSubType(count);
 
 	// send to client
-	sendUpdateInventoryItem((slots_t)index, item);
+	sendUpdateInventoryItem(index, item);
+
 	// event methods
 	onUpdateInventoryItem(item, item);
 }
@@ -3272,7 +3257,7 @@ void Player::__replaceThing(uint32_t index, Thing* thing)
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
-	Item* oldItem = getInventoryItem((slots_t)index);
+	Item* oldItem = getInventoryItem(static_cast<slots_t>(index));
 	if (!oldItem) {
 #ifdef __DEBUG_MOVESYS__
 		std::clog << "Failure: [Player::__updateThing], " << "player: " << getName() << ", oldItem == nullptr" << std::endl;
@@ -3289,7 +3274,8 @@ void Player::__replaceThing(uint32_t index, Thing* thing)
 	}
 
 	// send to client
-	sendUpdateInventoryItem((slots_t)index, item);
+	sendUpdateInventoryItem(index, item);
+
 	// event methods
 	onUpdateInventoryItem(oldItem, item);
 
@@ -3319,25 +3305,28 @@ void Player::__removeThing(Thing* thing, uint32_t count)
 	if (item->isStackable()) {
 		if (count == item->getItemCount()) {
 			// send change to client
-			sendRemoveInventoryItem((slots_t)index, item);
+			sendRemoveInventoryItem(index);
+
 			// event methods
-			onRemoveInventoryItem((slots_t)index, item);
+			onRemoveInventoryItem(item);
 
 			item->setParent(nullptr);
 			m_inventory[index] = nullptr;
 		} else {
-			item->setItemCount(std::max(0, (int32_t)(item->getItemCount() - count)));
+			item->setItemCount(std::max<int32_t>(0, item->getItemCount() - count));
 
 			// send change to client
-			sendUpdateInventoryItem((slots_t)index, item);
+			sendUpdateInventoryItem(index, item);
+
 			// event methods
 			onUpdateInventoryItem(item, item);
 		}
 	} else {
 		// send change to client
-		sendRemoveInventoryItem((slots_t)index, item);
+		sendRemoveInventoryItem(index);
+
 		// event methods
-		onRemoveInventoryItem((slots_t)index, item);
+		onRemoveInventoryItem(item);
 
 		item->setParent(nullptr);
 		m_inventory[index] = nullptr;
@@ -3429,7 +3418,7 @@ void Player::postAddNotification(Creature*, Thing* thing, const Cylinder* oldPar
 	int32_t index, CylinderLink_t link /*= LINK_OWNER*/)
 {
 	if (link == LINK_OWNER) { // calling movement scripts
-		g_moveEvents.onPlayerEquip(this, thing->getItem(), (slots_t)index, false);
+		g_moveEvents.onPlayerEquip(this, thing->getItem(), static_cast<slots_t>(index), false);
 	}
 
 	bool requireListUpdate = true;
@@ -3476,7 +3465,7 @@ void Player::postRemoveNotification(Creature*, Thing* thing, const Cylinder* new
 	int32_t index, bool isCompleteRemoval, CylinderLink_t link /* = LINK_OWNER*/)
 {
 	if (link == LINK_OWNER) { // calling movement scripts
-		g_moveEvents.onPlayerDeEquip(this, thing->getItem(), (slots_t)index, isCompleteRemoval);
+		g_moveEvents.onPlayerDeEquip(this, thing->getItem(), static_cast<slots_t>(index), isCompleteRemoval);
 	}
 
 	bool requireListUpdate = true;
@@ -3681,8 +3670,10 @@ double Player::getGainedExperience(Creature* attacker) const
 		return 0;
 	}
 
-	double attackerLevel = (double)attackerPlayer->getLevel(), min = otx::config::getDouble(otx::config::EFP_MIN_THRESHOLD), max = otx::config::getDouble(otx::config::EFP_MAX_THRESHOLD);
-	if ((min > 0.0 && m_level < (uint32_t)std::floor(attackerLevel * min)) || (max > 0.0 && m_level > (uint32_t)std::floor(attackerLevel * max))) {
+	double attackerLevel = attackerPlayer->getLevel();
+	double min = otx::config::getDouble(otx::config::EFP_MIN_THRESHOLD);
+	double max = otx::config::getDouble(otx::config::EFP_MAX_THRESHOLD);
+	if ((min > 0.0 && m_level < static_cast<uint32_t>(std::floor(attackerLevel * min))) || (max > 0.0 && m_level > static_cast<uint32_t>(std::floor(attackerLevel * max)))) {
 		return 0;
 	}
 
@@ -3695,9 +3686,10 @@ double Player::getGainedExperience(Creature* attacker) const
 		result = (1 - (a / b)) * 0.05 * c
 		Not affected by special multipliers(!)
 	*/
-	uint32_t a = (uint32_t)std::floor(attackerLevel * 0.9), b = m_level;
+	double a = std::floor(attackerLevel * 0.9);
+	uint32_t b = m_level;
 	uint64_t c = getExperience();
-	return (double)std::max((uint64_t)0, (uint64_t)std::floor(getDamageRatio(attacker) * std::max((double)0, ((double)(1 - (((double)a / b))))) * 0.05 * c)) * rate;
+	return std::max<double>(0.0, std::floor(getDamageRatio(attacker) * std::max<double>(0.0, 1.0 - (a / b)) * 0.05 * c)) * rate;
 }
 
 void Player::onFollowCreature(const Creature* creature)
@@ -3757,7 +3749,7 @@ void Player::updateItemsLight(bool internal /* = false*/)
 	LightInfo maxLight, curLight;
 	Item* item = nullptr;
 	for (int32_t i = SLOT_FIRST; i < SLOT_LAST; ++i) {
-		if (!(item = getInventoryItem((slots_t)i))) {
+		if (!(item = getInventoryItem(static_cast<slots_t>(i)))) {
 			continue;
 		}
 
@@ -3863,7 +3855,7 @@ void Player::onCombatRemoveCondition(const Creature*, Condition* condition)
 		remove = false;
 		// Means the condition is from an item, id == slot
 		if (g_game.getWorldType() == WORLDTYPE_HARDCORE) {
-			if (Item* item = getInventoryItem((slots_t)condition->getId())) {
+			if (Item* item = getInventoryItem(static_cast<slots_t>(condition->getId()))) {
 				// 25% chance to destroy the item
 				if (random_range(1, 100) < 26) {
 					g_game.internalRemoveItem(nullptr, item);
@@ -4185,7 +4177,7 @@ bool Player::gainExperience(double& gainExp, Creature* target)
 		}
 	}
 
-	addExperience((uint64_t)gainExp);
+	addExperience(gainExp);
 	return true;
 }
 
@@ -4275,9 +4267,9 @@ void Player::changeMana(int32_t manaChange)
 {
 	if (!hasFlag(PlayerFlag_HasInfiniteMana)) {
 		if (manaChange > 0) {
-			m_mana += std::min(manaChange, getMaxMana() - m_mana);
+			m_mana += std::min<int32_t>(manaChange, getMaxMana() - m_mana);
 		} else {
-			m_mana = std::max((int32_t)0, m_mana + manaChange);
+			m_mana = std::max<int32_t>(0, m_mana + manaChange);
 		}
 	}
 
@@ -4295,9 +4287,8 @@ void Player::changeMaxMana(int32_t manaChange)
 void Player::changeSoul(int32_t soulChange)
 {
 	if (!hasFlag(PlayerFlag_HasInfiniteSoul)) {
-		m_soul = std::min((int32_t)m_soulMax, (int32_t)m_soul + soulChange);
+		m_soul = std::min<int32_t>(m_soulMax, m_soul + soulChange);
 	}
-
 	sendStats();
 }
 
@@ -4648,17 +4639,17 @@ uint64_t Player::getLostExperience() const
 	int32_t blessingCount = getBlessings();
 	int32_t deathLosePercentCFG = m_lossPercent[LOSS_EXPERIENCE];
 	int32_t deathLossPercent = 100;
-	int64_t lossTotalExp = ((double)(m_level + 50) / 100) * 50 * ((m_level * m_level) - (5 * m_level) + 8);
+	int64_t lossTotalExp = ((m_level + 50.0) / 100.0) * 50.0 * ((m_level * m_level) - (5.0 * m_level) + 8.0);
 
 	deathLossPercent = deathLossPercent - (blessingCount * 8);
 	if (isPromoted()) {
 		deathLossPercent = deathLossPercent - 30;
 	}
+
 	if (m_level <= 23) {
-		return (int64_t)((((double)m_experience * 0.10) * ((double)deathLossPercent / 100)) * ((double)deathLosePercentCFG / 100));
-	} else {
-		return (int64_t)((lossTotalExp * ((double)deathLossPercent / 100)) * ((double)deathLosePercentCFG / 100));
+		return ((m_experience * 0.10) * (deathLossPercent / 100.0)) * (deathLosePercentCFG / 100.0);
 	}
+	return (lossTotalExp * (deathLossPercent / 100.0)) * (deathLosePercentCFG / 100.0);
 }
 
 uint32_t Player::getAttackSpeed() const
@@ -4947,7 +4938,7 @@ void Player::manageAccount(const std::string& text)
 						m_talkState[i] = false;
 					}
 
-					if (IOLoginData::getInstance()->createCharacter(m_managerNumber, m_managerString, managerNumber2, (uint16_t)m_managerSex)) {
+					if (IOLoginData::getInstance()->createCharacter(m_managerNumber, m_managerString, managerNumber2, m_managerSex)) {
 						msg << "Your character {" << m_managerString << "} has been created.";
 					} else {
 						msg << "Your character couldn't be created, please contact with staff.";
@@ -4973,7 +4964,7 @@ void Player::manageAccount(const std::string& text)
 						m_talkState[i] = false;
 					}
 
-					if (IOLoginData::getInstance()->createCharacter(m_managerNumber, m_managerString, managerNumber2, (uint16_t)m_managerSex)) {
+					if (IOLoginData::getInstance()->createCharacter(m_managerNumber, m_managerString, managerNumber2, m_managerSex)) {
 						msg << "Your character {" << m_managerString << "} has been created.";
 					} else {
 						msg << "Your character couldn't be created, please contact with staff.";
@@ -5040,7 +5031,7 @@ void Player::manageAccount(const std::string& text)
 						sprintf(m_managerChar, "%d%d%d%d%d%d%d", random_range(2, 9), random_range(2, 9), random_range(2, 9), random_range(2, 9), random_range(2, 9), random_range(2, 9), random_range(2, 9));
 					} while (IOLoginData::getInstance()->accountNameExists(m_managerChar));
 
-					uint32_t id = (uint32_t)IOLoginData::getInstance()->createAccount(m_managerChar, m_managerString);
+					uint32_t id = IOLoginData::getInstance()->createAccount(m_managerChar, m_managerString);
 					if (id) {
 						m_accountManager = MANAGER_ACCOUNT;
 						m_managerNumber = id;
@@ -5083,7 +5074,7 @@ void Player::manageAccount(const std::string& text)
 				}
 			} else if (checkText(text, "yes") && m_talkState[5]) {
 				if (!IOLoginData::getInstance()->accountNameExists(m_managerChar)) {
-					uint32_t id = (uint32_t)IOLoginData::getInstance()->createAccount(m_managerChar, m_managerString);
+					uint32_t id = IOLoginData::getInstance()->createAccount(m_managerChar, m_managerString);
 					if (id) {
 						m_accountManager = MANAGER_ACCOUNT;
 						m_managerNumber = id;
@@ -5113,7 +5104,7 @@ void Player::manageAccount(const std::string& text)
 				msg << "What was your account name?";
 			} else if (m_talkState[7]) {
 				m_managerString = text;
-				if (IOLoginData::getInstance()->getAccountId(m_managerString, (uint32_t&)m_managerNumber)) {
+				if (IOLoginData::getInstance()->getAccountId(m_managerString, m_managerNumber)) {
 					m_talkState[7] = false;
 					m_talkState[8] = true;
 					msg << "What was your recovery key?";
@@ -5184,11 +5175,11 @@ void Player::addPremiumDays(int32_t days)
 	if (m_premiumDays < 0xFFFF) {
 		Account account = IOLoginData::getInstance()->loadAccount(m_accountId);
 		if (days < 0) {
-			account.premiumDays = std::max((uint32_t)0, uint32_t(account.premiumDays + (int32_t)days));
-			m_premiumDays = std::max((uint32_t)0, uint32_t(m_premiumDays + (int32_t)days));
+			account.premiumDays = std::max<int32_t>(0, account.premiumDays + days);
+			m_premiumDays = std::max<int32_t>(0, m_premiumDays + days);
 		} else {
-			account.premiumDays = std::min((uint32_t)65534, uint32_t(account.premiumDays + (uint32_t)days));
-			m_premiumDays = std::min((uint32_t)65534, uint32_t(m_premiumDays + (uint32_t)days));
+			account.premiumDays = std::min<int32_t>(65534, account.premiumDays + days);
+			m_premiumDays = std::min<int32_t>(65534, m_premiumDays + days);
 		}
 
 		IOLoginData::getInstance()->saveAccount(account);
@@ -5355,21 +5346,21 @@ void Player::clearPartyInvitations()
 void Player::increaseCombatValues(int32_t& min, int32_t& max, bool useCharges, bool countWeapon)
 {
 	if (min > 0) {
-		min = (int32_t)(min * m_vocation->formulaMultipliers[MULTIPLIER_HEALING]);
+		min *= m_vocation->formulaMultipliers[MULTIPLIER_HEALING];
 	} else {
-		min = (int32_t)(min * m_vocation->formulaMultipliers[MULTIPLIER_MAGIC]);
+		min *= m_vocation->formulaMultipliers[MULTIPLIER_MAGIC];
 	}
 
 	if (max > 0) {
-		max = (int32_t)(max * m_vocation->formulaMultipliers[MULTIPLIER_HEALING]);
+		max *= m_vocation->formulaMultipliers[MULTIPLIER_HEALING];
 	} else {
-		max = (int32_t)(max * m_vocation->formulaMultipliers[MULTIPLIER_MAGIC]);
+		max *= m_vocation->formulaMultipliers[MULTIPLIER_MAGIC];
 	}
 
 	Item* item = nullptr;
 	int32_t minValue = 0, maxValue = 0, i = SLOT_FIRST;
 	for (; i < SLOT_LAST; ++i) {
-		if (!(item = getInventoryItem((slots_t)i)) || item->isRemoved() || (g_moveEvents.hasEquipEvent(item) && !isItemAbilityEnabled((slots_t)i))) {
+		if (!(item = getInventoryItem(static_cast<slots_t>(i))) || item->isRemoved() || (g_moveEvents.hasEquipEvent(item) && !isItemAbilityEnabled(i))) {
 			continue;
 		}
 
@@ -5381,30 +5372,30 @@ void Player::increaseCombatValues(int32_t& min, int32_t& max, bool useCharges, b
 		if (min > 0) {
 			minValue += it.abilities->increment[HEALING_VALUE];
 			if (it.abilities->increment[HEALING_PERCENT]) {
-				min = (int32_t)std::ceil((double)(min * it.abilities->increment[HEALING_PERCENT]) / 100.);
+				min = std::ceil((min * it.abilities->increment[HEALING_PERCENT]) / 100.);
 			}
 		} else {
 			minValue -= it.abilities->increment[MAGIC_VALUE];
 			if (it.abilities->increment[MAGIC_PERCENT]) {
-				min = (int32_t)std::ceil((double)(min * it.abilities->increment[MAGIC_PERCENT]) / 100.);
+				min = std::ceil((min * it.abilities->increment[MAGIC_PERCENT]) / 100.);
 			}
 		}
 
 		if (max > 0) {
 			maxValue += it.abilities->increment[HEALING_VALUE];
 			if (it.abilities->increment[HEALING_PERCENT]) {
-				max = (int32_t)std::ceil((double)(max * it.abilities->increment[HEALING_PERCENT]) / 100.);
+				max = std::ceil((max * it.abilities->increment[HEALING_PERCENT]) / 100.);
 			}
 		} else {
 			maxValue -= it.abilities->increment[MAGIC_VALUE];
 			if (it.abilities->increment[MAGIC_PERCENT]) {
-				max = (int32_t)std::ceil((double)(max * it.abilities->increment[MAGIC_PERCENT]) / 100.);
+				max = std::ceil((max * it.abilities->increment[MAGIC_PERCENT]) / 100.);
 			}
 		}
 
 		bool removeCharges = false;
 		for (int32_t j = INCREMENT_FIRST; j <= INCREMENT_LAST; ++j) {
-			if (!it.abilities->increment[(Increment_t)j]) {
+			if (!it.abilities->increment[j]) {
 				continue;
 			}
 
@@ -5413,7 +5404,7 @@ void Player::increaseCombatValues(int32_t& min, int32_t& max, bool useCharges, b
 		}
 
 		if (useCharges && removeCharges && (countWeapon || item != getWeapon()) && item->hasCharges()) {
-			g_game.transformItem(item, item->getID(), std::max((int32_t)0, (int32_t)item->getCharges() - 1));
+			g_game.transformItem(item, item->getID(), std::max<int32_t>(0, item->getCharges() - 1));
 		}
 	}
 
@@ -5448,7 +5439,7 @@ bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)
 	}
 
 	uint32_t oldSkillValue, newSkillValue;
-	long double oldPercentToNextLevel, newPercentToNextLevel;
+	double oldPercentToNextLevel, newPercentToNextLevel;
 
 	std::ostringstream ss;
 	if (skill == SKILL__MAGLEVEL) {
@@ -5458,7 +5449,7 @@ bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)
 		}
 
 		oldSkillValue = m_magLevel;
-		oldPercentToNextLevel = (long double)(m_manaSpent * 100) / nextReqMana;
+		oldPercentToNextLevel = (m_manaSpent * 100.0) / nextReqMana;
 
 		tries *= otx::config::getDouble(otx::config::RATE_MAGIC_OFFLINE);
 		while ((m_manaSpent + tries) >= nextReqMana) {
@@ -5487,7 +5478,7 @@ bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)
 		uint32_t newPercent;
 		if (nextReqMana > currReqMana) {
 			newPercent = Player::getPercentLevel(m_manaSpent, nextReqMana);
-			newPercentToNextLevel = (long double)(m_manaSpent * 100) / nextReqMana;
+			newPercentToNextLevel = (m_manaSpent * 100.0) / nextReqMana;
 		} else {
 			newPercent = newPercentToNextLevel = 0;
 		}
@@ -5509,7 +5500,7 @@ bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)
 		}
 
 		oldSkillValue = m_skills[skill].level;
-		oldPercentToNextLevel = (long double)(m_skills[skill].tries * 100) / nextReqTries;
+		oldPercentToNextLevel = (m_skills[skill].tries * 100.0) / nextReqTries;
 
 		tries *= otx::config::getDouble(otx::config::RATE_SKILL_OFFLINE);
 		while ((m_skills[skill].tries + tries) >= nextReqTries) {
@@ -5538,7 +5529,7 @@ bool Player::addOfflineTrainingTries(skills_t skill, int32_t tries)
 		uint32_t newPercent;
 		if (nextReqTries > currReqTries) {
 			newPercent = Player::getPercentLevel(m_skills[skill].tries, nextReqTries);
-			newPercentToNextLevel = (long double)(m_skills[skill].tries * 100) / nextReqTries;
+			newPercentToNextLevel = (m_skills[skill].tries * 100.0) / nextReqTries;
 		} else {
 			newPercent = newPercentToNextLevel = 0;
 		}

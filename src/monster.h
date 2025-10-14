@@ -150,7 +150,7 @@ private:
 	uint32_t defenseTicks;
 	uint32_t yellTicks;
 	int32_t targetChangeCooldown;
-	uint64_t lastDamage;
+	int64_t lastDamage;
 	bool resetTicks;
 	bool isIdle;
 	bool extraMeleeAttack;

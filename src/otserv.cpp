@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	std::srand((uint32_t)otx::util::mstime());
+	std::srand(otx::util::mstime());
 	OutputHandler::getInstance();
 
 	std::set_new_handler(allocationHandler);
@@ -249,7 +249,6 @@ int main(int argc, char* argv[])
 
 void otserv(ServiceManager* services)
 {
-	std::srand((uint32_t)otx::util::mstime());
 #ifdef _WIN32
 	SetConsoleTitleA(SOFTWARE_NAME);
 #endif
@@ -390,7 +389,7 @@ void otserv(ServiceManager* services)
 			CPU_SET((*it), &mask);
 		}
 
-		sched_setaffinity(getpid(), (int32_t)sizeof(mask), &mask);
+		sched_setaffinity(getpid(), sizeof(mask), &mask);
 	}
 	#endif
 
@@ -440,7 +439,7 @@ void otserv(ServiceManager* services)
 					duplicated = true;
 					do {
 						std::string name;
-						IOLoginData::getInstance()->getNameByGuid((uint32_t)result_->getNumber<int32_t>("player_id"), name);
+						IOLoginData::getInstance()->getNameByGuid(result_->getNumber<uint32_t>("player_id"), name);
 						std::clog << ">> Deleted item from 'player_items' with SERIAL: [" << serial.c_str() << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name.c_str() << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]" << std::endl;
 						std::ostringstream logText;
 						logText << "Deleted item from 'player_items' with SERIAL: [" << serial << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]";
@@ -455,7 +454,7 @@ void otserv(ServiceManager* services)
 					duplicated = true;
 					do {
 						std::string name;
-						IOLoginData::getInstance()->getNameByGuid((uint32_t)result_->getNumber<int32_t>("player_id"), name);
+						IOLoginData::getInstance()->getNameByGuid(result_->getNumber<uint32_t>("player_id"), name);
 						std::clog << ">> Deleted item from 'player_depotitems' with SERIAL: [" << serial.c_str() << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name.c_str() << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]" << std::endl;
 						std::ostringstream logText;
 						logText << "Deleted item from 'player_depotitems' with SERIAL: [" << serial << "] PLAYER: [" << result_->getNumber<int32_t>("player_id") << "] PLAYER NAME: [" << name << "] ITEM: [" << result_->getNumber<int32_t>("itemtype") << "] COUNT: [" << result_->getNumber<int32_t>("count") << "]";

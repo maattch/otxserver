@@ -17,6 +17,8 @@
 
 #pragma once
 
+// TODO: replace libxml2 with pugixml
+
 // definitions must be called first
 #include "definitions.h"
 #include "config.h"

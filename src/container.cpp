@@ -298,7 +298,7 @@ ReturnValue Container::__queryMaxCount(int32_t index, const Thing* thing, uint32
 	}
 
 	if (flags & FLAG_NOLIMIT) {
-		maxQueryCount = std::max((uint32_t)1, count);
+		maxQueryCount = std::max<uint32_t>(1, count);
 		return RET_NOERROR;
 	}
 
@@ -377,7 +377,7 @@ Cylinder* Container::__queryDestination(int32_t& index, const Thing* thing, Item
 	if (index == 255 /*add wherever*/) {
 		index = INDEX_WHEREEVER;
 		*destItem = nullptr;
-	} else if (index >= (int32_t)capacity()) {
+	} else if (index >= static_cast<int32_t>(capacity())) {
 		/*
 		if you have a container, maximize it to show all 20 slots
 		then you open a bag that is inside the container you will have a bag with 8 slots
@@ -435,7 +435,7 @@ void Container::__addThing(Creature* actor, Thing* thing)
 
 void Container::__addThing(Creature*, int32_t index, Thing* thing)
 {
-	if (index >= (int32_t)capacity()) {
+	if (index >= static_cast<int32_t>(capacity())) {
 #ifdef __DEBUG_MOVESYS__
 		std::clog << "Failure: [Container::__addThing], index:" << index << ", index >= capacity()" << std::endl;
 #endif

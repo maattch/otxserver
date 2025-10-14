@@ -51,7 +51,7 @@ bool Groups::loadFromXml()
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"groups")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("groups"))) {
 		std::clog << "[Error - Groups::loadFromXml] Malformed groups file." << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -67,7 +67,7 @@ bool Groups::loadFromXml()
 
 bool Groups::parseGroupNode(xmlNodePtr p)
 {
-	if (xmlStrcmp(p->name, (const xmlChar*)"group")) {
+	if (xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("group"))) {
 		return false;
 	}
 

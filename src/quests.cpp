@@ -178,7 +178,7 @@ bool Quests::loadFromXml()
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"quests")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("quests"))) {
 		std::clog << "[Error - Quests::loadFromXml] Malformed quests file." << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -194,7 +194,7 @@ bool Quests::loadFromXml()
 
 bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 {
-	if (xmlStrcmp(p->name, (const xmlChar*)"quest")) {
+	if (xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("quest"))) {
 		return false;
 	}
 
@@ -230,7 +230,7 @@ bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 	}
 
 	for (xmlNodePtr missionNode = p->children; missionNode; missionNode = missionNode->next) {
-		if (xmlStrcmp(missionNode->name, (const xmlChar*)"mission")) {
+		if (xmlStrcmp(missionNode->name, reinterpret_cast<const xmlChar*>("mission"))) {
 			continue;
 		}
 
@@ -264,7 +264,7 @@ bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 		if (Mission* mission = new Mission(missionName, missionState, storageId, startValue, endValue, notify)) {
 			// parse sub-states only if main is not set
 			for (xmlNodePtr stateNode = missionNode->children; stateNode; stateNode = stateNode->next) {
-				if (xmlStrcmp(stateNode->name, (const xmlChar*)"missionstate")) {
+				if (xmlStrcmp(stateNode->name, reinterpret_cast<const xmlChar*>("missionstate"))) {
 					continue;
 				}
 

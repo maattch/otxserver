@@ -46,7 +46,7 @@ bool BaseEvents::loadFromXml()
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)scriptsName.c_str())) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>(scriptsName.c_str()))) {
 		std::clog << "[Error - BaseEvents::loadFromXml] Malformed " << path << " file." << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -55,7 +55,7 @@ bool BaseEvents::loadFromXml()
 	path = getFilePath(FILE_TYPE_OTHER, scriptsName + "/scripts/");
 	std::string strValue;
 	for (xmlNodePtr p = root->children; p; p = p->next) {
-		EventPtr event = getEvent((const char*)p->name);
+		EventPtr event = getEvent(reinterpret_cast<const char*>(p->name));
 		if (!event) {
 			continue;
 		}

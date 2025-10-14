@@ -57,9 +57,8 @@ public:
 	uint32_t getAccess() const { return m_access; }
 	virtual uint32_t getOwner() { return 0; }
 
-	bool hasFlag(uint16_t value) const { return ((m_flags & (uint16_t)value) == (uint16_t)value); }
-	bool checkVocation(uint32_t vocationId) const
-	{
+	bool hasFlag(uint16_t value) const { return (m_flags & value); }
+	bool checkVocation(uint32_t vocationId) const {
 		return !m_vocationMap || m_vocationMap->empty() || m_vocationMap->find(vocationId) != m_vocationMap->end();
 	}
 

@@ -332,7 +332,7 @@ GuildLevel_t IOGuild::getGuildLevel(uint32_t guid)
 		return GUILDLEVEL_NONE;
 	}
 
-	const GuildLevel_t level = (GuildLevel_t)result->getNumber<int32_t>("level");
+	const GuildLevel_t level = static_cast<GuildLevel_t>(result->getNumber<uint8_t>("level"));
 	return level;
 }
 
@@ -405,7 +405,7 @@ void IOGuild::checkWars()
 	// status 8 means ended up, when guild ended up war without signed an armistice declaration by enemy
 	// status 9 means signed an armistice declaration by enemy
 	std::ostringstream s;
-	uint32_t tmpInterval = (uint32_t)(EVENT_WARSINTERVAL / 1000) + 10; //+10 for sure
+	uint32_t tmpInterval = (EVENT_WARSINTERVAL / 1000) + 10; //+10 for sure
 
 	query << "SELECT `g`.`name` as `guild_name`, `e`.`name` as `enemy_name`, `guild_wars`.`frags` as `frags`  FROM `guild_wars` LEFT JOIN `guilds` as `g` ON `guild_wars`.`guild_id` = `g`.`id` LEFT JOIN `guilds` as `e` ON `guild_wars`.`enemy_id` = `e`.`id` WHERE (`begin` > 0 AND (`begin` + " << tmpInterval << ") > UNIX_TIMESTAMP()) AND `status` IN (0, 6)";
 	if ((result = g_database.storeQuery(query.str()))) {

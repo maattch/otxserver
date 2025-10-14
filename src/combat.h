@@ -243,5 +243,5 @@ public:
 	void onStepInField(Creature* creature);
 
 private:
-	uint64_t createTime;
+	int64_t createTime;
 };

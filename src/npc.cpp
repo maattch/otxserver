@@ -56,7 +56,7 @@ bool Npcs::loadFromXml(bool reloading /* = false*/)
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"npcs")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("npcs"))) {
 		std::clog << "[Error - Npcs::loadFromXml] Malformed npcs file." << std::endl;
 		return false;
 	}
@@ -66,7 +66,7 @@ bool Npcs::loadFromXml(bool reloading /* = false*/)
 			continue;
 		}
 
-		if (xmlStrcmp(p->name, (const xmlChar*)"npc")) {
+		if (xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("npc"))) {
 			std::clog << "[Warning - Npcs::loadFromXml] Unknown node name: " << p->name << "." << std::endl;
 			continue;
 		} else {
@@ -117,7 +117,7 @@ bool Npcs::parseNpcNode(xmlNodePtr node, FileType_t path, bool reloading /* = fa
 	}
 
 	for (xmlNodePtr q = node->children; q; q = q->next) {
-		if (!xmlStrcmp(q->name, (const xmlChar*)"look")) {
+		if (!xmlStrcmp(q->name, reinterpret_cast<const xmlChar*>("look"))) {
 			int32_t intValue;
 			if (readXMLInteger(q, "type", intValue)) {
 				nType->outfit.lookType = intValue;
@@ -330,7 +330,7 @@ bool Npc::loadFromXml()
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if (xmlStrcmp(root->name, (const xmlChar*)"npc")) {
+	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("npc"))) {
 		std::clog << "[Warning - Npc::loadFromXml] Malformed npc file: " << nType->file << "." << std::endl;
 		xmlFreeDoc(doc);
 		return false;
@@ -386,7 +386,7 @@ bool Npc::loadFromXml()
 	}
 
 	if (readXMLInteger(root, "direction", intValue) && intValue >= NORTH && intValue <= WEST) {
-		m_direction = (Direction)intValue;
+		m_direction = static_cast<Direction>(intValue);
 		baseDirection = m_direction;
 	}
 
@@ -407,7 +407,7 @@ bool Npc::loadFromXml()
 	}
 
 	for (xmlNodePtr p = root->children; p; p = p->next) {
-		if (!xmlStrcmp(p->name, (const xmlChar*)"health")) {
+		if (!xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("health"))) {
 			if (readXMLInteger(p, "now", intValue)) {
 				m_health = intValue;
 			} else {
@@ -419,7 +419,7 @@ bool Npc::loadFromXml()
 			} else {
 				m_healthMax = 100;
 			}
-		} else if (!xmlStrcmp(p->name, (const xmlChar*)"look")) {
+		} else if (!xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("look"))) {
 			if (readXMLInteger(p, "type", intValue)) {
 				nType->outfit.lookType = intValue;
 				if (readXMLInteger(p, "head", intValue)) {
@@ -444,9 +444,9 @@ bool Npc::loadFromXml()
 			} else if (readXMLInteger(p, "typeex", intValue)) {
 				nType->outfit.lookTypeEx = intValue;
 			}
-		} else if (!xmlStrcmp(p->name, (const xmlChar*)"voices")) {
+		} else if (!xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("voices"))) {
 			for (xmlNodePtr q = p->children; q != nullptr; q = q->next) {
-				if (!xmlStrcmp(q->name, (const xmlChar*)"voice")) {
+				if (!xmlStrcmp(q->name, reinterpret_cast<const xmlChar*>("voice"))) {
 					if (!readXMLString(q, "text", strValue)) {
 						continue;
 					}
@@ -467,7 +467,7 @@ bool Npc::loadFromXml()
 
 					voice.type = MSG_SPEAK_SAY;
 					if (readXMLInteger(q, "type", intValue)) {
-						voice.type = (MessageClasses)intValue;
+						voice.type = static_cast<MessageClasses>(intValue);
 					} else if (readXMLString(q, "yell", strValue) && booleanString(strValue)) {
 						voice.type = MSG_SPEAK_YELL;
 					}
@@ -481,9 +481,9 @@ bool Npc::loadFromXml()
 					voiceList.push_back(voice);
 				}
 			}
-		} else if (!xmlStrcmp(p->name, (const xmlChar*)"parameters")) {
+		} else if (!xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("parameters"))) {
 			for (xmlNodePtr q = p->children; q != nullptr; q = q->next) {
-				if (!xmlStrcmp(q->name, (const xmlChar*)"parameter")) {
+				if (!xmlStrcmp(q->name, reinterpret_cast<const xmlChar*>("parameter"))) {
 					std::string paramKey, paramValue;
 					if (!readXMLString(q, "key", paramKey)) {
 						continue;
@@ -615,13 +615,13 @@ void Npc::onThink(uint32_t interval)
 				continue;
 			}
 
-			if ((uint32_t)(MAX_RAND_RANGE / it->interval) < (uint32_t)random_range(0, MAX_RAND_RANGE)) {
+			if ((MAX_RAND_RANGE / it->interval) < static_cast<uint32_t>(random_range(0, MAX_RAND_RANGE))) {
 				continue;
 			}
 
 			tmpPlayer = nullptr;
 			if (it->randomSpectator) {
-				size_t random = random_range(0, (int32_t)list.size());
+				size_t random = random_range(0, list.size());
 				if (random < list.size()) { // 1 slot chance to make it public
 					tmpPlayer = list[random];
 				}
@@ -712,8 +712,8 @@ bool Npc::getRandomStep(Direction& dir)
 {
 	std::vector<Direction> dirList;
 	for (int32_t i = NORTH; i < SOUTHWEST; ++i) {
-		if (canWalkTo(getPosition(), (Direction)i)) {
-			dirList.push_back((Direction)i);
+		if (canWalkTo(getPosition(), static_cast<Direction>(i))) {
+			dirList.push_back(static_cast<Direction>(i));
 		}
 	}
 
@@ -846,7 +846,7 @@ int32_t NpcScript::luaActionSay(lua_State* L)
 	int32_t params = lua_gettop(L), target = 0;
 	MessageClasses type = MSG_NONE;
 	if (params > 2) {
-		type = (MessageClasses)otx::lua::popNumber(L);
+		type = static_cast<MessageClasses>(otx::lua::popNumber(L));
 	}
 
 	if (params > 1) {
@@ -868,7 +868,7 @@ int32_t NpcScript::luaActionSay(lua_State* L)
 		}
 	}
 
-	npc->doSay(otx::lua::popString(L), (MessageClasses)type, player);
+	npc->doSay(otx::lua::popString(L), static_cast<MessageClasses>(type), player);
 	return 0;
 }
 
