@@ -24,6 +24,7 @@
 #include "group.h"
 #include "iologindata.h"
 #include "monsters.h"
+#include "npc.h"
 #include "outfit.h"
 #include "protocolgame.h"
 #include "protocollogin.h"
@@ -38,6 +39,10 @@
 #include "vocation.h"
 
 #include "otx/util.hpp"
+
+#ifndef _WIN32
+#include <fstream>
+#endif
 
 RSA g_RSA;
 
@@ -141,7 +146,7 @@ void signalHandler(int32_t sig)
 			break;
 
 		case SIGCONT:
-			addDispatcherTask([]() { g_game.reloadInfo(RELOAD_ALL, 0, false); });
+			addDispatcherTask([]() { g_game.reloadInfo(RELOAD_ALL); });
 			break;
 
 		case SIGQUIT:

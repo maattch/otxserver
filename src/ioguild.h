@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "const.h"
+
 struct DeathEntry;
 typedef std::vector<DeathEntry> DeathList;
 

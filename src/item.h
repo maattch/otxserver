@@ -517,18 +517,9 @@ public:
 
 	static uint32_t countByType(const Item* item, int32_t checkType);
 
-#ifdef _MSC_VER
 	// MSVC C++17 does not support transparent lookup in unordered_map yet (only C++20 above)
-	struct StringViewLess
-	{
-		using is_transparent = void;
-		bool operator()(std::string_view lhs, std::string_view rhs) const noexcept {
-			return lhs < rhs;
-		}
-	};
-	using AttributeMap = std::map<std::string, ItemAttributes, StringViewLess>;
-#else
-	struct StringViewHash
+	// so i will use std::map for now
+	/*struct StringViewHash
 	{
 		using is_transparent = void;
 		std::size_t operator()(const std::string_view& sv) const {
@@ -542,8 +533,16 @@ public:
 			return lhs == rhs;
 		}
 	};
-	using AttributeMap = std::unordered_map<std::string, ItemAttributes, StringViewHash, StringViewEqual>;
-#endif
+	using AttributeMap = std::unordered_map<std::string, ItemAttributes, StringViewHash, StringViewEqual>;*/
+
+	struct StringViewLess
+	{
+		using is_transparent = void;
+		bool operator()(std::string_view lhs, std::string_view rhs) const noexcept {
+			return lhs < rhs;
+		}
+	};
+	using AttributeMap = std::map<std::string, ItemAttributes, StringViewLess>;
 
 	AttributeMap& getAttributes() {
 		if (!m_attributes) {
