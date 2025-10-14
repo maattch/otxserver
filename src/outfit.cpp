@@ -758,12 +758,12 @@ bool Outfits::addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, 
 	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		if (outfit.skills[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill(static_cast<skills_t>(i), outfit.skills[i]);
+			player->setVarSkill(static_cast<Skills_t>(i), outfit.skills[i]);
 		}
 
 		if (outfit.skillsPercent[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill(static_cast<skills_t>(i), (player->getSkillLevel(i) * ((outfit.skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill(static_cast<Skills_t>(i), (player->getSkillLevel(i) * ((outfit.skillsPercent[i] - 100) / 100.f)));
 		}
 	}
 
@@ -775,12 +775,12 @@ bool Outfits::addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, 
 	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
 		if (outfit.stats[s]) {
 			needUpdateStats = true;
-			player->setVarStats(static_cast<stats_t>(s), outfit.stats[s]);
+			player->setVarStats(static_cast<Stats_t>(s), outfit.stats[s]);
 		}
 
 		if (outfit.statsPercent[s]) {
 			needUpdateStats = true;
-			player->setVarStats(static_cast<stats_t>(s), (player->getDefaultStats(static_cast<stats_t>(s)) * ((outfit.statsPercent[s] - 100) / 100.f)));
+			player->setVarStats(static_cast<Stats_t>(s), (player->getDefaultStats(static_cast<Stats_t>(s)) * ((outfit.statsPercent[s] - 100) / 100.f)));
 		}
 	}
 
@@ -830,12 +830,12 @@ bool Outfits::removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t se
 	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		if (outfit.skills[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill(static_cast<skills_t>(i), -outfit.skills[i]);
+			player->setVarSkill(static_cast<Skills_t>(i), -outfit.skills[i]);
 		}
 
 		if (outfit.skillsPercent[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill(static_cast<skills_t>(i), -(player->getSkillLevel(i) * ((outfit.skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill(static_cast<Skills_t>(i), -(player->getSkillLevel(i) * ((outfit.skillsPercent[i] - 100) / 100.f)));
 		}
 	}
 
@@ -847,12 +847,12 @@ bool Outfits::removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t se
 	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
 		if (outfit.stats[s]) {
 			needUpdateStats = true;
-			player->setVarStats(static_cast<stats_t>(s), -outfit.stats[s]);
+			player->setVarStats(static_cast<Stats_t>(s), -outfit.stats[s]);
 		}
 
 		if (outfit.statsPercent[s]) {
 			needUpdateStats = true;
-			player->setVarStats(static_cast<stats_t>(s), -(player->getDefaultStats(static_cast<stats_t>(s)) * ((outfit.statsPercent[s] - 100) / 100.f)));
+			player->setVarStats(static_cast<Stats_t>(s), -(player->getDefaultStats(static_cast<Stats_t>(s)) * ((outfit.statsPercent[s] - 100) / 100.f)));
 		}
 	}
 

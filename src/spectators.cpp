@@ -343,7 +343,7 @@ void Spectators::addSpectator(ProtocolGame* client, std::string name, bool spy)
 
 		std::ostringstream query;
 
-		query << "SELECT `castDescription` FROM `players` WHERE `id` = " << m_owner->getPlayer()->getGUID() << ";";
+		query << "SELECT `castDescription` FROM `players` WHERE `id` = " << m_owner->getPlayer()->getGUID();
 		if (DBResultPtr result = g_database.storeQuery(query.str())) {
 			std::string comment = result->getString("castDescription");
 
@@ -374,7 +374,7 @@ int64_t Spectators::getBroadcastTime() const
 	return otx::util::mstime() - m_broadcast_time;
 }
 
-void Spectators::sendChannelMessage(std::string author, std::string text, MessageClasses type, uint16_t channel, bool fakeChat, uint32_t ip)
+void Spectators::sendChannelMessage(std::string author, std::string text, MessageType_t type, uint16_t channel, bool fakeChat, uint32_t ip)
 {
 	if (!m_owner) {
 		return;
@@ -396,7 +396,7 @@ void Spectators::sendChannelMessage(std::string author, std::string text, Messag
 	}
 }
 
-void Spectators::sendCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* pos, uint32_t statementId, bool fakeChat)
+void Spectators::sendCreatureSay(const Creature* creature, MessageType_t type, const std::string& text, Position* pos, uint32_t statementId, bool fakeChat)
 {
 	if (!m_owner) {
 		return;
@@ -417,7 +417,7 @@ void Spectators::sendCreatureSay(const Creature* creature, MessageClasses type, 
 	}
 }
 
-void Spectators::sendCreatureChannelSay(const Creature* creature, MessageClasses type, const std::string& text, uint16_t channelId, uint32_t statementId, bool fakeChat)
+void Spectators::sendCreatureChannelSay(const Creature* creature, MessageType_t type, const std::string& text, uint16_t channelId, uint32_t statementId, bool fakeChat)
 {
 	if (!m_owner) {
 		return;

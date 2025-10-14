@@ -467,7 +467,7 @@ bool Npc::loadFromXml()
 
 					voice.type = MSG_SPEAK_SAY;
 					if (readXMLInteger(q, "type", intValue)) {
-						voice.type = static_cast<MessageClasses>(intValue);
+						voice.type = static_cast<MessageType_t>(intValue);
 					} else if (readXMLString(q, "yell", strValue) && booleanString(strValue)) {
 						voice.type = MSG_SPEAK_YELL;
 					}
@@ -564,7 +564,7 @@ void Npc::onCreatureMove(const Creature* creature, const Tile* newTile, const Po
 	}
 }
 
-void Npc::onCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* pos /* = nullptr*/)
+void Npc::onCreatureSay(const Creature* creature, MessageType_t type, const std::string& text, Position* pos /* = nullptr*/)
 {
 	if (m_npcEventHandler) {
 		m_npcEventHandler->onCreatureSay(creature, type, text, pos);
@@ -638,7 +638,7 @@ void Npc::onThink(uint32_t interval)
 	}
 }
 
-void Npc::doSay(const std::string& text, MessageClasses type, Player* player)
+void Npc::doSay(const std::string& text, MessageType_t type, Player* player)
 {
 	if (!player) {
 		std::string tmp = text;
@@ -844,9 +844,9 @@ int32_t NpcScript::luaActionSay(lua_State* L)
 {
 	// selfSay(words[, target[, type]])
 	int32_t params = lua_gettop(L), target = 0;
-	MessageClasses type = MSG_NONE;
+	MessageType_t type = MSG_NONE;
 	if (params > 2) {
-		type = static_cast<MessageClasses>(otx::lua::popNumber(L));
+		type = static_cast<MessageType_t>(otx::lua::popNumber(L));
 	}
 
 	if (params > 1) {
@@ -868,7 +868,7 @@ int32_t NpcScript::luaActionSay(lua_State* L)
 		}
 	}
 
-	npc->doSay(otx::lua::popString(L), static_cast<MessageClasses>(type), player);
+	npc->doSay(otx::lua::popString(L), static_cast<MessageType_t>(type), player);
 	return 0;
 }
 
@@ -1121,7 +1121,7 @@ void NpcEvents::onCreatureMove(const Creature* creature, const Position& oldPos,
 	otx::lua::callFunction(L, 3);
 }
 
-void NpcEvents::onCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* /*pos = nullptr*/)
+void NpcEvents::onCreatureSay(const Creature* creature, MessageType_t type, const std::string& text, Position* /*pos = nullptr*/)
 {
 	// onCreatureSay(cid, type, msg)
 	if (m_onCreatureSay == -1) {

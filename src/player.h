@@ -132,7 +132,7 @@ public:
 		return (((lv - 6ULL) * lv + 17ULL) * lv - 12ULL) / 6ULL * 100ULL;
 	}
 
-	bool addOfflineTrainingTries(skills_t skill, int32_t tries);
+	bool addOfflineTrainingTries(Skills_t skill, int32_t tries);
 
 	void addOfflineTrainingTime(int32_t addTime) { m_offlineTrainingTime = std::min(12 * 3600 * 1000, m_offlineTrainingTime + addTime); }
 	void removeOfflineTrainingTime(int32_t removeTime) { m_offlineTrainingTime = std::max(0, m_offlineTrainingTime - removeTime); }
@@ -313,7 +313,7 @@ public:
 	int32_t getThrowRange() const override { return 1; }
 	double getGainedExperience(Creature* attacker) const override;
 
-	bool isMuted(uint16_t channelId, MessageClasses type, int32_t& time);
+	bool isMuted(uint16_t channelId, MessageType_t type, int32_t& time);
 	void addMessageBuffer();
 	void removeMessageBuffer();
 
@@ -331,8 +331,8 @@ public:
 	int32_t getMaxMana() const override { return std::max<int32_t>(0, m_manaMax + m_varStats[STAT_MAXMANA]); }
 	int32_t getBaseMaxMana() const override { return m_manaMax; }
 
-	Item* getInventoryItem(slots_t slot) const;
-	Item* getEquippedItem(slots_t slot) const;
+	Item* getInventoryItem(Slots_t slot) const;
+	Item* getEquippedItem(Slots_t slot) const;
 
 	bool isItemAbilityEnabled(uint8_t slot) const { return m_inventoryAbilities[slot]; }
 	void setItemAbility(uint8_t slot, bool enabled) { m_inventoryAbilities[slot] = enabled; }
@@ -345,14 +345,14 @@ public:
 	int32_t getVarSkill(uint8_t skill) const { return m_varSkills[skill]; }
 	void setVarSkill(uint8_t skill, int32_t modifier) { m_varSkills[skill] += modifier; }
 
-	int32_t getVarStats(stats_t stat) const { return m_varStats[stat]; }
-	void setVarStats(stats_t stat, int32_t modifier);
-	int32_t getDefaultStats(stats_t stat);
+	int32_t getVarStats(Stats_t stat) const { return m_varStats[stat]; }
+	void setVarStats(Stats_t stat, int32_t modifier);
+	int32_t getDefaultStats(Stats_t stat);
 
 	void setConditionSuppressions(uint32_t conditions, bool remove);
 
-	uint32_t getLossPercent(lossTypes_t lossType) const { return m_lossPercent[lossType]; }
-	void setLossPercent(lossTypes_t lossType, uint32_t newPercent) { m_lossPercent[lossType] = newPercent; }
+	uint32_t getLossPercent(LossTypes_t lossType) const { return m_lossPercent[lossType]; }
+	void setLossPercent(LossTypes_t lossType, uint32_t newPercent) { m_lossPercent[lossType] = newPercent; }
 
 	Depot* getDepot(uint32_t depotId, bool autoCreateDepot);
 	bool addDepot(Depot* depot, uint32_t depotId);
@@ -464,7 +464,7 @@ public:
 	bool getAddAttackSkill() const { return m_addAttackSkillPoint; }
 	BlockType_t getLastAttackBlockType() const { return m_lastAttackBlockType; }
 
-	Item* getWeapon(slots_t slot, bool ignoreAmmo) const;
+	Item* getWeapon(Slots_t slot, bool ignoreAmmo) const;
 	Item* getWeapon(bool ignoreAmmo = false) const;
 
 	WeaponType_t getWeaponType() override;
@@ -476,7 +476,7 @@ public:
 	void addExperience(uint64_t exp);
 	void removeExperience(uint64_t exp, bool updateStats = true);
 	void addManaSpent(uint64_t amount, bool useMultiplier = true);
-	void addSkillAdvance(skills_t skill, uint64_t count, bool useMultiplier = true);
+	void addSkillAdvance(Skills_t skill, uint64_t count, bool useMultiplier = true);
 	bool addUnjustifiedKill(const Player* attacked, bool countNow);
 
 	int32_t getArmor() const override;
@@ -557,7 +557,7 @@ public:
 		}
 	}
 
-	void sendChannelMessage(std::string author, std::string text, MessageClasses type, uint16_t channel, bool fakeChat = false, uint32_t ip = 0)
+	void sendChannelMessage(std::string author, std::string text, MessageType_t type, uint16_t channel, bool fakeChat = false, uint32_t ip = 0)
 	{
 		if (m_client) {
 			m_client->sendChannelMessage(author, text, type, channel, fakeChat, ip);
@@ -595,13 +595,13 @@ public:
 			m_client->sendCreatureTurn(creature, creature->getTile()->getClientIndexOfThing(this, creature));
 		}
 	}
-	void sendCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* pos = nullptr, uint32_t statementId = 0, bool fakeChat = false)
+	void sendCreatureSay(const Creature* creature, MessageType_t type, const std::string& text, Position* pos = nullptr, uint32_t statementId = 0, bool fakeChat = false)
 	{
 		if (m_client) {
 			m_client->sendCreatureSay(creature, type, text, pos, statementId, fakeChat);
 		}
 	}
-	void sendCreatureChannelSay(Creature* creature, MessageClasses type, const std::string& text, uint16_t channelId, uint32_t statementId = 0, bool fakeChat = false) const
+	void sendCreatureChannelSay(Creature* creature, MessageType_t type, const std::string& text, uint16_t channelId, uint32_t statementId = 0, bool fakeChat = false) const
 	{
 		if (m_client) {
 			m_client->sendCreatureChannelSay(creature, type, text, channelId, statementId, fakeChat);
@@ -826,13 +826,13 @@ public:
 			m_client->sendSkills();
 		}
 	}
-	void sendTextMessage(MessageClasses type, const std::string& message) const
+	void sendTextMessage(MessageType_t type, const std::string& message) const
 	{
 		if (m_client) {
 			m_client->sendTextMessage(type, message);
 		}
 	}
-	void sendStatsMessage(MessageClasses type, const std::string& message, Position pos, MessageDetails* details = nullptr) const
+	void sendStatsMessage(MessageType_t type, const std::string& message, Position pos, MessageDetails* details = nullptr) const
 	{
 		if (m_client) {
 			m_client->sendStatsMessage(type, message, pos, details);
@@ -1133,7 +1133,7 @@ private:
 	Item* m_writeItem = nullptr;
 	House* m_editHouse = nullptr;
 	Npc* m_shopOwner = nullptr;
-	Item* m_inventory[SLOT_LAST] = {};
+	Item* m_inventory[SLOT_LAST + 1] = {};
 
 	double m_inventoryWeight = 0.0;
 	double m_capacity = 400.0;
@@ -1226,7 +1226,7 @@ private:
 	bool m_showLoot = false;
 	bool m_chaseMode = false;
 	bool m_secureMode = true;
-	bool m_inventoryAbilities[SLOT_LAST] = {};
+	bool m_inventoryAbilities[SLOT_LAST + 1] = {};
 	bool m_talkState[13] = {};
 
 	friend class Game;

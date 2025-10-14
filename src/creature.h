@@ -193,8 +193,8 @@ public:
 	bool getHideHealth() const { return m_hideHealth; }
 	void setHideHealth(bool v) { m_hideHealth = v; }
 
-	MessageClasses getSpeakType() const { return m_speakType; }
-	void setSpeakType(MessageClasses type) { m_speakType = type; }
+	MessageType_t getSpeakType() const { return m_speakType; }
+	void setSpeakType(MessageType_t type) { m_speakType = type; }
 
 	Position getMasterPosition() const { return m_masterPosition; }
 	void setMasterPosition(const Position& pos, uint32_t radius = 1)
@@ -395,7 +395,7 @@ public:
 	virtual void onFollowCreatureDisappear(bool) {}
 
 	virtual void onCreatureTurn(const Creature*) {}
-	virtual void onCreatureSay(const Creature*, MessageClasses, const std::string&,
+	virtual void onCreatureSay(const Creature*, MessageType_t, const std::string&,
 		Position* = nullptr) {}
 
 	virtual void onCreatureChangeOutfit(const Creature*, const Outfit_t&) {}
@@ -505,7 +505,7 @@ protected:
 	uint64_t m_scriptEventsBitField = 0;
 
 	bool m_hideName, m_hideHealth, m_cannotMove;
-	MessageClasses m_speakType;
+	MessageType_t m_speakType;
 
 	Outfit_t m_currentOutfit;
 	Outfit_t m_defaultOutfit;

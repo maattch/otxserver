@@ -183,14 +183,14 @@ bool ChatChannel::hasUser(Player* player) const
 	return player && m_users.find(player->getID()) != m_users.end();
 }
 
-bool ChatChannel::talk(Player* player, MessageClasses type, const std::string& text, uint32_t statementId, bool fakeChat /*= false*/)
+bool ChatChannel::talk(Player* player, MessageType_t type, const std::string& text, uint32_t statementId, bool fakeChat /*= false*/)
 {
 	UsersMap::iterator it = m_users.find(player->getID());
 	if (it == m_users.end()) {
 		return false;
 	}
 
-	MessageClasses ntype = type;
+	MessageType_t ntype = type;
 	uint16_t channelId = getId();
 	if (channelId == 2 || channelId == 6 || channelId == 9) {
 		if (player->getGroupId() >= 5) {
@@ -220,7 +220,7 @@ bool ChatChannel::talk(Player* player, MessageClasses type, const std::string& t
 	return true;
 }
 
-bool ChatChannel::talk(std::string nick, MessageClasses type, const std::string& text, bool fakeChat, uint32_t ip)
+bool ChatChannel::talk(std::string nick, MessageType_t type, const std::string& text, bool fakeChat, uint32_t ip)
 {
 	for (UsersMap::iterator it = m_users.begin(); it != m_users.end(); ++it) {
 		it->second->sendChannelMessage(nick, text, type, m_id, fakeChat, ip);
@@ -634,7 +634,7 @@ void Chat::removeUserFromChannels(Player* player)
 	}
 }
 
-bool Chat::talk(Player* player, MessageClasses type, const std::string& text, uint16_t channelId,
+bool Chat::talk(Player* player, MessageType_t type, const std::string& text, uint16_t channelId,
 	uint32_t statementId, bool anonymous /* = false*/, bool fakeChat /*= false*/)
 {
 	if (text.empty()) {

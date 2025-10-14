@@ -439,7 +439,7 @@ void otserv(ServiceManager* services)
 			if (serial != "" && serial.length() > 1) {
 				DBResultPtr result_;
 				std::ostringstream query_playeritems;
-				query_playeritems << "SELECT `player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`, `serial` FROM `player_items` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				query_playeritems << "SELECT `player_id`, `pid`, `sid`, `itemtype`, `count`, `attributes`, `serial` FROM `player_items` WHERE `serial` = " << g_database.escapeString(serial);
 				if ((result_ = g_database.storeQuery(query_playeritems.str()))) {
 					duplicated = true;
 					do {
@@ -454,7 +454,7 @@ void otserv(ServiceManager* services)
 
 				query_playeritems.clear();
 				std::ostringstream query_playerdepotitems;
-				query_playerdepotitems << "SELECT `player_id`, `sid`, `pid`, `itemtype`, `count`, `attributes`, `serial` FROM `player_depotitems` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				query_playerdepotitems << "SELECT `player_id`, `sid`, `pid`, `itemtype`, `count`, `attributes`, `serial` FROM `player_depotitems` WHERE `serial` = " << g_database.escapeString(serial);
 				if ((result_ = g_database.storeQuery(query_playerdepotitems.str()))) {
 					duplicated = true;
 					do {
@@ -469,7 +469,7 @@ void otserv(ServiceManager* services)
 
 				query_playerdepotitems.clear();
 				std::ostringstream query_tileitems;
-				query_tileitems << "SELECT `tile_id`, `sid`, `pid`, `itemtype`, `count`, `attributes`, `serial` FROM `tile_items` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				query_tileitems << "SELECT `tile_id`, `sid`, `pid`, `itemtype`, `count`, `attributes`, `serial` FROM `tile_items` WHERE `serial` = " << g_database.escapeString(serial);
 				if ((result_ = g_database.storeQuery(query_tileitems.str()))) {
 					duplicated = true;
 					do {
@@ -482,21 +482,21 @@ void otserv(ServiceManager* services)
 
 				query_tileitems.clear();
 				std::ostringstream query_deletepi;
-				query_deletepi << "DELETE FROM `player_items` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				query_deletepi << "DELETE FROM `player_items` WHERE `serial` = " << g_database.escapeString(serial);
 				if (!g_database.executeQuery(query_deletepi.str())) {
 					std::clog << ">> Cannot delete duplicated items from 'player_items'!" << std::endl;
 				}
 
 				query_deletepi.clear();
 				std::ostringstream query_deletedi;
-				query_deletedi << "DELETE FROM `player_depotitems` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				query_deletedi << "DELETE FROM `player_depotitems` WHERE `serial` = " << g_database.escapeString(serial);
 				if (!g_database.executeQuery(query_deletedi.str())) {
 					std::clog << ">> Cannot delete duplicated items from 'player_depotitems'!" << std::endl;
 				}
 
 				query_deletedi.clear();
 				std::ostringstream query_deleteti;
-				query_deleteti << "DELETE FROM `tile_items` WHERE `serial` = " << g_database.escapeString(serial) << ";";
+				query_deleteti << "DELETE FROM `tile_items` WHERE `serial` = " << g_database.escapeString(serial);
 				if (!g_database.executeQuery(query_deleteti.str())) {
 					std::clog << ">> Cannot delete duplicated items from 'tile_items'!" << std::endl;
 				}

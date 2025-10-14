@@ -181,7 +181,7 @@ public:
 
 private:
 	std::string m_message;
-	MessageClasses m_messageType;
+	MessageType_t m_messageType;
 };
 
 class EffectEvent : public RaidEvent

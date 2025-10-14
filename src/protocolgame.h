@@ -172,7 +172,7 @@ private:
 	void parseCloseRuleViolation(NetworkMessage& msg);
 
 	// Send functions
-	void sendChannelMessage(std::string author, std::string text, MessageClasses type, uint16_t channel);
+	void sendChannelMessage(std::string author, std::string text, MessageType_t type, uint16_t channel);
 	void sendClosePrivate(uint16_t channelId);
 	void sendCreatePrivateChannel(uint16_t channelId, const std::string& channelName);
 	void sendChannelsDialog(const ChannelsList& channels);
@@ -193,8 +193,8 @@ private:
 	void sendSkills();
 	void sendPing();
 	void sendCreatureTurn(const Creature* creature, int16_t stackpos);
-	void sendCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* pos, uint32_t statementId);
-	void sendCreatureChannelSay(const Creature* creature, MessageClasses type, const std::string& text, uint16_t channelId, uint32_t statementId);
+	void sendCreatureSay(const Creature* creature, MessageType_t type, const std::string& text, Position* pos, uint32_t statementId);
+	void sendCreatureChannelSay(const Creature* creature, MessageType_t type, const std::string& text, uint16_t channelId, uint32_t statementId);
 
 	void sendCancel(const std::string& message);
 	void sendCancelWalk();
@@ -206,8 +206,8 @@ private:
 	void sendCancelTarget();
 	void sendCreatureOutfit(const Creature* creature, const Outfit_t& outfit);
 	void sendStats();
-	void sendTextMessage(MessageClasses mclass, const std::string& message);
-	void sendStatsMessage(MessageClasses mclass, const std::string& message,
+	void sendTextMessage(MessageType_t mclass, const std::string& message);
+	void sendStatsMessage(MessageType_t mclass, const std::string& message,
 		Position pos, MessageDetails* details = nullptr);
 	void sendReLoginWindow();
 
@@ -283,7 +283,7 @@ private:
 		int32_t width, int32_t height, OutputMessage_ptr msg);
 
 	void AddMapDescription(OutputMessage_ptr msg, const Position& pos);
-	void AddTextMessage(MessageClasses mclass, const std::string& message, Position* pos = nullptr, MessageDetails* details = nullptr);
+	void AddTextMessage(MessageType_t mclass, const std::string& message, Position* pos = nullptr, MessageDetails* details = nullptr);
 	void AddAnimatedText(OutputMessage_ptr msg, const Position& pos, uint8_t color, const std::string& text);
 
 	void AddMagicEffect(OutputMessage_ptr msg, const Position& pos, uint16_t type);
@@ -291,7 +291,7 @@ private:
 
 	void AddCreature(OutputMessage_ptr msg, const Creature* creature, bool known, uint32_t remove);
 	void AddPlayerStats(OutputMessage_ptr msg);
-	void AddCreatureSpeak(OutputMessage_ptr msg, const Creature* creature, MessageClasses type,
+	void AddCreatureSpeak(OutputMessage_ptr msg, const Creature* creature, MessageType_t type,
 		const std::string& text, const uint16_t channelId, Position* pos, const uint32_t statementId);
 	void AddCreatureHealth(OutputMessage_ptr msg, const Creature* creature);
 	void AddCreatureOutfit(OutputMessage_ptr msg, const Creature* creature, const Outfit_t& outfit, bool outfitWindow = false);

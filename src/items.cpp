@@ -707,7 +707,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 					it.wieldPosition = SLOT_BACKPACK;
 				} else if (tmpStrValue == "two-handed") {
 					it.slotPosition |= SLOTP_TWO_HAND;
-					it.wieldPosition = SLOT_TWO_HAND;
+					it.wieldPosition = SLOT_HAND;
 				} else if (tmpStrValue == "right-hand") {
 					it.slotPosition &= ~SLOTP_LEFT;
 					it.wieldPosition = SLOT_RIGHT;

@@ -17,7 +17,7 @@
 
 #pragma once
 
-enum Ban_t
+enum Ban_t : uint8_t
 {
 	BAN_NONE = 0,
 	BAN_IP = 1,
@@ -27,7 +27,7 @@ enum Ban_t
 	BAN_STATEMENT = 5
 };
 
-enum PlayerBan_t
+enum PlayerBan_t : uint8_t
 {
 	PLAYERBAN_NONE = 0,
 	PLAYERBAN_REPORT = 1,

@@ -45,7 +45,7 @@ public:
 
 	void updateAllIcons();
 	void updateIcons(Player* player);
-	void broadcastMessage(MessageClasses messageClass, const std::string& text, bool sendToInvitations = false);
+	void broadcastMessage(MessageType_t messageClass, const std::string& text, bool sendToInvitations = false);
 
 	void shareExperience(double experience, Creature* target, bool multiplied);
 	bool setSharedExperience(Player* player, bool _sharedExpActive);

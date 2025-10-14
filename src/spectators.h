@@ -164,7 +164,7 @@ private:
 		return m_owner->canSee(pos);
 	}
 
-	void sendChannelMessage(std::string author, std::string text, MessageClasses type, uint16_t channel, bool fakeChat = false, uint32_t ip = 0);
+	void sendChannelMessage(std::string author, std::string text, MessageType_t type, uint16_t channel, bool fakeChat = false, uint32_t ip = 0);
 	void sendClosePrivate(uint16_t channelId);
 	void sendCreatePrivateChannel(uint16_t channelId, const std::string& channelName);
 	void sendChannelsDialog(const ChannelsList& channels)
@@ -296,8 +296,8 @@ private:
 			it->first->sendCreatureTurn(creature, stackpos);
 		}
 	}
-	void sendCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* pos, uint32_t statementId, bool fakeChat = false); // extended
-	void sendCreatureChannelSay(const Creature* creature, MessageClasses type, const std::string& text, uint16_t channelId, uint32_t statementId, bool fakeChat = false); // extended
+	void sendCreatureSay(const Creature* creature, MessageType_t type, const std::string& text, Position* pos, uint32_t statementId, bool fakeChat = false); // extended
+	void sendCreatureChannelSay(const Creature* creature, MessageType_t type, const std::string& text, uint16_t channelId, uint32_t statementId, bool fakeChat = false); // extended
 
 	void sendCancel(const std::string& message)
 	{
@@ -376,7 +376,7 @@ private:
 			it->first->sendStats();
 		}
 	}
-	void sendTextMessage(MessageClasses mclass, const std::string& message)
+	void sendTextMessage(MessageType_t mclass, const std::string& message)
 	{
 		if (!m_owner) {
 			return;
@@ -387,7 +387,7 @@ private:
 			it->first->sendTextMessage(mclass, message);
 		}
 	}
-	void sendStatsMessage(MessageClasses mclass, const std::string& message,
+	void sendStatsMessage(MessageType_t mclass, const std::string& message,
 		Position pos, MessageDetails* details = nullptr)
 	{
 		if (!m_owner) {

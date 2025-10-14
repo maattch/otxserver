@@ -369,9 +369,9 @@ public:
 	ReturnValue internalRemoveItem(Creature* actor, Item* item, int32_t count = -1, bool test = false, uint32_t flags = 0);
 
 	ReturnValue internalPlayerAddItem(Creature* actor, Player* player, Item* item,
-		bool dropOnMap = true, slots_t slot = SLOT_WHEREEVER);
+		bool dropOnMap = true, Slots_t slot = SLOT_WHEREEVER);
 	ReturnValue internalPlayerAddItem(Creature* actor, Player* player, Item* item,
-		bool dropOnMap, slots_t slot, Item** toItem);
+		bool dropOnMap, Slots_t slot, Item** toItem);
 
 	/**
 	 * Find an item of a certain type
@@ -457,16 +457,16 @@ public:
 	 * \param spectators Send message only to creatures pointed in vector
 	 * \param pos Appear as sent from different position
 	 */
-	bool internalCreatureSay(Creature* creature, MessageClasses type, const std::string& text,
+	bool internalCreatureSay(Creature* creature, MessageType_t type, const std::string& text,
 		bool ghostMode, SpectatorVec* spectators = nullptr, Position* pos = nullptr, uint32_t statementId = 0, bool isSpell = false, bool fakeChat = false);
 
 	bool internalStartTrade(Player* player, Player* partner, Item* tradeItem);
 	bool internalCloseTrade(Player* player);
 
 	// Implementation of player invoked events
-	bool playerBroadcastMessage(Player* player, MessageClasses type, const std::string& text, uint32_t statementId);
+	bool playerBroadcastMessage(Player* player, MessageType_t type, const std::string& text, uint32_t statementId);
 	bool playerReportBug(const uint32_t playerId, std::string comment);
-	bool playerReportViolation(const uint32_t playerId, const ReportType_t& type, const uint8_t reason, const std::string& name,
+	bool playerReportViolation(const uint32_t playerId, ReportType_t type, const uint8_t reason, const std::string& name,
 		const std::string& comment, const std::string& translation, const uint32_t statementId);
 	bool playerViolationWindow(const uint32_t playerId, std::string name, const uint8_t reason,
 		ViolationAction_t action, std::string comment, std::string statement,
@@ -531,7 +531,7 @@ public:
 
 	std::string removeNonAlphabetic(const std::string& s);
 
-	bool playerSay(const uint32_t playerId, const uint16_t channelId, const MessageClasses& type,
+	bool playerSay(const uint32_t playerId, const uint16_t channelId, const MessageType_t& type,
 		const std::string& receiver, const std::string& text, bool notify = true);
 	bool playerChangeOutfit(const uint32_t playerId, const Outfit_t& outfit);
 	bool playerInviteToParty(const uint32_t playerId, const uint32_t invitedId);
@@ -543,7 +543,7 @@ public:
 	void parsePlayerExtendedOpcode(const uint32_t playerId, const uint8_t opcode, const std::string& buffer);
 
 	void kickPlayer(const uint32_t playerId, const bool displayEffect);
-	bool broadcastMessage(const std::string& text, MessageClasses type);
+	bool broadcastMessage(const std::string& text, MessageType_t type);
 	void showHotkeyUseMessage(Player* player, Item* item);
 
 	int32_t getMotdId();
@@ -629,7 +629,7 @@ public:
 	void addDistanceEffect(const SpectatorVec& list, const Position& fromPos, const Position& toPos, const uint16_t effect);
 	void addDistanceEffect(const Position& fromPos, const Position& toPos, const uint16_t effect);
 
-	void addStatsMessage(const SpectatorVec& list, const MessageClasses& mClass, const std::string& message,
+	void addStatsMessage(const SpectatorVec& list, const MessageType_t& mClass, const std::string& message,
 		const Position& pos, MessageDetails* details = nullptr);
 
 	const RuleViolationsMap& getRuleViolations() const { return ruleViolations; }
@@ -700,8 +700,8 @@ public:
 private:
 	bool playerWhisper(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
 	bool playerYell(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
-	bool playerSpeakTo(Player* player, MessageClasses type, const std::string& receiver, const std::string& text, const uint32_t statementId, bool notify = true, bool fakeChat = false);
-	bool playerSpeakToChannel(Player* player, MessageClasses type, const std::string& text, const uint16_t channelId, const uint32_t statementId, bool fakeChat = false);
+	bool playerSpeakTo(Player* player, MessageType_t type, const std::string& receiver, const std::string& text, const uint32_t statementId, bool notify = true, bool fakeChat = false);
+	bool playerSpeakToChannel(Player* player, MessageType_t type, const std::string& text, const uint16_t channelId, const uint32_t statementId, bool fakeChat = false);
 	bool playerSpeakToNpc(Player* player, const std::string& text);
 	bool playerReportRuleViolation(Player* player, const std::string& text);
 	bool playerContinueReport(Player* player, const std::string& text);

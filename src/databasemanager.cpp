@@ -51,7 +51,7 @@ bool DatabaseManager::optimizeTables()
 bool DatabaseManager::triggerExists(std::string trigger)
 {
 	std::ostringstream query;
-	query << "SELECT `TRIGGER_NAME` FROM `information_schema`.`triggers` WHERE `TRIGGER_SCHEMA` = " << g_database.escapeString(otx::config::getString(otx::config::SQL_DB)) << " AND `TRIGGER_NAME` = " << g_database.escapeString(trigger) << ";";
+	query << "SELECT `TRIGGER_NAME` FROM `information_schema`.`triggers` WHERE `TRIGGER_SCHEMA` = " << g_database.escapeString(otx::config::getString(otx::config::SQL_DB)) << " AND `TRIGGER_NAME` = " << g_database.escapeString(trigger);
 
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
@@ -64,7 +64,7 @@ bool DatabaseManager::triggerExists(std::string trigger)
 bool DatabaseManager::tableExists(std::string table)
 {
 	std::ostringstream query;
-	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(otx::config::getString(otx::config::SQL_DB)) << " AND `TABLE_NAME` = " << g_database.escapeString(table) << ";";
+	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(otx::config::getString(otx::config::SQL_DB)) << " AND `TABLE_NAME` = " << g_database.escapeString(table);
 
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
@@ -77,7 +77,7 @@ bool DatabaseManager::tableExists(std::string table)
 bool DatabaseManager::isDatabaseSetup()
 {
 	std::ostringstream query;
-	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(otx::config::getString(otx::config::SQL_DB)) << ";";
+	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(otx::config::getString(otx::config::SQL_DB));
 
 	DBResultPtr result;
 	if (!(result = g_database.storeQuery(query.str()))) {
@@ -94,7 +94,7 @@ bool DatabaseManager::getDatabaseConfig(std::string config, int32_t& value)
 	DBResultPtr result;
 
 	std::ostringstream query;
-	query << "SELECT `value` FROM `server_config` WHERE `config` = " << g_database.escapeString(config) << ";";
+	query << "SELECT `value` FROM `server_config` WHERE `config` = " << g_database.escapeString(config);
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
 	}
@@ -110,7 +110,7 @@ bool DatabaseManager::getDatabaseConfig(std::string config, std::string& value)
 	DBResultPtr result;
 
 	std::ostringstream query;
-	query << "SELECT `value` FROM `server_config` WHERE `config` = " << g_database.escapeString(config) << ";";
+	query << "SELECT `value` FROM `server_config` WHERE `config` = " << g_database.escapeString(config);
 	if (!(result = g_database.storeQuery(query.str()))) {
 		return false;
 	}
@@ -125,9 +125,9 @@ void DatabaseManager::registerDatabaseConfig(std::string config, int32_t value)
 
 	int32_t tmp = 0;
 	if (!getDatabaseConfig(config, tmp)) {
-		query << "INSERT INTO `server_config` VALUES (" << g_database.escapeString(config) << ", '" << value << "');";
+		query << "INSERT INTO `server_config` VALUES (" << g_database.escapeString(config) << ", '" << value << "')";
 	} else {
-		query << "UPDATE `server_config` SET `value` = '" << value << "' WHERE `config` = " << g_database.escapeString(config) << ";";
+		query << "UPDATE `server_config` SET `value` = '" << value << "' WHERE `config` = " << g_database.escapeString(config);
 	}
 
 	g_database.executeQuery(query.str());
@@ -139,9 +139,9 @@ void DatabaseManager::registerDatabaseConfig(std::string config, std::string val
 
 	std::string tmp;
 	if (!getDatabaseConfig(config, tmp)) {
-		query << "INSERT INTO `server_config` VALUES (" << g_database.escapeString(config) << ", " << g_database.escapeString(value) << ");";
+		query << "INSERT INTO `server_config` VALUES (" << g_database.escapeString(config) << ", " << g_database.escapeString(value) << ')';
 	} else {
-		query << "UPDATE `server_config` SET `value` = " << g_database.escapeString(value) << " WHERE `config` = " << g_database.escapeString(config) << ";";
+		query << "UPDATE `server_config` SET `value` = " << g_database.escapeString(value) << " WHERE `config` = " << g_database.escapeString(config);
 	}
 
 	g_database.executeQuery(query.str());

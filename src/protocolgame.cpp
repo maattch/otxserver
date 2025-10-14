@@ -1570,7 +1570,7 @@ void ProtocolGame::parseSay(NetworkMessage& msg)
 	std::string receiver;
 	uint16_t channelId = 0;
 
-	const auto type = static_cast<MessageClasses>(msg.get<char>());
+	const auto type = static_cast<MessageType_t>(msg.get<char>());
 	switch (type) {
 		case MSG_PRIVATE:
 		case MSG_GAMEMASTER_PRIVATE:
@@ -2020,7 +2020,7 @@ void ProtocolGame::sendStats()
 	AddPlayerStats(msg);
 }
 
-void ProtocolGame::sendTextMessage(MessageClasses mClass, const std::string& message)
+void ProtocolGame::sendTextMessage(MessageType_t mClass, const std::string& message)
 {
 	AddTextMessage(mClass, message);
 }
@@ -2332,7 +2332,7 @@ void ProtocolGame::sendCreatureTurn(const Creature* creature, int16_t stackpos)
 	msg->addByte(creature->getDirection());
 }
 
-void ProtocolGame::sendCreatureSay(const Creature* creature, MessageClasses type, const std::string& text, Position* pos, uint32_t statementId)
+void ProtocolGame::sendCreatureSay(const Creature* creature, MessageType_t type, const std::string& text, Position* pos, uint32_t statementId)
 {
 	OutputMessage_ptr msg = getOutputBuffer();
 	if (!msg) {
@@ -2342,7 +2342,7 @@ void ProtocolGame::sendCreatureSay(const Creature* creature, MessageClasses type
 	AddCreatureSpeak(msg, creature, type, text, 0, pos, statementId);
 }
 
-void ProtocolGame::sendCreatureChannelSay(const Creature* creature, MessageClasses type, const std::string& text, uint16_t channelId, uint32_t statementId)
+void ProtocolGame::sendCreatureChannelSay(const Creature* creature, MessageType_t type, const std::string& text, uint16_t channelId, uint32_t statementId)
 {
 	OutputMessage_ptr msg = getOutputBuffer();
 	if (!msg) {
@@ -2352,7 +2352,7 @@ void ProtocolGame::sendCreatureChannelSay(const Creature* creature, MessageClass
 	AddCreatureSpeak(msg, creature, type, text, channelId, nullptr, statementId);
 }
 
-void ProtocolGame::sendStatsMessage(MessageClasses type, const std::string& message,
+void ProtocolGame::sendStatsMessage(MessageType_t type, const std::string& message,
 	Position pos, MessageDetails* details /* = nullptr*/)
 {
 	AddTextMessage(type, message, &pos, details);
@@ -2625,8 +2625,8 @@ void ProtocolGame::sendAddCreature(const Creature* creature, const Position& pos
 	}
 
 	AddMapDescription(msg, pos);
-	for (int32_t i = SLOT_FIRST; i < SLOT_LAST; ++i) {
-		AddInventoryItem(msg, i, player->getInventoryItem(static_cast<slots_t>(i)));
+	for (int32_t i = SLOT_FIRST; i <= SLOT_LAST; ++i) {
+		AddInventoryItem(msg, i, player->getInventoryItem(static_cast<Slots_t>(i)));
 	}
 
 	AddPlayerStats(msg);
@@ -3064,7 +3064,7 @@ void ProtocolGame::AddMapDescription(OutputMessage_ptr msg, const Position& pos)
 	GetMapDescription(pos.x - 8, pos.y - 6, pos.z, 18, 14, msg);
 }
 
-void ProtocolGame::AddTextMessage(MessageClasses mClass, const std::string& message,
+void ProtocolGame::AddTextMessage(MessageType_t mClass, const std::string& message,
 	Position* pos /* = nullptr*/, MessageDetails* details /* = nullptr*/)
 {
 	if (mClass >= MSG_STATUS_CONSOLE_RED) {
@@ -3205,7 +3205,7 @@ void ProtocolGame::AddPlayerSkills(OutputMessage_ptr msg)
 	}
 }
 
-void ProtocolGame::AddCreatureSpeak(OutputMessage_ptr msg, const Creature* creature, MessageClasses type,
+void ProtocolGame::AddCreatureSpeak(OutputMessage_ptr msg, const Creature* creature, MessageType_t type,
 	const std::string& text, const uint16_t channelId, Position* pos, const uint32_t statementId)
 {
 	if (type > MSG_SPEAK_MONSTER_LAST) {
@@ -3521,7 +3521,7 @@ void ProtocolGame::RemoveContainerItem(OutputMessage_ptr msg, uint8_t cid, uint8
 	msg->addByte(slot);
 }
 
-void ProtocolGame::sendChannelMessage(std::string author, std::string text, MessageClasses type, uint16_t channel)
+void ProtocolGame::sendChannelMessage(std::string author, std::string text, MessageType_t type, uint16_t channel)
 {
 	OutputMessage_ptr msg = getOutputBuffer();
 	if (!msg) {

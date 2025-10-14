@@ -180,9 +180,9 @@ bool Vocations::loadFromXml()
 				}
 
 				if (readXMLInteger(configNode, "id", intValue)) {
-					const auto skill = static_cast<skills_t>(intValue);
+					const auto skill = static_cast<Skills_t>(intValue);
 					if (skill < SKILL_FIRST || skill >= SKILL__LAST) {
-						std::clog << "[Error - Vocations::loadFromXml] No valid skill id (" << intValue << ")." << std::endl;
+						std::clog << "[Error - Vocations::loadFromXml] Invalid skill id (" << intValue << ")." << std::endl;
 						continue;
 					}
 

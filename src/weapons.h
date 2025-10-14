@@ -97,7 +97,7 @@ protected:
 	bool internalUseWeapon(Player* player, Item* item, Tile* tile) const;
 
 	void onUsedWeapon(Player* player, Item* item, Tile* destTile) const;
-	virtual bool getSkillType(const Player*, const Item*, skills_t&, uint64_t&) const { return false; }
+	virtual bool getSkillType(const Player*, const Item*, Skills_t&, uint64_t&) const { return false; }
 
 	int32_t getManaCost(const Player* player) const;
 
@@ -134,7 +134,7 @@ public:
 	int32_t getWeaponElementDamage(const Player* player, const Item* item, bool maxDamage = false) const override;
 
 private:
-	bool getSkillType(const Player* player, const Item* item, skills_t& skill, uint64_t& skillPoint) const override;
+	bool getSkillType(const Player* player, const Item* item, Skills_t& skill, uint64_t& skillPoint) const override;
 
 	int32_t m_elementDamage = 0;
 	CombatType_t m_elementType = COMBAT_NONE;
@@ -153,7 +153,7 @@ public:
 	int32_t getWeaponDamage(const Player* player, const Item* item, bool maxDamage = false) const override;
 
 private:
-	bool getSkillType(const Player* player, const Item* item, skills_t& skill, uint64_t& skillPoint) const override;
+	bool getSkillType(const Player* player, const Item* item, Skills_t& skill, uint64_t& skillPoint) const override;
 
 	int32_t m_elementDamage = 0;
 	CombatType_t m_elementType = COMBAT_NONE;

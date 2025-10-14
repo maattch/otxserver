@@ -407,7 +407,7 @@ bool Weapon::internalUseWeapon(Player* player, Item* item, Tile* tile) const
 void Weapon::onUsedWeapon(Player* player, Item* item, Tile* tile) const
 {
 	if (!player->hasFlag(PlayerFlag_NotGainSkill)) {
-		skills_t skillType;
+		Skills_t skillType;
 		uint64_t skillPoint = 0;
 		if (getSkillType(player, item, skillType, skillPoint)) {
 			player->addSkillAdvance(skillType, skillPoint);
@@ -519,7 +519,7 @@ bool WeaponMelee::useWeapon(Player* player, Item* item, Creature* target) const
 }
 
 bool WeaponMelee::getSkillType(const Player* player, const Item* item,
-	skills_t& skill, uint64_t& skillPoint) const
+	Skills_t& skill, uint64_t& skillPoint) const
 {
 	skillPoint = 0;
 	if (player->getAddAttackSkill()) {
@@ -814,7 +814,7 @@ int32_t WeaponDistance::getWeaponDamage(const Player* player, const Item* item, 
 }
 
 bool WeaponDistance::getSkillType(const Player* player, const Item*,
-	skills_t& skill, uint64_t& skillPoint) const
+	Skills_t& skill, uint64_t& skillPoint) const
 {
 	skill = SKILL_DIST;
 	skillPoint = 0;

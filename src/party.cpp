@@ -333,7 +333,7 @@ void Party::updateAllIcons()
 	}
 }
 
-void Party::broadcastMessage(MessageClasses messageClass, const std::string& text, bool sendToInvitations /* = false*/)
+void Party::broadcastMessage(MessageType_t messageClass, const std::string& text, bool sendToInvitations /* = false*/)
 {
 	PlayerVector::iterator it;
 	if (!memberList.empty()) {

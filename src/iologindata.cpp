@@ -92,7 +92,7 @@ void IOLoginData::loadCharacters(Account& account)
 bool IOLoginData::saveAccount(Account account)
 {
 	std::ostringstream query;
-	query << "UPDATE `accounts` SET `premdays` = " << account.premiumDays << ", `warnings` = " << account.warnings << ", `lastday` = " << account.lastDay << " WHERE `id` = " << account.number << " LIMIT 1;";
+	query << "UPDATE `accounts` SET `premdays` = " << account.premiumDays << ", `warnings` = " << account.warnings << ", `lastday` = " << account.lastDay << " WHERE `id` = " << account.number << " LIMIT 1";
 	return g_database.executeQuery(query.str());
 }
 
@@ -260,7 +260,7 @@ bool IOLoginData::setPassword(uint32_t accountId, std::string newPassword)
 	}
 
 	std::ostringstream query;
-	query << "UPDATE `accounts` SET `password` = " << g_database.escapeString(transformToSHA1(newPassword)) << ", `salt` = " << g_database.escapeString(salt) << " WHERE `id` = " << accountId << " LIMIT 1;";
+	query << "UPDATE `accounts` SET `password` = " << g_database.escapeString(transformToSHA1(newPassword)) << ", `salt` = " << g_database.escapeString(salt) << " WHERE `id` = " << accountId << " LIMIT 1";
 	return g_database.executeQuery(query.str());
 }
 
@@ -274,7 +274,7 @@ bool IOLoginData::validRecoveryKey(uint32_t accountId, const std::string& recove
 bool IOLoginData::setRecoveryKey(uint32_t accountId, const std::string& newRecoveryKey)
 {
 	std::ostringstream query;
-	query << "UPDATE `accounts` SET `key` = " << g_database.escapeString(transformToSHA1(newRecoveryKey)) << " WHERE `id` = " << accountId << " LIMIT 1;";
+	query << "UPDATE `accounts` SET `key` = " << g_database.escapeString(transformToSHA1(newRecoveryKey)) << " WHERE `id` = " << accountId << " LIMIT 1";
 	return g_database.executeQuery(query.str());
 }
 
@@ -768,7 +768,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	query.str("");
 	query << "UPDATE `players` SET `lastlogin` = " << player->m_lastLogin << ", `lastip` = " << player->m_lastIP;
 	if (!player->isSaving() || !otx::config::getBoolean(otx::config::SAVE_PLAYER_DATA)) {
-		query << " WHERE `id` = " << player->getGUID() << " LIMIT 1;";
+		query << " WHERE `id` = " << player->getGUID() << " LIMIT 1";
 		if (!g_database.executeQuery(query.str())) {
 			return false;
 		}
@@ -778,7 +778,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	query << ", ";
 	query << "`level` = " << std::max<uint32_t>(1, player->getLevel()) << ", ";
-	query << "`group_id` = " << player->m_groupId << ", ";
+	query << "`group_id` = " << static_cast<int>(player->m_groupId) << ", ";
 	query << "`health` = " << player->m_health << ", ";
 	query << "`healthmax` = " << player->m_healthMax << ", ";
 	query << "`experience` = " << player->getExperience() << ", ";
@@ -792,8 +792,8 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	query << "`mana` = " << player->m_mana << ", ";
 	query << "`manamax` = " << player->m_manaMax << ", ";
 	query << "`manaspent` = " << player->m_manaSpent << ", ";
-	query << "`soul` = " << player->m_soul << ", ";
-	query << "`town_id` = " << player->m_town << ", ";
+	query << "`soul` = " << static_cast<int>(player->m_soul) << ", ";
+	query << "`town_id` = " << static_cast<int>(player->m_town) << ", ";
 	query << "`posx` = " << player->getLoginPosition().x << ", ";
 	query << "`posy` = " << player->getLoginPosition().y << ", ";
 	query << "`posz` = " << player->getLoginPosition().z << ", ";
@@ -807,7 +807,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 		skull = player->getSkull();
 	}
 
-	query << "`skull` = " << skull << ", ";
+	query << "`skull` = " << static_cast<int>(skull) << ", ";
 	query << "`skulltime` = " << player->getSkullEnd() << ", ";
 	query << "`promotion` = " << player->m_promotionLevel << ", ";
 	if (otx::config::getBoolean(otx::config::STORE_DIRECTION)) {
@@ -845,7 +845,7 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 
 	query << "`lastlogout` = " << player->getLastLogout() << ", ";
 	if (otx::config::getBoolean(otx::config::BLESSINGS) && (player->isPremium() || !otx::config::getBoolean(otx::config::BLESSING_ONLY_PREMIUM))) {
-		query << "`blessings` = " << player->m_blessings << ", ";
+		query << "`blessings` = " << static_cast<int>(player->m_blessings) << ", ";
 		query << "`pvp_blessing` = " << (player->hasPVPBlessing() ? "1" : "0") << ", ";
 	}
 
@@ -934,24 +934,12 @@ bool IOLoginData::savePlayer(Player* player, bool preSave /* = true*/, bool shal
 	}
 
 	itemList.clear();
-	// save depot items
-	// std::ostringstream ss;
 	for (DepotMap::iterator it = player->m_depots.begin(); it != player->m_depots.end(); ++it) {
-		/*if(it->second.second)
-		{
-			it->second.second = false;
-			ss << it->first << ",";*/
 		itemList.push_back(itemBlock(it->first, it->second.first));
-		//}
 	}
 
-	/*std::string s = ss.str();
-	size_t size = s.length();
-	if(size > 0)
-	{*/
-
 	query.str("");
-	query << "DELETE FROM `player_depotitems` WHERE `player_id` = " << player->getGUID(); // << " AND `pid` IN (" << s.substr(0, --size) << ")";
+	query << "DELETE FROM `player_depotitems` WHERE `player_id` = " << player->getGUID();
 	if (!g_database.executeQuery(query.str())) {
 		return false;
 	}
@@ -1094,24 +1082,12 @@ bool IOLoginData::savePlayerItems(Player* player)
 	}
 
 	itemList.clear();
-	// save depot items
-	// std::ostringstream ss;
 	for (DepotMap::iterator it = player->m_depots.begin(); it != player->m_depots.end(); ++it) {
-		/*if(it->second.second)
-		{
-		it->second.second = false;
-		ss << it->first << ",";*/
 		itemList.push_back(itemBlock(it->first, it->second.first));
-		//}
 	}
 
-	/*std::string s = ss.str();
-	size_t size = s.length();
-	if(size > 0)
-	{*/
-
 	query.str("");
-	query << "DELETE FROM `player_depotitems` WHERE `player_id` = " << player->getGUID(); // << " AND `pid` IN (" << s.substr(0, --size) << ")";
+	query << "DELETE FROM `player_depotitems` WHERE `player_id` = " << player->getGUID();
 	if (!g_database.executeQuery(query.str())) {
 		return false;
 	}
@@ -1267,7 +1243,7 @@ bool IOLoginData::playerDeath(Player* _player, const DeathList& dl)
 	for (DeathList::const_iterator it = dl.begin(); i < size && it != dl.end(); ++it, ++i) {
 		query.str("");
 		query << "INSERT INTO `killers` (`death_id`, `final_hit`, `unjustified`, `war`) VALUES ("
-			  << deathId << ", " << it->isLast() << ", " << it->isUnjustified() << ", " << it->getWar().war << ")";
+			<< deathId << ", " << (it->isLast() ? 1 : 0) << ", " << (it->isUnjustified() ? 1 : 0) << ", " << it->getWar().war << ")";
 		if (!g_database.executeQuery(query.str())) {
 			return false;
 		}
@@ -1609,7 +1585,7 @@ bool IOLoginData::changeName(uint32_t guid, std::string newName, std::string old
 	}
 
 	query.str("");
-	query << "UPDATE `players` SET `name` = " << g_database.escapeString(newName) << " WHERE `id` = " << guid << " LIMIT 1;";
+	query << "UPDATE `players` SET `name` = " << g_database.escapeString(newName) << " WHERE `id` = " << guid << " LIMIT 1";
 	if (!g_database.executeQuery(query.str())) {
 		return false;
 	}
@@ -1627,7 +1603,7 @@ bool IOLoginData::changeName(uint32_t guid, std::string newName, std::string old
 bool IOLoginData::createCharacter(uint32_t accountId, std::string characterName, int32_t vocationId, uint16_t sex)
 {
 	std::ostringstream query;
-	query << "SELECT `id` FROM `players` WHERE `name` = " << g_database.escapeString(characterName) << ";";
+	query << "SELECT `id` FROM `players` WHERE `name` = " << g_database.escapeString(characterName);
 	DBResultPtr result = g_database.storeQuery(query.str());
 	if (result) {
 		return false;
@@ -1691,7 +1667,7 @@ DeleteCharacter_t IOLoginData::deleteCharacter(uint32_t accountId, const std::st
 	}
 
 	query.str("");
-	query << "UPDATE `players` SET `deleted` = " << time(nullptr) << " WHERE `id` = " << id << " LIMIT 1;";
+	query << "UPDATE `players` SET `deleted` = " << time(nullptr) << " WHERE `id` = " << id << " LIMIT 1";
 	if (!g_database.executeQuery(query.str())) {
 		return DELETE_INTERNAL;
 	}
@@ -1845,20 +1821,20 @@ bool IOLoginData::updateOnlineStatus(uint32_t guid, bool login)
 	std::ostringstream query;
 
 	uint16_t value = login;
-	query << "UPDATE `players` SET `online` = " << value << " WHERE `id` = " << guid << " LIMIT 1;";
+	query << "UPDATE `players` SET `online` = " << value << " WHERE `id` = " << guid << " LIMIT 1";
 	return g_database.executeQuery(query.str());
 }
 
 bool IOLoginData::resetGuildInformation(uint32_t guid)
 {
 	std::ostringstream query;
-	query << "UPDATE `players` SET `rank_id` = 0, `guildnick` = '' WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1;";
+	query << "UPDATE `players` SET `rank_id` = 0, `guildnick` = '' WHERE `id` = " << guid << " AND `deleted` = 0 LIMIT 1";
 	return g_database.executeQuery(query.str());
 }
 
 void IOLoginData::increaseBankBalance(uint32_t guid, uint64_t bankBalance)
 {
 	std::ostringstream query;
-	query << "UPDATE `players` SET `balance` = `balance` + " << bankBalance << " WHERE `id` = " << guid << ";";
+	query << "UPDATE `players` SET `balance` = `balance` + " << bankBalance << " WHERE `id` = " << guid;
 	// return g_database.executeQuery(query.str());
 }

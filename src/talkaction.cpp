@@ -850,7 +850,7 @@ bool TalkAction::thingProporties(Creature* creature, const std::string& param)
 				_creature->setEmblem(getEmblems(parseParams(it, tokens.end())));
 				g_game.updateCreatureEmblem(_creature);
 			} else if (action == "speaktype") {
-				_creature->setSpeakType(static_cast<MessageClasses>(atoi(parseParams(it, tokens.end()).c_str())));
+				_creature->setSpeakType(static_cast<MessageType_t>(atoi(parseParams(it, tokens.end()).c_str())));
 			} else if (Player* _player = _creature->getPlayer()) {
 				if (action == "fyi") {
 					_player->sendFYIBox(parseParams(it, tokens.end()).c_str());

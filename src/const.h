@@ -49,7 +49,7 @@ enum ThreadState : uint8_t
 	THREAD_STATE_TERMINATED,
 };
 
-enum OperatingSystem_t
+enum OperatingSystem_t : uint16_t
 {
 	CLIENTOS_LINUX = 1,
 	CLIENTOS_WINDOWS = 2,
@@ -78,7 +78,7 @@ enum ItemSlotBits_t : uint32_t
 	SLOTP_WHEREEVER = 0xFFFFFFFF,
 };
 
-enum ReportType_t
+enum ReportType_t : uint8_t
 {
 	REPORT_NAME = 0,
 	REPORT_STATEMENT = 1,
@@ -93,28 +93,28 @@ enum CreatureType_t : uint8_t
 	CREATURE_TYPE_NPC,
 };
 
-enum slots_t
+enum Slots_t : uint8_t
 {
-	SLOT_PRE_FIRST = 0,
-	SLOT_WHEREEVER = SLOT_PRE_FIRST,
-	SLOT_FIRST = 1,
-	SLOT_HEAD = SLOT_FIRST,
-	SLOT_NECKLACE = 2,
-	SLOT_BACKPACK = 3,
-	SLOT_ARMOR = 4,
-	SLOT_RIGHT = 5,
-	SLOT_LEFT = 6,
-	SLOT_LEGS = 7,
-	SLOT_FEET = 8,
-	SLOT_RING = 9,
-	SLOT_AMMO = 10,
-	SLOT_DEPOT = 11,
-	SLOT_LAST = SLOT_DEPOT,
-	SLOT_HAND = 12,
-	SLOT_TWO_HAND = SLOT_HAND
+	SLOT_WHEREEVER = 0,
+
+	SLOT_HEAD,
+	SLOT_NECKLACE,
+	SLOT_BACKPACK,
+	SLOT_ARMOR,
+	SLOT_RIGHT,
+	SLOT_LEFT,
+	SLOT_LEGS,
+	SLOT_FEET,
+	SLOT_RING,
+	SLOT_AMMO,
+	SLOT_DEPOT, // unused (idk the purpose behind this, its just here for compat reasons)
+	SLOT_HAND,
+
+	SLOT_FIRST = SLOT_HEAD,
+	SLOT_LAST = SLOT_AMMO,
 };
 
-enum ReturnValue
+enum ReturnValue : uint32_t
 {
 	RET_NOERROR = 0,
 	RET_NOTPOSSIBLE = 1,
@@ -313,7 +313,7 @@ enum ShootEffect_t : uint16_t
 	SHOOT_EFFECT_NONE = 0xFFFF,
 };
 
-enum MessageClasses
+enum MessageType_t : uint8_t
 {
 	MSG_NONE = 0,
 	MSG_SPEAK_SAY = 1,
@@ -371,7 +371,7 @@ enum MessageClasses
 	MSG_EXPERIENCE_OTHERS = MSG_HIDDEN
 };
 
-enum MapMarks_t
+enum MapMarks_t : uint8_t
 {
 	MAPMARK_TICK = 0,
 	MAPMARK_QUESTION = 1,
@@ -395,7 +395,7 @@ enum MapMarks_t
 	MAPMARK_GREENSOUTH = 19
 };
 
-enum FluidColors_t
+enum FluidColors_t : uint8_t
 {
 	FLUID_EMPTY = 0,
 	FLUID_BLUE = 1,
@@ -407,7 +407,7 @@ enum FluidColors_t
 	FLUID_PURPLE = 7
 };
 
-enum FluidTypes_t
+enum FluidTypes_t : uint8_t
 {
 	FLUID_NONE = FLUID_EMPTY,
 	FLUID_WATER = FLUID_BLUE,
@@ -469,7 +469,7 @@ const uint8_t clientToServerFluidMap[] = {
 	FLUID_MEAD
 };
 
-enum ClientFluidTypes_t
+enum ClientFluidTypes_t : uint8_t
 {
 	CLIENTFLUID_EMPTY = 0,
 	CLIENTFLUID_BLUE = 1,
@@ -521,7 +521,7 @@ enum Color_t : uint8_t
 	COLOR_NONE = 255
 };
 
-enum Icons_t
+enum Icons_t : uint32_t
 {
 	ICON_NONE = 0,
 	ICON_POISON = 1 << 0,
@@ -543,9 +543,8 @@ enum Icons_t
 	ICON_HUNGRY = 1 << 16
 };
 
-enum skills_t
+enum Skills_t : uint8_t
 {
-	SKILL_NONE = -1,
 	SKILL_FIST = 0,
 	SKILL_CLUB,
 	SKILL_SWORD,
@@ -560,10 +559,12 @@ enum skills_t
 
 	SKILL_FIRST = SKILL_FIST,
 	SKILL_LAST = SKILL_FISH,
-	SKILL__LAST = SKILL__EXPERIENCE
+	SKILL__LAST = SKILL__EXPERIENCE,
+
+	SKILL_NONE = 0xFF
 };
 
-enum WeaponType_t
+enum WeaponType_t : uint8_t
 {
 	WEAPON_NONE = 0,
 	WEAPON_SWORD,
@@ -576,7 +577,7 @@ enum WeaponType_t
 	WEAPON_AMMO
 };
 
-enum Ammo_t
+enum Ammo_t : uint8_t
 {
 	AMMO_NONE = 0,
 	AMMO_BOLT,
@@ -588,7 +589,7 @@ enum Ammo_t
 	AMMO_SNOWBALL
 };
 
-enum AmmoAction_t
+enum AmmoAction_t : uint8_t
 {
 	AMMOACTION_NONE = 0,
 	AMMOACTION_REMOVECOUNT,
@@ -597,7 +598,7 @@ enum AmmoAction_t
 	AMMOACTION_MOVEBACK
 };
 
-enum WieldInfo_t
+enum WieldInfo_t : uint8_t
 {
 	WIELDINFO_LEVEL = 1,
 	WIELDINFO_MAGLV = 2,
@@ -605,7 +606,7 @@ enum WieldInfo_t
 	WIELDINFO_PREMIUM = 8
 };
 
-enum Skulls_t
+enum Skulls_t : uint8_t
 {
 	SKULL_NONE = 0,
 	SKULL_YELLOW,
@@ -616,7 +617,7 @@ enum Skulls_t
 	SKULL_LAST = SKULL_BLACK
 };
 
-enum PartyShields_t
+enum PartyShields_t : uint8_t
 {
 	SHIELD_NONE = 0,
 	SHIELD_WHITEYELLOW,
@@ -632,7 +633,7 @@ enum PartyShields_t
 	SHIELD_LAST = SHIELD_YELLOW_NOSHAREDEXP
 };
 
-enum GuildEmblems_t
+enum GuildEmblems_t : uint8_t
 {
 	GUILDEMBLEM_NONE = 0,
 	GUILDEMBLEM_ALLY = 1,
@@ -640,7 +641,7 @@ enum GuildEmblems_t
 	GUILDEMBLEM_NEUTRAL = 3
 };
 
-enum SpellGroup_t
+enum SpellGroup_t : uint8_t
 {
 	SPELLGROUP_NONE = 0,
 	SPELLGROUP_ATTACK = 1,
@@ -649,7 +650,7 @@ enum SpellGroup_t
 	SPELLGROUP_SPECIAL = 4
 };
 
-enum item_t
+enum ItemIds_t : uint16_t
 {
 	ITEM_FIREFIELD = 1492,
 	ITEM_FIREFIELD_SAFE = 1500,
@@ -678,7 +679,7 @@ enum item_t
 	ITEM_HOUSE_TRANSFER = 1968
 };
 
-enum PlayerFlags
+enum PlayerFlags : uint32_t
 {
 	PlayerFlag_CannotUseCombat = 0,
 	PlayerFlag_CannotAttackPlayer,
@@ -732,7 +733,7 @@ enum PlayerFlags
 	PlayerFlag_LastFlag
 };
 
-enum PlayerCustomFlags
+enum PlayerCustomFlags : uint32_t
 {
 	PlayerCustomFlag_AllowIdle = 0,
 	PlayerCustomFlag_CanSeePosition,
@@ -803,20 +804,7 @@ enum CombatType_t : uint16_t
 	COMBAT_ALL = 0, /* for internal use only.*/
 };
 
-enum Vocation_t
-{
-	VOCATION_NONE = 0,
-	VOCATION_SORCERER = 1,
-	VOCATION_DRUID = 2,
-	VOCATION_PALADIN = 3,
-	VOCATION_KNIGHT = 4,
-	VOCATION_MASTERSORCERER = 5,
-	VOCATION_ELDERDRUID = 6,
-	VOCATION_ROYALPALADIN = 7,
-	VOCATION_ELITEKNIGHT = 8
-};
-
-enum multiplier_t
+enum Multiplier_t : uint8_t
 {
 	MULTIPLIER_FIRST = 0,
 	MULTIPLIER_MELEE = MULTIPLIER_FIRST,
@@ -831,7 +819,7 @@ enum multiplier_t
 	MULTIPLIER_LAST = MULTIPLIER_MANA
 };
 
-enum gain_t
+enum Gain_t : uint8_t
 {
 	GAIN_FIRST = 0,
 	GAIN_HEALTH = GAIN_FIRST,
@@ -840,7 +828,7 @@ enum gain_t
 	GAIN_LAST = GAIN_SOUL
 };
 
-enum GuildLevel_t
+enum GuildLevel_t : uint8_t
 {
 	GUILDLEVEL_NONE = 0,
 	GUILDLEVEL_MEMBER,
@@ -859,7 +847,7 @@ enum Channels_t : uint16_t
 	CHANNEL_PRIVATE = 0xFFFF
 };
 
-enum ViolationAction_t
+enum ViolationAction_t : uint8_t
 {
 	ACTION_NOTATION = 0,
 	ACTION_NAMEREPORT,
@@ -876,7 +864,7 @@ enum ViolationAction_t
 	ACTION_PLACEHOLDER
 };
 
-enum RaceType_t
+enum RaceType_t : uint8_t
 {
 	RACE_NONE = 0,
 	RACE_VENOM,
@@ -886,7 +874,7 @@ enum RaceType_t
 	RACE_ENERGY
 };
 
-enum CombatParam_t
+enum CombatParam_t : uint8_t
 {
 	COMBATPARAM_NONE = 0,
 	COMBATPARAM_COMBATTYPE,
@@ -907,7 +895,7 @@ enum CombatParam_t
 	COMBATPARAM_ELEMENTDAMAGE
 };
 
-enum CallBackParam_t
+enum CallBackParam_t : uint8_t
 {
 	CALLBACKPARAM_NONE = 0,
 	CALLBACKPARAM_LEVELMAGICVALUE,
@@ -916,7 +904,7 @@ enum CallBackParam_t
 	CALLBACKPARAM_TARGETCREATURECALLBACK
 };
 
-enum ConditionParam_t
+enum ConditionParam_t : uint8_t
 {
 	CONDITIONPARAM_OWNER = 1,
 	CONDITIONPARAM_TICKS,
@@ -978,7 +966,7 @@ enum ConditionParam_t
 	CONDITIONPARAM_COMBAT_DEATHDAMAGE
 };
 
-enum Exhaust_t
+enum Exhaust_t : uint8_t
 {
 	EXHAUST_SPELLGROUP_NONE = 1,
 	EXHAUST_SPELLGROUP_ATTACK = 2,
@@ -991,7 +979,7 @@ enum Exhaust_t
 	EXHAUST_MACHETE = 31
 };
 
-enum ExhaustSubId_t
+enum ExhaustSubId_t : uint8_t
 {
 	EXHAUST_DEFAULT = 1,
 	EXHAUST_TALKNPC = 2,
@@ -1009,7 +997,7 @@ enum ExhaustSubId_t
 	EXHAUST_TALKACTION = 14
 };
 
-enum BlockType_t
+enum BlockType_t : uint8_t
 {
 	BLOCK_NONE = 0,
 	BLOCK_DEFENSE,
@@ -1017,7 +1005,7 @@ enum BlockType_t
 	BLOCK_IMMUNITY
 };
 
-enum Reflect_t
+enum Reflect_t : uint8_t
 {
 	REFLECT_FIRST = 0,
 	REFLECT_PERCENT = REFLECT_FIRST,
@@ -1025,7 +1013,7 @@ enum Reflect_t
 	REFLECT_LAST = REFLECT_CHANCE
 };
 
-enum Increment_t
+enum Increment_t : uint8_t
 {
 	INCREMENT_FIRST = 0,
 	HEALING_VALUE = INCREMENT_FIRST,
@@ -1035,7 +1023,7 @@ enum Increment_t
 	INCREMENT_LAST = MAGIC_PERCENT
 };
 
-enum stats_t
+enum Stats_t : uint8_t
 {
 	STAT_FIRST = 0,
 	STAT_MAXHEALTH = STAT_FIRST,
@@ -1046,7 +1034,7 @@ enum stats_t
 	STAT_LAST = STAT_MAGICLEVEL
 };
 
-enum lossTypes_t
+enum LossTypes_t : uint8_t
 {
 	LOSS_FIRST = 0,
 	LOSS_EXPERIENCE = LOSS_FIRST,
@@ -1057,7 +1045,7 @@ enum lossTypes_t
 	LOSS_LAST = LOSS_ITEMS
 };
 
-enum FormulaType_t
+enum FormulaType_t : uint8_t
 {
 	FORMULA_UNDEFINED = 0,
 	FORMULA_LEVELMAGIC,
@@ -1065,7 +1053,7 @@ enum FormulaType_t
 	FORMULA_VALUE
 };
 
-enum ConditionId_t
+enum ConditionId_t : int8_t
 {
 	CONDITIONID_DEFAULT = -1,
 	CONDITIONID_COMBAT = 0,
@@ -1082,7 +1070,7 @@ enum ConditionId_t
 	CONDITIONID_OUTFIT
 };
 
-enum PlayerSex_t
+enum PlayerSex_t : uint8_t
 {
 	PLAYERSEX_FEMALE = 0,
 	PLAYERSEX_MALE
@@ -1090,7 +1078,7 @@ enum PlayerSex_t
 	// own use- each female should be even and male odd.
 };
 
-enum WarType_t
+enum WarType_t : uint8_t
 {
 	WAR_FIRST = 0,
 	WAR_GUILD = WAR_FIRST,
@@ -1175,35 +1163,25 @@ struct Outfit_t
 
 struct LightInfo
 {
-	uint32_t level, color;
+	LightInfo() = default;
+	LightInfo(uint8_t level, uint8_t color) :
+		level(level),
+		color(color) {}
 
-	LightInfo() { level = color = 0; }
-	LightInfo(uint32_t _level, uint32_t _color) :
-		level(_level),
-		color(_color) {}
+	uint8_t level = 0;
+	uint8_t color = 0;
 };
 
 struct ShopInfo
 {
-	uint32_t itemId;
-	int32_t subType, buyPrice, sellPrice;
+	ShopInfo() = default;
+	ShopInfo(uint16_t itemId) : itemId(itemId) {}
+
 	std::string itemName;
-
-	ShopInfo()
-	{
-		itemId = 0;
-		subType = 1;
-		buyPrice = sellPrice = -1;
-		itemName = "";
-	}
-
-	ShopInfo(uint32_t _itemId, int32_t _subType = 1, int32_t _buyPrice = -1, int32_t _sellPrice = -1,
-		const std::string& _itemName = "") :
-		itemId(_itemId),
-		subType(_subType),
-		buyPrice(_buyPrice),
-		sellPrice(_sellPrice),
-		itemName(_itemName) {}
+	int32_t subType = 1;
+	int32_t buyPrice = -1;
+	int32_t sellPrice = -1;
+	uint16_t itemId = 0;
 };
 
 using ShopInfoList = std::list<ShopInfo>;

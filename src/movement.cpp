@@ -49,7 +49,7 @@ int32_t MoveEventScript::luaCallFunction(lua_State* L)
 	if (MoveEventScript::event->getEventType() == MOVE_EVENT_EQUIP || MoveEventScript::event->getEventType() == MOVE_EVENT_DE_EQUIP) {
 		ScriptEnvironment& env = otx::lua::getScriptEnv();
 		bool boolean = otx::lua::popBoolean(L);
-		slots_t slot = static_cast<slots_t>(otx::lua::popNumber(L));
+		Slots_t slot = static_cast<Slots_t>(otx::lua::popNumber(L));
 
 		Item* item = env.getItemByUID(otx::lua::popNumber(L));
 		if (!item) {
@@ -359,7 +359,7 @@ MoveEvent* MoveEvents::getEvent(Item* item, MoveEvent_t eventType)
 	return nullptr;
 }
 
-MoveEvent* MoveEvents::getEvent(Item* item, MoveEvent_t eventType, slots_t slot)
+MoveEvent* MoveEvents::getEvent(Item* item, MoveEvent_t eventType, Slots_t slot)
 {
 	uint32_t slotp = 0;
 	switch (slot) {
@@ -525,7 +525,7 @@ void MoveEvents::onCreatureMove(Creature* actor, Creature* creature,
 	}
 }
 
-bool MoveEvents::onPlayerEquip(Player* player, Item* item, slots_t slot, bool isCheck)
+bool MoveEvents::onPlayerEquip(Player* player, Item* item, Slots_t slot, bool isCheck)
 {
 	if (MoveEvent* moveEvent = getEvent(item, MOVE_EVENT_EQUIP, slot)) {
 		return moveEvent->fireEquip(player, item, slot, isCheck);
@@ -533,7 +533,7 @@ bool MoveEvents::onPlayerEquip(Player* player, Item* item, slots_t slot, bool is
 	return true;
 }
 
-bool MoveEvents::onPlayerDeEquip(Player* player, Item* item, slots_t slot, bool isRemoval)
+bool MoveEvents::onPlayerDeEquip(Player* player, Item* item, Slots_t slot, bool isRemoval)
 {
 	if (MoveEvent* moveEvent = getEvent(item, MOVE_EVENT_DE_EQUIP, slot)) {
 		return moveEvent->fireEquip(player, item, slot, isRemoval);
@@ -822,7 +822,7 @@ uint32_t MoveEvent::AddItemField(Item* item)
 	return LUA_ERROR_ITEM_NOT_FOUND;
 }
 
-bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slots_t slot, bool isCheck)
+bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, Slots_t slot, bool isCheck)
 {
 	if (player->isItemAbilityEnabled(slot)) {
 		return true;
@@ -900,14 +900,14 @@ bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slot
 	bool needUpdateSkills = false;
 	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		if (it.abilities->skills[i]) {
-			player->setVarSkill(static_cast<skills_t>(i), it.abilities->skills[i]);
+			player->setVarSkill(static_cast<Skills_t>(i), it.abilities->skills[i]);
 			if (!needUpdateSkills) {
 				needUpdateSkills = true;
 			}
 		}
 
 		if (it.abilities->skillsPercent[i]) {
-			player->setVarSkill(static_cast<skills_t>(i), (player->getSkillLevel(i) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill(static_cast<Skills_t>(i), (player->getSkillLevel(i) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
 			if (!needUpdateSkills) {
 				needUpdateSkills = true;
 			}
@@ -921,14 +921,14 @@ bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slot
 	bool needUpdateStats = false;
 	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
 		if (it.abilities->stats[s]) {
-			player->setVarStats(static_cast<stats_t>(s), it.abilities->stats[s]);
+			player->setVarStats(static_cast<Stats_t>(s), it.abilities->stats[s]);
 			if (!needUpdateStats) {
 				needUpdateStats = true;
 			}
 		}
 
 		if (it.abilities->statsPercent[s]) {
-			player->setVarStats(static_cast<stats_t>(s), (player->getDefaultStats(static_cast<stats_t>(s)) * ((it.abilities->statsPercent[s] - 100) / 100.f)));
+			player->setVarStats(static_cast<Stats_t>(s), (player->getDefaultStats(static_cast<Stats_t>(s)) * ((it.abilities->statsPercent[s] - 100) / 100.f)));
 			if (!needUpdateStats) {
 				needUpdateStats = true;
 			}
@@ -941,7 +941,7 @@ bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slot
 	return true;
 }
 
-bool MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, slots_t slot, bool isRemoval)
+bool MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, Slots_t slot, bool isRemoval)
 {
 	if (!player->isItemAbilityEnabled(slot)) {
 		return true;
@@ -983,12 +983,12 @@ bool MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, slots_t slot
 	for (uint32_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 		if (it.abilities->skills[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill(static_cast<skills_t>(i), -it.abilities->skills[i]);
+			player->setVarSkill(static_cast<Skills_t>(i), -it.abilities->skills[i]);
 		}
 
 		if (it.abilities->skillsPercent[i]) {
 			needUpdateSkills = true;
-			player->setVarSkill(static_cast<skills_t>(i), -(player->getSkillLevel(i) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
+			player->setVarSkill(static_cast<Skills_t>(i), -(player->getSkillLevel(i) * ((it.abilities->skillsPercent[i] - 100) / 100.f)));
 		}
 	}
 
@@ -1000,12 +1000,12 @@ bool MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, slots_t slot
 	for (uint32_t s = STAT_FIRST; s <= STAT_LAST; ++s) {
 		if (it.abilities->stats[s]) {
 			needUpdateStats = true;
-			player->setVarStats(static_cast<stats_t>(s), -it.abilities->stats[s]);
+			player->setVarStats(static_cast<Stats_t>(s), -it.abilities->stats[s]);
 		}
 
 		if (it.abilities->statsPercent[s]) {
 			needUpdateStats = true;
-			player->setVarStats(static_cast<stats_t>(s), -(player->getDefaultStats(static_cast<stats_t>(s)) * ((it.abilities->statsPercent[s] - 100) / 100.f)));
+			player->setVarStats(static_cast<Stats_t>(s), -(player->getDefaultStats(static_cast<Stats_t>(s)) * ((it.abilities->statsPercent[s] - 100) / 100.f)));
 		}
 	}
 
@@ -1051,7 +1051,7 @@ uint32_t MoveEvent::executeStep(Creature* actor, Creature* creature, Item* item,
 	return otx::lua::callFunction(L, 7);
 }
 
-bool MoveEvent::fireEquip(Player* player, Item* item, slots_t slot, bool boolean)
+bool MoveEvent::fireEquip(Player* player, Item* item, Slots_t slot, bool boolean)
 {
 	if (isScripted()) {
 		return executeEquip(player, item, slot, boolean);
@@ -1060,7 +1060,7 @@ bool MoveEvent::fireEquip(Player* player, Item* item, slots_t slot, bool boolean
 	return m_equipFunction(this, player, item, slot, boolean);
 }
 
-bool MoveEvent::executeEquip(Player* player, Item* item, slots_t slot, bool boolean)
+bool MoveEvent::executeEquip(Player* player, Item* item, Slots_t slot, bool boolean)
 {
 	// onEquip(cid, item, slot, boolean)
 	// onDeEquip(cid, item, slot, boolean)

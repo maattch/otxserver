@@ -1071,7 +1071,7 @@ static int luaDoCreatureSay(lua_State* L)
 {
 	// doCreatureSay(uid, text[, messageType = MSG_SPEAK_SAY, ghost = false, cid = 0, pos])
 	const std::string text = otx::lua::getString(L, 2);
-	const auto messageType = static_cast<MessageClasses>(otx::lua::getNumber<uint8_t>(L, 3, MSG_SPEAK_SAY));
+	const auto messageType = static_cast<MessageType_t>(otx::lua::getNumber<uint8_t>(L, 3, MSG_SPEAK_SAY));
 	const bool ghost = otx::lua::getBoolean(L, 4, false);
 	const auto creatureId = otx::lua::getNumber<uint32_t>(L, 5, 0);
 
@@ -1121,7 +1121,7 @@ static int luaDoCreatureChannelSay(lua_State* L)
 	}
 
 	const std::string message = otx::lua::getString(L, 3);
-	const auto messageType = static_cast<MessageClasses>(otx::lua::getNumber<uint8_t>(L, 4));
+	const auto messageType = static_cast<MessageType_t>(otx::lua::getNumber<uint8_t>(L, 4));
 	const auto channelId = otx::lua::getNumber<uint16_t>(L, 5);
 	player->sendCreatureChannelSay(speaker, messageType, message, channelId);
 	lua_pushboolean(L, true);
@@ -1165,7 +1165,7 @@ static int luaDoPlayerAddSkillTry(lua_State* L)
 {
 	// doPlayerAddSkillTry(cid, skillId, count[, useMultiplier = true])
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
-		const auto skillId = static_cast<skills_t>(otx::lua::getNumber<uint8_t>(L, 2));
+		const auto skillId = static_cast<Skills_t>(otx::lua::getNumber<uint8_t>(L, 2));
 		const auto count = otx::lua::getNumber<uint64_t>(L, 3);
 		const bool useMultiplier = otx::lua::getBoolean(L, 4, true);
 
@@ -1194,7 +1194,7 @@ static int luaDoCreatureSetSpeakType(lua_State* L)
 {
 	// doCreatureSetSpeakType(cid, messageType)
 	if (Creature* creature = otx::lua::getCreature(L, 1)) {
-		const auto messageType = static_cast<MessageClasses>(otx::lua::getNumber<uint8_t>(L, 2));
+		const auto messageType = static_cast<MessageType_t>(otx::lua::getNumber<uint8_t>(L, 2));
 		if (!((messageType >= MSG_SPEAK_FIRST && messageType <= MSG_SPEAK_LAST) || (messageType >= MSG_SPEAK_MONSTER_FIRST && messageType <= MSG_SPEAK_MONSTER_LAST))) {
 			otx::lua::reportErrorEx(L, "Invalid speak type");
 			lua_pushnil(L);
@@ -1303,14 +1303,14 @@ static int luaDoPlayerAddItem(lua_State* L)
 	const auto count = otx::lua::getNumber<int32_t>(L, 3);
 	const bool canDropOnMap = otx::lua::getBoolean(L, 4, false);
 
-	slots_t slot;
+	Slots_t slot;
 	int32_t subType;
 	const int nparam = lua_gettop(L);
 	if (nparam >= 6) {
-		slot = static_cast<slots_t>(otx::lua::getNumber<uint8_t>(L, 6));
+		slot = static_cast<Slots_t>(otx::lua::getNumber<uint8_t>(L, 6));
 		subType = otx::lua::getNumber<int32_t>(L, 5);
 	} else {
-		slot = static_cast<slots_t>(otx::lua::getNumber<uint8_t>(L, 5, SLOT_WHEREEVER));
+		slot = static_cast<Slots_t>(otx::lua::getNumber<uint8_t>(L, 5, SLOT_WHEREEVER));
 		subType = 1;
 	}
 
@@ -1396,7 +1396,7 @@ static int luaDoPlayerAddItemEx(lua_State* L)
 	}
 
 	const bool canDropOnMap = otx::lua::getBoolean(L, 3, false);
-	const auto slot = static_cast<slots_t>(otx::lua::getNumber<uint32_t>(L, 4, SLOT_WHEREEVER));
+	const auto slot = static_cast<Slots_t>(otx::lua::getNumber<uint32_t>(L, 4, SLOT_WHEREEVER));
 
 	if (slot > SLOT_AMMO) {
 		otx::lua::reportErrorEx(L, "Invalid slot type.");
@@ -1589,7 +1589,7 @@ static int luaDoPlayerSendTextMessage(lua_State* L)
 		return 1;
 	}
 
-	const auto messageType = static_cast<MessageClasses>(otx::lua::getNumber<uint8_t>(L, 2));
+	const auto messageType = static_cast<MessageType_t>(otx::lua::getNumber<uint8_t>(L, 2));
 	const std::string message = otx::lua::getString(L, 3);
 
 	if (lua_gettop(L) > 3) {
@@ -1617,7 +1617,7 @@ static int luaDoPlayerSendChannelMessage(lua_State* L)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
 		const std::string author = otx::lua::getString(L, 2);
 		const std::string message = otx::lua::getString(L, 3);
-		const auto messageType = static_cast<MessageClasses>(otx::lua::getNumber<uint8_t>(L, 4));
+		const auto messageType = static_cast<MessageType_t>(otx::lua::getNumber<uint8_t>(L, 4));
 		const auto channelId = otx::lua::getNumber<uint16_t>(L, 5);
 		player->sendChannelMessage(author, message, messageType, channelId);
 		lua_pushboolean(L, true);
@@ -1731,7 +1731,7 @@ static int luaGetPlayerSkillLevel(lua_State* L)
 {
 	// getPlayerSkillLevel(cid, skill[, ignoreModifiers = false])
 	if (const Player* player = otx::lua::getPlayer(L, 1)) {
-		const auto skillId = static_cast<skills_t>(otx::lua::getNumber<uint8_t>(L, 2));
+		const auto skillId = static_cast<Skills_t>(otx::lua::getNumber<uint8_t>(L, 2));
 		const bool ignoreModifiers = otx::lua::getBoolean(L, 3, false);
 		if (skillId <= SKILL_LAST) {
 			lua_pushnumber(L, ignoreModifiers ? player->getBaseSkillLevel(skillId) : player->getSkillLevel(skillId));
@@ -1750,7 +1750,7 @@ static int luaGetPlayerSkillTries(lua_State* L)
 {
 	// getPlayerSkillTries(cid, skillId)
 	if (const Player* player = otx::lua::getPlayer(L, 1)) {
-		const auto skillId = static_cast<skills_t>(otx::lua::getNumber<uint8_t>(L, 2));
+		const auto skillId = static_cast<Skills_t>(otx::lua::getNumber<uint8_t>(L, 2));
 		if (skillId <= SKILL_LAST) {
 			lua_pushnumber(L, player->getSkillTries(skillId));
 		} else {
@@ -1796,7 +1796,7 @@ static int luaGetPlayerLossPercent(lua_State* L)
 {
 	// getPlayerLossPercent(cid, lossType)
 	if (const Player* player = otx::lua::getPlayer(L, 1)) {
-		const auto lossType = static_cast<lossTypes_t>(otx::lua::getNumber<uint8_t>(L, 2));
+		const auto lossType = static_cast<LossTypes_t>(otx::lua::getNumber<uint8_t>(L, 2));
 		if (lossType <= LOSS_LAST) {
 			uint32_t value = player->getLossPercent(lossType);
 			lua_pushnumber(L, value);
@@ -1815,7 +1815,7 @@ static int luaDoPlayerSetLossPercent(lua_State* L)
 {
 	// doPlayerSetLossPercent(cid, lossType, percent)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
-		const auto lossType = static_cast<lossTypes_t>(otx::lua::getNumber<uint8_t>(L, 2));
+		const auto lossType = static_cast<LossTypes_t>(otx::lua::getNumber<uint8_t>(L, 2));
 		const auto percent = otx::lua::getNumber<uint32_t>(L, 3);
 		if (lossType <= LOSS_LAST) {
 			player->setLossPercent(lossType, percent);
@@ -6051,7 +6051,7 @@ static int luaDoPlayerSetRate(lua_State* L)
 {
 	// doPlayerSetRate(cid, skill, value)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
-		const auto skill = static_cast<skills_t>(otx::lua::getNumber<uint8_t>(L, 2));
+		const auto skill = static_cast<Skills_t>(otx::lua::getNumber<uint8_t>(L, 2));
 		const auto value = otx::lua::getNumber<double>(L, 3);
 		if (skill <= SKILL__LAST) {
 			player->m_rates[skill] = value;
@@ -7235,7 +7235,7 @@ static int luaStdCout(lua_State* L)
 		std::cout << (i > 1 ? '\t' : '\0') << otx::lua::getString(L, i);
 	}
 
-	std::cout << std::flush;
+	std::cout << std::endl;
 	lua_pushnumber(L, nparams);
 	return 1;
 }
@@ -7248,7 +7248,7 @@ static int luaStdClog(lua_State* L)
 		std::clog << (i > 1 ? '\t' : '\0') << otx::lua::getString(L, i);
 	}
 
-	std::clog << std::flush;
+	std::clog << std::endl;
 	lua_pushnumber(L, nparams);
 	return 1;
 }
@@ -7261,7 +7261,7 @@ static int luaStdCerr(lua_State* L)
 		std::cerr << (i > 1 ? '\t' : '\0') << otx::lua::getString(L, i);
 	}
 
-	std::cerr << std::flush;
+	std::cerr << std::endl;
 	lua_pushnumber(L, nparams);
 	return 1;
 }

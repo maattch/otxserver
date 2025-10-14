@@ -197,7 +197,7 @@ bool IOMapSerialize::updateHouses()
 				  << g_database.escapeString(house->getName()) << ", " << house->getTownId() << ", "
 				  << house->getSize() << ", " << house->getPrice() << ", " << house->getRent() << ", "
 				  << house->getDoorsCount() << ", " << house->getBedsCount() << ", "
-				  << house->getTilesCount() << ", " << house->isGuild() << ")";
+				  << house->getTilesCount() << ", " << (house->isGuild() ? 1 : 0) << ")";
 		}
 
 		if (!g_database.executeQuery(query.str())) {
@@ -367,7 +367,7 @@ bool IOMapSerialize::loadMapRelational(Map* map)
 			for (HouseTile* tile : house->getHouseTiles()) {
 				query.str("");
 				query << "SELECT `id` FROM `tiles` WHERE `x` = " << tile->getPosition().x << " AND `y` = "
-					  << tile->getPosition().y << " AND `z` = " << tile->getPosition().z << " LIMIT 1";
+					  << tile->getPosition().y << " AND `z` = " << static_cast<int>(tile->getPosition().z) << " LIMIT 1";
 				result = g_database.storeQuery(query.str());
 				if (result) {
 					query.str("");
@@ -765,7 +765,7 @@ bool IOMapSerialize::saveItems(uint32_t& tileId, uint32_t houseId, const Tile* t
 			Position tilePosition = tile->getPosition();
 			query << "INSERT INTO `tiles` (`id`, `house_id`, `x`, `y`, `z`) VALUES ("
 				  << tileId << ", " << houseId << ", "
-				  << tilePosition.x << ", " << tilePosition.y << ", " << tilePosition.z << ")";
+				  << tilePosition.x << ", " << tilePosition.y << ", " << static_cast<int>(tilePosition.z) << ")";
 			if (!g_database.executeQuery(query.str())) {
 				return false;
 			}

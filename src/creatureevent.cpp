@@ -407,7 +407,7 @@ void CreatureEvent::executeChannel(Player* player, uint16_t channelId, const Use
 	otx::lua::callVoidFunction(L, 3);
 }
 
-void CreatureEvent::executeAdvance(Player* player, skills_t skill, uint32_t oldLevel, uint32_t newLevel)
+void CreatureEvent::executeAdvance(Player* player, Skills_t skill, uint32_t oldLevel, uint32_t newLevel)
 {
 	// onAdvance(cid, skill, oldLevel, newLevel)
 	if (!otx::lua::reserveScriptEnv()) {

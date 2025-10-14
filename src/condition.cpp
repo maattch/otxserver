@@ -461,7 +461,7 @@ void ConditionAttributes::updatePercentStats(Player* player)
 {
 	for (int32_t i = STAT_FIRST; i <= STAT_LAST; ++i) {
 		if (statsPercent[i]) {
-			stats[i] += player->getDefaultStats(static_cast<stats_t>(i)) * ((statsPercent[i] - 100) / 100.f);
+			stats[i] += player->getDefaultStats(static_cast<Stats_t>(i)) * ((statsPercent[i] - 100) / 100.f);
 		}
 	}
 }
@@ -493,7 +493,7 @@ void ConditionAttributes::updateStats(Player* player)
 			continue;
 		}
 
-		player->setVarStats(static_cast<stats_t>(i), stats[i]);
+		player->setVarStats(static_cast<Stats_t>(i), stats[i]);
 		if (!needUpdateStats) {
 			needUpdateStats = true;
 		}
@@ -537,7 +537,7 @@ void ConditionAttributes::endCondition(Creature* creature, ConditionEnd_t)
 		}
 
 		needUpdateStats = true;
-		player->setVarStats(static_cast<stats_t>(i), -stats[i]);
+		player->setVarStats(static_cast<Stats_t>(i), -stats[i]);
 	}
 
 	if (needUpdateStats) {

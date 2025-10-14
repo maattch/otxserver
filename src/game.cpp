@@ -736,7 +736,7 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
 		return findItemOfType(player, it.id, true, subType);
 	}
 
-	return player->getInventoryItem(static_cast<slots_t>(pos.y));
+	return player->getInventoryItem(static_cast<Slots_t>(pos.y));
 }
 
 void Game::internalGetPosition(Item* item, Position& pos, int16_t& stackpos)
@@ -2096,14 +2096,14 @@ ReturnValue Game::internalRemoveItem(Creature* actor, Item* item, int32_t count 
 }
 
 ReturnValue Game::internalPlayerAddItem(Creature* actor, Player* player, Item* item,
-	bool dropOnMap /* = true*/, slots_t slot /* = SLOT_WHEREEVER*/)
+	bool dropOnMap /* = true*/, Slots_t slot /* = SLOT_WHEREEVER*/)
 {
 	Item* toItem = nullptr;
 	return internalPlayerAddItem(actor, player, item, dropOnMap, slot, &toItem);
 }
 
 ReturnValue Game::internalPlayerAddItem(Creature* actor, Player* player, Item* item,
-	bool dropOnMap, slots_t slot, Item** toItem)
+	bool dropOnMap, Slots_t slot, Item** toItem)
 {
 	uint32_t remainderCount = 0, count = item->getItemCount();
 	ReturnValue ret = internalAddItem(actor, player, item, slot, 0, false, remainderCount, toItem);
@@ -2593,7 +2593,7 @@ bool Game::playerMove(const uint32_t playerId, const Direction& dir)
 	return true;
 }
 
-bool Game::playerBroadcastMessage(Player* player, MessageClasses type, const std::string& text, uint32_t statementId)
+bool Game::playerBroadcastMessage(Player* player, MessageType_t type, const std::string& text, uint32_t statementId)
 {
 	if (!player->hasFlag(PlayerFlag_CanBroadcast) || !((type >= MSG_SPEAK_FIRST && type <= MSG_SPEAK_LAST) || (type >= MSG_SPEAK_MONSTER_FIRST && type <= MSG_SPEAK_MONSTER_LAST))) {
 		return false;
@@ -4441,7 +4441,7 @@ std::string Game::removeNonAlphabetic(const std::string& s)
 	return result;
 }
 
-bool Game::playerSay(const uint32_t playerId, const uint16_t channelId, const MessageClasses& type, const std::string& receiver, const std::string& text, bool notify /*= true*/)
+bool Game::playerSay(const uint32_t playerId, const uint16_t channelId, const MessageType_t& type, const std::string& receiver, const std::string& text, bool notify /*= true*/)
 {
 	Player* player = getPlayerByID(playerId);
 	if (!player || player->isRemoved()) {
@@ -4580,7 +4580,7 @@ bool Game::playerYell(Player* player, const std::string& text, const uint32_t st
 	return true;
 }
 
-bool Game::playerSpeakTo(Player* player, MessageClasses type, const std::string& receiver,
+bool Game::playerSpeakTo(Player* player, MessageType_t type, const std::string& receiver,
 	const std::string& text, const uint32_t statementId, bool notify /*= true*/, bool fakeChat /*= false*/)
 {
 	Player* toPlayer = getPlayerByName(receiver);
@@ -4635,7 +4635,7 @@ bool Game::playerSpeakTo(Player* player, MessageClasses type, const std::string&
 	return true;
 }
 
-bool Game::playerSpeakToChannel(Player* player, MessageClasses type, const std::string& text, const uint16_t channelId, const uint32_t statementId, bool fakeChat /*= false*/)
+bool Game::playerSpeakToChannel(Player* player, MessageType_t type, const std::string& text, const uint16_t channelId, const uint32_t statementId, bool fakeChat /*= false*/)
 {
 	if (player->hasCondition(CONDITION_EXHAUST, EXHAUST_PLAYERSPEAK)) {
 		player->sendTextMessage(MSG_STATUS_SMALL, "You have to wait a while to keep talking here.");
@@ -4794,7 +4794,7 @@ bool Game::internalCreatureTurn(Creature* creature, const Direction& dir)
 	return true;
 }
 
-bool Game::internalCreatureSay(Creature* creature, MessageClasses type, const std::string& text,
+bool Game::internalCreatureSay(Creature* creature, MessageType_t type, const std::string& text,
 	bool ghostMode, SpectatorVec* spectators /* = nullptr*/, Position* pos /* = nullptr*/, uint32_t statementId /* = 0*/, bool /*isSpell = false*/, bool fakeChat /*= false*/)
 {
 	Player* player = creature->getPlayer();
@@ -5553,7 +5553,7 @@ void Game::addDistanceEffect(const SpectatorVec& list, const Position& fromPos,
 	}
 }
 
-void Game::addStatsMessage(const SpectatorVec& list, const MessageClasses& mClass, const std::string& message,
+void Game::addStatsMessage(const SpectatorVec& list, const MessageType_t& mClass, const std::string& message,
 	const Position& pos, MessageDetails* details /* = nullptr*/)
 {
 	Player* player = nullptr;
@@ -5962,7 +5962,7 @@ bool Game::playerReportBug(const uint32_t playerId, std::string comment)
 	return true;
 }
 
-bool Game::playerReportViolation(const uint32_t playerId, const ReportType_t& type, const uint8_t reason, const std::string& name,
+bool Game::playerReportViolation(const uint32_t playerId, ReportType_t type, const uint8_t reason, const std::string& name,
 	const std::string& comment, const std::string& translation, const uint32_t statementId)
 {
 	Player* player = getPlayerByID(playerId);
@@ -6298,7 +6298,7 @@ void Game::kickPlayer(const uint32_t playerId, const bool displayEffect)
 	player->kick(displayEffect, true);
 }
 
-bool Game::broadcastMessage(const std::string& text, MessageClasses type)
+bool Game::broadcastMessage(const std::string& text, MessageType_t type)
 {
 	if (otx::config::getBoolean(otx::config::DISPLAY_BROADCAST)) { // by kizuno18
 		std::clog << "> Broadcasted message: \"" << text << "\"." << std::endl;
@@ -6712,7 +6712,7 @@ Highscore Game::getHighscore(uint16_t skill)
 			}
 		} while (result->next());
 	} else {
-		query << "SELECT `player_skills`.`value`, `players`.`name` FROM `player_skills`,`players` WHERE `player_skills`.`skillid`=" << skill << " AND `player_skills`.`player_id`=`players`.`id` ORDER BY `player_skills`.`value` DESC, `player_skills`.`count` DESC LIMIT " << otx::config::getInteger(otx::config::HIGHSCORES_TOP);
+		query << "SELECT `player_skills`.`value`, `players`.`name` FROM `player_skills`,`players` WHERE `player_skills`.`skillid`=" << static_cast<int>(skill) << " AND `player_skills`.`player_id`=`players`.`id` ORDER BY `player_skills`.`value` DESC, `player_skills`.`count` DESC LIMIT " << otx::config::getInteger(otx::config::HIGHSCORES_TOP);
 		if (!(result = g_database.storeQuery(query.str()))) {
 			return hs;
 		}

@@ -211,10 +211,10 @@ void MonsterType::dropLoot(Container* corpse)
 	std::stringstream ss;
 	ss << "Loot of " << nameDescription << ": " << corpse->getContentDescription() << ".";
 	if (owner->getParty() && message > LOOTMSG_PLAYER) {
-		owner->getParty()->broadcastMessage(static_cast<MessageClasses>(otx::config::getInteger(otx::config::LOOT_MESSAGE_TYPE)), ss.str());
+		owner->getParty()->broadcastMessage(static_cast<MessageType_t>(otx::config::getInteger(otx::config::LOOT_MESSAGE_TYPE)), ss.str());
 	} else if (message == LOOTMSG_PLAYER || message == LOOTMSG_BOTH) {
 		if (!owner->getLoot()) {
-			owner->sendTextMessage(static_cast<MessageClasses>(otx::config::getInteger(otx::config::LOOT_MESSAGE_TYPE)), ss.str());
+			owner->sendTextMessage(static_cast<MessageType_t>(otx::config::getInteger(otx::config::LOOT_MESSAGE_TYPE)), ss.str());
 		} else {
 			owner->sendChannelMessage("", ss.str(), MSG_CHANNEL_MANAGEMENT, CHANNEL_LOOT);
 		}

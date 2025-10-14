@@ -66,8 +66,8 @@ public:
 	bool removeUser(Player* player, bool exclude = false);
 	bool hasUser(Player* player) const;
 
-	bool talk(Player* player, MessageClasses type, const std::string& text, uint32_t statementId, bool fakeChat = false);
-	bool talk(std::string nick, MessageClasses type, const std::string& text, bool fakeChat = false, uint32_t ip = 0);
+	bool talk(Player* player, MessageType_t type, const std::string& text, uint32_t statementId, bool fakeChat = false);
+	bool talk(std::string nick, MessageType_t type, const std::string& text, bool fakeChat = false, uint32_t ip = 0);
 
 protected:
 	uint16_t m_id;
@@ -137,7 +137,7 @@ public:
 	bool removeUserFromChannel(Player* player, uint16_t channelId);
 	void removeUserFromChannels(Player* player);
 
-	bool talk(Player* player, MessageClasses type, const std::string& text,
+	bool talk(Player* player, MessageType_t type, const std::string& text,
 		uint16_t channelId, uint32_t statementId, bool anonymous = false, bool fakeChat = false);
 
 	ChatChannel* getChannel(Player* player, uint16_t channelId);

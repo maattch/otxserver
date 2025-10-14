@@ -129,7 +129,7 @@ public:
 	bool executeSpawn(Monster* monster);
 	void executeChannel(Player* player, uint16_t channelId, const UsersMap& usersMap);
 	bool executeChannelRequest(Player* player, const std::string& channel, bool isPrivate, bool custom);
-	void executeAdvance(Player* player, skills_t skill, uint32_t oldLevel, uint32_t newLevel);
+	void executeAdvance(Player* player, Skills_t skill, uint32_t oldLevel, uint32_t newLevel);
 	bool executeLook(Player* player, Thing* thing, const Position& position, int16_t stackpos, int32_t lookDistance);
 	bool executeMail(Player* player, Player* target, Item* item, bool openBox);
 	bool executeTradeRequest(Player* player, Player* target, Item* item);

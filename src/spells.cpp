@@ -38,7 +38,7 @@ namespace
 		"cursecondition"
 	};
 
-	const std::map<std::string, int8_t> skillIdNames = {
+	const std::map<std::string, uint8_t> skillIdNames = {
 		{ "fist", SKILL_FIST },
 		{ "club", SKILL_CLUB },
 		{ "sword", SKILL_SWORD },
@@ -67,7 +67,7 @@ namespace
 		{ "none", EXHAUST_SPELLGROUP_NONE },
 	};
 
-	int8_t getSkillId(const std::string& name)
+	uint8_t getSkillId(const std::string& name)
 	{
 		auto it = skillIdNames.find(otx::util::as_lower_string(name));
 		if (it != skillIdNames.end()) {
@@ -128,7 +128,7 @@ ReturnValue Spells::onPlayerSay(Player* player, const std::string& words)
 		return RET_NEEDEXCHANGE;
 	}
 
-	MessageClasses type = MSG_SPEAK_SAY;
+	MessageType_t type = MSG_SPEAK_SAY;
 	if (otx::config::getBoolean(otx::config::EMOTE_SPELLS)) {
 		type = MSG_SPEAK_MONSTER_SAY;
 	}
@@ -485,8 +485,8 @@ bool Spell::configureSpell(xmlNodePtr p)
 		for (const std::string& s : explodeString(strValue, ";")) {
 			auto split = explodeString(s, ",");
 			if (split.size() > 1) {
-				auto result = otx::util::safe_cast<int8_t>(split[0].data());
-				const int8_t skillId = (!result.second ? getSkillId(split[0]) : result.first);
+				auto result = otx::util::safe_cast<uint8_t>(split[0].data());
+				const uint8_t skillId = (!result.second ? getSkillId(split[0]) : result.first);
 				if (skillId >= SKILL_FIRST && skillId <= SKILL_LAST) {
 					skills[skillId] = otx::util::cast<int32_t>(split[1].data());
 				} else {
@@ -1608,8 +1608,8 @@ ReturnValue ConjureSpell::internalConjureItem(Player* player, uint32_t conjureId
 
 	std::list<Container*> containers;
 	Item *item = nullptr, *fromItem = nullptr;
-	for (int32_t i = SLOT_FIRST; i < SLOT_LAST; ++i) {
-		if (!(item = player->getInventoryItem(static_cast<slots_t>(i)))) {
+	for (int32_t i = SLOT_FIRST; i <= SLOT_LAST; ++i) {
+		if (!(item = player->getInventoryItem(static_cast<Slots_t>(i)))) {
 			continue;
 		}
 
