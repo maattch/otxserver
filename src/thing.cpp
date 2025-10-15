@@ -67,34 +67,18 @@ const Cylinder* Thing::getTopParent() const
 Tile* Thing::getTile()
 {
 	Cylinder* cylinder = getTopParent();
-#ifdef __DEBUG_MOVESYS__
-	if (!cylinder) {
-		std::clog << "[Failure - Thing::getTile] nullptr tile" << std::endl;
-		return &(Tile::nullTile);
-	}
-#endif
-
 	if (cylinder->getParent()) {
 		cylinder = cylinder->getParent();
 	}
-
 	return dynamic_cast<Tile*>(cylinder);
 }
 
 const Tile* Thing::getTile() const
 {
 	const Cylinder* cylinder = getTopParent();
-#ifdef __DEBUG_MOVESYS__
-	if (!cylinder) {
-		std::clog << "[Failure - Thing::getTile] nullptr tile" << std::endl;
-		return &(Tile::nullTile);
-	}
-#endif
-
 	if (cylinder->getParent()) {
 		cylinder = cylinder->getParent();
 	}
-
 	return dynamic_cast<const Tile*>(cylinder);
 }
 
@@ -103,10 +87,6 @@ Position Thing::getPosition() const
 	if (const Tile* tile = getTile()) {
 		return tile->getPosition();
 	}
-
-#ifdef __DEBUG_MOVESYS__
-	std::clog << "[Failure - Thing::getTile] nullptr tile" << std::endl;
-#endif
 	return Tile::nullTile.getPosition();
 }
 

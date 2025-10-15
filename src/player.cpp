@@ -1573,19 +1573,11 @@ void Player::onCreatureDisappear(const Creature* creature, bool isLogout)
 		if (IOLoginData::getInstance()->savePlayer(this)) {
 			saved = true;
 		}
-#ifdef __DEBUG__
-		else {
-			std::clog << "Error while saving player: " << getName() << ", strike " << tries << "." << std::endl;
-		}
-#endif
 	}
 
-	if (!saved)
-#ifndef __DEBUG__
+	if (!saved) {
 		std::clog << "Error while saving player: " << getName() << "." << std::endl;
-#else
-		std::clog << "Player " << getName() << " couldn't be saved." << std::endl;
-#endif
+	}
 }
 
 void Player::openShopWindow() const
@@ -3191,24 +3183,15 @@ void Player::__addThing(Creature* actor, Thing* thing)
 void Player::__addThing(Creature*, int32_t index, Thing* thing)
 {
 	if (index < 0 || index > 11) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__addThing], " << "player: " << getName() << ", index: " << index << ", index < 0 || index > 11" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
 	if (!index) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__addThing], " << "player: " << getName() << ", index == 0" << std::endl;
-#endif
 		return /*RET_NOTENOUGHROOM*/;
 	}
 
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__addThing], " << "player: " << getName() << ", item == nullptr" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
@@ -3223,17 +3206,11 @@ void Player::__updateThing(Thing* thing, uint16_t itemId, uint32_t count)
 {
 	int32_t index = __getIndexOfThing(thing);
 	if (index == -1) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__updateThing], " << "player: " << getName() << ", index == -1" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__updateThing], " << "player: " << getName() << ", item == nullptr" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
@@ -3250,25 +3227,16 @@ void Player::__updateThing(Thing* thing, uint16_t itemId, uint32_t count)
 void Player::__replaceThing(uint32_t index, Thing* thing)
 {
 	if (index > 11) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__replaceThing], " << "player: " << getName() << ", index: " << index << ", index < 0 || index > 11" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
 	Item* oldItem = getInventoryItem(static_cast<Slots_t>(index));
 	if (!oldItem) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__updateThing], " << "player: " << getName() << ", oldItem == nullptr" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__updateThing], " << "player: " << getName() << ", item == nullptr" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
@@ -3287,17 +3255,11 @@ void Player::__removeThing(Thing* thing, uint32_t count)
 {
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__removeThing], " << "player: " << getName() << ", item == nullptr" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
 	int32_t index = __getIndexOfThing(thing);
 	if (index == -1) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__removeThing], " << "player: " << getName() << ", index == -1" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
@@ -3523,29 +3485,16 @@ void Player::__internalAddThing(Thing* thing)
 
 void Player::__internalAddThing(uint32_t index, Thing* thing)
 {
-#ifdef __DEBUG_MOVESYS__
-	std::clog << "[Player::__internalAddThing] index: " << index << std::endl;
-
-#endif
 	if (!index || index > 11) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__internalAddThing] index == 0 || index > 11" << std::endl;
-#endif
 		return;
 	}
 
 	if (m_inventory[index]) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Warning: [Player::__internalAddThing], player: " << getName() << ", items[index] is not empty." << std::endl;
-#endif
 		return;
 	}
 
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Player::__internalAddThing] item == nullptr" << std::endl;
-#endif
 		return;
 	}
 

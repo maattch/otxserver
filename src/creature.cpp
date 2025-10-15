@@ -403,28 +403,12 @@ void Creature::updateMapCache()
 	}
 }
 
-#ifdef __DEBUG__
-void Creature::validateMapCache()
-{
-	const Position& myPos = getPosition();
-	for (int32_t y = -((mapWalkHeight - 1) / 2); y <= ((mapWalkHeight - 1) / 2); ++y) {
-		for (int32_t x = -((mapWalkWidth - 1) / 2); x <= ((mapWalkWidth - 1) / 2); ++x) {
-			getWalkCache(Position(myPos.x + x, myPos.y + y, myPos.z));
-		}
-	}
-}
-#endif
-
 void Creature::updateTileCache(const Tile* tile, int32_t dx, int32_t dy)
 {
 	if ((std::abs(dx) <= (mapWalkWidth - 1) / 2) && (std::abs(dy) <= (mapWalkHeight - 1) / 2)) {
 		int32_t x = (mapWalkWidth - 1) / 2 + dx, y = (mapWalkHeight - 1) / 2 + dy;
 		localMapCache[y][x] = (tile && tile->__queryAdd(0, this, 1, FLAG_PATHFINDING | FLAG_IGNOREFIELDDAMAGE) == RET_NOERROR);
 	}
-#ifdef __DEBUG__
-	else
-		std::clog << "Creature::updateTileCache out of range." << std::endl;
-#endif
 }
 
 void Creature::updateTileCache(const Tile* tile, const Position& pos)
@@ -460,18 +444,6 @@ int32_t Creature::getWalkCache(const Position& pos) const
 	int32_t dx = pos.x - myPos.x, dy = pos.y - myPos.y;
 	if ((std::abs(dx) <= (mapWalkWidth - 1) / 2) && (std::abs(dy) <= (mapWalkHeight - 1) / 2)) {
 		int32_t x = (mapWalkWidth - 1) / 2 + dx, y = (mapWalkHeight - 1) / 2 + dy;
-#ifdef __DEBUG__
-		// testing
-		Tile* tile = g_game.getTile(pos);
-		if (tile && (tile->__queryAdd(0, this, 1, FLAG_PATHFINDING | FLAG_IGNOREFIELDDAMAGE) == RET_NOERROR)) {
-			if (!localMapCache[y][x]) {
-				std::clog << "Wrong cache value" << std::endl;
-			}
-		} else if (localMapCache[y][x]) {
-			std::clog << "Wrong cache value" << std::endl;
-		}
-
-#endif
 		if (localMapCache[y][x]) {
 			return 1;
 		}
@@ -659,9 +631,6 @@ void Creature::onCreatureMove(const Creature* creature, const Tile* newTile, con
 				}
 
 				updateTileCache(oldTile, oldPos);
-#ifdef __DEBUG__
-				validateMapCache();
-#endif
 			} else {
 				updateMapCache();
 			}

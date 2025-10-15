@@ -312,9 +312,6 @@ void Spawn::startup()
 
 void Spawn::checkSpawn()
 {
-#ifdef __DEBUG_SPAWN__
-	std::clog << "[Notice] Spawn::checkSpawn " << this << std::endl;
-#endif
 	const int64_t timeNow = otx::util::mstime();
 
 	m_checkSpawnEvent = 0;
@@ -361,11 +358,6 @@ void Spawn::checkSpawn()
 	if (m_spawnedMap.size() < m_spawnMap.size()) {
 		m_checkSpawnEvent = addSchedulerTask(getInterval() / interval, [this]() { checkSpawn(); });
 	}
-#ifdef __DEBUG_SPAWN__
-	else {
-		std::clog << "[Notice] Spawn::checkSpawn stopped " << this << std::endl;
-	}
-#endif
 }
 
 bool Spawn::addMonster(const std::string& _name, const Position& _pos, Direction _dir, uint32_t _interval)

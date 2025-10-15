@@ -129,9 +129,6 @@ bool ChatChannel::addUser(Player* player)
 
 	ChatChannel* channel = g_chat.getChannel(player, m_id);
 	if (!channel) {
-#ifdef __DEBUG_CHAT__
-		std::clog << "ChatChannel::addUser - failed retrieving channel." << std::endl;
-#endif
 		return false;
 	}
 
@@ -1052,9 +1049,6 @@ ChannelsList Chat::getChannelList(Player* player)
 
 ChatChannel* Chat::getChannel(Player* player, uint16_t channelId)
 {
-#ifdef __DEBUG_CHAT__
-	std::clog << "Chat::getChannel - getChannel id " << channelId << std::endl;
-#endif
 	if (!player || player->isRemoved()) {
 		return nullptr;
 	}
@@ -1079,25 +1073,15 @@ ChatChannel* Chat::getChannel(Player* player, uint16_t channelId)
 
 	auto nit = m_normalChannels.find(channelId);
 	if (nit != m_normalChannels.end()) {
-#ifdef __DEBUG_CHAT__
-		std::clog << "Chat::getChannel - found normal channel" << std::endl;
-#endif
 		ChatChannel& channel = nit->second;
 		if (!channel.hasFlag(CHANNELFLAG_ENABLED) || player->getAccess() < channel.getAccess()
 			|| (!player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges) && !channel.checkVocation(player->getVocationId()))) {
-#ifdef __DEBUG_CHAT__
-			std::clog << "Chat::getChannel - cannot access normal channel" << std::endl;
-#endif
 			return nullptr;
 		}
 
 		if (channelId == CHANNEL_RVR && !player->hasFlag(PlayerFlag_CanAnswerRuleViolations)) {
 			return nullptr;
 		}
-
-#ifdef __DEBUG_CHAT__
-		std::clog << "Chat::getChannel - endpoint return" << std::endl;
-#endif
 		return &channel;
 	}
 

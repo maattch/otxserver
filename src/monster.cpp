@@ -139,9 +139,6 @@ void Monster::onTarget(Creature* target)
 
 void Monster::onTargetDisappear(bool)
 {
-#ifdef __DEBUG__
-	std::clog << "Attacked creature disappeared." << std::endl;
-#endif
 	attackTicks = 0;
 	extraMeleeAttack = true;
 	if (otx::config::getBoolean(otx::config::MONSTER_SPAWN_WALKBACK)) {
@@ -341,9 +338,6 @@ bool Monster::doTeleportToMaster()
 
 void Monster::onCreatureLeave(Creature* creature)
 {
-#ifdef __DEBUG__
-	std::clog << "onCreatureLeave - " << creature->getName() << std::endl;
-#endif
 	if (isSummon() && m_master == creature) {
 		if (!otx::config::getBoolean(otx::config::TELEPORT_SUMMONS) && (!m_master->getPlayer() || !otx::config::getBoolean(otx::config::TELEPORT_PLAYER_SUMMONS))) {
 			// Turn the monster off until its master comes back
@@ -361,10 +355,6 @@ void Monster::onCreatureLeave(Creature* creature)
 			search->second->unRef();
 			friendList.erase(search->first);
 		}
-#ifdef __DEBUG__
-		else
-			std::clog << "Monster: " << creature->getName() << " not found in the friendList." << std::endl;
-#endif
 	}
 
 	// update targetList
@@ -377,19 +367,11 @@ void Monster::onCreatureLeave(Creature* creature)
 				updateIdleStatus();
 			}
 		}
-#ifdef __DEBUG__
-		else
-			std::clog << "Player: " << creature->getName() << " not found in the targetList." << std::endl;
-#endif
 	}
 }
 
 bool Monster::searchTarget(TargetSearchType_t searchType /*= TARGETSEARCH_DEFAULT*/)
 {
-#ifdef __DEBUG__
-	std::clog << "Searching target... " << std::endl;
-#endif
-
 	std::list<Creature*> resultList;
 	const Position& myPos = getPosition();
 	for (CreatureList::iterator it = targetList.begin(); it != targetList.end(); ++it) {
@@ -423,10 +405,6 @@ bool Monster::searchTarget(TargetSearchType_t searchType /*= TARGETSEARCH_DEFAUL
 			if (!resultList.empty()) {
 				CreatureList::iterator it = resultList.begin();
 				std::advance(it, random_range(0, resultList.size() - 1));
-#ifdef __DEBUG__
-
-				std::clog << "Selecting target " << (*it)->getName() << std::endl;
-#endif
 				return selectTarget(*it);
 			}
 
@@ -443,13 +421,8 @@ bool Monster::searchTarget(TargetSearchType_t searchType /*= TARGETSEARCH_DEFAUL
 		if (m_followCreature == (*it) || !selectTarget(*it)) {
 			continue;
 		}
-
-#ifdef __DEBUG__
-		/*std::clog << "Selecting target " << (*it)->getName() << std::endl;*/ // Caused a strange crash, will look at it later
-#endif
 		return true;
 	}
-
 	return false;
 }
 
@@ -510,14 +483,8 @@ bool Monster::isTarget(Creature* creature)
 
 bool Monster::selectTarget(Creature* creature)
 {
-#ifdef __DEBUG__
-	std::clog << "Selecting target... " << std::endl;
-#endif
 	if (!isTarget(creature) || std::find(targetList.begin(), targetList.end(), creature) == targetList.end()) {
 		// Target not found in our target list.
-#ifdef __DEBUG__
-		std::clog << "Target not found in targetList." << std::endl;
-#endif
 		return false;
 	}
 
@@ -686,12 +653,6 @@ void Monster::doAttacking(uint32_t interval)
 				if (it->isMelee) {
 					extraMeleeAttack = false;
 				}
-#ifdef __DEBUG__
-
-				static uint64_t prevTicks = otx::util::mstime();
-				std::clog << "doAttacking ticks: " << otx::util::mstime() - prevTicks << std::endl;
-				prevTicks = otx::util::mstime();
-#endif
 			}
 		}
 
@@ -1037,10 +998,6 @@ bool Monster::getNextStep(Direction& dir, uint32_t& flags)
 				pushCreatures(tile);
 			}
 		}
-#ifdef __DEBUG__
-		else
-			std::clog << "[Warning - Monster::getNextStep] no tile found." << std::endl;
-#endif
 	}
 
 	return result;

@@ -589,14 +589,7 @@ void Game::refreshMap(RefreshTiles::iterator* it /* = nullptr*/, uint32_t limit 
 			downItemsSize = tile->getDownItemCount();
 			for (uint32_t i = downItemsSize - 1; i; --i) {
 				if ((item = items->at(i))) {
-#ifndef __DEBUG__
 					internalRemoveItem(nullptr, item);
-#else
-					if (internalRemoveItem(nullptr, item) != RET_NOERROR) {
-						std::clog << "> WARNING: Could not refresh item: " << item->getID();
-						std::clog << " at position: " << tile->getPosition() << std::endl;
-					}
-#endif
 				}
 			}
 		}
@@ -943,9 +936,6 @@ Player* Game::getPlayerByNameEx(const std::string& s)
 		return player;
 	}
 
-#ifdef __DEBUG__
-	std::clog << "[Failure - Game::getPlayerByNameEx] Cannot load player: " << name << std::endl;
-#endif
 	delete player;
 	return nullptr;
 }
@@ -967,9 +957,6 @@ Player* Game::getPlayerByGuidEx(const uint32_t guid)
 		return player;
 	}
 
-#ifdef __DEBUG__
-	std::clog << "[Failure - Game::getPlayerByGuidEx] Cannot load player: " << name << std::endl;
-#endif
 	delete player;
 	return nullptr;
 }
@@ -2701,9 +2688,6 @@ bool Game::playerOpenChannel(const uint32_t playerId, const uint16_t channelId)
 
 	ChatChannel* channel = g_chat.addUserToChannel(player, channelId);
 	if (!channel) {
-#ifdef __DEBUG_CHAT__
-		std::clog << "Game::playerOpenChannel - failed adding user to channel." << std::endl;
-#endif
 		return false;
 	}
 
@@ -5588,7 +5572,7 @@ void Game::internalDecayItem(Item* item)
 	} else {
 		ReturnValue ret = internalRemoveItem(nullptr, item);
 		if (ret != RET_NOERROR) {
-			std::clog << "> DEBUG: internalDecayItem failed, error code: " << static_cast<int>(ret) << ", item id: " << item->getID() << std::endl;
+			std::clog << "[Warning - Game::internalDecayItem] Decay failed, error code: " << static_cast<int>(ret) << ", item id: " << item->getID() << std::endl;
 		}
 	}
 }

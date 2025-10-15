@@ -641,9 +641,6 @@ void IOGuild::frag(Player* player, uint64_t deathId, const DeathList& list, bool
 	}
 
 	if (!war.ids[war.type]) {
-#ifdef __DEBUG__
-		std::clog << "[Notice - IOGuild::frag] Unable to attach war frag to player " << player->getName() << "." << std::endl;
-#endif
 		return;
 	}
 

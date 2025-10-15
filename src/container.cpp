@@ -436,26 +436,13 @@ void Container::__addThing(Creature* actor, Thing* thing)
 void Container::__addThing(Creature*, int32_t index, Thing* thing)
 {
 	if (index >= static_cast<int32_t>(capacity())) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Container::__addThing], index:" << index << ", index >= capacity()" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Container::__addThing] item == nullptr" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
-
-#ifdef __DEBUG_MOVESYS__
-	if (index != INDEX_WHEREEVER && size() >= capacity()) {
-		std::clog << "Failure: [Container::__addThing] size() >= capacity()" << std::endl;
-		return /*RET_CONTAINERNOTENOUGHROOM*/;
-	}
-#endif
 
 	item->setParent(this);
 	itemlist.push_front(item);
@@ -472,17 +459,11 @@ void Container::__updateThing(Thing* thing, uint16_t itemId, uint32_t count)
 {
 	int32_t index = __getIndexOfThing(thing);
 	if (index == -1) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Container::__updateThing] index == -1" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Container::__updateThing] item == nullptr" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
@@ -501,9 +482,6 @@ void Container::__replaceThing(uint32_t index, Thing* thing)
 {
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Container::__replaceThing] item == nullptr" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 
@@ -526,9 +504,6 @@ void Container::__removeThing(Thing* thing, uint32_t count)
 {
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "Failure: [Container::__removeThing] item == nullptr" << std::endl;
-#endif
 		return /*RET_NOTPOSSIBLE*/;
 	}
 

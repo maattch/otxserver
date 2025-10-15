@@ -463,9 +463,6 @@ protected:
 
 	virtual bool useCacheMap() const { return false; }
 
-#ifdef __DEBUG__
-	void validateMapCache();
-#endif
 	void updateMapCache();
 
 	void updateTileCache(const Tile* tile);

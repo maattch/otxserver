@@ -294,46 +294,6 @@ void otserv(ServiceManager* services)
 		<< '\n'
 		<< "A server developed by: " SOFTWARE_DEVELOPERS ".\n";
 
-	std::ostringstream ss;
-#ifdef __DEBUG__
-	ss << " GLOBAL";
-#endif
-#ifdef __DEBUG_MOVESYS__
-	ss << " MOVESYS";
-#endif
-#ifdef __DEBUG_CHAT__
-	ss << " CHAT";
-#endif
-#ifdef __DEBUG_HOUSES__
-	ss << " HOUSES";
-#endif
-#ifdef __DEBUG_LUASCRIPTS__
-	ss << " LUA-SCRIPTS";
-#endif
-#ifdef __DEBUG_MAILBOX__
-	ss << " MAILBOX";
-#endif
-#ifdef __DEBUG_NET__
-	ss << " NET";
-#endif
-#ifdef __DEBUG_RAID__
-	ss << " RAIDS";
-#endif
-#ifdef __DEBUG_SCHEDULER__
-	ss << " SCHEDULER";
-#endif
-#ifdef __DEBUG_SPAWN__
-	ss << " SPAWNS";
-#endif
-#ifdef __SQL_QUERY_DEBUG__
-	ss << " SQL-QUERIES";
-#endif
-
-	std::string debug = ss.str();
-	if (!debug.empty()) {
-		std::clog << ">> Debugging:" << debug << "." << std::endl;
-	}
-
 	std::clog << ">> Loading config" << std::endl;
 	if (!otx::config::load()) {
 		startupErrorMessage("Unable to load " + otx::config::getString(otx::config::CONFIG_FILE) + "!");

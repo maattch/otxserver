@@ -699,12 +699,6 @@ ReturnValue Tile::__queryAdd(int32_t, const Thing* thing, uint32_t,
 			}
 		}
 	} else if (const Item* item = thing->getItem()) {
-#ifdef __DEBUG__
-		if (thing->getParent() == nullptr && !hasBitSet(FLAG_NOLIMIT, flags)) {
-			std::clog << "[Notice - Tile::__queryAdd] thing->getParent() == nullptr" << std::endl;
-		}
-
-#endif
 		if (hasBitSet(FLAG_NOLIMIT, flags)) {
 			return RET_NOERROR;
 		}
@@ -987,9 +981,6 @@ void Tile::__addThing(Creature* actor, int32_t, Thing* thing)
 
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "[Failure - Tile::__addThing] item == nullptr" << std::endl;
-#endif
 		return /* RET_NOTPOSSIBLE*/;
 	}
 
@@ -1131,17 +1122,11 @@ void Tile::__updateThing(Thing* thing, uint16_t itemId, uint32_t count)
 {
 	int32_t index = __getIndexOfThing(thing);
 	if (index == -1) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "[Failure - Tile::__updateThing] index == -1" << std::endl;
-#endif
 		return /* RET_NOTPOSSIBLE*/;
 	}
 
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "[Failure - Tile::__updateThing] item == nullptr" << std::endl;
-#endif
 		return /* RET_NOTPOSSIBLE*/;
 	}
 
@@ -1160,9 +1145,6 @@ void Tile::__replaceThing(uint32_t index, Thing* thing)
 {
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "[Failure - Tile::__replaceThing] item == nullptr" << std::endl;
-#endif
 		return /* RET_NOTPOSSIBLE*/;
 	}
 
@@ -1199,9 +1181,6 @@ void Tile::__replaceThing(uint32_t index, Thing* thing)
 	if (!oldItem) {
 		if (CreatureVector* creatures = getCreatures()) {
 			if (pos < static_cast<int32_t>(creatures->size())) {
-#ifdef __DEBUG_MOVESYS__
-				std::clog << "[Failure - Tile::__replaceThing] Update object is a creature" << std::endl;
-#endif
 				return /* RET_NOTPOSSIBLE*/;
 			}
 
@@ -1250,10 +1229,6 @@ void Tile::__replaceThing(uint32_t index, Thing* thing)
 
 		return /* RET_NOERROR*/;
 	}
-#ifdef __DEBUG_MOVESYS__
-
-	std::clog << "[Failure - Tile::__replaceThing] Update object not found" << std::endl;
-#endif
 }
 
 void Tile::__removeThing(Thing* thing, uint32_t count)
@@ -1263,9 +1238,6 @@ void Tile::__removeThing(Thing* thing, uint32_t count)
 		if (CreatureVector* creatures = getCreatures()) {
 			CreatureVector::iterator it = std::find(creatures->begin(), creatures->end(), thing);
 			if (it == creatures->end()) {
-#ifdef __DEBUG_MOVESYS__
-				std::clog << "[Failure - Tile::__removeThing] creature not found" << std::endl;
-#endif
 				return /* RET_NOTPOSSIBLE*/;
 			}
 
@@ -1273,27 +1245,16 @@ void Tile::__removeThing(Thing* thing, uint32_t count)
 			creatures->erase(it);
 			--m_thingCount;
 		}
-#ifdef __DEBUG_MOVESYS__
-		else
-			std::clog << "[Failure - Tile::__removeThing] creature not found" << std::endl;
-#endif
-
 		return;
 	}
 
 	Item* item = thing->getItem();
 	if (!item) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "[Failure - Tile::__removeThing] item == nullptr" << std::endl;
-#endif
 		return /* RET_NOTPOSSIBLE*/;
 	}
 
 	int32_t index = __getIndexOfThing(item);
 	if (index == -1) {
-#ifdef __DEBUG_MOVESYS__
-		std::clog << "[Failure - Tile::__removeThing] index == -1" << std::endl;
-#endif
 		return /* RET_NOTPOSSIBLE*/;
 	}
 
@@ -1393,10 +1354,6 @@ void Tile::__removeThing(Thing* thing, uint32_t count)
 			return /* RET_NOERROR*/;
 		}
 	}
-#ifdef __DEBUG_MOVESYS__
-
-	std::clog << "[Failure - Tile::__removeThing] thing not found" << std::endl;
-#endif
 }
 
 int32_t Tile::getClientIndexOfThing(const Player* player, const Thing* thing) const
