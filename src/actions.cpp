@@ -42,11 +42,11 @@ void Actions::init()
 
 void Actions::terminate()
 {
-	useItemMap.clear();
-	uniqueItemMap.clear();
-	actionItemMap.clear();
+	m_useItemMap.clear();
+	m_uniqueItemMap.clear();
+	m_actionItemMap.clear();
 
-	defaultAction.reset();
+	m_defaultAction.reset();
 
 	g_lua.removeScriptInterface(m_interface.get());
 	m_interface.reset();
@@ -54,11 +54,11 @@ void Actions::terminate()
 
 void Actions::clear()
 {
-	useItemMap.clear();
-	uniqueItemMap.clear();
-	actionItemMap.clear();
+	m_useItemMap.clear();
+	m_uniqueItemMap.clear();
+	m_actionItemMap.clear();
 
-	defaultAction.reset();
+	m_defaultAction.reset();
 
 	m_interface->reInitState();
 }
@@ -78,9 +78,9 @@ void Actions::registerEvent(EventPtr event, xmlNodePtr p)
 
 	std::string strValue;
 	if (readXMLString(p, "default", strValue) && booleanString(strValue)) {
-		if (!defaultAction) {
+		if (!m_defaultAction) {
 			event.release();
-			defaultAction.reset(action);
+			m_defaultAction.reset(action);
 		} else {
 			std::clog << "[Warning - Actions::registerEvent] You cannot define more than one default action, if you want to do so please define \"override\"." << std::endl;
 		}
@@ -96,7 +96,7 @@ void Actions::registerEvent(EventPtr event, xmlNodePtr p)
 		}
 
 		for (const int32_t id : intVector) {
-			if (!useItemMap.emplace(id, *action).second) {
+			if (!m_useItemMap.emplace(id, *action).second) {
 				std::clog << "[Warning - Actions::registerEvent] Duplicate registered item id: " << id << std::endl;
 			}
 		}
@@ -107,7 +107,7 @@ void Actions::registerEvent(EventPtr event, xmlNodePtr p)
 			for (size_t i = 0, size = intVector.size(); i < size; ++i) {
 				const int32_t firstId = intVector[i];
 				while (intVector[i] <= endVector[i]) {
-					if (!useItemMap.emplace(intVector[i], *action).second) {
+					if (!m_useItemMap.emplace(intVector[i], *action).second) {
 						std::clog << "[Warning - Actions::registerEvent] Duplicate registered item with id: " << intVector[i] << ", in fromid: " << firstId << " and toid: " << endVector[i] << std::endl;
 					}
 					++intVector[i];
@@ -126,7 +126,7 @@ void Actions::registerEvent(EventPtr event, xmlNodePtr p)
 		}
 
 		for (const int32_t id : intVector) {
-			if (!uniqueItemMap.emplace(id, *action).second) {
+			if (!m_uniqueItemMap.emplace(id, *action).second) {
 				std::clog << "[Warning - Actions::registerEvent] Duplicate registered item uid: " << id << std::endl;
 			}
 		}
@@ -137,7 +137,7 @@ void Actions::registerEvent(EventPtr event, xmlNodePtr p)
 			for (size_t i = 0, size = intVector.size(); i < size; ++i) {
 				const int32_t firstId = intVector[i];
 				while (intVector[i] <= endVector[i]) {
-					if (!uniqueItemMap.emplace(intVector[i], *action).second) {
+					if (!m_uniqueItemMap.emplace(intVector[i], *action).second) {
 						std::clog << "[Warning - Actions::registerEvent] Duplicate registered item with uid: " << intVector[i] << ", in fromuid: " << firstId << " and touid: " << endVector[i] << std::endl;
 					}
 					++intVector[i];
@@ -156,7 +156,7 @@ void Actions::registerEvent(EventPtr event, xmlNodePtr p)
 		}
 
 		for (const int32_t id : intVector) {
-			if (!actionItemMap.emplace(id, *action).second) {
+			if (!m_actionItemMap.emplace(id, *action).second) {
 				std::clog << "[Warning - Actions::registerEvent] Duplicate registered item aid: " << id << std::endl;
 			}
 		}
@@ -167,7 +167,7 @@ void Actions::registerEvent(EventPtr event, xmlNodePtr p)
 			for (size_t i = 0, size = intVector.size(); i < size; ++i) {
 				const int32_t firstId = intVector[i];
 				while (intVector[i] <= endVector[i]) {
-					if (!actionItemMap.emplace(intVector[i], *action).second) {
+					if (!m_actionItemMap.emplace(intVector[i], *action).second) {
 						std::clog << "[Warning - Actions::registerEvent] Duplicate registered item with aid: " << intVector[i] << ", in fromaid: " << firstId << " and toaid: " << endVector[i] << std::endl;
 					}
 					++intVector[i];
@@ -208,8 +208,8 @@ ReturnValue Actions::canUse(const Player* player, const Position& pos)
 ReturnValue Actions::canUseEx(const Player* player, const Position& pos, const Item* item)
 {
 	Action* action = getAction(item);
-	if (!action && defaultAction) {
-		action = defaultAction.get();
+	if (!action && m_defaultAction) {
+		action = m_defaultAction.get();
 	}
 
 	if (action) {
@@ -245,22 +245,22 @@ Action* Actions::getAction(const Item* item)
 {
 	int32_t tmpId = item->getUniqueId();
 	if (tmpId != 0) {
-		auto it = uniqueItemMap.find(tmpId);
-		if (it != uniqueItemMap.end()) {
+		auto it = m_uniqueItemMap.find(tmpId);
+		if (it != m_uniqueItemMap.end()) {
 			return &it->second;
 		}
 	}
 
 	tmpId = item->getActionId();
 	if (tmpId != 0) {
-		auto it = actionItemMap.find(tmpId);
-		if (it != actionItemMap.end()) {
+		auto it = m_actionItemMap.find(tmpId);
+		if (it != m_actionItemMap.end()) {
 			return &it->second;
 		}
 	}
 
-	auto it = useItemMap.find(item->getID());
-	if (it != useItemMap.end()) {
+	auto it = m_useItemMap.find(item->getID());
+	if (it != m_useItemMap.end()) {
 		return &it->second;
 	}
 
@@ -292,8 +292,8 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 	PositionEx posEx(pos, tmp);
 
 	Action* action = getAction(item);
-	if (!action && defaultAction) {
-		action = defaultAction.get();
+	if (!action && m_defaultAction) {
+		action = m_defaultAction.get();
 	}
 
 	if (action && executeUse(action, player, item, posEx, creatureId)) {
@@ -412,8 +412,8 @@ ReturnValue Actions::internalUseItemEx(Player* player, const PositionEx& fromPos
 	Item* item, bool isHotkey, uint32_t creatureId)
 {
 	Action* action = getAction(item);
-	if (!action && defaultAction) {
-		action = defaultAction.get();
+	if (!action && m_defaultAction) {
+		action = m_defaultAction.get();
 	}
 
 	if (action) {

@@ -39,11 +39,11 @@ public:
 	// scripting
 	virtual bool executeUse(Player* player, Item* item, const PositionEx& posFrom, const PositionEx& posTo, bool extendedUse, uint32_t creatureId);
 
-	bool getAllowFarUse() const { return allowFarUse; }
-	void setAllowFarUse(bool v) { allowFarUse = v; }
+	bool getAllowFarUse() const { return m_allowFarUse; }
+	void setAllowFarUse(bool v) { m_allowFarUse = v; }
 
-	bool getCheckLineOfSight() const { return checkLineOfSight; }
-	void setCheckLineOfSight(bool v) { checkLineOfSight = v; }
+	bool getCheckLineOfSight() const { return m_checkLineOfSight; }
+	void setCheckLineOfSight(bool v) { m_checkLineOfSight = v; }
 
 	virtual ReturnValue canExecuteAction(const Player* player, const Position& pos);
 	virtual bool hasOwnErrorHandler() { return false; }
@@ -51,10 +51,10 @@ public:
 private:
 	std::string getScriptEventName() const override { return "onUse"; }
 
-	bool checkLineOfSight = true;
+	bool m_checkLineOfSight = true;
 
 protected:
-	bool allowFarUse = false;
+	bool m_allowFarUse = false;
 };
 
 class Actions final : public BaseEvents
@@ -98,10 +98,10 @@ private:
 
 	LuaInterfacePtr m_interface;
 
-	ActionPtr defaultAction;
-	std::map<uint16_t, Action> useItemMap;
-	std::map<uint16_t, Action> uniqueItemMap;
-	std::map<uint16_t, Action> actionItemMap;
+	ActionPtr m_defaultAction;
+	std::map<uint16_t, Action> m_useItemMap;
+	std::map<uint16_t, Action> m_uniqueItemMap;
+	std::map<uint16_t, Action> m_actionItemMap;
 };
 
 extern Actions g_actions;

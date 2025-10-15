@@ -1317,22 +1317,12 @@ void ProtocolGame::parseOpenChannel(NetworkMessage& msg)
 			g_game.playerOpenChannel(playerID, channelId);
 		}));
 	}
-
-	if (channelId == CHANNEL_LOOT) {
-		player->setGetLoot(true);
-		player->sendTextMessage(MSG_INFO_DESCR, "You open Loot Channel.\nThe Loot Drop messages appear this channel.");
-	}
 }
 
 void ProtocolGame::parseCloseChannel(NetworkMessage& msg)
 {
 	uint16_t channelId = msg.get<uint16_t>();
 	addDispatcherTask(([playerID = player->getID(), channelId]() { g_game.playerCloseChannel(playerID, channelId); }));
-
-	if (channelId == CHANNEL_LOOT) {
-		player->setGetLoot(false);
-		player->sendTextMessage(MSG_INFO_DESCR, "You closed the Loot Channel.\nThe Loot Drop messages appear in Server Log.");
-	}
 }
 
 void ProtocolGame::parseOpenPrivate(NetworkMessage& msg)
@@ -2650,9 +2640,6 @@ void ProtocolGame::sendAddCreature(const Creature* creature, const Position& pos
 			sendVIP((*it), vipName, (tmpPlayer && player->canSeeCreature(tmpPlayer)));
 		}
 	}
-
-	player->sendChannel(CHANNEL_LOOT, "Loot");
-	player->setGetLoot(true);
 }
 
 void ProtocolGame::sendRemoveCreature(const Position& pos, uint32_t stackpos)

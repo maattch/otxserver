@@ -650,7 +650,7 @@ enum SpellGroup_t : uint8_t
 	SPELLGROUP_SPECIAL = 4
 };
 
-enum ItemIds_t : uint16_t
+enum ItemId_t : uint16_t
 {
 	ITEM_FIREFIELD = 1492,
 	ITEM_FIREFIELD_SAFE = 1500,
@@ -842,7 +842,6 @@ enum Channels_t : uint16_t
 	CHANNEL_PARTY = 0x01,
 	CHANNEL_RVR = 0x03,
 	CHANNEL_HELP = 0x09,
-	CHANNEL_LOOT = 0x10,
 	CHANNEL_DEFAULT = 0xFFFE, // internal usage only, there is no such channel
 	CHANNEL_PRIVATE = 0xFFFF
 };

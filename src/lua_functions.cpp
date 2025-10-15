@@ -6244,7 +6244,7 @@ static int luaGetChannelList(lua_State* L)
 	lua_createtable(L, channels.size(), 0);
 
 	int index = 0;
-	for (ChatChannel* channel : channels) {
+	for (const ChatChannel* channel : channels) {
 		lua_createtable(L, 0, 5);
 		otx::lua::setTableValue(L, "id", channel->getId());
 		otx::lua::setTableValue(L, "name", channel->getName());

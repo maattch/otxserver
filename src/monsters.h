@@ -25,7 +25,7 @@
 struct LootBlock;
 typedef std::list<LootBlock> LootItems;
 
-enum LootMessage_t
+enum LootMessage_t : int8_t
 {
 	LOOTMSG_IGNORE = -1,
 	LOOTMSG_NONE = 0,

@@ -1709,7 +1709,7 @@ bool ConjureSpell::castInstant(Player* player, const std::string& param)
 RuneSpell::RuneSpell(LuaInterface* luaInterface) :
 	Action(luaInterface)
 {
-	allowFarUse = true;
+	m_allowFarUse = true;
 }
 
 bool RuneSpell::configureEvent(xmlNodePtr p)

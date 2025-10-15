@@ -368,9 +368,6 @@ public:
 	bool hasSentChat() const { return m_sentChat; }
 	void setSentChat(bool sending) { m_sentChat = sending; }
 
-	bool getLoot() const { return m_showLoot; }
-	void setGetLoot(bool b) { m_showLoot = b; }
-
 	RaceType_t getRace() const override { return RACE_BLOOD; }
 
 	// safe-trade functions
@@ -1223,7 +1220,6 @@ private:
 	bool m_addAttackSkillPoint = false;
 	bool m_pvpBlessing = false;
 	bool m_sentChat = false;
-	bool m_showLoot = false;
 	bool m_chaseMode = false;
 	bool m_secureMode = true;
 	bool m_inventoryAbilities[SLOT_LAST + 1] = {};

@@ -5981,6 +5981,8 @@ bool Game::playerReportViolation(const uint32_t playerId, ReportType_t type, con
 bool Game::playerViolationWindow(const uint32_t playerId, std::string name, const uint8_t reason, ViolationAction_t action,
 	std::string comment, std::string statement, const uint32_t statementId, bool ipBanishment)
 {
+	UNUSED(statementId);
+
 	Player* player = getPlayerByID(playerId);
 	if (!player || player->isRemoved()) {
 		return false;
@@ -6093,17 +6095,21 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 	pos = 1;
 	switch (action) {
 		case ACTION_STATEMENT: {
-			StatementMap::iterator it = g_chat.statementMap.find(statementId);
-			if (it == g_chat.statementMap.end()) {
+			// TODO: fix it
+			player->sendCancel("Statement has been already reported.");
+			return false;
+
+			/*StatementMap::iterator it = g_chat.m_statementMap.find(statementId);
+			if (it == g_chat.m_statementMap.end()) {
 				player->sendCancel("Statement has been already reported.");
 				return false;
 			}
 
 			IOBan::getInstance()->addStatement(target->getGUID(), reason, comment,
 				player->getGUID(), -1, statement);
-			g_chat.statementMap.erase(it);
+			g_chat.m_statementMap.erase(it);
 
-			kickAction = NONE;
+			kickAction = NONE;*/
 			break;
 		}
 		case ACTION_NAMEREPORT: {
