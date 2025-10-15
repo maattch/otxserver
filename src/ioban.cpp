@@ -313,7 +313,7 @@ bool IOBan::getData(Ban& ban) const
 	}
 
 	if (ban.type != BAN_NONE) {
-		query << " AND `type` = " << ban.type;
+		query << " AND `type` = " << static_cast<int>(ban.type);
 	}
 
 	query << " AND `active` = 1 AND (`expires` > " << time(nullptr) << " OR `expires` <= 0) LIMIT 1";
