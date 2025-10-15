@@ -447,29 +447,10 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 
 	player->m_manaSpent = manaSpent;
 	player->m_magLevelPercent = Player::getPercentLevel(player->m_manaSpent, nextManaCount);
-	if (!group || group->lookType == 0) {
-		player->m_defaultOutfit.lookType = result->getNumber<int32_t>("looktype");
-		uint32_t outfitId = Outfits::getInstance()->getOutfitId(player->m_defaultOutfit.lookType);
-
-		bool wearable = true;
-		if (outfitId > 0) {
-			Outfit outfit;
-			wearable = Outfits::getInstance()->getOutfit(outfitId, player->getSex(true), outfit);
-			if (wearable && player->m_defaultOutfit.lookType != outfit.lookType) {
-				player->m_defaultOutfit.lookType = outfit.lookType;
-			}
-		}
-
-		if (!wearable) // just pick the first default outfit we can find
-		{
-			const OutfitMap& defaultOutfits = Outfits::getInstance()->getOutfits(player->getSex(true));
-			if (!defaultOutfits.empty()) {
-				Outfit newOutfit = (*defaultOutfits.begin()).second;
-				player->m_defaultOutfit.lookType = newOutfit.lookType;
-			}
-		}
-	} else {
+	if (group && group->lookType != 0) {
 		player->m_defaultOutfit.lookType = group->lookType;
+	} else {
+		player->m_defaultOutfit.lookType = result->getNumber<uint16_t>("looktype");
 	}
 
 	player->m_defaultOutfit.lookHead = result->getNumber<int32_t>("lookhead");

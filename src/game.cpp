@@ -6815,6 +6815,26 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 			}
 			break;
 		}
+		case RELOAD_GROUPS: {
+			done = groups.reload();
+
+			std::vector<Player*> toKickPlayers;
+			for (const auto& it : players) {
+				if (!it.second->setGroupId(it.second->getGroupId())) {
+					toKickPlayers.push_back(it.second);
+				}
+			}
+
+			for (Player* player : toKickPlayers) {
+				std::clog << "[Warning - Game::reloadInfo] Kicking player with invalid group id " << player->getGroupId() << " (" << player->getName() << ")..." << std::endl;
+				player->kick(true, true);
+			}
+
+			if (!done) {
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload weapons." << std::endl;
+			}
+			break;
+		}
 		case RELOAD_HIGHSCORES: {
 			done = reloadHighscores();
 			if (!done) {
@@ -6848,6 +6868,18 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 		case RELOAD_NPCS: {
 			g_npcs.reload();
 			done = true;
+			break;
+		}
+		case RELOAD_OUTFITS: {
+			done = outfits.reload();
+			for (const auto& it : players) {
+				// this is add new default outfits to player
+				it.second->setSex(it.second->getSex(true));
+			}
+
+			if (!done) {
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload weapons." << std::endl;
+			}
 			break;
 		}
 		case RELOAD_QUESTS: {
@@ -6920,32 +6952,10 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 			}
 			break;
 		}
-		case RELOAD_GROUPS: {
-			done = groups.reload();
-
-			std::vector<Player*> toKickPlayers;
-			for (const auto& it : players) {
-				if (!it.second->setGroupId(it.second->getGroupId())) {
-					toKickPlayers.push_back(it.second);
-				}
-			}
-
-			for (Player* player : toKickPlayers) {
-				std::clog << "[Warning - Game::reloadInfo] Kicking player with invalid group id " << player->getGroupId() << " (" << player->getName() << ")..." << std::endl;
-				player->kick(true, true);
-			}
-
-			if (!done) {
-				std::clog << "[Warning - Game::reloadInfo] Failed to reload weapons." << std::endl;
-			}
-			break;
-		}
 
 		case RELOAD_GAMESERVERS:
-		case RELOAD_OUTFITS:
 		case RELOAD_MODS: {
 			done = true;
-			std::clog << "[Notice - Game::reloadInfo] Reload type does not work." << std::endl;
 			break;
 		}
 
@@ -6964,6 +6974,8 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 			break;
 		}
 	}
+
+	g_lua.collectGarbage();
 	return done;
 }
 

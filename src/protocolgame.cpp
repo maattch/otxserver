@@ -2901,37 +2901,45 @@ void ProtocolGame::sendOutfitWindow()
 	OutputMessage_ptr msg = getOutputBuffer();
 	if (msg) {
 		msg->addByte(0xC8);
-		AddCreatureOutfit(msg, player, player->getDefaultOutfit(), true);
 
-		std::vector<Outfit> outfitList;
-		for (OutfitMap::iterator it = player->m_outfits.begin(); it != player->m_outfits.end(); ++it) {
-			if (player->canWearOutfit(it->first, it->second.addons)) {
-				outfitList.push_back(it->second);
+		const Outfit_t& defaultOutfit = player->getDefaultOutfit();
+		AddCreatureOutfit(msg, player, defaultOutfit, true);
+
+		std::vector<const Outfit*> outfitList;
+		for (const auto& it : player->m_outfits) {
+			const Outfit* outfit = g_game.outfits.getOutfitByLookType(it.second.lookType);
+			if (!outfit) {
+				continue;
+			}
+
+			if (player->canWearOutfit(outfit->id, it.second.addons)) {
+				outfitList.push_back(outfit);
+			}
+
+			if (outfitList.size() == 25) {
+				// Tibia client limit
+				break;
 			}
 		}
 
-		if (outfitList.size()) {
-			while (outfitList.size() > 25) {
-				outfitList.erase(outfitList.begin() + random_range(0, outfitList.size() - 1));
-			}
-
+		if (!outfitList.empty()) {
 			msg->addByte(outfitList.size());
-			for (std::vector<Outfit>::iterator it = outfitList.begin(); it != outfitList.end(); ++it) {
-				msg->add<uint16_t>(it->lookType);
-				msg->addString(it->name);
+			for (const Outfit* outfit : outfitList) {
+				msg->add<uint16_t>(outfit->lookType);
+				msg->addString(outfit->name);
 				if (player->hasCustomFlag(PlayerCustomFlag_CanWearAllAddons)) {
 					msg->addByte(0x03);
 				} else if (!otx::config::getBoolean(otx::config::ADDONS_PREMIUM) || player->isPremium()) {
-					msg->addByte(it->addons);
+					msg->addByte(outfit->addons);
 				} else {
 					msg->addByte(0x00);
 				}
 			}
 		} else {
 			msg->addByte(1);
-			msg->add<uint16_t>(player->getDefaultOutfit().lookType);
+			msg->add<uint16_t>(defaultOutfit.lookType);
 			msg->addString("Your outfit");
-			msg->addByte(player->getDefaultOutfit().lookAddons);
+			msg->addByte(defaultOutfit.lookAddons);
 		}
 
 		player->hasRequestedOutfit(true);

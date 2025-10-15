@@ -701,6 +701,7 @@ public:
 	void removeBedSleeper(uint32_t guid);
 
 	GroupsManager groups;
+	OutfitsManager outfits;
 
 private:
 	bool playerWhisper(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);

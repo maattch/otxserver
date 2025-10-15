@@ -44,6 +44,10 @@ class GroupsManager final
 public:
 	GroupsManager() = default;
 
+	// non-copyable
+	GroupsManager(const GroupsManager&) = delete;
+	GroupsManager& operator=(const GroupsManager&) = delete;
+
 	bool loadFromXml();
 	bool reload();
 

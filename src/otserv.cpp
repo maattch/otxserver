@@ -493,7 +493,7 @@ void otserv(ServiceManager* services)
 	}
 
 	std::clog << ">> Loading outfits" << std::endl;
-	if (!Outfits::getInstance()->loadFromXml()) {
+	if (!g_game.outfits.loadFromXml()) {
 		startupErrorMessage("Unable to load outfits!");
 	}
 

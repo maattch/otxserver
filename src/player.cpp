@@ -701,8 +701,8 @@ void Player::dropLoot(Container* corpse)
 
 bool Player::setStorage(const std::string& key, const std::string& value)
 {
-	uint32_t numericKey = atol(key.c_str());
-	if (!IS_IN_KEYRANGE(numericKey, RESERVED_RANGE)) {
+	const auto key_num = otx::util::cast<uint32_t>(key.data());
+	if (!IS_IN_KEYRANGE(key_num, RESERVED_RANGE)) {
 		if (!Creature::setStorage(key, value)) {
 			return false;
 		}
@@ -710,23 +710,25 @@ bool Player::setStorage(const std::string& key, const std::string& value)
 		if (Quests::getInstance()->isQuestStorage(key, value, true)) {
 			onUpdateQuest();
 		}
-
 		return true;
 	}
 
-	if (IS_IN_KEYRANGE(numericKey, OUTFITS_RANGE)) {
-		uint32_t lookType = atoi(value.c_str()) >> 16, addons = atoi(value.c_str()) & 0xFF;
+	if (IS_IN_KEYRANGE(key_num, OUTFITS_RANGE)) {
+		const auto value_num = otx::util::cast<uint32_t>(value.data());
+		const uint16_t lookType = value_num >> 16;
+		const uint8_t addons = value_num & 0xFF;
 		if (addons < 4) {
-			Outfit outfit;
-			if (Outfits::getInstance()->getOutfit(lookType, outfit)) {
-				return addOutfit(outfit.outfitId, addons);
+			if (const Outfit* outfit = g_game.outfits.getOutfitByLookType(lookType)) {
+				return addOutfit(outfit->id, addons);
 			}
 		} else {
 			std::clog << "[Warning - Player::setStorage] Invalid addons value key: " << key
 					  << ", value: " << value << " for player: " << getName() << std::endl;
 		}
-	} else if (IS_IN_KEYRANGE(numericKey, OUTFITSID_RANGE)) {
-		uint32_t outfitId = atoi(value.c_str()) >> 16, addons = atoi(value.c_str()) & 0xFF;
+	} else if (IS_IN_KEYRANGE(key_num, OUTFITSID_RANGE)) {
+		const auto value_num = otx::util::cast<uint32_t>(value.data());
+		const uint32_t outfitId = value_num >> 16;
+		const uint8_t addons = value_num & 0xFF;
 		if (addons < 4) {
 			return addOutfit(outfitId, addons);
 		} else {
@@ -736,7 +738,6 @@ bool Player::setStorage(const std::string& key, const std::string& value)
 	} else {
 		std::clog << "[Warning - Player::setStorage] Unknown reserved key: " << key << " for player: " << getName() << std::endl;
 	}
-
 	return false;
 }
 
@@ -1306,10 +1307,7 @@ void Player::onCreatureAppear(const Creature* creature)
 		bed->wakeUp();
 	}
 
-	Outfit outfit;
-	if (Outfits::getInstance()->getOutfit(m_defaultOutfit.lookType, outfit)) {
-		m_outfitAttributes = Outfits::getInstance()->addAttributes(getID(), outfit.outfitId, m_sex, m_defaultOutfit.lookAddons);
-	}
+	m_outfitAttributes = g_game.outfits.addAttributes(this, m_defaultOutfit.lookType, m_defaultOutfit.lookAddons);
 
 	if (m_lastLogout != 0 && m_stamina < STAMINA_MAX) {
 		int64_t ticks = time(nullptr) - m_lastLogout - 600;
@@ -2257,21 +2255,21 @@ BlockType_t Player::blockHit(Creature* attacker, CombatType_t combatType, int32_
 			g_game.transformItem(item, item->getID(), std::max<int32_t>(0, item->getCharges() - 1));
 		}
 	}
-	/*
-		if(m_outfitAttributes)
-		{
-			uint32_t tmp = Outfits::getInstance()->getOutfitAbsorb(defaultOutfit.lookType, m_sex, combatType);
-			if(tmp)
-				blocked += (int32_t)std::ceil((double)(damage * tmp) / 100.);
 
-			if(reflect)
-			{
-				tmp = Outfits::getInstance()->getOutfitReflect(defaultOutfit.lookType, m_sex, combatType);
-				if(tmp)
-					reflected += (int32_t)std::ceil((double)(damage * tmp) / 100.);
+	if (m_outfitAttributes) {
+		int16_t percent = g_game.outfits.getOutfitAbsorb(m_defaultOutfit.lookType, combatIndex);
+		if (percent != 0) {
+			blocked += std::ceil((damage * percent) / 100.);
+		}
+
+		if (reflect) {
+			percent = g_game.outfits.getOutfitReflect(m_defaultOutfit.lookType, combatIndex);
+			if (percent != 0) {
+				reflected += std::ceil((damage * percent) / 100.);
 			}
 		}
-	*/
+	}
+
 	if (m_vocation->absorb[combatIndex]) {
 		blocked += std::ceil((damage * m_vocation->absorb[combatIndex]) / 100.);
 	}
@@ -4242,92 +4240,108 @@ void Player::changeSoul(int32_t soulChange)
 
 bool Player::changeOutfit(Outfit_t outfit, bool checkList)
 {
-	uint32_t outfitId = Outfits::getInstance()->getOutfitId(outfit.lookType);
+	uint32_t outfitId = g_game.outfits.getOutfitIdByLookType(outfit.lookType);
 	if (checkList && (!canWearOutfit(outfitId, outfit.lookAddons) || !m_requestedOutfit)) {
 		return false;
 	}
 
 	m_requestedOutfit = false;
 	if (m_outfitAttributes) {
-		uint32_t oldId = Outfits::getInstance()->getOutfitId(m_defaultOutfit.lookType);
-		m_outfitAttributes = !Outfits::getInstance()->removeAttributes(getID(), oldId, m_sex);
+		g_game.outfits.removeAttributes(this, m_defaultOutfit.lookType);
 	}
 
 	m_defaultOutfit = outfit;
-	m_outfitAttributes = Outfits::getInstance()->addAttributes(getID(), outfitId, m_sex, m_defaultOutfit.lookAddons);
+	m_outfitAttributes = g_game.outfits.addAttributes(this, m_defaultOutfit.lookType, m_defaultOutfit.lookAddons);
 	return true;
 }
 
-bool Player::canWearOutfit(uint32_t outfitId, uint32_t addons)
+bool Player::canWearOutfit(uint32_t outfitId, uint8_t addons)
 {
-	OutfitMap::iterator it = m_outfits.find(outfitId);
-	if (it == m_outfits.end() || (it->second.isPremium && !isPremium()) || getAccess() < it->second.accessLevel
-		|| (!it->second.groups.empty() && std::find(it->second.groups.begin(), it->second.groups.end(), m_groupId) == it->second.groups.end()) || ((it->second.addons & addons) != addons && !hasCustomFlag(PlayerCustomFlag_CanWearAllAddons))) {
+	auto it = m_outfits.find(outfitId);
+	if (it == m_outfits.end()) {
 		return false;
 	}
 
-	if (it->second.storageId.empty()) {
-		return true;
-	}
-
-	std::string value;
-	getStorage(it->second.storageId, value);
-	if (value == it->second.storageValue) {
-		return true;
-	}
-
-	int32_t intValue = atoi(value.c_str());
-	if (!intValue && value != "0") {
+	const Outfit* outfit = g_game.outfits.getOutfitByLookType(it->second.lookType);
+	if (!outfit) {
 		return false;
 	}
 
-	int32_t tmp = atoi(it->second.storageValue.c_str());
-	if (!tmp && it->second.storageValue != "0") {
+	if (outfit->isPremium && ! isPremium()) {
 		return false;
 	}
 
-	return intValue >= tmp;
-}
-
-bool Player::addOutfit(uint32_t outfitId, uint32_t addons)
-{
-	Outfit outfit;
-	if (!Outfits::getInstance()->getOutfit(outfitId, m_sex, outfit)) {
+	if (getAccess() < outfit->accessLevel) {
 		return false;
 	}
 
-	OutfitMap::iterator it = m_outfits.find(outfitId);
-	if (it != m_outfits.end()) {
-		outfit.addons |= it->second.addons;
+	if (!outfit->groups.empty()) {
+		auto iit = std::find(outfit->groups.begin(), outfit->groups.end(), m_groupId);
+		if (iit == outfit->groups.end()) {
+			return false;
+		}
 	}
 
-	outfit.addons |= addons;
-	m_outfits[outfitId] = outfit;
+	if ((outfit->addons & addons) != addons && !hasCustomFlag(PlayerCustomFlag_CanWearAllAddons)) {
+		return false;
+	}
+
+	if (!outfit->storageId.empty()) {
+		std::string value;
+		getStorage(outfit->storageId, value);
+		if (value == outfit->storageValue) {
+			return true;
+		}
+
+		auto playerStorageValue = otx::util::safe_cast<int32_t>(value.data());
+		if (!playerStorageValue.second) {
+			return false;
+		}
+
+		auto outfitStorageValue = otx::util::safe_cast<int32_t>(outfit->storageValue.data());
+		if (!outfitStorageValue.second) {
+			return false;
+		}
+		return playerStorageValue.first >= outfitStorageValue.first;
+	}
 	return true;
 }
 
-bool Player::removeOutfit(uint32_t outfitId, uint32_t addons)
+bool Player::addOutfit(uint32_t outfitId, uint8_t addons)
 {
-	OutfitMap::iterator it = m_outfits.find(outfitId);
+	const Outfit* outfit = g_game.outfits.getOutfitById(outfitId, m_sex);
+	if (!outfit) {
+		return false;
+	}
+
+	OutfitEntry& prevEntry = m_outfits[outfitId];
+	prevEntry.lookType = outfit->lookType;
+	prevEntry.addons |= addons;
+	return true;
+}
+
+bool Player::removeOutfit(uint32_t outfitId, uint8_t addons)
+{
+	auto it = m_outfits.find(outfitId);
 	if (it == m_outfits.end()) {
 		return false;
 	}
 
 	bool update = false;
-	if (addons == 0xFF) // remove outfit
-	{
+	if (addons == 0xFF) {
+		// remove outfit
 		if (it->second.lookType == m_defaultOutfit.lookType) {
 			m_outfits.erase(it);
-			if ((it = m_outfits.begin()) != m_outfits.end()) {
+			it = m_outfits.begin();
+			if (it != m_outfits.end()) {
 				m_defaultOutfit.lookType = it->second.lookType;
+				update = true;
 			}
-
-			update = true;
 		} else {
 			m_outfits.erase(it);
 		}
-	} else // remove addons
-	{
+	} else {
+		// remove addons
 		update = it->second.lookType == m_defaultOutfit.lookType;
 		it->second.addons &= ~addons;
 	}
@@ -4335,41 +4349,32 @@ bool Player::removeOutfit(uint32_t outfitId, uint32_t addons)
 	if (update) {
 		g_game.internalCreatureChangeOutfit(this, m_defaultOutfit, true);
 	}
-
 	return true;
 }
 
 void Player::generateReservedStorage()
 {
-	uint32_t key = PSTRG_OUTFITSID_RANGE_START + 1;
-	const OutfitMap& defaultOutfits = Outfits::getInstance()->getOutfits(m_sex);
-	for (OutfitMap::const_iterator it = m_outfits.begin(); it != m_outfits.end(); ++it) {
-		OutfitMap::const_iterator dit = defaultOutfits.find(it->first);
-		if (dit == defaultOutfits.end() || (dit->second.isDefault && (dit->second.addons & it->second.addons) == it->second.addons)) {
+	uint32_t base_key = PSTRG_OUTFITSID_RANGE_START;
+	for (const auto& [conditionId, conditionPtr] : g_game.outfits.getOutfits(m_sex)) {
+		if (conditionPtr->isDefault) {
 			continue;
 		}
 
-		std::ostringstream k, v;
-		k << key++; // this may not work as intended, revalidate it
-		v << ((it->first << 16) | (it->second.addons & 0xFF));
-
-		m_storageMap[k.str()] = v.str();
-		if (key <= PSTRG_OUTFITSID_RANGE_START + PSTRG_OUTFITSID_RANGE_SIZE) {
-			continue;
+		if (base_key > (PSTRG_OUTFITSID_RANGE_START + PSTRG_OUTFITSID_RANGE_SIZE)) {
+			std::clog << "[Warning - Player::genReservedStorageRange] Player " << getName() << " with more than " << PSTRG_OUTFITSID_RANGE_SIZE << " outfits!" << std::endl;
+			break;
 		}
 
-		std::clog << "[Warning - Player::genReservedStorageRange] Player " << getName() << " with more than 500 outfits!" << std::endl;
-		break;
+		m_storageMap[std::to_string(++base_key)] = std::to_string((conditionId << 16) | conditionPtr->addons);
 	}
 }
 
-void Player::setSex(uint16_t newSex)
+void Player::setSex(uint16_t sex)
 {
-	m_sex = newSex;
-	const OutfitMap& defaultOutfits = Outfits::getInstance()->getOutfits(m_sex);
-	for (OutfitMap::const_iterator it = defaultOutfits.begin(); it != defaultOutfits.end(); ++it) {
-		if (it->second.isDefault) {
-			addOutfit(it->first, it->second.addons);
+	m_sex = sex;
+	for (const auto& [outfitId, outfitPtr] : g_game.outfits.getOutfits(sex)) {
+		if (outfitPtr->isDefault) {
+			addOutfit(outfitId, outfitPtr->addons);
 		}
 	}
 }
@@ -4603,13 +4608,11 @@ uint32_t Player::getAttackSpeed() const
 {
 	int32_t modifiers = 0;
 	if (m_outfitAttributes) {
-		Outfit outfit;
-		if (Outfits::getInstance()->getOutfit(m_defaultOutfit.lookType, outfit)) {
-			if (outfit.attackSpeed == -1) {
+		if (const Outfit* outfit = g_game.outfits.getOutfitByLookType(m_defaultOutfit.lookType)) {
+			if (outfit->attackSpeed == -1) {
 				return 0;
 			}
-
-			modifiers += outfit.attackSpeed;
+			modifiers += outfit->attackSpeed;
 		}
 	}
 

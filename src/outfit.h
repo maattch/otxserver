@@ -19,7 +19,7 @@
 
 #include "const.h"
 
-enum AddonRequirement_t
+enum AddonRequirement_t : uint8_t
 {
 	REQUIREMENT_NONE = 0,
 	REQUIREMENT_FIRST,
@@ -30,72 +30,68 @@ enum AddonRequirement_t
 
 struct Outfit
 {
-	Outfit()
-	{
-		memset(skills, 0, sizeof(skills));
-		memset(skillsPercent, 0, sizeof(skillsPercent));
-		memset(stats, 0, sizeof(stats));
-		memset(statsPercent, 0, sizeof(statsPercent));
+	std::string name;
+	std::string storageId;
+	std::string storageValue;
 
-		memset(absorb, 0, sizeof(absorb));
-		memset(reflect[REFLECT_PERCENT], 0, sizeof(reflect[REFLECT_PERCENT]));
-		memset(reflect[REFLECT_CHANCE], 0, sizeof(reflect[REFLECT_CHANCE]));
-
-		isDefault = true;
-		requirement = REQUIREMENT_BOTH;
-		isPremium = manaShield = invisible = regeneration = false;
-		outfitId = lookType = addons = accessLevel = speed = attackSpeed = 0;
-		healthGain = healthTicks = manaGain = manaTicks = conditionSuppressions = 0;
-	}
-
-	bool isDefault, isPremium, manaShield, invisible, regeneration;
-	AddonRequirement_t requirement;
-	int16_t absorb[COMBATINDEX_LAST + 1];
-	int16_t reflect[REFLECT_LAST + 1][COMBATINDEX_LAST + 1];
-
-	uint16_t accessLevel, addons;
-	int32_t skills[SKILL_LAST + 1], skillsPercent[SKILL_LAST + 1], stats[STAT_LAST + 1], statsPercent[STAT_LAST + 1],
-		speed, attackSpeed, healthGain, healthTicks, manaGain, manaTicks, conditionSuppressions;
-
-	uint32_t outfitId, lookType;
-	std::string name, storageId, storageValue;
 	std::vector<int32_t> groups;
+
+	uint32_t id = 0;
+	uint32_t conditionSuppressions = 0;
+
+	int32_t speed = 0;
+	int32_t attackSpeed = 0;
+	int32_t healthGain = 0;
+	int32_t healthTicks = 0;
+	int32_t manaGain = 0;
+	int32_t manaTicks = 0;
+	int32_t skills[SKILL_LAST + 1] = {};
+	int32_t skillsPercent[SKILL_LAST + 1] = {};
+	int32_t stats[STAT_LAST + 1] = {};
+	int32_t statsPercent[STAT_LAST + 1] = {};
+
+	uint16_t lookType = 0;
+	uint16_t accessLevel = 0;
+
+	int16_t reflect[REFLECT_LAST + 1][COMBATINDEX_LAST + 1] = {};
+	int16_t absorb[COMBATINDEX_LAST + 1] = {};
+
+	uint8_t addons = 0;
+
+	AddonRequirement_t requirement = REQUIREMENT_BOTH;
+
+	bool isDefault = true;
+	bool isPremium = false;
+	bool manaShield = false;
+	bool invisible = false;
+	bool regeneration = false;
 };
 
-typedef std::list<Outfit> OutfitList;
-typedef std::map<uint32_t, Outfit> OutfitMap;
-
-class Outfits
+class OutfitsManager final
 {
 public:
-	virtual ~Outfits() {}
-	static Outfits* getInstance()
-	{
-		static Outfits instance;
-		return &instance;
-	}
+	OutfitsManager() = default;
 
+	// non-copyable
+	OutfitsManager(const OutfitsManager&) = delete;
+	OutfitsManager& operator=(const OutfitsManager&) = delete;
+
+	bool reload();
 	bool loadFromXml();
-	bool parseOutfitNode(xmlNodePtr p);
 
-	const OutfitMap& getOutfits(uint16_t sex) { return outfitsMap[sex]; }
+	const auto& getOutfits(uint8_t sex) { return m_outfitsByGender[sex]; }
 
-	bool getOutfit(uint32_t outfitId, uint16_t sex, Outfit& outfit);
-	bool getOutfit(uint32_t lookType, Outfit& outfit);
+	const Outfit* getOutfitById(uint32_t id, uint8_t sex);
+	const Outfit* getOutfitByLookType(uint16_t lookType);
+	uint32_t getOutfitIdByLookType(uint16_t lookType);
 
-	bool addAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex, uint16_t addons);
-	bool removeAttributes(uint32_t playerId, uint32_t outfitId, uint16_t sex);
+	bool addAttributes(Player* player, uint16_t lookType, uint8_t addons);
+	void removeAttributes(Player* player, uint16_t lookType);
 
-	uint32_t getOutfitId(uint32_t lookType);
-
-	const Outfit* getOutfitByLookType(uint16_t sex, uint16_t lookType);
-
-	int16_t getOutfitAbsorb(uint32_t lookType, uint16_t sex, uint16_t index);
-	int16_t getOutfitReflect(uint32_t lookType, uint16_t sex, uint16_t index);
+	int16_t getOutfitAbsorb(uint16_t lookType, uint8_t index);
+	int16_t getOutfitReflect(uint16_t lookType, uint8_t index);
 
 private:
-	Outfits() {}
-
-	OutfitList allOutfits;
-	std::map<uint16_t, OutfitMap> outfitsMap;
+	std::unordered_map<uint16_t, Outfit> m_outfits;
+	std::map<uint8_t, std::map<uint32_t, Outfit*>> m_outfitsByGender;
 };

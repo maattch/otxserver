@@ -72,6 +72,12 @@ struct Skill
 	uint16_t percent = 0;
 };
 
+struct OutfitEntry
+{
+	uint16_t lookType = 0;
+	uint8_t addons = 0;
+};
+
 typedef std::set<uint32_t> VIPSet;
 typedef std::list<std::pair<uint16_t, std::string>> ChannelsList;
 typedef std::vector<std::pair<uint32_t, Container*>> ContainerVector;
@@ -275,7 +281,7 @@ public:
 	uint32_t getVocationId() const { return m_vocationId; }
 	bool setVocation(uint32_t id);
 	uint16_t getSex(bool full) const { return full ? m_sex : m_sex % 2; }
-	void setSex(uint16_t);
+	void setSex(uint16_t sex);
 
 	void setDropLoot(lootDrop_t _lootDrop) override;
 	void setLossSkill(bool _skillLoss) override;
@@ -510,10 +516,10 @@ public:
 	time_t getSkullEnd() const { return m_skullEnd; }
 	void setSkullEnd(time_t _time, bool login, Skulls_t _skull);
 
-	bool addOutfit(uint32_t outfitId, uint32_t addons);
-	bool removeOutfit(uint32_t outfitId, uint32_t addons);
+	bool addOutfit(uint32_t outfitId, uint8_t addons);
+	bool removeOutfit(uint32_t outfitId, uint8_t addons);
 
-	bool canWearOutfit(uint32_t outfitId, uint32_t addons);
+	bool canWearOutfit(uint32_t outfitId, uint8_t addons);
 
 	// tile
 	// send methods
@@ -1103,7 +1109,7 @@ private:
 	ShopInfoList m_shopOffer;
 	LearnedInstantSpellList m_learnedInstantSpellList;
 	PartyList m_invitePartyList;
-	OutfitMap m_outfits;
+	std::map<uint32_t, OutfitEntry> m_outfits;
 	WarMap m_warMap;
 
 	LightInfo m_itemsLight;

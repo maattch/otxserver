@@ -4879,8 +4879,8 @@ static int luaDoAddContainerItem(lua_State* L)
 static int luaGetOutfitIdByLooktype(lua_State* L)
 {
 	// getOutfitIdByLooktype(lookType)
-	const auto lookType = otx::lua::getNumber<uint32_t>(L, 1);
-	lua_pushnumber(L, Outfits::getInstance()->getOutfitId(lookType));
+	const auto lookType = otx::lua::getNumber<uint16_t>(L, 1);
+	lua_pushnumber(L, g_game.outfits.getOutfitIdByLookType(lookType));
 	return 1;
 }
 
@@ -4898,9 +4898,8 @@ static int luaDoPlayerAddOutfit(lua_State* L)
 	const auto lookType = otx::lua::getNumber<uint16_t>(L, 2);
 	const auto addons = otx::lua::getNumber<uint8_t>(L, 3);
 
-	Outfit outfit;
-	if (Outfits::getInstance()->getOutfit(lookType, outfit)) {
-		lua_pushboolean(L, player->addOutfit(outfit.outfitId, addons));
+	if (const Outfit* outfit = g_game.outfits.getOutfitByLookType(lookType)) {
+		lua_pushboolean(L, player->addOutfit(outfit->id, addons));
 	} else {
 		lua_pushboolean(L, false);
 	}
@@ -4921,9 +4920,8 @@ static int luaDoPlayerRemoveOutfit(lua_State* L)
 	const auto lookType = otx::lua::getNumber<uint16_t>(L, 2);
 	const auto addons = otx::lua::getNumber<uint32_t>(L, 3, 0xFF);
 
-	Outfit outfit;
-	if (Outfits::getInstance()->getOutfit(lookType, outfit)) {
-		lua_pushboolean(L, player->removeOutfit(outfit.outfitId, addons));
+	if (const Outfit* outfit = g_game.outfits.getOutfitByLookType(lookType)) {
+		lua_pushboolean(L, player->removeOutfit(outfit->id, addons));
 	} else {
 		lua_pushboolean(L, false);
 	}
@@ -4971,9 +4969,8 @@ static int luaCanPlayerWearOutfit(lua_State* L)
 	const auto lookType = otx::lua::getNumber<uint16_t>(L, 2);
 	const auto addons = otx::lua::getNumber<uint8_t>(L, 3, 0);
 
-	Outfit outfit;
-	if (Outfits::getInstance()->getOutfit(lookType, outfit)) {
-		lua_pushboolean(L, player->canWearOutfit(outfit.outfitId, addons));
+	if (const Outfit* outfit = g_game.outfits.getOutfitByLookType(lookType)) {
+		lua_pushboolean(L, player->canWearOutfit(outfit->id, addons));
 	} else {
 		lua_pushboolean(L, false);
 	}
