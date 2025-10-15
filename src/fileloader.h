@@ -204,19 +204,6 @@ public:
 		return true;
 	}
 
-	template<typename T>
-	inline bool getStruct(T*& ret)
-	{
-		if (size() < static_cast<int32_t>(sizeof(T))) {
-			ret = nullptr;
-			return false;
-		}
-
-		std::memcpy(ret, p, sizeof(T));
-		p += sizeof(T);
-		return true;
-	}
-
 	inline bool getByte(uint8_t& ret) { return getType(ret); }
 	inline bool getShort(uint16_t& ret) { return getType(ret); }
 	inline bool getTime(time_t& ret) { return getType(ret); }

@@ -95,14 +95,14 @@ bool Items::loadFromOtb(const std::string& file)
 				return false;
 			}
 
-			VERSIONINFO* vi;
-			if (!props.getStruct(vi)) {
+			VERSIONINFO vi;
+			if (!props.getType(vi)) {
 				return false;
 			}
 
-			Items::dwMajorVersion = vi->dwMajorVersion; // items otb format file version
-			Items::dwMinorVersion = vi->dwMinorVersion; // client version
-			Items::dwBuildNumber = vi->dwBuildNumber; // revision
+			Items::dwMajorVersion = vi.dwMajorVersion; // items otb format file version
+			Items::dwMinorVersion = vi.dwMinorVersion; // client version
+			Items::dwBuildNumber = vi.dwBuildNumber; // revision
 		}
 	}
 
