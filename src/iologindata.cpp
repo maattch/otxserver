@@ -143,7 +143,7 @@ bool IOLoginData::hasFlag(uint32_t accountId, PlayerFlags value)
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasFlag(value);
 }
 
@@ -157,7 +157,7 @@ bool IOLoginData::hasCustomFlag(uint32_t accountId, PlayerCustomFlags value)
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasCustomFlag(value);
 }
 
@@ -171,7 +171,7 @@ bool IOLoginData::hasFlag(PlayerFlags value, const std::string& accName)
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasFlag(value);
 }
 
@@ -185,7 +185,7 @@ bool IOLoginData::hasCustomFlag(PlayerCustomFlags value, const std::string& accN
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasCustomFlag(value);
 }
 
@@ -332,7 +332,7 @@ const Group* IOLoginData::getPlayerGroupByAccount(uint32_t accountId)
 		return nullptr;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"));
 	return group;
 }
 
@@ -358,14 +358,19 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	const auto groupId = result->getNumber<uint16_t>("group_id");
+	Group* group = g_game.groups.getGroup(groupId);
+	if (!group) {
+		std::clog << "[Warning - IOLoginData::loadPlayer] Player with invalid group id " << groupId << " (" << name << ')' << std::endl;
+		return false;
+	}
 
 	Account account = loadAccount(accountId, true);
 	player->m_account = account.name;
 	player->m_accountId = accountId;
 
 	player->setGroup(group);
-	player->setGUID(result->getNumber<int32_t>("id"));
+	player->setGUID(result->getNumber<uint32_t>("id"));
 	player->m_premiumDays = account.premiumDays;
 
 	nameCacheMap[player->getGUID()] = name;
@@ -442,7 +447,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 
 	player->m_manaSpent = manaSpent;
 	player->m_magLevelPercent = Player::getPercentLevel(player->m_manaSpent, nextManaCount);
-	if (!group || !group->getOutfit()) {
+	if (!group || group->lookType == 0) {
 		player->m_defaultOutfit.lookType = result->getNumber<int32_t>("looktype");
 		uint32_t outfitId = Outfits::getInstance()->getOutfitId(player->m_defaultOutfit.lookType);
 
@@ -464,7 +469,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 			}
 		}
 	} else {
-		player->m_defaultOutfit.lookType = group->getOutfit();
+		player->m_defaultOutfit.lookType = group->lookType;
 	}
 
 	player->m_defaultOutfit.lookHead = result->getNumber<int32_t>("lookhead");
@@ -1367,7 +1372,7 @@ bool IOLoginData::hasFlag(const std::string& name, PlayerFlags value)
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasFlag(value);
 }
 
@@ -1381,7 +1386,7 @@ bool IOLoginData::hasCustomFlag(const std::string& name, PlayerCustomFlags value
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasCustomFlag(value);
 }
 
@@ -1395,7 +1400,7 @@ bool IOLoginData::hasFlag(PlayerFlags value, uint32_t guid)
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasFlag(value);
 }
 
@@ -1409,7 +1414,7 @@ bool IOLoginData::hasCustomFlag(PlayerCustomFlags value, uint32_t guid)
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"));
 	return group && group->hasCustomFlag(value);
 }
 
@@ -1427,7 +1432,7 @@ bool IOLoginData::isPremium(uint32_t guid)
 		return false;
 	}
 
-	Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"));
+	Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"));
 	const uint32_t account = result->getNumber<int32_t>("account_id");
 
 	if (group && group->hasFlag(PlayerFlag_IsAlwaysPremium)) {
@@ -1567,7 +1572,7 @@ bool IOLoginData::getGuidByNameEx(uint32_t& guid, bool& specialVip, std::string&
 
 	guid = result->getNumber<int32_t>("id");
 	name = result->getString("name");
-	if (Group* group = Groups::getInstance()->getGroup(result->getNumber<int32_t>("group_id"))) {
+	if (Group* group = g_game.groups.getGroup(result->getNumber<int32_t>("group_id"))) {
 		specialVip = group->hasFlag(PlayerFlag_SpecialVIP);
 	}
 

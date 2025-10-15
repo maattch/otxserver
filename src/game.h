@@ -23,6 +23,7 @@
 #include "player.h"
 #include "server.h"
 #include "wildcardtree.h"
+#include "group.h"
 
 class Npc;
 class CombatInfo;
@@ -142,12 +143,14 @@ static constexpr uint32_t EVENT_WARSINTERVAL = 450000;
 class Game final
 {
 public:
-	Game();
-	~Game();
+	Game() = default;
 
 	// non-copyable
 	Game(const Game&) = delete;
 	Game& operator=(const Game&) = delete;
+
+	void init();
+	void terminate();
 
 	void start(ServiceManager* servicer);
 
@@ -697,6 +700,8 @@ public:
 	void setBedSleeper(BedItem* bed, uint32_t guid);
 	void removeBedSleeper(uint32_t guid);
 
+	GroupsManager groups;
+
 private:
 	bool playerWhisper(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
 	bool playerYell(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);
@@ -726,31 +731,35 @@ private:
 	std::map<std::string, bool> monsterNamesMap_;
 	std::map<uint32_t, BedItem*> bedSleepersMap;
 
-	size_t checkCreatureLastIndex;
+	size_t checkCreatureLastIndex = 0;
 	std::vector<Creature*> checkCreatureVectors[EVENT_CREATURECOUNT];
 	std::vector<Creature*> toAddCheckCreatureVector;
 
 	typedef std::list<Item*> DecayList;
 	DecayList decayItems[EVENT_DECAYBUCKETS];
 	DecayList toDecayItems;
-	int32_t lastBucket;
+	int32_t lastBucket = 0;
 
-	static const int32_t LIGHT_LEVEL_DAY = 250;
-	static const int32_t LIGHT_LEVEL_NIGHT = 40;
-	static const int32_t SUNSET = 1305;
-	static const int32_t SUNRISE = 430;
-	int32_t lightLevel, lightHour, lightHourDelta;
-	LightState_t lightState;
+	static constexpr int32_t LIGHT_LEVEL_DAY = 250;
+	static constexpr int32_t LIGHT_LEVEL_NIGHT = 40;
+	static constexpr int32_t SUNSET = 1305;
+	static constexpr int32_t SUNRISE = 430;
+	// (1440 minutes/day) * 10 seconds event interval / (3600 seconds/day)
+	int32_t lightLevel = LIGHT_LEVEL_DAY;
+	int32_t lightHour = SUNRISE + (SUNSET - SUNRISE) / 2;
+	int32_t lightHourDelta = 1440 * 10 / 3600;
+	LightState_t lightState = LIGHT_STATE_DAY;
 
-	GameState_t gameState;
-	WorldType_t worldType;
+	GameState_t gameState = GAMESTATE_NORMAL;
+	WorldType_t worldType = WORLDTYPE_OPEN;
 
-	ServiceManager* services;
-	Map* map;
+	ServiceManager* services = nullptr;
+	Map* map = nullptr;
 
 	std::string lastMotd;
-	int32_t lastMotdId;
-	uint32_t playersRecord;
+	int32_t lastMotdId = 0;
+	uint32_t playersRecord = 0;
+
 	// events
 	uint32_t checkLightEventId = 0;
 	uint32_t checkCreatureEventId = 0;
@@ -758,16 +767,16 @@ private:
 	uint32_t saveEventId = 0;
 	uint32_t checkWarsEventId = 0;
 	uint32_t luaCollectGarbageEventId = 0;
-	bool checkEndingWars;
+	bool checkEndingWars = false;
 
 	RefreshTiles refreshTiles;
 	Trash trash;
 
 	StageList stages;
-	uint32_t lastStageLevel;
+	uint32_t lastStageLevel = 0;
 
 	Highscore highscoreStorage[9];
-	time_t lastHighscoreCheck;
+	time_t lastHighscoreCheck = 0;
 };
 
 extern Game g_game;

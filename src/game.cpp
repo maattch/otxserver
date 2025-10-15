@@ -168,24 +168,12 @@ namespace
 
 } // namespace
 
-Game::Game()
+void Game::init()
 {
-	gameState = GAMESTATE_NORMAL;
-	worldType = WORLDTYPE_OPEN;
-	map = nullptr;
-	playersRecord = lastStageLevel = 0;
-
-	//(1440 minutes/day) * 10 seconds event interval / (3600 seconds/day)
-	lightHourDelta = 1440 * 10 / 3600;
-	lightHour = SUNRISE + (SUNSET - SUNRISE) / 2;
-	lightLevel = LIGHT_LEVEL_DAY;
-	lightState = LIGHT_STATE_DAY;
-
-	lastBucket = checkCreatureLastIndex = 0;
-	checkEndingWars = false;
+	//
 }
 
-Game::~Game()
+void Game::terminate()
 {
 	delete map;
 }
@@ -5972,7 +5960,7 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 		return false;
 	}
 
-	Group* group = player->getGroup();
+	const Group* group = player->getGroup();
 	if (!group) {
 		return false;
 	}
@@ -6040,8 +6028,9 @@ bool Game::playerViolationWindow(const uint32_t playerId, std::string name, cons
 		}
 	}
 
-	int16_t nameFlags = group->getNameViolationFlags(), statementFlags = group->getStatementViolationFlags();
-	if ((ipBanishment && ((nameFlags & IPBAN_FLAG) != IPBAN_FLAG || (statementFlags & IPBAN_FLAG) != IPBAN_FLAG)) || !(nameFlags & (1 << action) || statementFlags & (1 << action)) || reason > group->getViolationReasons()) {
+	int16_t nameFlags = group->nameViolationFlags;
+	int16_t statementFlags = group->statementViolationFlags;
+	if ((ipBanishment && ((nameFlags & IPBAN_FLAG) != IPBAN_FLAG || (statementFlags & IPBAN_FLAG) != IPBAN_FLAG)) || !(nameFlags & (1 << action) || statementFlags & (1 << action)) || reason > group->violationReasons) {
 		player->sendCancel("You do not have authorization for this action.");
 		return false;
 	}
@@ -6778,21 +6767,21 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 		case RELOAD_ACTIONS: {
 			done = g_actions.reload();
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload actions." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload actions." << std::endl;
 			}
 			break;
 		}
 		case RELOAD_CHAT: {
 			done = g_chat.reload();
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload chat." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload chat." << std::endl;
 			}
 			break;
 		}
 		case RELOAD_CONFIG: {
 			done = otx::config::reload();
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload config." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload config." << std::endl;
 			}
 			break;
 		}
@@ -6815,28 +6804,28 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 			}
 
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload creatureevents." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload creatureevents." << std::endl;
 			}
 			break;
 		}
 		case RELOAD_GLOBALEVENTS: {
 			done = g_globalEvents.reload();
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload globalevents." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload globalevents." << std::endl;
 			}
 			break;
 		}
 		case RELOAD_HIGHSCORES: {
 			done = reloadHighscores();
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload highscores." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload highscores." << std::endl;
 			}
 			break;
 		}
 		case RELOAD_ITEMS: {
 			done = Item::items.reload();
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload items." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload items." << std::endl;
 			}
 			break;
 		}
@@ -6845,14 +6834,14 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 				loadNamesFromXml(); // reload monster and reload names from XML
 				done = true;
 			} else {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload monsters." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload monsters." << std::endl;
 			}
 			break;
 		}
 		case RELOAD_MOVEEVENTS: {
 			done = g_moveEvents.reload();
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload moveevents." << std::endl;
+				std::clog << "[ErrWarningor - Game::reloadInfo] Failed to reload moveevents." << std::endl;
 			}
 			break;
 		}
@@ -6864,15 +6853,15 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 		case RELOAD_QUESTS: {
 			done = Quests::getInstance()->reload();
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload quests." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload quests." << std::endl;
 			}
 			break;
 		}
 		case RELOAD_RAIDS: {
 			if (!Raids::getInstance()->reload()) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload raids." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload raids." << std::endl;
 			} else if (!Raids::getInstance()->startup()) {
-				std::clog << "[Error - Game::reloadInfo] Failed to startup raids when reloading." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to startup raids when reloading." << std::endl;
 			} else {
 				done = true;
 			}
@@ -6880,9 +6869,9 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 		}
 		case RELOAD_SPELLS: {
 			if (!g_spells.reload()) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload spells." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload spells." << std::endl;
 			} else if (!g_monsters.reload()) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload monsters when reloading spells." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload monsters when reloading spells." << std::endl;
 			} else {
 				done = true;
 			}
@@ -6891,14 +6880,14 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 		case RELOAD_STAGES: {
 			done = loadExperienceStages();
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload stages." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload stages." << std::endl;
 			}
 			break;
 		}
 		case RELOAD_TALKACTIONS: {
 			done = g_talkActions.reload();
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload talk actions." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload talk actions." << std::endl;
 			}
 			break;
 		}
@@ -6913,28 +6902,46 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 			}
 
 			for (Player* player : toKickPlayers) {
-				std::clog << "[Error - Game::reloadInfo] Kicked player with invalid vocation id " << player->getVocationId() << " (" << player->getName() << ')' << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Kicking player with invalid vocation id " << player->getVocationId() << " (" << player->getName() << ")..." << std::endl;
 				player->kick(true, true);
 			}
 
 			if (!done) {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload vocations." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload vocations." << std::endl;
 			}
 			break;
 		}
-
 		case RELOAD_WEAPONS: {
 			if (g_weapons.reload()) {
 				g_weapons.loadDefaults();
 				done = true;
 			} else {
-				std::clog << "[Error - Game::reloadInfo] Failed to reload weapons." << std::endl;
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload weapons." << std::endl;
+			}
+			break;
+		}
+		case RELOAD_GROUPS: {
+			done = groups.reload();
+
+			std::vector<Player*> toKickPlayers;
+			for (const auto& it : players) {
+				if (!it.second->setGroupId(it.second->getGroupId())) {
+					toKickPlayers.push_back(it.second);
+				}
+			}
+
+			for (Player* player : toKickPlayers) {
+				std::clog << "[Warning - Game::reloadInfo] Kicking player with invalid group id " << player->getGroupId() << " (" << player->getName() << ")..." << std::endl;
+				player->kick(true, true);
+			}
+
+			if (!done) {
+				std::clog << "[Warning - Game::reloadInfo] Failed to reload weapons." << std::endl;
 			}
 			break;
 		}
 
 		case RELOAD_GAMESERVERS:
-		case RELOAD_GROUPS:
 		case RELOAD_OUTFITS:
 		case RELOAD_MODS: {
 			done = true;

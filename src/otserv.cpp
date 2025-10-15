@@ -21,7 +21,6 @@
 #include "configmanager.h"
 #include "databasemanager.h"
 #include "game.h"
-#include "group.h"
 #include "iologindata.h"
 #include "monsters.h"
 #include "npc.h"
@@ -208,6 +207,7 @@ int main(int argc, char* argv[])
 	g_scheduler.start();
 
 	g_lua.init();
+	g_game.init();
 	otx::scriptmanager::init();
 
 #ifndef _WIN32
@@ -245,6 +245,7 @@ int main(int argc, char* argv[])
 	}
 
 	otx::scriptmanager::terminate();
+	g_game.terminate();
 	g_lua.terminate();
 
 	g_scheduler.join();
@@ -487,7 +488,7 @@ void otserv(ServiceManager* services)
 	}
 
 	std::clog << ">> Loading groups" << std::endl;
-	if (!Groups::getInstance()->loadFromXml()) {
+	if (!g_game.groups.loadFromXml()) {
 		startupErrorMessage("Unable to load groups!");
 	}
 

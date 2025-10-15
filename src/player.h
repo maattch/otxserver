@@ -180,19 +180,7 @@ public:
 	bool isGuildInvited(uint32_t guildId) const;
 	void leaveGuild();
 
-	void setFlags(uint64_t flags)
-	{
-		if (m_group) {
-			m_group->setFlags(flags);
-		}
-	}
 	bool hasFlag(PlayerFlags value) const { return m_group != nullptr && m_group->hasFlag(value); }
-	void setCustomFlags(uint64_t flags)
-	{
-		if (m_group) {
-			m_group->setCustomFlags(flags);
-		}
-	}
 	bool hasCustomFlag(PlayerCustomFlags value) const { return m_group != nullptr && m_group->hasCustomFlag(value); }
 
 	void addBlessing(int16_t blessing) { m_blessings += blessing; }
@@ -232,10 +220,10 @@ public:
 	bool transferMoneyTo(const std::string& name, uint64_t amount);
 	void increaseCombatValues(int32_t& min, int32_t& max, bool useCharges, bool countWeapon);
 
-	void setGroupId(int32_t newId);
-	int32_t getGroupId() const { return m_groupId; }
-	void setGroup(Group* newGroup);
-	Group* getGroup() const { return m_group; }
+	bool setGroupId(uint16_t id);
+	uint16_t getGroupId() const { return m_groupId; }
+	void setGroup(Group* group);
+	const Group* getGroup() const { return m_group; }
 
 	bool isGhost() const override { return hasCondition(CONDITION_GAMEMASTER, GAMEMASTER_INVISIBLE) || hasFlag(PlayerFlag_CannotBeSeen); }
 	bool isWalkable() const override { return hasCustomFlag(PlayerCustomFlag_IsWalkable); }
@@ -251,8 +239,8 @@ public:
 
 	uint32_t getAccount() const { return m_accountId; }
 	std::string getAccountName() const { return m_account; }
-	uint16_t getAccess() const { return m_group ? m_group->getAccess() : 0; }
-	uint16_t getGhostAccess() const { return m_group ? m_group->getGhostAccess() : 0; }
+	uint16_t getAccess() const { return m_group ? m_group->access : 0; }
+	uint16_t getGhostAccess() const { return m_group ? m_group->ghostAccess : 0; }
 
 	uint32_t getLevel() const { return m_level; }
 	uint8_t getLevelPercent() const { return m_levelPercent; }
@@ -1122,9 +1110,9 @@ private:
 
 	SchedulerTaskPtr m_walkTask;
 	const Vocation* m_vocation = nullptr;
+	const Group* m_group = nullptr;
 	Spectators* m_client = nullptr;
 	Party* m_party = nullptr;
-	Group* m_group = nullptr;
 	Player* m_tradePartner = nullptr;
 	Item* m_tradeItem = nullptr;
 	Item* m_writeItem = nullptr;
@@ -1183,7 +1171,6 @@ private:
 	int32_t m_soul = 0;
 	int32_t m_soulMax = 100;
 	int32_t m_vocationId = 0;
-	int32_t m_groupId = 0;
 	int32_t managerNumber2 = 0;
 	int32_t m_purchaseCallback = -1;
 	int32_t m_saleCallback = -1;
@@ -1197,6 +1184,7 @@ private:
 
 	float m_damageMultiplier = 1.f;
 
+	uint16_t m_groupId = 0;
 	uint16_t m_maxWriteLen = 0;
 	uint16_t m_sex = 0;
 	uint16_t m_mailAttempts = 0;

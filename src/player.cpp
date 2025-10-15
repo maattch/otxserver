@@ -157,7 +157,7 @@ std::string Player::getDescription(int32_t lookDistance) const
 	if (lookDistance == -1) {
 		s << "yourself.";
 		if (hasFlag(PlayerFlag_ShowGroupNameInsteadOfVocation)) {
-			s << " You are " << m_group->getName();
+			s << " You are " << m_group->name;
 		} else if (m_vocationId != 0) {
 			s << " You are " << m_vocation->description;
 		} else {
@@ -171,7 +171,7 @@ std::string Player::getDescription(int32_t lookDistance) const
 
 		s << ". " << (m_sex % 2 ? "He" : "She");
 		if (hasFlag(PlayerFlag_ShowGroupNameInsteadOfVocation)) {
-			s << " is " << m_group->getName();
+			s << " is " << m_group->name;
 		} else if (m_vocationId != 0) {
 			s << " is " << m_vocation->description;
 		} else {
@@ -5146,22 +5146,19 @@ bool Player::setGuildLevel(GuildLevel_t newLevel, uint32_t rank /* = 0*/)
 	return true;
 }
 
-void Player::setGroupId(int32_t newId)
+bool Player::setGroupId(uint16_t id)
 {
-	if (Group* tmp = Groups::getInstance()->getGroup(newId)) {
-		m_groupId = newId;
-		m_group = tmp;
+	if (Group* group = g_game.groups.getGroup(id)) {
+		setGroup(group);
+		return true;
 	}
+	return false;
 }
 
-void Player::setGroup(Group* newGroup)
+void Player::setGroup(Group* group)
 {
-	if (!newGroup) {
-		return;
-	}
-
-	m_group = newGroup;
-	m_groupId = m_group->getId();
+	m_group = group;
+	m_groupId = group->id;
 }
 
 PartyShields_t Player::getPartyShield(const Creature* creature) const

@@ -5558,7 +5558,7 @@ static int luaDoPlayerSetGroupId(lua_State* L)
 	// doPlayerSetGroupId(cid, groupId)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
 		const auto groupId = otx::lua::getNumber<uint32_t>(L, 2);
-		if (Group* group = Groups::getInstance()->getGroup(groupId)) {
+		if (Group* group = g_game.groups.getGroup(groupId)) {
 			player->setGroup(group);
 			lua_pushboolean(L, true);
 		} else {
@@ -5846,22 +5846,22 @@ static int luaGetGroupInfo(lua_State* L)
 	// getGroupInfo(groupId[, premium = false])
 	const auto groupId = otx::lua::getNumber<uint32_t>(L, 1);
 	const bool premium = otx::lua::getBoolean(L, 2, false);
-	Group* group = Groups::getInstance()->getGroup(groupId);
+	Group* group = g_game.groups.getGroup(groupId);
 	if (!group) {
 		lua_pushnil(L);
 		return 1;
 	}
 
 	lua_createtable(L, 0, 9);
-	otx::lua::setTableValue(L, "id", group->getId());
-	otx::lua::setTableValue(L, "name", group->getName());
-	otx::lua::setTableValue(L, "access", group->getAccess());
-	otx::lua::setTableValue(L, "ghostAccess", group->getGhostAccess());
-	otx::lua::setTableValue(L, "flags", group->getFlags());
-	otx::lua::setTableValue(L, "customFlags", group->getCustomFlags());
+	otx::lua::setTableValue(L, "id", group->id);
+	otx::lua::setTableValue(L, "name", group->name);
+	otx::lua::setTableValue(L, "access", group->access);
+	otx::lua::setTableValue(L, "ghostAccess", group->ghostAccess);
+	otx::lua::setTableValue(L, "flags", group->flags);
+	otx::lua::setTableValue(L, "customFlags", group->customFlags);
 	otx::lua::setTableValue(L, "depotLimit", group->getDepotLimit(premium));
 	otx::lua::setTableValue(L, "maxVips", group->getMaxVips(premium));
-	otx::lua::setTableValue(L, "outfit", group->getOutfit());
+	otx::lua::setTableValue(L, "outfit", group->lookType);
 	return 1;
 }
 
@@ -6224,14 +6224,14 @@ static int luaGetVocationList(lua_State* L)
 static int luaGetGroupList(lua_State* L)
 {
 	// getGroupList()
-	const auto& groups = Groups::getInstance()->getGroups();
+	const auto& groups = g_game.groups.getGroups();
 	lua_createtable(L, groups.size(), 0);
 
 	int index = 0;
 	for (const auto& it : groups) {
 		lua_createtable(L, 0, 2);
 		otx::lua::setTableValue(L, "id", it.first);
-		otx::lua::setTableValue(L, "name", it.second->getName());
+		otx::lua::setTableValue(L, "name", it.second.name);
 		lua_rawseti(L, -2, ++index);
 	}
 	return 1;

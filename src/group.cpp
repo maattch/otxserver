@@ -22,153 +22,119 @@
 #include "configmanager.h"
 #include "tools.h"
 
-#include "otx/util.hpp"
-
-Group Groups::defGroup = Group();
-
-void Groups::clear()
+bool GroupsManager::reload()
 {
-	for (GroupsMap::iterator it = groupsMap.begin(); it != groupsMap.end(); ++it) {
-		delete it->second;
-	}
-
-	groupsMap.clear();
-}
-
-bool Groups::reload()
-{
-	clear();
+	m_groups.clear();
 	return loadFromXml();
 }
 
-bool Groups::loadFromXml()
+bool GroupsManager::loadFromXml()
 {
 	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_XML, "groups.xml").c_str());
 	if (!doc) {
-		std::clog << "[Warning - Groups::loadFromXml] Cannot load groups file." << std::endl;
+		std::clog << "[Warning - GroupsManager::loadFromXml] Cannot load groups file." << std::endl;
 		std::clog << getLastXMLError() << std::endl;
 		return false;
 	}
 
 	xmlNodePtr root = xmlDocGetRootElement(doc);
 	if (xmlStrcmp(root->name, reinterpret_cast<const xmlChar*>("groups"))) {
-		std::clog << "[Error - Groups::loadFromXml] Malformed groups file." << std::endl;
+		std::clog << "[Error - GroupsManager::loadFromXml] Malformed groups file." << std::endl;
 		xmlFreeDoc(doc);
 		return false;
 	}
 
+	std::string strValue;
+	int64_t int64Value;
+	int32_t intValue;
 	for (xmlNodePtr p = root->children; p; p = p->next) {
-		parseGroupNode(p);
+		if (xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("group"))) {
+			continue;
+		}
+
+		if (!readXMLInteger(p, "id", intValue)) {
+			std::clog << "[Warning - GroupsManager::loadFromXml] Missing group id." << std::endl;
+			continue;
+		}
+
+		const auto groupId = static_cast<uint16_t>(intValue);
+		if (groupId == 0) {
+			std::clog << "[Warning - GroupsManager::loadFromXml] Cannot create group with id 0." << std::endl;
+			continue;
+		}
+
+		Group group;
+		group.id = groupId;
+
+		if (readXMLString(p, "name", strValue)) {
+			group.name = strValue;
+		}
+		if (readXMLInteger64(p, "flags", int64Value)) {
+			group.flags = int64Value;
+		}
+		if (readXMLInteger64(p, "customFlags", int64Value)) {
+			group.customFlags = int64Value;
+		}
+		if (readXMLInteger(p, "access", intValue)) {
+			group.access = intValue;
+		}
+		if (readXMLInteger(p, "ghostAccess", intValue)) {
+			group.ghostAccess = intValue;
+		} else {
+			group.ghostAccess = group.access;
+		}
+
+		if (readXMLInteger(p, "violationReasons", intValue)) {
+			group.violationReasons = intValue;
+		}
+		if (readXMLInteger(p, "nameViolationFlags", intValue)) {
+			group.nameViolationFlags = intValue;
+		}
+		if (readXMLInteger(p, "statementViolationFlags", intValue)) {
+			group.statementViolationFlags = intValue;
+		}
+		if (readXMLInteger(p, "depotLimit", intValue)) {
+			group.depotLimit = intValue;
+		}
+		if (readXMLInteger(p, "maxVips", intValue)) {
+			group.maxVips = intValue;
+		}
+		if (readXMLInteger(p, "outfit", intValue) || readXMLInteger(p, "lookType", intValue)) {
+			group.lookType = intValue;
+		}
+
+		if (!m_groups.emplace(groupId, std::move(group)).second) {
+			std::clog << "[Error - GroupsManager::loadFromXml] Duplicate group with id " << groupId << std::endl;
+		}
 	}
 
 	xmlFreeDoc(doc);
 	return true;
 }
 
-bool Groups::parseGroupNode(xmlNodePtr p)
+Group* GroupsManager::getGroup(uint16_t groupId)
 {
-	if (xmlStrcmp(p->name, reinterpret_cast<const xmlChar*>("group"))) {
-		return false;
+	auto it = m_groups.find(groupId);
+	if (it != m_groups.end()) {
+		return &it->second;
 	}
-
-	int32_t intValue;
-	if (!readXMLInteger(p, "id", intValue)) {
-		std::clog << "[Warning - Groups::parseGroupNode] Missing group id." << std::endl;
-		return false;
-	}
-
-	std::string strValue;
-	int64_t int64Value;
-
-	Group* group = new Group(intValue);
-	if (readXMLString(p, "name", strValue)) {
-		group->setFullName(strValue);
-		group->setName(otx::util::as_lower_string(strValue));
-	}
-
-	if (readXMLInteger64(p, "flags", int64Value)) {
-		group->setFlags(int64Value);
-	}
-
-	if (readXMLInteger64(p, "customFlags", int64Value)) {
-		group->setCustomFlags(int64Value);
-	}
-
-	if (readXMLInteger(p, "access", intValue)) {
-		group->setAccess(intValue);
-	}
-
-	if (readXMLInteger(p, "ghostAccess", intValue)) {
-		group->setGhostAccess(intValue);
-	} else {
-		group->setGhostAccess(group->getAccess());
-	}
-
-	if (readXMLInteger(p, "violationReasons", intValue)) {
-		group->setViolationReasons(intValue);
-	}
-
-	if (readXMLInteger(p, "nameViolationFlags", intValue)) {
-		group->setNameViolationFlags(intValue);
-	}
-
-	if (readXMLInteger(p, "statementViolationFlags", intValue)) {
-		group->setStatementViolationFlags(intValue);
-	}
-
-	if (readXMLInteger(p, "depotLimit", intValue)) {
-		group->setDepotLimit(intValue);
-	}
-
-	if (readXMLInteger(p, "maxVips", intValue)) {
-		group->setMaxVips(intValue);
-	}
-
-	if (readXMLInteger(p, "outfit", intValue)) {
-		group->setOutfit(intValue);
-	}
-
-	groupsMap[group->getId()] = group;
-	return true;
-}
-
-Group* Groups::getGroup(uint32_t groupId)
-{
-	GroupsMap::iterator it = groupsMap.find(groupId);
-	if (it != groupsMap.end()) {
-		return it->second;
-	}
-
-	std::clog << "[Warning - Groups::getGroup] Group " << groupId << " not found." << std::endl;
-	return &defGroup;
-}
-
-int32_t Groups::getGroupId(const std::string& name)
-{
-	for (GroupsMap::iterator it = groupsMap.begin(); it != groupsMap.end(); ++it) {
-		if (caseInsensitiveEqual(it->second->getName(), name)) {
-			return it->first;
-		}
-	}
-
-	return -1;
+	return nullptr;
 }
 
 uint32_t Group::getDepotLimit(bool premium) const
 {
-	if (m_depotLimit > 0) {
-		return m_depotLimit;
+	if (depotLimit != 0) {
+		return depotLimit;
 	}
-
-	return (premium ? otx::config::getInteger(otx::config::DEFAULT_DEPOT_SIZE_PREMIUM)
-					: otx::config::getInteger(otx::config::DEFAULT_DEPOT_SIZE));
+	return otx::config::getInteger(premium ? otx::config::DEFAULT_DEPOT_SIZE_PREMIUM
+										   : otx::config::DEFAULT_DEPOT_SIZE);
 }
 
 uint32_t Group::getMaxVips(bool premium) const
 {
-	if (m_maxVips > 0) {
-		return m_maxVips;
+	if (maxVips != 0) {
+		return maxVips;
 	}
-
-	return (premium ? otx::config::getInteger(otx::config::VIPLIST_DEFAULT_PREMIUM_LIMIT) : otx::config::getInteger(otx::config::VIPLIST_DEFAULT_LIMIT));
+	return otx::config::getInteger(premium ? otx::config::VIPLIST_DEFAULT_PREMIUM_LIMIT
+										   : otx::config::VIPLIST_DEFAULT_LIMIT);
 }
