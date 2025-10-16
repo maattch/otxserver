@@ -4287,13 +4287,16 @@ bool Player::canWearOutfit(uint32_t outfitId, uint8_t addons)
 	}
 
 	if (!outfit->storageId.empty()) {
-		std::string value;
-		getStorage(outfit->storageId, value);
-		if (value == outfit->storageValue) {
+		const std::string* value = getStorage(outfit->storageId);
+		if (!value) {
+			return false;
+		}
+
+		if (*value == outfit->storageValue) {
 			return true;
 		}
 
-		auto playerStorageValue = otx::util::safe_cast<int32_t>(value.data());
+		auto playerStorageValue = otx::util::safe_cast<int32_t>(value->data());
 		if (!playerStorageValue.second) {
 			return false;
 		}

@@ -899,15 +899,13 @@ void Creature::changeMaxHealth(int32_t healthChange)
 	}
 }
 
-bool Creature::getStorage(const std::string& key, std::string& value) const
+const std::string* Creature::getStorage(const std::string& key) const
 {
 	auto it = m_storageMap.find(key);
-	if (it == m_storageMap.end()) {
-		value = "-1";
-		return false;
+	if (it != m_storageMap.end()) {
+		return &it->second;
 	}
-	value = it->second;
-	return true;
+	return nullptr;
 }
 
 bool Creature::setStorage(const std::string& key, const std::string& value)

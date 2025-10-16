@@ -19,6 +19,7 @@
 
 #include "quests.h"
 
+#include "otx/cast.hpp"
 #include "otx/util.hpp"
 
 bool Mission::isStarted(Player* player)
@@ -27,9 +28,10 @@ bool Mission::isStarted(Player* player)
 		return false;
 	}
 
-	std::string value;
-	player->getStorage(m_storageId, value);
-	return atoi(value.c_str()) >= m_startValue;
+	if (const std::string* value = player->getStorage(m_storageId)) {
+		return otx::util::cast<int32_t>(value->data()) >= m_startValue;
+	}
+	return false;
 }
 
 bool Mission::isCompleted(Player* player)
@@ -38,9 +40,10 @@ bool Mission::isCompleted(Player* player)
 		return false;
 	}
 
-	std::string value;
-	player->getStorage(m_storageId, value);
-	return atoi(value.c_str()) >= m_endValue;
+	if (const std::string* value = player->getStorage(m_storageId)) {
+		return otx::util::cast<int32_t>(value->data()) >= m_endValue;
+	}
+	return false;
 }
 
 std::string Mission::parseStorages(std::string state, std::string value, Player* player)
@@ -53,9 +56,9 @@ std::string Mission::parseStorages(std::string state, std::string value, Player*
 		}
 
 		length = end - nStart;
-		std::string svalue, storage = state.substr(nStart, length);
-		player->getStorage(storage, svalue);
-		state.replace(start, (end - start + 1), svalue);
+
+		const std::string* svalue = player->getStorage(state.substr(nStart, length));
+		state.replace(start, (end - start + 1), (svalue ? *svalue : std::string()));
 	}
 
 	otx::util::replace_all(state, "|STATE|", value);
@@ -70,7 +73,10 @@ std::string Mission::getDescription(Player* player)
 	}
 
 	std::string value;
-	player->getStorage(m_storageId, value);
+	if (const std::string* ret = player->getStorage(m_storageId)) {
+		value = *ret;
+	}
+
 	if (!m_states.empty()) {
 		int32_t cmp = atoi(value.c_str());
 		if (cmp >= m_endValue) {
@@ -89,10 +95,9 @@ std::string Mission::getDescription(Player* player)
 		}
 	}
 
-	if (m_state.size()) {
+	if (!m_state.empty()) {
 		return parseStorages(m_state, value, player);
 	}
-
 	return "Couldn't retrieve any mission description, please report to a gamemaster.";
 }
 
@@ -117,9 +122,10 @@ bool Quest::isStarted(Player* player)
 		}
 	}
 
-	std::string value;
-	player->getStorage(m_storageId, value);
-	return atoi(value.c_str()) >= m_storageValue;
+	if (const std::string* value = player->getStorage(m_storageId)) {
+		return otx::util::cast<int32_t>(value->data()) >= m_storageValue;
+	}
+	return false;
 }
 
 bool Quest::isCompleted(Player* player) const

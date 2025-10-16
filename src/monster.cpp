@@ -1340,22 +1340,18 @@ void Monster::dropLoot(Container* corpse)
 
 bool Monster::isAttackable() const
 {
-	std::string value;
-	if (!getStorage("attackable", value)) {
-		return mType->isAttackable;
+	if (const std::string* value = getStorage("attackable")) {
+		return booleanString(*value);
 	}
-
-	return booleanString(value);
+	return mType->isAttackable;
 }
 
 bool Monster::isHostile() const
 {
-	std::string value;
-	if (!getStorage("hostile", value)) {
-		return mType->isHostile;
+	if (const std::string* value = getStorage("hostile")) {
+		return booleanString(*value);
 	}
-
-	return booleanString(value);
+	return mType->isHostile;
 }
 
 bool Monster::isPushable() const
@@ -1364,22 +1360,18 @@ bool Monster::isPushable() const
 		return false;
 	}
 
-	std::string value;
-	if (!getStorage("pushable", value)) {
-		return mType->pushable;
+	if (const std::string* value = getStorage("pushable")) {
+		return booleanString(*value);
 	}
-
-	return booleanString(value);
+	return mType->pushable;
 }
 
 bool Monster::isWalkable() const
 {
-	std::string value;
-	if (!getStorage("walkable", value)) {
-		return mType->isWalkable;
+	if (const std::string* value = getStorage("walkable")) {
+		return booleanString(*value);
 	}
-
-	return booleanString(value);
+	return mType->isWalkable;
 }
 
 bool Monster::hasRecentBattle() const
@@ -1389,12 +1381,10 @@ bool Monster::hasRecentBattle() const
 
 bool Monster::isFleeing() const
 {
-	std::string value;
-	if (!getStorage("fleeing", value)) {
-		return getHealth() <= mType->runAwayHealth;
+	if (const std::string* value = getStorage("fleeing")) {
+		return booleanString(*value);
 	}
-
-	return booleanString(value);
+	return getHealth() <= mType->runAwayHealth;
 }
 
 bool Monster::isImmune(CombatType_t type) const

@@ -2256,14 +2256,12 @@ static int luaGetCreatureStorage(lua_State* L)
 	// getCreatureStorage(cid, key)
 	if (Creature* creature = otx::lua::getCreature(L, 1)) {
 		const std::string key = otx::lua::getString(L, 2);
-
-		std::string value;
-		if (creature->getStorage(key, value)) {
-			auto result = otx::util::safe_cast<int64_t>(value.data());
+		if (const std::string* value = creature->getStorage(key)) {
+			auto result = otx::util::safe_cast<int64_t>(value->data());
 			if (result.second) {
 				lua_pushnumber(L, result.first);
 			} else {
-				otx::lua::pushString(L, value);
+				otx::lua::pushString(L, *value);
 			}
 		} else {
 			lua_pushnumber(L, -1);
