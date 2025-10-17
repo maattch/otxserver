@@ -22,8 +22,8 @@
 
 class MoveEvent;
 
-using MoveFunctionPtr = uint32_t(*)(Item* item);
-using StepFunctionPtr = uint32_t(*)(Creature* creature, Item* item);
+using MoveFunctionPtr = void(*)(Item* item);
+using StepFunctionPtr = void(*)(Creature* creature, Item* item);
 using EquipFunctionPtr = bool(*)(MoveEvent* moveEvent, Player* player, Item* item, Slots_t slot, bool boolean);
 
 enum MoveEvent_t : uint8_t
@@ -67,7 +67,7 @@ public:
 	void onCreatureMove(Creature* actor, Creature* creature, const Tile* fromTile, const Tile* toTile, bool isStepping);
 	bool onPlayerEquip(Player* player, Item* item, Slots_t slot, bool isCheck);
 	bool onPlayerDeEquip(Player* player, Item* item, Slots_t slot, bool isRemoval);
-	uint32_t onItemMove(Creature* actor, Item* item, Tile* tile, bool isAdd);
+	void onItemMove(Creature* actor, Item* item, Tile* tile, bool isAdd);
 
 	MoveEvent* getEvent(Item* item, MoveEvent_t eventType);
 	bool hasEquipEvent(Item* item);
@@ -115,7 +115,7 @@ extern MoveEvents g_moveEvents;
 class MoveEvent final : public Event
 {
 public:
-	MoveEvent(LuaInterface* _interface);
+	MoveEvent(LuaInterface* luaInterface) : Event(luaInterface) {}
 
 	MoveEvent_t getEventType() const { return m_eventType; }
 	void setEventType(MoveEvent_t type);
@@ -123,13 +123,13 @@ public:
 	bool configureEvent(xmlNodePtr p) override;
 	bool loadFunction(const std::string& functionName) override;
 
-	uint32_t fireStepEvent(Creature* actor, Creature* creature, Item* item, const Position& pos, const Position& fromPos, const Position& toPos);
-	uint32_t fireAddRemItem(Creature* actor, Item* item, Item* tileItem, const Position& pos);
+	void fireStepEvent(Creature* actor, Creature* creature, Item* item, const Position& pos, const Position& fromPos, const Position& toPos);
+	void fireAddRemItem(Creature* actor, Item* item, Item* tileItem, const Position& pos);
 	bool fireEquip(Player* player, Item* item, Slots_t slot, bool boolean);
 
-	uint32_t executeStep(Creature* actor, Creature* creature, Item* item, const Position& pos, const Position& fromPos, const Position& toPos);
+	void executeStep(Creature* actor, Creature* creature, Item* item, const Position& pos, const Position& fromPos, const Position& toPos);
 	bool executeEquip(Player* player, Item* item, Slots_t slot, bool boolean);
-	uint32_t executeAddRemItem(Creature* actor, Item* item, Item* tileItem, const Position& pos);
+	void executeAddRemItem(Creature* actor, Item* item, Item* tileItem, const Position& pos);
 
 	uint32_t getWieldInfo() const { return m_wieldInfo; }
 	uint32_t getSlot() const { return m_slot; }
@@ -140,8 +140,8 @@ public:
 	const VocationMap& getVocEquipMap() const { return m_vocEquipMap; }
 	const std::string& getVocationString() const { return m_vocationString; }
 
-	static uint32_t StepInField(Creature* creature, Item* item);
-	static uint32_t AddItemField(Item* item);
+	static void StepInField(Creature* creature, Item* item);
+	static void AddItemField(Item* item);
 	static bool EquipItem(MoveEvent* moveEvent, Player* player, Item* item, Slots_t slot, bool isCheck);
 	static bool DeEquipItem(MoveEvent*, Player* player, Item* item, Slots_t slot, bool isRemoval);
 
@@ -155,13 +155,13 @@ private:
 	StepFunctionPtr m_stepFunction = nullptr;
 	EquipFunctionPtr m_equipFunction = nullptr;
 
-	MoveEvent_t m_eventType;
+	MoveEvent_t m_eventType = MOVE_EVENT_LAST;
 
-	uint32_t m_wieldInfo;
-	uint32_t m_slot;
+	uint32_t m_wieldInfo = 0;
+	uint32_t m_slot = SLOTP_WHEREEVER;
 
-	int32_t m_reqLevel;
-	int32_t m_reqMagLevel;
+	int32_t m_reqLevel = 0;
+	int32_t m_reqMagLevel = 0;
 
-	bool m_premium;
+	bool m_premium = false;
 };

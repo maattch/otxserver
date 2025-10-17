@@ -88,7 +88,8 @@ int32_t MoveEventScript::luaCallFunction(lua_State* L)
 			return 1;
 		}
 
-		lua_pushboolean(L, MoveEvent::StepInField(creature, item));
+		MoveEvent::StepInField(creature, item);
+		lua_pushboolean(L, true);
 		return 1;
 	} else if (MoveEventScript::event->getEventType() == MOVE_EVENT_ADD_ITEM) {
 		ScriptEnvironment& env = otx::lua::getScriptEnv();
@@ -99,7 +100,8 @@ int32_t MoveEventScript::luaCallFunction(lua_State* L)
 			return 1;
 		}
 
-		lua_pushboolean(L, MoveEvent::AddItemField(item));
+		MoveEvent::AddItemField(item);
+		lua_pushboolean(L, true);
 		return 1;
 	}
 
@@ -541,7 +543,7 @@ bool MoveEvents::onPlayerDeEquip(Player* player, Item* item, Slots_t slot, bool 
 	return true;
 }
 
-uint32_t MoveEvents::onItemMove(Creature* actor, Item* item, Tile* tile, bool isAdd)
+void MoveEvents::onItemMove(Creature* actor, Item* item, Tile* tile, bool isAdd)
 {
 	MoveEvent_t eventType = MOVE_EVENT_REMOVE_ITEM, tileEventType = MOVE_EVENT_REMOVE_TILEITEM;
 	if (isAdd) {
@@ -549,36 +551,34 @@ uint32_t MoveEvents::onItemMove(Creature* actor, Item* item, Tile* tile, bool is
 		tileEventType = MOVE_EVENT_ADD_TILEITEM;
 	}
 
-	uint32_t ret = 1;
 	MoveEvent* moveEvent = getEvent(tile, eventType);
 	if (moveEvent) {
-		ret &= moveEvent->fireAddRemItem(actor, item, nullptr, tile->getPosition());
+		moveEvent->fireAddRemItem(actor, item, nullptr, tile->getPosition());
 	}
 
 	moveEvent = getEvent(item, eventType);
 	if (moveEvent) {
-		ret &= moveEvent->fireAddRemItem(actor, item, nullptr, tile->getPosition());
+		moveEvent->fireAddRemItem(actor, item, nullptr, tile->getPosition());
 	}
 
 	if (!tile) {
-		return ret;
+		return;
 	}
 
 	Item* tileItem = nullptr;
 	if (m_lastCacheTile == tile) {
 		if (m_lastCacheItemVector.empty()) {
-			return ret;
+			return;
 		}
 
 		// We cannot use iterators here since the scripts can invalidate the iterator
 		for (uint32_t i = 0; i < m_lastCacheItemVector.size(); ++i) {
 			if ((tileItem = m_lastCacheItemVector[i]) && tileItem != item
 				&& (moveEvent = getEvent(tileItem, tileEventType))) {
-				ret &= moveEvent->fireAddRemItem(actor, item, tileItem, tile->getPosition());
+				moveEvent->fireAddRemItem(actor, item, tileItem, tile->getPosition());
 			}
 		}
-
-		return ret;
+		return;
 	}
 
 	m_lastCacheTile = tile;
@@ -586,21 +586,19 @@ uint32_t MoveEvents::onItemMove(Creature* actor, Item* item, Tile* tile, bool is
 
 	// we cannot use iterators here since the scripts can invalidate the iterator
 	Thing* thing = nullptr;
-	for (int32_t i = tile->__getFirstIndex(), j = tile->__getLastIndex(); i < j; ++i) // already checked the ground
-	{
+	for (int32_t i = tile->__getFirstIndex(), j = tile->__getLastIndex(); i < j; ++i) {
+		// already checked the ground
 		if (!(thing = tile->__getThing(i)) || !(tileItem = thing->getItem()) || tileItem == item) {
 			continue;
 		}
 
 		if ((moveEvent = getEvent(tileItem, tileEventType))) {
 			m_lastCacheItemVector.push_back(tileItem);
-			ret &= moveEvent->fireAddRemItem(actor, item, tileItem, tile->getPosition());
+			moveEvent->fireAddRemItem(actor, item, tileItem, tile->getPosition());
 		} else if (hasTileEvent(tileItem)) {
 			m_lastCacheItemVector.push_back(tileItem);
 		}
 	}
-
-	return ret;
 }
 
 void MoveEvents::onAddTileItem(const Tile* tile, Item* item)
@@ -629,21 +627,6 @@ void MoveEvents::onRemoveTileItem(const Tile* tile, Item* item)
 		m_lastCacheItemVector[i] = nullptr;
 		break;
 	}
-}
-
-MoveEvent::MoveEvent(LuaInterface* _interface) :
-	Event(_interface)
-{
-	m_stepFunction = nullptr;
-	m_moveFunction = nullptr;
-	m_equipFunction = nullptr;
-	m_slot = SLOTP_WHEREEVER;
-
-	m_eventType = MOVE_EVENT_LAST;
-	m_wieldInfo = 0;
-	m_reqLevel = 0;
-	m_reqMagLevel = 0;
-	m_premium = false;
 }
 
 std::string MoveEvent::getScriptEventName() const
@@ -795,31 +778,30 @@ void MoveEvent::setEventType(MoveEvent_t type)
 	m_eventType = type;
 }
 
-uint32_t MoveEvent::StepInField(Creature* creature, Item* item)
+void MoveEvent::StepInField(Creature* creature, Item* item)
 {
 	if (MagicField* field = item->getMagicField()) {
 		field->onStepInField(creature);
-		return 1;
 	}
-
-	return LUA_ERROR_ITEM_NOT_FOUND;
 }
 
-uint32_t MoveEvent::AddItemField(Item* item)
+void MoveEvent::AddItemField(Item* item)
 {
-	if (MagicField* field = item->getMagicField()) {
-		if (Tile* tile = item->getTile()) {
-			if (CreatureVector* creatures = tile->getCreatures()) {
-				for (CreatureVector::iterator cit = creatures->begin(); cit != creatures->end(); ++cit) {
-					field->onStepInField(*cit);
-				}
-			}
-		}
-
-		return 1;
+	MagicField* field = item->getMagicField();
+	if (!field) {
+		return;
 	}
 
-	return LUA_ERROR_ITEM_NOT_FOUND;
+	Tile* tile = item->getTile();
+	if (!tile) {
+		return;
+	}
+
+	if (CreatureVector* creatures = tile->getCreatures()) {
+		for (Creature* creature : *creatures) {
+			field->onStepInField(creature);
+		}
+	}
 }
 
 bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, Slots_t slot, bool isCheck)
@@ -1016,21 +998,22 @@ bool MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, Slots_t slot
 	return true;
 }
 
-uint32_t MoveEvent::fireStepEvent(Creature* actor, Creature* creature, Item* item, const Position& pos, const Position& fromPos, const Position& toPos)
+void MoveEvent::fireStepEvent(Creature* actor, Creature* creature, Item* item, const Position& pos, const Position& fromPos, const Position& toPos)
 {
 	if (isScripted()) {
-		return executeStep(actor, creature, item, pos, fromPos, toPos);
+		executeStep(actor, creature, item, pos, fromPos, toPos);
+	} else {
+		m_stepFunction(creature, item);
 	}
-	return m_stepFunction(creature, item);
 }
 
-uint32_t MoveEvent::executeStep(Creature* actor, Creature* creature, Item* item, const Position& pos, const Position& fromPos, const Position& toPos)
+void MoveEvent::executeStep(Creature* actor, Creature* creature, Item* item, const Position& pos, const Position& fromPos, const Position& toPos)
 {
 	// onStepIn(cid, item, position, lastPosition, fromPosition, toPosition, actor)
 	// onStepOut(cid, item, position, lastPosition, fromPosition, toPosition, actor)
 	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - MoveEvent::executeStep] Call stack overflow." << std::endl;
-		return 0;
+		return;
 	}
 
 	MoveEventScript::event = this;
@@ -1042,13 +1025,13 @@ uint32_t MoveEvent::executeStep(Creature* actor, Creature* creature, Item* item,
 	m_interface->pushFunction(m_scriptId);
 
 	lua_pushnumber(L, env.addThing(creature));
-	otx::lua::pushThing(L, item, env.addThing(item));
-	otx::lua::pushPosition(L, pos, 0);
-	otx::lua::pushPosition(L, creature->getLastPosition(), 0);
-	otx::lua::pushPosition(L, fromPos, 0);
-	otx::lua::pushPosition(L, toPos, 0);
+	otx::lua::pushThing(L, item);
+	otx::lua::pushPosition(L, pos);
+	otx::lua::pushPosition(L, creature->getLastPosition());
+	otx::lua::pushPosition(L, fromPos);
+	otx::lua::pushPosition(L, toPos);
 	lua_pushnumber(L, env.addThing(actor));
-	return otx::lua::callFunction(L, 7);
+	otx::lua::callVoidFunction(L, 7);
 }
 
 bool MoveEvent::fireEquip(Player* player, Item* item, Slots_t slot, bool boolean)
@@ -1056,14 +1039,13 @@ bool MoveEvent::fireEquip(Player* player, Item* item, Slots_t slot, bool boolean
 	if (isScripted()) {
 		return executeEquip(player, item, slot, boolean);
 	}
-
 	return m_equipFunction(this, player, item, slot, boolean);
 }
 
 bool MoveEvent::executeEquip(Player* player, Item* item, Slots_t slot, bool boolean)
 {
-	// onEquip(cid, item, slot, boolean)
-	// onDeEquip(cid, item, slot, boolean)
+	// onEquip(cid, item, slot, isCheck)
+	// onDeEquip(cid, item, slot, isRemoval)
 	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - MoveEvent::executeEquip] Call stack overflow." << std::endl;
 		return 0;
@@ -1084,21 +1066,22 @@ bool MoveEvent::executeEquip(Player* player, Item* item, Slots_t slot, bool bool
 	return otx::lua::callFunction(L, 4);
 }
 
-uint32_t MoveEvent::fireAddRemItem(Creature* actor, Item* item, Item* tileItem, const Position& pos)
+void MoveEvent::fireAddRemItem(Creature* actor, Item* item, Item* tileItem, const Position& pos)
 {
 	if (isScripted()) {
-		return executeAddRemItem(actor, item, tileItem, pos);
+		executeAddRemItem(actor, item, tileItem, pos);
+	} else {
+		m_moveFunction(item);
 	}
-	return m_moveFunction(item);
 }
 
-uint32_t MoveEvent::executeAddRemItem(Creature* actor, Item* item, Item* tileItem, const Position& pos)
+void MoveEvent::executeAddRemItem(Creature* actor, Item* item, Item* tileItem, const Position& pos)
 {
 	// onAddItem(moveItem, tileItem, position, cid)
 	// onRemoveItem(moveItem, tileItem, position, cid)
 	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - MoveEvent::executeAddRemItem] Call stack overflow." << std::endl;
-		return 0;
+		return;
 	}
 
 	MoveEventScript::event = this;
@@ -1113,5 +1096,5 @@ uint32_t MoveEvent::executeAddRemItem(Creature* actor, Item* item, Item* tileIte
 	otx::lua::pushThing(L, tileItem);
 	otx::lua::pushPosition(L, pos);
 	lua_pushnumber(L, env.addThing(actor));
-	return otx::lua::callFunction(L, 4);
+	otx::lua::callVoidFunction(L, 4);
 }
