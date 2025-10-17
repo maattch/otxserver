@@ -586,7 +586,7 @@ private:
 
 		m_owner->sendQuests();
 	}
-	void sendQuestInfo(Quest* quest)
+	void sendQuestInfo(const Quest* quest)
 	{
 		if (!m_owner) {
 			return;

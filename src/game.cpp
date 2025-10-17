@@ -37,7 +37,6 @@
 #include "monsters.h"
 #include "movement.h"
 #include "npc.h"
-#include "quests.h"
 #include "raids.h"
 #include "server.h"
 #include "spawn.h"
@@ -4159,13 +4158,11 @@ bool Game::playerQuestInfo(const uint32_t playerId, const uint16_t questId)
 		return false;
 	}
 
-	Quest* quest = Quests::getInstance()->getQuestById(questId);
-	if (!quest) {
-		return false;
+	if (const Quest* quest = quests.getQuestById(questId)) {
+		player->sendQuestInfo(quest);
+		return true;
 	}
-
-	player->sendQuestInfo(quest);
-	return true;
+	return false;
 }
 
 bool Game::playerCancelAttackAndFollow(const uint32_t playerId)
@@ -6883,7 +6880,7 @@ bool Game::reloadInfo(ReloadInfo_t reload)
 			break;
 		}
 		case RELOAD_QUESTS: {
-			done = Quests::getInstance()->reload();
+			done = quests.reload();
 			if (!done) {
 				std::clog << "[Warning - Game::reloadInfo] Failed to reload quests." << std::endl;
 			}

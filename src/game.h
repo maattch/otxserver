@@ -24,6 +24,7 @@
 #include "server.h"
 #include "wildcardtree.h"
 #include "group.h"
+#include "quests.h"
 
 class Npc;
 class CombatInfo;
@@ -702,6 +703,7 @@ public:
 
 	GroupsManager groups;
 	OutfitsManager outfits;
+	QuestsManager quests;
 
 private:
 	bool playerWhisper(Player* player, const std::string& text, const uint32_t statementId, bool fakeChat = false);

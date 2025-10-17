@@ -699,7 +699,8 @@ void Player::dropLoot(Container* corpse)
 	}
 }
 
-bool Player::setStorage(const std::string& key, const std::string& value)
+bool Player::setStorage(const std::string& key,
+	const std::string& value, bool isLogin/* = false*/)
 {
 	const auto key_num = otx::util::cast<uint32_t>(key.data());
 	if (!IS_IN_KEYRANGE(key_num, RESERVED_RANGE)) {
@@ -707,7 +708,7 @@ bool Player::setStorage(const std::string& key, const std::string& value)
 			return false;
 		}
 
-		if (Quests::getInstance()->isQuestStorage(key, value, true)) {
+		if (!isLogin && g_game.quests.isQuestStorage(key, value, true)) {
 			onUpdateQuest();
 		}
 		return true;

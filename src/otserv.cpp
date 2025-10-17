@@ -498,7 +498,7 @@ void otserv(ServiceManager* services)
 	}
 
 	std::clog << ">> Loading quests" << std::endl;
-	if (!Quests::getInstance()->loadFromXml()) {
+	if (!g_game.quests.loadFromXml()) {
 		startupErrorMessage("Unable to load quests!");
 	}
 

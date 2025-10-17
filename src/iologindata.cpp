@@ -640,7 +640,7 @@ bool IOLoginData::loadPlayer(Player* player, const std::string& name, bool preLo
 	query << "SELECT `key`, `value` FROM `player_storage` WHERE `player_id` = " << player->getGUID();
 	if ((result = g_database.storeQuery(query.str()))) {
 		do {
-			player->setStorage(result->getString("key"), result->getString("value"));
+			player->setStorage(result->getString("key"), result->getString("value"), true);
 		} while (result->next());
 	}
 

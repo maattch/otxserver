@@ -19,110 +19,88 @@
 
 #include "player.h"
 
-typedef std::map<uint32_t, std::string> StateMap;
-class Mission
+class Mission final
 {
 public:
-	Mission(std::string _name, std::string _state, std::string _storageId, int32_t _startValue, int32_t _endValue, bool _notify)
-	{
-		m_name = _name;
-		m_state = _state;
-		m_startValue = _startValue;
-		m_endValue = _endValue;
-		m_storageId = _storageId;
-		m_notify = _notify;
-	}
-	virtual ~Mission() { m_states.clear(); }
+	Mission(const std::string& name, const std::string& state,
+			const std::string& storageId, int32_t startValue, int32_t endValue, bool notify) :
+		m_name(name),
+		m_state(state),
+		m_storageId(storageId),
+		m_startValue(startValue),
+		m_endValue(endValue),
+		m_notify(notify) {}
 
-	void newState(uint32_t id, const std::string& description) { m_states[id] = description; }
+	void addState(uint32_t id, const std::string& description) { m_states[id] = description; }
 
-	bool isStarted(Player* player);
-	bool isCompleted(Player* player);
+	bool isStarted(Player* player) const;
+	bool isCompleted(Player* player) const;
 	bool isNotifying() const { return m_notify; }
 
-	std::string getName(Player* player) { return (isCompleted(player) ? (m_name + " (completed)") : m_name); }
-	std::string getDescription(Player* player);
+	std::string getName(Player* player) const { return (isCompleted(player) ? (m_name + " (completed)") : m_name); }
+	std::string getDescription(Player* player) const;
 
-	int32_t getStartValue() { return m_startValue; }
-	int32_t getEndValue() { return m_endValue; }
+	int32_t getStartValue() const { return m_startValue; }
+	int32_t getEndValue() const { return m_endValue; }
 
 	const std::string& getStorageId() const { return m_storageId; }
 
 private:
-	std::string parseStorages(std::string state, std::string value, Player* player);
-
-	std::string m_name, m_state;
-	StateMap m_states;
-
-	bool m_notify;
-	int32_t m_startValue, m_endValue;
+	std::string m_name;
+	std::string m_state;
 	std::string m_storageId;
+	std::map<uint32_t, std::string> m_states;
+	int32_t m_startValue;
+	int32_t m_endValue;
+	bool m_notify;
 };
 
-typedef std::list<Mission*> MissionList;
-class Quest
+class Quest final
 {
 public:
-	Quest(std::string _name, uint16_t _id, std::string _storageId, int32_t _storageValue)
-	{
-		m_name = _name;
-		m_id = _id;
-		m_storageValue = _storageValue;
-		m_storageId = _storageId;
-	}
-	virtual ~Quest();
+	Quest(const std::string& name, uint16_t id, const std::string& storageId, int32_t storageValue) :
+		m_name(name),
+		m_storageId(storageId),
+		m_storageValue(storageValue),
+		m_id(id) {}
 
-	void newMission(Mission* mission) { m_missions.push_back(mission); }
+	void addMission(Mission&& mission) { m_missions.push_back(std::move(mission)); }
 
-	bool isStarted(Player* player);
+	bool isStarted(Player* player) const;
 	bool isCompleted(Player* player) const;
 
 	uint16_t getId() const { return m_id; }
 	const std::string& getName() const { return m_name; }
 	const std::string& getStorageId() const { return m_storageId; }
 	int32_t getStorageValue() const { return m_storageValue; }
-	uint16_t getMissionCount(Player* player);
+	uint16_t getMissionCount(Player* player) const;
 
-	inline MissionList::const_iterator getFirstMission() const { return m_missions.begin(); }
-	inline MissionList::const_iterator getLastMission() const { return m_missions.end(); }
+	const auto& getMissions() const { return m_missions; }
 
 private:
 	std::string m_name;
-	MissionList m_missions;
-
-	uint16_t m_id;
-	int32_t m_storageValue;
 	std::string m_storageId;
+	std::vector<Mission> m_missions;
+	int32_t m_storageValue;
+	uint16_t m_id;
 };
 
-typedef std::list<Quest*> QuestList;
-class Quests
+class QuestsManager final
 {
 public:
-	virtual ~Quests() { clear(); }
-	static Quests* getInstance()
-	{
-		static Quests instance;
-		return &instance;
-	}
-
-	void clear();
-	bool reload();
+	QuestsManager() = default;
 
 	bool loadFromXml();
-	bool parseQuestNode(xmlNodePtr p, bool checkDuplicate);
+	bool reload();
+
+	const Quest* getQuestById(uint16_t id) const;
 
 	bool isQuestStorage(const std::string& key, const std::string& value, bool notification) const;
-	uint16_t getQuestCount(Player* player);
+	std::vector<const Quest*> getStartedQuests(Player* player);
 
-	inline QuestList::const_iterator getFirstQuest() const { return m_quests.begin(); }
-	inline QuestList::const_iterator getLastQuest() const { return m_quests.end(); }
-
-	Quest* getQuestById(uint16_t id) const;
+	const auto& getQuests() const noexcept { return m_quests; }
 
 private:
-	Quests() { m_lastId = 1; }
-
-	QuestList m_quests;
-	uint16_t m_lastId;
+	std::vector<Quest> m_quests;
+	uint16_t m_lastId = 0;
 };

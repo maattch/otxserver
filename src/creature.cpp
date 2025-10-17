@@ -908,8 +908,11 @@ const std::string* Creature::getStorage(const std::string& key) const
 	return nullptr;
 }
 
-bool Creature::setStorage(const std::string& key, const std::string& value)
+bool Creature::setStorage(const std::string& key,
+	const std::string& value, bool isLogin/* = false*/)
 {
+	UNUSED(isLogin);
+
 	m_storageMap[key] = value;
 	return true;
 }

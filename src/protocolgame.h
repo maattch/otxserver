@@ -230,7 +230,7 @@ private:
 
 	void sendOutfitWindow();
 	void sendQuests();
-	void sendQuestInfo(Quest* quest);
+	void sendQuestInfo(const Quest* quest);
 
 	void sendVIPLogIn(uint32_t guid);
 	void sendVIPLogOut(uint32_t guid);

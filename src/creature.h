@@ -325,7 +325,7 @@ public:
 	virtual void changeMaxMana(int32_t) {}
 
 	const std::string* getStorage(const std::string& key) const;
-	virtual bool setStorage(const std::string& key, const std::string& value);
+	virtual bool setStorage(const std::string& key, const std::string& value, bool isLogin = false);
 	virtual void eraseStorage(const std::string& key) { m_storageMap.erase(key); }
 
 	const auto& getStorages() const { return m_storageMap; }

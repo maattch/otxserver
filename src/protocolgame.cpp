@@ -2955,19 +2955,16 @@ void ProtocolGame::sendQuests()
 
 	msg->addByte(0xF0);
 
-	msg->add<uint16_t>(Quests::getInstance()->getQuestCount(player));
-	for (QuestList::const_iterator it = Quests::getInstance()->getFirstQuest(); it != Quests::getInstance()->getLastQuest(); ++it) {
-		if (!(*it)->isStarted(player)) {
-			continue;
-		}
-
-		msg->add<uint16_t>((*it)->getId());
-		msg->addString((*it)->getName());
-		msg->addByte((*it)->isCompleted(player));
+	const auto& startedQuests = g_game.quests.getStartedQuests(player);
+	msg->add<uint16_t>(startedQuests.size());
+	for (const Quest* quest : startedQuests) {
+		msg->add<uint16_t>(quest->getId());
+		msg->addString(quest->getName());
+		msg->addByte(quest->isCompleted(player));
 	}
 }
 
-void ProtocolGame::sendQuestInfo(Quest* quest)
+void ProtocolGame::sendQuestInfo(const Quest* quest)
 {
 	OutputMessage_ptr msg = getOutputBuffer();
 	if (!msg) {
@@ -2978,13 +2975,11 @@ void ProtocolGame::sendQuestInfo(Quest* quest)
 	msg->add<uint16_t>(quest->getId());
 
 	msg->addByte(quest->getMissionCount(player));
-	for (MissionList::const_iterator it = quest->getFirstMission(); it != quest->getLastMission(); ++it) {
-		if (!(*it)->isStarted(player)) {
-			continue;
+	for (const Mission& mission : quest->getMissions()) {
+		if (mission.isStarted(player)) {
+			msg->addString(mission.getName(player));
+			msg->addString(mission.getDescription(player));
 		}
-
-		msg->addString((*it)->getName(player));
-		msg->addString((*it)->getDescription(player));
 	}
 }
 

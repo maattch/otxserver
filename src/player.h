@@ -219,7 +219,7 @@ public:
 	void addContainer(uint32_t cid, Container* container);
 	void closeContainer(uint32_t cid);
 
-	bool setStorage(const std::string& key, const std::string& value) override;
+	bool setStorage(const std::string& key, const std::string& value, bool isLogin = false) override;
 	void eraseStorage(const std::string& key) override;
 
 	void generateReservedStorage();
@@ -766,7 +766,7 @@ public:
 			m_client->sendQuests();
 		}
 	}
-	void sendQuestInfo(Quest* quest) const
+	void sendQuestInfo(const Quest* quest) const
 	{
 		if (m_client) {
 			m_client->sendQuestInfo(quest);
