@@ -230,8 +230,6 @@ CreatureEventType_t CreatureEvents::getType(const std::string& eventName)
 		return CREATURE_EVENT_EXTENDED_OPCODE;
 	} else if (eventName == "moveitem") {
 		return CREATURE_EVENT_MOVEITEM;
-	} else if (eventName == "nocountfrag") {
-		return CREATURE_EVENT_NOCOUNTFRAG;
 	}
 	return CREATURE_EVENT_NONE;
 }
@@ -321,7 +319,6 @@ std::string CreatureEvent::getScriptEventName() const
 		case CREATURE_EVENT_PREPAREDEATH:    return "onPrepareDeath";
 		case CREATURE_EVENT_EXTENDED_OPCODE: return "onExtendedOpcode";
 		case CREATURE_EVENT_MOVEITEM:        return "onMoveItem";
-		case CREATURE_EVENT_NOCOUNTFRAG:     return "noCountFragArea";
 
 		case CREATURE_EVENT_NONE:
 		default:
@@ -672,7 +669,7 @@ bool CreatureEvent::executeCast(Creature* creature, Creature* target /* = nullpt
 
 bool CreatureEvent::executeKill(Creature* creature, Creature* target, const DeathEntry& entry)
 {
-	// onKill(cid, target, damage, flags)
+	// onKill(cid, target, damage, flags, war)
 	if (!otx::lua::reserveScriptEnv()) {
 		std::clog << "[Error - CreatureEvent::executeKill] Call stack overflow." << std::endl;
 		return false;
@@ -974,23 +971,4 @@ bool CreatureEvent::executeMoveItem(Creature* actor, Item* item, const Position&
 	otx::lua::pushPosition(L, pos);
 	otx::lua::pushThingId(L, item);
 	return otx::lua::callFunction(L, 4);
-}
-
-bool CreatureEvent::executeNoCountFragArea(Creature* creature, Creature* target)
-{
-	// noCountFragArea(cid, target)
-	if (!otx::lua::reserveScriptEnv()) {
-		std::clog << "[Error - CreatureEvent::executeNoCountFragArea] Call stack overflow." << std::endl;
-		return false;
-	}
-
-	ScriptEnvironment& env = otx::lua::getScriptEnv();
-	env.setScriptId(m_scriptId, m_interface);
-
-	lua_State* L = m_interface->getState();
-	m_interface->pushFunction(m_scriptId);
-
-	lua_pushnumber(L, env.addThing(creature));
-	lua_pushnumber(L, env.addThing(target));
-	return otx::lua::callFunction(L, 2);
 }

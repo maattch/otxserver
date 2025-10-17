@@ -4058,14 +4058,6 @@ bool Player::onKilledCreature(Creature* target, DeathEntry& entry)
 	}
 
 	if (targetPlayer) {
-		if (hasEventRegistered(CREATURE_EVENT_NOCOUNTFRAG)) {
-			for (CreatureEvent* it : getCreatureEvents(CREATURE_EVENT_NOCOUNTFRAG)) {
-				if (!it->executeNoCountFragArea(this, target)) {
-					return true;
-				}
-			}
-		}
-
 		if (!otx::config::getBoolean(otx::config::ADD_FRAG_SAMEIP)) {
 			if (this->getIP() == targetPlayer->getIP()) {
 				return true;

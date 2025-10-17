@@ -56,8 +56,7 @@ enum CreatureEventType_t : uint64_t
 	CREATURE_EVENT_DEATH           = 1ULL << 30,
 	CREATURE_EVENT_PREPAREDEATH    = 1ULL << 31,
 	CREATURE_EVENT_EXTENDED_OPCODE = 1ULL << 32,
-	CREATURE_EVENT_MOVEITEM        = 1ULL << 33,
-	CREATURE_EVENT_NOCOUNTFRAG     = 1ULL << 34
+	CREATURE_EVENT_MOVEITEM        = 1ULL << 33
 };
 
 enum StatsChange_t : uint8_t
@@ -153,7 +152,6 @@ public:
 	bool executePrepareDeath(Creature* creature, const DeathList& deathList);
 	void executeExtendedOpcode(Creature* creature, uint8_t opcode, const std::string& buffer);
 	bool executeMoveItem(Creature* actor, Item* item, const Position& frompos, const Position& pos);
-	bool executeNoCountFragArea(Creature* creature, Creature* target); // by feetads
 
 private:
 	std::string getScriptEventName() const override;
