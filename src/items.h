@@ -156,7 +156,6 @@ public:
 	uint32_t runeMagLevel = 0;
 
 	int32_t attack = 0;
-	int32_t reduceSkillLoss = 0;
 	int32_t extraAttack = 0;
 	int32_t defense = 0;
 	int32_t extraDefense = 0;

@@ -332,17 +332,6 @@ private:
 			it->first->sendChangeSpeed(creature, speed);
 		}
 	}
-	void sendProgressbar(const Creature* creature, uint32_t duration, bool ltr = true)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendProgressbar(creature, duration, ltr);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendProgressbar(creature, duration, ltr);
-		}
-	}
 	void sendCancelTarget()
 	{
 		if (!m_owner) {

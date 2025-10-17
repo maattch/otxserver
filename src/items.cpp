@@ -505,10 +505,6 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint16_t id)
 			if (readXMLInteger(itemAttributesNode, "value", intValue)) {
 				it.attack = intValue;
 			}
-		} else if (tmpStrValue == "reduceskillloss") {
-			if (readXMLInteger(itemAttributesNode, "value", intValue)) {
-				it.reduceSkillLoss = intValue;
-			}
 		} else if (tmpStrValue == "extraattack" || tmpStrValue == "extraatk") {
 			if (readXMLInteger(itemAttributesNode, "chance", intValue)) {
 				it.extraAttackChance = intValue;

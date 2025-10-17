@@ -2317,7 +2317,6 @@ uint32_t Player::getIP() const
 bool Player::onDeath()
 {
 	int32_t reduceSkillLoss = 0;
-	Item* reduceItem = nullptr;
 	Item *preventLoss = nullptr, *preventDrop = nullptr;
 	if (getZone() == ZONE_HARDCORE) {
 		setDropLoot(LOOT_DROP_NONE);
@@ -2345,14 +2344,6 @@ bool Player::onDeath()
 					preventDrop = item;
 				}
 			}
-
-			reduceItem = getEquippedItem(static_cast<Slots_t>(i));
-			if (reduceItem) {
-				int32_t tempReduceSkillLoss = reduceItem->getReduceSkillLoss();
-				if (tempReduceSkillLoss != 0) {
-					reduceSkillLoss += tempReduceSkillLoss;
-				}
-			}
 		}
 	}
 
@@ -2360,7 +2351,6 @@ bool Player::onDeath()
 		if (preventDrop) {
 			setDropLoot(LOOT_DROP_FULL);
 		}
-
 		return false;
 	}
 

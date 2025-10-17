@@ -662,8 +662,6 @@ public:
 #endif
 
 	void setCreatureSpeed(Creature* creature, int32_t speed);
-	// progressbar to otcv8
-	void startProgressbar(Creature* creature, uint32_t duration, bool ltr = true);
 
 	void addPlayer(Player* player);
 	void removePlayer(Player* player);
@@ -673,6 +671,8 @@ public:
 
 	void addMonster(Monster* monster);
 	void removeMonster(Monster* monster);
+
+	void updatePlayerName(Player* player, const std::string& oldName);
 
 	Item* getUniqueItem(uint16_t uniqueId);
 	bool addUniqueItem(uint16_t uniqueId, Item* item);

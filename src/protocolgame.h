@@ -200,9 +200,6 @@ private:
 	void sendCancelWalk();
 	void sendChangeSpeed(const Creature* creature, uint32_t speed);
 
-	// SendProgressbar OTCv8 features
-	void sendProgressbar(const Creature* creature, uint32_t duration, bool ltr = true);
-
 	void sendCancelTarget();
 	void sendCreatureOutfit(const Creature* creature, const Outfit_t& outfit);
 	void sendStats();

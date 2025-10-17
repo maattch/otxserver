@@ -115,8 +115,11 @@ public:
 	static MuteCountMap muteCountMap;
 
 	const std::string& getName() const override { return m_name; }
+	void setName(const std::string& name) { m_name = name; }
+
 	const std::string& getNameDescription() const override { return m_nameDescription; }
 	void setNameDescription(const std::string& description) { m_nameDescription = description; }
+
 	std::string getDescription(int32_t lookDistance) const override;
 
 	const std::string& getSpecialDescription() const { return m_specialDescription; }
@@ -948,14 +951,6 @@ public:
 	{
 		if (m_client) {
 			m_client->sendCastList();
-		}
-	}
-
-	// sendProgressbar OTCv8 features
-	void sendProgressbar(const Creature* creature, uint32_t duration, bool ltr)
-	{
-		if (m_client) {
-			m_client->sendProgressbar(creature, duration, ltr);
 		}
 	}
 

@@ -760,7 +760,6 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 	}
 
 	bool dot = true;
-	int32_t reduceSkillLoss = 0;
 	if (it.isRune()) {
 		if (!it.runeSpellName.empty()) {
 			s << "(\"" << it.runeSpellName << "\")";
@@ -852,17 +851,6 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			}
 
 			s << "AS: " << (item ? item->getAttackSpeed() : it.attackSpeed);
-		}
-
-		reduceSkillLoss = (item ? item->getReduceSkillLoss() : it.reduceSkillLoss);
-		if (reduceSkillLoss != 0) {
-			if (begin) {
-				begin = false;
-				s << " (";
-			} else {
-				s << ", ";
-			}
-			s << "SkillLoss: -" << reduceSkillLoss << "%";
 		}
 
 		if (it.hasAbilities()) {
@@ -1125,17 +1113,6 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			s << "Vol:" << it.maxItems;
 		}
 
-		reduceSkillLoss = (item ? item->getReduceSkillLoss() : it.reduceSkillLoss);
-		if (reduceSkillLoss != 0) {
-			if (begin) {
-				begin = false;
-				s << " (";
-			} else {
-				s << ", ";
-			}
-			s << "SkillLoss: -" << reduceSkillLoss << "%";
-		}
-
 		if (it.hasAbilities()) {
 			for (uint16_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
 				if (!it.abilities->skills[i]) {
@@ -1328,14 +1305,7 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 			}
 		}
 	} else if (it.isContainer()) {
-		s << " (Vol:" << it.maxItems;
-
-		reduceSkillLoss = (item ? item->getReduceSkillLoss() : it.reduceSkillLoss);
-		if (reduceSkillLoss != 0) {
-			s << ", SkillLoss: -" << reduceSkillLoss << "%";
-		}
-
-		s << ")";
+		s << " (Vol:" << it.maxItems << ')';
 	} else if (it.isKey()) {
 		s << " (Key:" << (item ? item->getActionId() : 0) << ")";
 	} else if (it.isFluidContainer()) {
@@ -1384,20 +1354,6 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance, const
 		s << " for level " << item->getActionId() - it.levelDoor;
 	}
 
-	bool begin = true;
-	if (reduceSkillLoss == 0) {
-		reduceSkillLoss = (item ? item->getReduceSkillLoss() : it.reduceSkillLoss);
-		if (reduceSkillLoss != 0) {
-			if (begin) {
-				begin = false;
-				s << " (";
-			} else {
-				s << ", ";
-			}
-
-			s << "SkillLoss: -" << reduceSkillLoss << "%";
-		}
-	}
 	if (it.showCharges) {
 		s << " that has " << subType << " charge" << (subType != 1 ? "s" : "") << " left";
 	}
@@ -1802,15 +1758,6 @@ int32_t Item::getAttack() const
 		return static_cast<int32_t>(attr->getInt());
 	}
 	return items[m_id].attack;
-}
-
-int32_t Item::getReduceSkillLoss() const
-{
-	ItemAttributes* attr = getAttribute("reduceskillloss");
-	if (attr && attr->isInt()) {
-		return static_cast<int32_t>(attr->getInt());
-	}
-	return items[m_id].reduceSkillLoss;
 }
 
 int32_t Item::getExtraAttack() const

@@ -421,7 +421,6 @@ public:
 	bool isDualWield() const;
 
 	int32_t getAttack() const;
-	int32_t getReduceSkillLoss() const;
 	int32_t getExtraAttack() const;
 	int32_t getDefense() const;
 	int32_t getExtraDefense() const;

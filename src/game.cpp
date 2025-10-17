@@ -7135,16 +7135,6 @@ void Game::setCreatureSpeed(Creature* creature, int32_t speed)
 	}
 }
 
-void Game::startProgressbar(Creature* creature, uint32_t duration, bool ltr /*=true*/)
-{
-	// send to client
-	SpectatorVec list;
-	getSpectators(list, creature->getPosition(), false, true);
-	for (Creature* spectator : list) {
-		spectator->getPlayer()->sendProgressbar(creature, duration, ltr);
-	}
-}
-
 uint32_t Game::spawnDivider(MonsterType* mType)
 {
 	uint32_t multiplier = 1;
@@ -7197,6 +7187,17 @@ void Game::addMonster(Monster* monster)
 void Game::removeMonster(Monster* monster)
 {
 	monsters.erase(monster->getID());
+}
+
+void Game::updatePlayerName(Player* player, const std::string& oldName)
+{
+	const std::string lowercase_oldName = otx::util::as_lower_string(oldName);
+	mappedPlayerNames.erase(lowercase_oldName);
+	wildcardTree.remove(lowercase_oldName);
+
+	const std::string lowercase_name = otx::util::as_lower_string(player->getName());
+	mappedPlayerNames[lowercase_name] = player;
+	wildcardTree.insert(lowercase_name);
 }
 
 Item* Game::getUniqueItem(uint16_t uniqueId)

@@ -1239,7 +1239,7 @@ static int luaDoCreatureSetHideHealth(lua_State* L)
 
 static int luaDoCreatureAddHealth(lua_State* L)
 {
-	// doCreatureAddHealth(uid, health[, hitEffect = MAGIC_EFFECT_NONE, hitColor = COLOR_NONE, force = false])
+	// doCreatureAddHealth(cid, health[, hitEffect = MAGIC_EFFECT_NONE, hitColor = COLOR_NONE, force = false])
 	if (Creature* creature = otx::lua::getCreature(L, 1)) {
 		CombatDamage damage;
 		damage.primary.value = otx::lua::getNumber<int32_t>(L, 2);
@@ -1259,7 +1259,7 @@ static int luaDoCreatureAddHealth(lua_State* L)
 
 static int luaDoCreatureAddMana(lua_State* L)
 {
-	// doCreatureAddMana(uid, mana[, aggressive = true])
+	// doCreatureAddMana(cid, mana[, aggressive = true])
 	if (Creature* creature = otx::lua::getCreature(L, 1)) {
 		const auto mana = otx::lua::getNumber<int32_t>(L, 2);
 		const bool aggressive = otx::lua::getBoolean(L, 3, true);
@@ -1847,7 +1847,7 @@ static int luaDoPlayerSetLossSkill(lua_State* L)
 
 static int luaDoShowTextDialog(lua_State* L)
 {
-	// doShowTextDialog(cid, itemId[, (text/canWrite)[, (canWrite/length)[, length]]])
+	// doShowTextDialog(cid, itemId[, (text/canWrite), (canWrite/length), length])
 	// who did this? the parameters of this function is confuse af
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
@@ -2954,7 +2954,7 @@ static int luaGetPlayerSlotItem(lua_State* L)
 		otx::lua::pushThing(L, player->__getThing(slot));
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		otx::lua::pushThing(L, nullptr);
+		lua_pushnil(L);
 	}
 	return 1;
 }
@@ -3199,7 +3199,12 @@ static int luaSetCombatParam(lua_State* L)
 
 	const auto combatId = otx::lua::getNumber<uint32_t>(L, 1);
 	const auto key = static_cast<CombatParam_t>(otx::lua::getNumber<uint8_t>(L, 2));
-	const auto value = otx::lua::getNumber<uint32_t>(L, 3);
+	uint32_t value;
+	if (otx::lua::isBoolean(L, 3)) {
+		value = (otx::lua::getBoolean(L, 3) ? 1 : 0);
+	} else {
+		value = otx::lua::getNumber<uint32_t>(L, 3);
+	}
 
 	if (Combat* combat = g_lua.getCombatById(combatId)) {
 		combat->setParam(key, value);
@@ -3216,7 +3221,12 @@ static int luaSetConditionParam(lua_State* L)
 	// setConditionParam(condition, key, value)
 	const auto conditionObjId = otx::lua::getNumber<uint32_t>(L, 1);
 	const auto key = static_cast<ConditionParam_t>(otx::lua::getNumber<uint8_t>(L, 2));
-	const auto value = otx::lua::getNumber<int32_t>(L, 3);
+	int32_t value;
+	if (otx::lua::isBoolean(L, 3)) {
+		value = (otx::lua::getBoolean(L, 3) ? 1 : 0);
+	} else {
+		value = otx::lua::getNumber<int32_t>(L, 3);
+	}
 
 	if (Condition* condition = g_lua.getConditionById(conditionObjId)) {
 		condition->setParam(key, value);
@@ -4085,7 +4095,7 @@ static int luaDoAddCondition(lua_State* L)
 
 static int luaDoRemoveCondition(lua_State* L)
 {
-	// doRemoveCondition(cid, type[, subId = 0, conditionId = CONDITIONID_COMBAT])
+	// doRemoveCondition(cid, conditionType[, subId = 0, conditionId = CONDITIONID_COMBAT])
 	if (Creature* creature = otx::lua::getCreature(L, 1)) {
 		const auto conditionType = static_cast<ConditionType_t>(otx::lua::getNumber<uint32_t>(L, 2));
 		const auto subId = otx::lua::getNumber<uint32_t>(L, 3, 0);
@@ -4554,9 +4564,30 @@ static int luaDoPlayerChangeName(lua_State* L)
 {
 	// doPlayerChangeName(guid, oldName, newName)
 	const auto guid = otx::lua::getNumber<uint32_t>(L, 1);
-	const std::string oldName = otx::lua::getString(L, 2);
+	std::string oldName = otx::lua::getString(L, 2);
 	const std::string newName = otx::lua::getString(L, 3);
 
+	if (Player* player = g_game.getPlayerByGUID(guid)) {
+		if (player->getName() == newName) {
+			lua_pushboolean(L, true);
+			return 1;
+		}
+
+		oldName = player->getName();
+
+		player->setName(newName);
+		player->setNameDescription(newName);
+		g_game.updatePlayerName(player, oldName);
+		g_game.updateCreatureEmblem(player); // hack to update player on map
+		if (House* house = Houses::getInstance()->getHouseByPlayerId(guid)) {
+			house->updateDoorDescription(newName);
+		}
+
+		lua_pushboolean(L, true);
+		return 1;
+	}
+
+	// player is not online (or doesnt exists), try to change it in database
 	if (IOLoginData::getInstance()->changeName(guid, newName, oldName)) {
 		if (House* house = Houses::getInstance()->getHouseByPlayerId(guid)) {
 			house->updateDoorDescription(newName);
@@ -4885,7 +4916,7 @@ static int luaGetOutfitIdByLooktype(lua_State* L)
 static int luaDoPlayerAddOutfit(lua_State* L)
 {
 	// Consider using doPlayerAddOutfitId instead
-	// doPlayerAddOutfit(cid, looktype, addons)
+	// doPlayerAddOutfit(cid, lookType, addons)
 	Player* player = otx::lua::getPlayer(L, 1);
 	if (!player) {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
@@ -4928,7 +4959,7 @@ static int luaDoPlayerRemoveOutfit(lua_State* L)
 
 static int luaDoPlayerAddOutfitId(lua_State* L)
 {
-	// doPlayerAddOutfitId(cid, outfitId, addon)
+	// doPlayerAddOutfitId(cid, outfitId, addons)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
 		const auto outfitId = otx::lua::getNumber<uint32_t>(L, 2);
 		const auto addons = otx::lua::getNumber<uint8_t>(L, 3);
@@ -5131,9 +5162,8 @@ static int luaUpdatePlayerStats(lua_State* L)
 		player->sendStats();
 	} else {
 		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_PLAYER_NOT_FOUND));
-		lua_pushnil(L);
 	}
-	return 1;
+	return 0;
 }
 
 static int luaGetPlayerDamageMultiplier(lua_State* L)
@@ -5339,21 +5369,6 @@ static int luaSetCreatureSpeed(lua_State* L)
 	return 1;
 }
 
-static int luaSendProgressbar(lua_State* L)
-{
-	// sendPlayerProgressBar(cid, duration, leftToRight)
-	if (Creature* creature = otx::lua::getCreature(L, 1)) {
-		const auto duration = otx::lua::getNumber<uint32_t>(L, 2);
-		const bool leftToRight = otx::lua::getBoolean(L, 3);
-		g_game.startProgressbar(creature, duration, leftToRight);
-		lua_pushboolean(L, true);
-	} else {
-		otx::lua::reportErrorEx(L, otx::lua::getErrorDesc(LUA_ERROR_CREATURE_NOT_FOUND));
-		lua_pushnil(L);
-	}
-	return 1;
-}
-
 static int luaGetCreatureBaseSpeed(lua_State* L)
 {
 	// getCreatureBaseSpeed(cid)
@@ -5437,8 +5452,8 @@ static int luaHasCreatureCondition(lua_State* L)
 	if (Creature* creature = otx::lua::getCreature(L, 1)) {
 		const auto conditionType = static_cast<ConditionType_t>(otx::lua::getNumber<uint32_t>(L, 2));
 		const auto subId = otx::lua::getNumber<uint32_t>(L, 3, 0);
-		const auto conditionId = static_cast<ConditionId_t>(otx::lua::getNumber<int8_t>(L, 4, CONDITIONID_COMBAT));
 		if (lua_gettop(L) >= 4) {
+			const auto conditionId = static_cast<ConditionId_t>(otx::lua::getNumber<int8_t>(L, 4));
 			lua_pushboolean(L, creature->getCondition(conditionType, conditionId, subId) != nullptr);
 		} else if (creature->getCondition(conditionType, CONDITIONID_DEFAULT, subId) != nullptr) {
 			lua_pushboolean(L, true);
@@ -5898,7 +5913,7 @@ static int luaGetPlayersOnline(lua_State* L)
 
 static int luaSetCreatureMaxHealth(lua_State* L)
 {
-	// setCreatureMaxHealth(uid, maxHealth)
+	// setCreatureMaxHealth(cid, maxHealth)
 	if (Creature* creature = otx::lua::getCreature(L, 1)) {
 		const auto maxHealth = otx::lua::getNumber<int32_t>(L, 2);
 		creature->changeMaxHealth(maxHealth);
@@ -5926,7 +5941,7 @@ static int luaSetCreatureMaxMana(lua_State* L)
 
 static int luaDoPlayerSetMaxCapacity(lua_State* L)
 {
-	// doPlayerSetMaxCapacity(uid, cap)
+	// doPlayerSetMaxCapacity(cid, cap)
 	if (Player* player = otx::lua::getPlayer(L, 1)) {
 		const auto cap = otx::lua::getNumber<double>(L, 2);
 		player->setCapacity(cap);
@@ -6034,10 +6049,10 @@ static int luaGetPlayerRates(lua_State* L)
 		return 1;
 	}
 
-	lua_createtable(L, SKILL__LAST + 1, 0);
+	lua_createtable(L, SKILL__LAST, 1);
 	for (uint8_t i = SKILL_FIRST; i <= SKILL__LAST; ++i) {
 		lua_pushnumber(L, player->m_rates[i]);
-		lua_rawseti(L, -2, i + 1);
+		lua_rawseti(L, -2, i);
 	}
 	return 1;
 }
@@ -6487,7 +6502,7 @@ static int luaGetItemIdByName(lua_State* L)
 }
 
 // make by feetads
-static int luaisItemDoor(lua_State* L)
+static int luaIsItemDoor(lua_State* L)
 {
 	// isItemDoor(itemId)
 	const ItemType& iType = Item::items.getItemType(otx::lua::getNumber<uint16_t>(L, 1));
@@ -6508,7 +6523,7 @@ static int luaGetItemInfo(lua_State* L)
 		return 1;
 	}
 
-	lua_createtable(L, 0, 88);
+	lua_createtable(L, 0, 87);
 	otx::lua::setTableValue(L, "isDoor", iType.isDoor());
 	otx::lua::setTableValue(L, "stopTime", iType.stopTime);
 	otx::lua::setTableValue(L, "showCount", iType.showCount);
@@ -6563,7 +6578,6 @@ static int luaGetItemInfo(lua_State* L)
 	otx::lua::setTableValue(L, "writer", iType.writer);
 	otx::lua::setTableValue(L, "text", iType.text);
 	otx::lua::setTableValue(L, "attack", iType.attack);
-	otx::lua::setTableValue(L, "reduceskillloss", iType.reduceSkillLoss);
 	otx::lua::setTableValue(L, "extraAttack", iType.extraAttack);
 	otx::lua::setTableValue(L, "defense", iType.defense);
 	otx::lua::setTableValue(L, "extraDefense", iType.extraDefense);
@@ -6927,9 +6941,7 @@ static int luaDoAddAccountWarnings(lua_State* L)
 
 	Account account = IOLoginData::getInstance()->loadAccount(accountId, true);
 	account.warnings = std::clamp<int32_t>(account.warnings + warnings, 0, 0xFFFF);
-
-	IOLoginData::getInstance()->saveAccount(account);
-	lua_pushboolean(L, true);
+	lua_pushboolean(L, IOLoginData::getInstance()->saveAccount(account));
 	return 1;
 }
 
@@ -7133,9 +7145,9 @@ static int luaDoPlayerSetWalkthrough(lua_State* L)
 
 static int luaDoGuildAddEnemy(lua_State* L)
 {
-	// doGuildAddEnemy(guild, enemy, warId, warType)
-	const auto guild = otx::lua::getNumber<uint32_t>(L, 1);
-	const auto enemy = otx::lua::getNumber<uint32_t>(L, 2);
+	// doGuildAddEnemy(guildId, enemy, warId, warType)
+	const auto guildId = otx::lua::getNumber<uint32_t>(L, 1);
+	const auto enemyId = otx::lua::getNumber<uint32_t>(L, 2);
 	const auto warId = otx::lua::getNumber<uint32_t>(L, 3);
 	const auto warType = static_cast<WarType_t>(otx::lua::getNumber<uint8_t>(L, 4));
 
@@ -7145,12 +7157,12 @@ static int luaDoGuildAddEnemy(lua_State* L)
 
 	uint32_t count = 0;
 	for (const auto& it : g_game.getPlayers()) {
-		if (it.second->getGuildId() != guild) {
+		if (it.second->getGuildId() != guildId) {
 			continue;
 		}
 
 		++count;
-		it.second->addEnemy(enemy, war);
+		it.second->addEnemy(enemyId, war);
 		g_game.updateCreatureEmblem(it.second);
 	}
 
@@ -7160,18 +7172,18 @@ static int luaDoGuildAddEnemy(lua_State* L)
 
 static int luaDoGuildRemoveEnemy(lua_State* L)
 {
-	// doGuildRemoveEnemy(guild, enemy)
-	const auto guild = otx::lua::getNumber<uint32_t>(L, 1);
-	const auto enemy = otx::lua::getNumber<uint32_t>(L, 2);
+	// doGuildRemoveEnemy(guildId, enemyId)
+	const auto guildId = otx::lua::getNumber<uint32_t>(L, 1);
+	const auto enemyId = otx::lua::getNumber<uint32_t>(L, 2);
 
 	uint32_t count = 0;
 	for (const auto& it : g_game.getPlayers()) {
-		if (it.second->isRemoved() || it.second->getGuildId() != guild) {
+		if (it.second->isRemoved() || it.second->getGuildId() != guildId) {
 			continue;
 		}
 
 		++count;
-		it.second->removeEnemy(enemy);
+		it.second->removeEnemy(enemyId);
 		g_game.updateCreatureEmblem(it.second);
 	}
 
@@ -7194,7 +7206,7 @@ static int luaGetConfigValue(lua_State* L)
 	return 1;
 }
 
-static int luaL_dodirectory(lua_State* L)
+static int luaDoDirectory(lua_State* L)
 {
 	// dodirectory(dir[, recursively = false, loadSystems = true])
 	const std::string dir = otx::lua::getString(L, 1);
@@ -7422,6 +7434,7 @@ static int luaResultFree(lua_State* L)
 	return 1;
 }
 
+#ifndef LUAJIT_VERSION
 //
 // bit
 //
@@ -7550,12 +7563,7 @@ static int luaBitURightShift(lua_State* L)
 	lua_pushnumber(L, value);
 	return 1;
 }
-
-#define registerEnum(value)                                                             \
-	{                                                                                   \
-		std::string enumName = #value;                                                  \
-		registerGlobalVariable(enumName.substr(enumName.find_last_of(':') + 1), value); \
-	}
+#endif
 
 const luaL_Reg luaSystemTable[] = {
 	// os.mtime()
@@ -7594,6 +7602,7 @@ const luaL_Reg luaResultTable[] = {
 	{ nullptr, nullptr }
 };
 
+#ifndef LUAJIT_VERSION
 const luaL_Reg luaBitTable[] = {
 	{ "bnot", luaBitNot },
 	{ "band", luaBitAnd },
@@ -7611,6 +7620,7 @@ const luaL_Reg luaBitTable[] = {
 
 	{ nullptr, nullptr }
 };
+#endif
 
 const luaL_Reg luaStdTable[] = {
 	{ "cout", luaStdCout },
@@ -7741,11 +7751,16 @@ void otx::lua::registerFunctions()
 	lua_register(L, "doGuildAddEnemy", luaDoGuildAddEnemy);
 	lua_register(L, "doGuildRemoveEnemy", luaDoGuildRemoveEnemy);
 	lua_register(L, "doUpdateHouseAuctions", luaDoUpdateHouseAuctions);
-	lua_register(L, "dodirectory", luaL_dodirectory);
+	lua_register(L, "dodirectory", luaDoDirectory);
 	lua_register(L, "errors", luaErrors);
+	lua_register(L, "getPlayerByName", luaGetPlayerByName);
+	lua_register(L, "getPlayerByGUID", luaGetPlayerByGUID);
+	lua_register(L, "getPlayerByNameWildcard", luaGetPlayerByNameWildcard);
+	lua_register(L, "getPlayerGUIDByName", luaGetPlayerGUIDByName);
+	lua_register(L, "getPlayerNameByGUID", luaGetPlayerNameByGUID);
+	lua_register(L, "getPlayersByAccountId", luaGetPlayersByAccountId);
 
 	// Creatures
-	lua_register(L, "getClosestFreeTile", luaGetClosestFreeTile);
 	lua_register(L, "getCreatureHealth", luaGetCreatureHealth);
 	lua_register(L, "getCreatureMaxHealth", luaGetCreatureMaxHealth);
 	lua_register(L, "getCreatureMana", luaGetCreatureMana);
@@ -7759,6 +7774,7 @@ void otx::lua::registerFunctions()
 	lua_register(L, "getCreatureStorageList", luaGetCreatureStorageList);
 	lua_register(L, "getCreatureStorage", luaGetCreatureStorage);
 	lua_register(L, "doCreatureSetStorage", luaDoCreatureSetStorage);
+	lua_register(L, "getClosestFreeTile", luaGetClosestFreeTile);
 	lua_register(L, "doCreatureSay", luaDoCreatureSay);
 	lua_register(L, "setCreatureMaxMana", luaSetCreatureMaxMana);
 	lua_register(L, "doCreatureChannelSay", luaDoCreatureChannelSay);
@@ -7903,18 +7919,11 @@ void otx::lua::registerFunctions()
 	lua_register(L, "isPlayerPzLocked", luaIsPlayerPzLocked);
 	lua_register(L, "isPlayerSaving", luaIsPlayerSaving);
 	lua_register(L, "isPlayerProtected", luaIsPlayerProtected);
-	lua_register(L, "getPlayerByName", luaGetPlayerByName);
-	lua_register(L, "getPlayerByGUID", luaGetPlayerByGUID);
-	lua_register(L, "getPlayerByNameWildcard", luaGetPlayerByNameWildcard);
-	lua_register(L, "getPlayerGUIDByName", luaGetPlayerGUIDByName);
-	lua_register(L, "getPlayerNameByGUID", luaGetPlayerNameByGUID);
 	lua_register(L, "doPlayerChangeName", luaDoPlayerChangeName);
 	lua_register(L, "getPlayerSex", luaGetPlayerSex);
 	lua_register(L, "doPlayerSetSex", luaDoPlayerSetSex);
 	lua_register(L, "getPlayerSkullEnd", luaGetPlayerSkullEnd);
 	lua_register(L, "doPlayerSetSkullEnd", luaDoPlayerSetSkullEnd);
-	lua_register(L, "sendPlayerProgressBar", luaSendProgressbar);
-	lua_register(L, "getPlayersByAccountId", luaGetPlayersByAccountId);
 	lua_register(L, "doPlayerPopupFYI", luaDoPlayerPopupFYI);
 	lua_register(L, "doPlayerSendTutorial", luaDoPlayerSendTutorial);
 	lua_register(L, "doPlayerSendMailByName", luaDoPlayerSendMailByName);
@@ -7972,7 +7981,7 @@ void otx::lua::registerFunctions()
 	lua_register(L, "getContainerCap", luaGetContainerCap);
 	lua_register(L, "getContainerItem", luaGetContainerItem);
 	lua_register(L, "doAddContainerItem", luaDoAddContainerItem);
-	lua_register(L, "isItemDoor", luaisItemDoor);
+	lua_register(L, "isItemDoor", luaIsItemDoor);
 	lua_register(L, "getItemAttribute", luaGetItemAttribute);
 	lua_register(L, "doItemSetAttribute", luaDoItemSetAttribute);
 	lua_register(L, "doItemEraseAttribute", luaDoItemEraseAttribute);
@@ -8027,9 +8036,11 @@ void otx::lua::registerFunctions()
 	luaL_register(L, "result", luaResultTable);
 	lua_pop(L, 1);
 
+#ifndef LUAJIT_VERSION
 	// bit table
 	luaL_register(L, "bit", luaBitTable);
 	lua_pop(L, 1);
+#endif
 
 	// std table
 	luaL_register(L, "std", luaStdTable);
