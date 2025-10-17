@@ -1,0 +1,316 @@
+---@meta
+
+---@class ReturnValue : integer
+
+---@class ThingTable
+---@field uid integer
+---@field uniqueid integer
+---@field itemid integer
+---@field id integer
+---@field type integer
+---@field actionid integer
+---@field aid integer
+---@field items table<integer, ThingTable>
+
+---@class Position
+---@field x integer
+---@field y integer
+---@field z integer
+---@field stackpos? integer
+
+---@class Variant
+---@field type integer
+---@field number integer
+---@field string string
+---@field pos Position
+
+---@class Outfit
+---@field lookType? integer
+---@field lookTypeEx? integer
+---@field lookHead? integer
+---@field lookBody? integer
+---@field lookLegs? integer
+---@field lookFeet? integer
+---@field lookAddons? integer
+
+---@class SpellInfoTable
+---@field name string
+---@field words string
+---@field level integer
+---@field mlevel integer
+---@field mana integer
+---@field manapercent integer
+
+---@class TileInfoTable : ThingTable
+---@field protection boolean
+---@field optional boolean
+---@field hardcore boolean
+---@field noLogout boolean
+---@field refresh boolean
+---@field trashed boolean
+---@field magicField boolean
+---@field trashHolder boolean
+---@field mailbox boolean
+---@field depot boolean
+---@field bed boolean
+---@field teleport boolean
+---@field things integer
+---@field creatures integer
+---@field items integer
+---@field topItems integer
+---@field downItems integer
+---@field house? integer
+---@field floorChange? boolean[]
+
+---@class MonsterAttackTable
+---@field speed integer
+---@field chance integer
+---@field range integer
+---@field minCombatValue integer
+---@field maxCombatValue integer
+---@field isMelee boolean
+
+---@class MonsterLootTable
+---@field id? integer
+---@field ids? integer[]
+---@field count integer
+---@field chance integer
+---@field subType integer
+---@field actionId integer
+---@field uniqueId integer
+---@field text string
+---@field child? MonsterLootTable
+
+---@class MonsterSummonTable
+---@field name string
+---@field chance integer
+---@field interval integer
+---@field amount integer
+
+---@class MonsterInfoTable
+---@field name string
+---@field description string
+---@field file string
+---@field experience integer
+---@field health integer
+---@field healthMax integer
+---@field manaCost integer
+---@field defense integer
+---@field armor integer
+---@field baseSpeed integer
+---@field lookCorpse integer
+---@field corpseUnique integer
+---@field corpseAction integer
+---@field race integer
+---@field skull integer
+---@field partyShield integer
+---@field guildEmblem integer
+---@field summonable boolean
+---@field illusionable boolean
+---@field convinceable boolean
+---@field attackable boolean
+---@field hostile boolean
+---@field passive boolean
+---@field outfit Outfit
+---@field defenses MonsterAttackTable[]
+---@field attacks MonsterAttackTable[]
+---@field loot MonsterLootTable[]
+---@field summons MonsterSummonTable[]
+
+---@class HouseInfoTable
+---@field id integer
+---@field name string
+---@field owner integer
+---@field rent integer
+---@field price integer
+---@field town integer
+---@field paidUntil integer
+---@field warnings integer
+---@field lastWarning integer
+---@field guildHall boolean
+---@field size integer
+---@field entry Position
+---@field doors? Position[]
+---@field beds? Position[]
+---@field tiles? Position[]
+
+---@class VocationInfoTable
+---@field id integer
+---@field name string
+---@field description string
+---@field healthGain integer
+---@field healthGainTicks integer
+---@field healthGainAmount integer
+---@field manaGain integer
+---@field manaGainTicks integer
+---@field manaGainAmount integer
+---@field attackSpeed integer
+---@field baseSpeed integer
+---@field fromVocation integer
+---@field promotedVocation integer
+---@field soul integer
+---@field soulAmount integer
+---@field soulTicks integer
+---@field capacity integer
+---@field attackable boolean
+---@field needPremium boolean
+---@field experienceMultiplier integer
+
+---@class GroupInfoTable
+---@field id integer
+---@field name string
+---@field access integer
+---@field ghostAccess integer
+---@field flags integer
+---@field customFlags integer
+---@field depotLimit integer
+---@field maxVips integer
+---@field outfit integer
+
+---@class TalkActionsListTable
+---@field words string
+---@field access integer
+---@field log boolean
+---@field logged boolean
+---@field hide boolean
+---@field hidden boolean
+---@field functionName string
+---@field channel integer
+---@field groups integer[]
+
+---@class ItemAbilitiesTable
+---@field manaShield boolean
+---@field invisible boolean
+---@field regeneration boolean
+---@field preventLoss boolean
+---@field preventDrop boolean
+---@field elementType integer
+---@field elementDamage integer
+---@field speed integer
+---@field healthGain integer
+---@field healthTicks integer
+---@field manaGain integer
+---@field manaTicks integer
+---@field conditionSuppressions integer
+
+---@class ItemInfoTable
+---@field isDoor boolean
+---@field stopTime boolean
+---@field showCount boolean
+---@field stackable boolean
+---@field showDuration boolean
+---@field showCharges boolean
+---@field showAttributes boolean
+---@field distRead boolean
+---@field readable boolean
+---@field writable boolean
+---@field forceSerialize boolean
+---@field vertical boolean
+---@field horizontal boolean
+---@field hangable boolean
+---@field usable boolean
+---@field movable boolean
+---@field pickupable boolean
+---@field rotable boolean
+---@field replacable boolean
+---@field hasHeight boolean
+---@field blockSolid boolean
+---@field blockPickupable boolean
+---@field blockProjectile boolean
+---@field blockPathing boolean
+---@field allowPickupable boolean
+---@field alwaysOnTop boolean
+---@field dualWield boolean
+---@field closingDoor boolean
+---@field magicEffect integer
+---@field fluidSource integer
+---@field weaponType integer
+---@field bedPartnerDirection integer
+---@field ammoAction integer
+---@field macombatTypegicEffect integer
+---@field corpseType integer
+---@field shootType integer
+---@field ammoType integer
+---@field group integer
+---@field type integer
+---@field transformUseTo integer
+---@field transformEquipTo integer
+---@field transformDeEquipTo integer
+---@field clientId integer
+---@field maxItems integer
+---@field slotPosition integer
+---@field wieldPosition integer
+---@field speed integer
+---@field maxTextLength integer
+---@field writeOnceItemId integer
+---@field date integer
+---@field writer string
+---@field text string
+---@field attack integer
+---@field extraAttack integer
+---@field defense integer
+---@field extraDefense integer
+---@field armor integer
+---@field breakChance integer
+---@field hitChance integer
+---@field maxHitChance integer
+---@field runeLevel integer
+---@field runeMagicLevel integer
+---@field lightLevel integer
+---@field lightColor integer
+---@field decayTo integer
+---@field rotateTo integer
+---@field alwaysOnTopOrder integer
+---@field shootRange integer
+---@field charges integer
+---@field decayTime integer
+---@field attackSpeed integer
+---@field wieldInfo integer
+---@field minRequiredLevel integer
+---@field minRequiredMagicLevel integer
+---@field worth integer
+---@field levelDoor integer
+---@field name string
+---@field plural string
+---@field article string
+---@field description string
+---@field runeSpellName string
+---@field vocationString string
+---@field weight number
+---@field floorChange table<integer, boolean>
+---@field transformBed { female: integer, male: integer }
+---@field abilities ItemAbilitiesTable
+
+---@class BanDataTable
+---@field id integer
+---@field type integer
+---@field value integer
+---@field param integer
+---@field added integer
+---@field expires integer
+---@field adminId integer
+---@field comment string
+
+---@class ConditionInfoTable
+---@field icons integer
+---@field endTime integer
+---@field ticks integer
+---@field persistent boolean
+---@field subId integer
+
+---@class InstantSpellInfo
+---@field name string
+---@field words string
+---@field level integer
+---@field mlevel integer
+---@field mana integer
+---@field manapercent integer
+
+---@class SpectatorsInfo
+---@field password string
+---@field broadcast boolean
+---@field auth boolean
+---@field names string[]
+---@field mutes string[]
+---@field bans string[]
+---@field kick string[]
