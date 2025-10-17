@@ -1592,21 +1592,19 @@ static int luaDoPlayerSendTextMessage(lua_State* L)
 	const auto messageType = static_cast<MessageType_t>(otx::lua::getNumber<uint8_t>(L, 2));
 	const std::string message = otx::lua::getString(L, 3);
 
+	// backwards-compatibility
 	if (lua_gettop(L) > 3) {
-		const auto value = otx::lua::getNumber<uint16_t>(L, 4, 0);
-		const auto color = static_cast<Color_t>(otx::lua::getNumber<uint16_t>(L, 5, COLOR_WHITE));
+		const auto value = otx::lua::getNumber<uint32_t>(L, 4);
+		const auto color = static_cast<Color_t>(otx::lua::getNumber<uint8_t>(L, 5, COLOR_WHITE));
 		Position pos = otx::lua::getPosition(L, 6);
 		if (pos.x == 0 || pos.y == 0) {
 			pos = player->getPosition();
 		}
 
-		MessageDetails* details = new MessageDetails(value, color);
-		player->sendStatsMessage(messageType, message, pos, details);
-		delete details;
-	} else {
-		player->sendTextMessage(messageType, message);
+		g_game.addAnimatedText(pos, color, std::to_string(value));
 	}
 
+	player->sendTextMessage(messageType, message);
 	lua_pushboolean(L, true);
 	return 1;
 }
@@ -2404,9 +2402,9 @@ static int luaDoPlayerSetSpectators(lua_State* L)
 		spectators->clear(false);
 	}
 
-	spectators->kick(kicks);
-	spectators->mute(mutes);
-	spectators->ban(bans);
+	spectators->kick(std::move(kicks));
+	spectators->mute(std::move(mutes));
+	spectators->ban(std::move(bans));
 
 	spectators->setBroadcast(broadcast);
 	spectators->setAuth(auth);

@@ -196,16 +196,13 @@ private:
 	void sendCreatureSay(const Creature* creature, MessageType_t type, const std::string& text, Position* pos, uint32_t statementId);
 	void sendCreatureChannelSay(const Creature* creature, MessageType_t type, const std::string& text, uint16_t channelId, uint32_t statementId);
 
-	void sendCancel(const std::string& message);
 	void sendCancelWalk();
 	void sendChangeSpeed(const Creature* creature, uint32_t speed);
 
 	void sendCancelTarget();
 	void sendCreatureOutfit(const Creature* creature, const Outfit_t& outfit);
 	void sendStats();
-	void sendTextMessage(MessageType_t mclass, const std::string& message);
-	void sendStatsMessage(MessageType_t mclass, const std::string& message,
-		Position pos, MessageDetails* details = nullptr);
+	void sendTextMessage(MessageType_t type, const std::string& message);
 	void sendReLoginWindow();
 
 	void sendTutorial(uint8_t tutorialId);
@@ -280,7 +277,6 @@ private:
 		int32_t width, int32_t height, OutputMessage_ptr msg);
 
 	void AddMapDescription(OutputMessage_ptr msg, const Position& pos);
-	void AddTextMessage(MessageType_t mclass, const std::string& message, Position* pos = nullptr, MessageDetails* details = nullptr);
 	void AddAnimatedText(OutputMessage_ptr msg, const Position& pos, uint8_t color, const std::string& text);
 
 	void AddMagicEffect(OutputMessage_ptr msg, const Position& pos, uint16_t type);

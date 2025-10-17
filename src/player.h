@@ -717,10 +717,10 @@ public:
 	void onUpdateInventoryItem(Item* oldItem, Item* newItem);
 	void onRemoveInventoryItem(Item* item);
 
-	void sendCancel(const std::string& msg) const
+	void sendCancel(const std::string& message) const
 	{
 		if (m_client) {
-			m_client->sendCancel(msg);
+			m_client->sendTextMessage(MSG_STATUS_SMALL, message);
 		}
 	}
 	void sendCancelMessage(ReturnValue message) const;
@@ -824,12 +824,6 @@ public:
 	{
 		if (m_client) {
 			m_client->sendTextMessage(type, message);
-		}
-	}
-	void sendStatsMessage(MessageType_t type, const std::string& message, Position pos, MessageDetails* details = nullptr) const
-	{
-		if (m_client) {
-			m_client->sendStatsMessage(type, message, pos, details);
 		}
 	}
 	void sendReLoginWindow() const

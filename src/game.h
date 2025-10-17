@@ -633,9 +633,6 @@ public:
 	void addDistanceEffect(const SpectatorVec& list, const Position& fromPos, const Position& toPos, const uint16_t effect);
 	void addDistanceEffect(const Position& fromPos, const Position& toPos, const uint16_t effect);
 
-	void addStatsMessage(const SpectatorVec& list, const MessageType_t& mClass, const std::string& message,
-		const Position& pos, MessageDetails* details = nullptr);
-
 	const RuleViolationsMap& getRuleViolations() const { return ruleViolations; }
 	bool cancelRuleViolation(Player* player);
 	bool closeRuleViolation(Player* player);

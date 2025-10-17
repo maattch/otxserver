@@ -5522,17 +5522,6 @@ void Game::addDistanceEffect(const SpectatorVec& list, const Position& fromPos,
 	}
 }
 
-void Game::addStatsMessage(const SpectatorVec& list, const MessageType_t& mClass, const std::string& message,
-	const Position& pos, MessageDetails* details /* = nullptr*/)
-{
-	Player* player = nullptr;
-	for (SpectatorVec::const_iterator it = list.begin(); it != list.end(); ++it) {
-		if ((player = (*it)->getPlayer())) {
-			player->sendStatsMessage(mClass, message, pos, details);
-		}
-	}
-}
-
 void Game::startDecay(Item* item)
 {
 	if (!item || !item->canDecay() || item->getDecaying() == DECAYING_TRUE) {

@@ -1085,18 +1085,6 @@ enum WarType_t : uint8_t
 	WAR_LAST = WAR_ENEMY
 };
 
-struct MessageDetails
-{
-	int32_t value;
-	Color_t color;
-	MessageDetails* sub;
-
-	MessageDetails(int32_t value = 0, Color_t color = COLOR_WHITE) :
-		value(value),
-		color(color),
-		sub(nullptr) {}
-};
-
 struct CombatDamage
 {
 	struct

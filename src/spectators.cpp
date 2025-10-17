@@ -28,12 +28,35 @@
 
 #include "otx/util.hpp"
 
-Spectators::Spectators(ProtocolGame_ptr client) : m_owner(client)
+Spectators::Spectators(ProtocolGame_ptr client) :
+	m_owner(client),
+	m_broadcast_time(otx::util::mstime())
 {
+	//
+}
+
+void Spectators::clear(bool full)
+{
+	for (const auto& it : m_spectators) {
+		if (!it.first->twatchername.empty()) {
+			it.first->parseTelescopeBack(true);
+		} else {
+			it.first->disconnect();
+		}
+	}
+
+	m_spectators.clear();
+	m_mutes.clear();
+
 	m_id = 0;
-	m_broadcast = false;
-	m_auth = false;
-	m_broadcast_time = otx::util::mstime();
+	if (!full) {
+		return;
+	}
+
+	m_bans.clear();
+	m_password.clear();
+	m_broadcast = m_auth = false;
+	m_broadcast_time = 0;
 }
 
 bool Spectators::check(const std::string& _password)
@@ -53,7 +76,7 @@ void Spectators::sendLook(ProtocolGame* client, const Position& pos, uint16_t sp
 		return;
 	}
 
-	SpectatorList::iterator sit = m_spectators.find(client);
+	auto sit = m_spectators.find(client);
 	if (sit == m_spectators.end()) {
 		return;
 	}
@@ -114,7 +137,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 		return;
 	}
 
-	SpectatorList::iterator sit = m_spectators.find(client);
+	auto sit = m_spectators.find(client);
 	if (sit == m_spectators.end()) {
 		return;
 	}
@@ -126,13 +149,17 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 		if (t[0] == "show") {
 			std::ostringstream s;
 			s << m_spectators.size() << " spectators. ";
-			for (SpectatorList::const_iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-				if (!it->first->spy) {
-					if (it != m_spectators.begin()) {
-						s << " ,";
+
+			bool begin = true;
+			for (const auto& it : m_spectators) {
+				if (!it.first->spy) {
+					if (!begin) {
+						s << ", ";
+					} else {
+						begin = false;
 					}
 
-					s << it->second.first;
+					s << it.second.first;
 				}
 			}
 
@@ -144,13 +171,11 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 					if (t[1].length() < 26) {
 						t[1] += " [G]";
 						bool found = false;
-						for (SpectatorList::iterator iit = m_spectators.begin(); iit != m_spectators.end(); ++iit) {
-							if (otx::util::as_lower_string(iit->second.first) != otx::util::as_lower_string(t[1])) {
-								continue;
+						for (const auto& iit : m_spectators) {
+							if (caseInsensitiveEqual(iit.second.first, t[1])) {
+								found = true;
+								break;
 							}
-
-							found = true;
-							break;
 						}
 
 						if (!found) {
@@ -159,7 +184,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 								sendChannelMessage("", sit->second.first + " is now known as " + t[1] + ".", MSG_GAMEMASTER_CHANNEL, channel->getId());
 							}
 
-							StringVec::iterator mit = std::find(m_mutes.begin(), m_mutes.end(), otx::util::as_lower_string(sit->second.first));
+							auto mit = std::find(m_mutes.begin(), m_mutes.end(), otx::util::as_lower_string(sit->second.first));
 							if (mit != m_mutes.end()) {
 								(*mit) = otx::util::as_lower_string(t[1]);
 							}
@@ -206,7 +231,7 @@ void Spectators::handle(ProtocolGame* client, const std::string& text, uint16_t 
 									sendChannelMessage("", sit->second.first + " authenticated as " + nickname + ".", MSG_GAMEMASTER_CHANNEL, channel->getId());
 								}
 
-								StringVec::iterator mit = std::find(m_mutes.begin(), m_mutes.end(), otx::util::as_lower_string(sit->second.first));
+								auto mit = std::find(m_mutes.begin(), m_mutes.end(), otx::util::as_lower_string(sit->second.first));
 								if (mit != m_mutes.end()) {
 									(*mit) = otx::util::as_lower_string(nickname);
 								}
@@ -287,7 +312,16 @@ void Spectators::chat(uint16_t channelId)
 	}
 }
 
-void Spectators::kick(StringVec list)
+std::vector<std::string> Spectators::list()
+{
+	std::vector<std::string> t;
+	for (const auto& it : m_spectators) {
+		t.push_back(it.second.first);
+	}
+	return t;
+}
+
+void Spectators::kick(std::vector<std::string>&& list)
 {
 	for (const auto& name : list) {
 		for (auto it = m_spectators.begin(); it != m_spectators.end(); ++it) {
@@ -298,25 +332,35 @@ void Spectators::kick(StringVec list)
 	}
 }
 
-void Spectators::ban(StringVec _bans)
+void Spectators::ban(std::vector<std::string>&& bans)
 {
 	for (auto bit = m_bans.begin(); bit != m_bans.end();) {
-		auto it = std::find(_bans.begin(), _bans.end(), bit->first);
-		if (it == _bans.end()) {
+		auto it = std::find(bans.begin(), bans.end(), bit->first);
+		if (it == bans.end()) {
 			bit = m_bans.erase(bit);
 		} else {
 			++bit;
 		}
 	}
 
-	for (const auto& ban : _bans) {
+	for (const std::string& ban : bans) {
 		for (const auto& spectator : m_spectators) {
-			if (otx::util::as_lower_string(spectator.second.first) == ban) {
+			if (caseInsensitiveEqual(spectator.second.first, ban)) {
 				m_bans[ban] = spectator.first->getIP();
 				spectator.first->disconnect();
 			}
 		}
 	}
+}
+
+bool Spectators::banned(uint32_t ip) const
+{
+	for (const auto& it : m_bans) {
+		if (it.second == ip) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void Spectators::addSpectator(ProtocolGame* client, std::string name, bool spy)
@@ -356,7 +400,7 @@ void Spectators::addSpectator(ProtocolGame* client, std::string name, bool spy)
 
 void Spectators::removeSpectator(ProtocolGame* client, bool spy)
 {
-	SpectatorList::iterator it = m_spectators.find(client);
+	auto it = m_spectators.find(client);
 	if (it == m_spectators.end()) {
 		return;
 	}
@@ -372,6 +416,14 @@ void Spectators::removeSpectator(ProtocolGame* client, bool spy)
 int64_t Spectators::getBroadcastTime() const
 {
 	return otx::util::mstime() - m_broadcast_time;
+}
+
+bool Spectators::canSee(const Position& pos) const
+{
+	if (!m_owner) {
+		return false;
+	}
+	return m_owner->canSee(pos);
 }
 
 void Spectators::sendChannelMessage(std::string author, std::string text, MessageType_t type, uint16_t channel, bool fakeChat, uint32_t ip)
@@ -472,5 +524,631 @@ void Spectators::sendCreatePrivateChannel(uint16_t channelId, const std::string&
 	for (const auto& spectator : m_spectators) {
 		spectator.first->sendCreatePrivateChannel(channelId, channelName);
 		spectator.first->sendCreatureSay(m_owner->getPlayer(), MSG_PRIVATE, "Chat has been enabled.", nullptr, 0);
+	}
+}
+
+void Spectators::sendChannelsDialog(const ChannelsList& channels)
+{
+	if (m_owner) {
+		m_owner->sendChannelsDialog(channels);
+	}
+}
+
+void Spectators::sendChannel(uint16_t channelId, const std::string& channelName)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendChannel(channelId, channelName);
+	for (const auto& it : m_spectators) {
+		it.first->sendChannel(channelId, channelName);
+	}
+}
+
+void Spectators::sendOpenPrivateChannel(const std::string& receiver)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendOpenPrivateChannel(receiver);
+	for (const auto& it : m_spectators) {
+		it.first->sendOpenPrivateChannel(receiver);
+	}
+}
+
+void Spectators::sendIcons(int32_t icons)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendIcons(icons);
+	for (const auto& it : m_spectators) {
+		it.first->sendIcons(icons);
+	}
+}
+
+void Spectators::sendFYIBox(const std::string& message)
+{
+	if (m_owner) {
+		m_owner->sendFYIBox(message);
+	}
+}
+
+void Spectators::sendDistanceShoot(const Position& from, const Position& to, uint16_t type)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendDistanceShoot(from, to, type);
+	for (const auto& it : m_spectators) {
+		it.first->sendDistanceShoot(from, to, type);
+	}
+}
+
+void Spectators::sendMagicEffect(const Position& pos, uint16_t type)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendMagicEffect(pos, type);
+	for (const auto& it : m_spectators) {
+		it.first->sendMagicEffect(pos, type);
+	}
+}
+
+void Spectators::sendAnimatedText(const Position& pos, uint8_t color, const std::string& text)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendAnimatedText(pos, color, text);
+	for (const auto& it : m_spectators) {
+		it.first->sendAnimatedText(pos, color, text);
+	}
+}
+
+void Spectators::sendCreatureHealth(const Creature* creature)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCreatureHealth(creature);
+	for (const auto& it : m_spectators) {
+		it.first->sendCreatureHealth(creature);
+	}
+}
+
+void Spectators::sendSkills()
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendSkills();
+	for (const auto& it : m_spectators) {
+		it.first->sendSkills();
+	}
+}
+
+void Spectators::sendPing()
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendPing();
+	for (const auto& it : m_spectators) {
+		it.first->sendPing();
+	}
+}
+
+void Spectators::sendCreatureTurn(const Creature* creature, int16_t stackpos)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCreatureTurn(creature, stackpos);
+	for (const auto& it : m_spectators) {
+		it.first->sendCreatureTurn(creature, stackpos);
+	}
+}
+
+void Spectators::sendCancelWalk()
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCancelWalk();
+	for (const auto& it : m_spectators) {
+		it.first->sendCancelWalk();
+	}
+}
+
+void Spectators::sendChangeSpeed(const Creature* creature, uint32_t speed)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendChangeSpeed(creature, speed);
+	for (const auto& it : m_spectators) {
+		it.first->sendChangeSpeed(creature, speed);
+	}
+}
+
+void Spectators::sendCancelTarget()
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCancelTarget();
+	for (const auto& it : m_spectators) {
+		it.first->sendCancelTarget();
+	}
+}
+
+void Spectators::sendCreatureOutfit(const Creature* creature, const Outfit_t& outfit)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCreatureOutfit(creature, outfit);
+	for (const auto& it : m_spectators) {
+		it.first->sendCreatureOutfit(creature, outfit);
+	}
+}
+
+void Spectators::sendStats()
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendStats();
+	for (const auto& it : m_spectators) {
+		it.first->sendStats();
+	}
+}
+
+void Spectators::sendTextMessage(MessageType_t type, const std::string& message)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendTextMessage(type, message);
+	for (const auto& it : m_spectators) {
+		it.first->sendTextMessage(type, message);
+	}
+}
+
+void Spectators::sendReLoginWindow()
+{
+	if (m_owner) {
+		m_owner->sendReLoginWindow();
+		clear(true); // just smoothly disconnect
+	}
+}
+
+void Spectators::sendTutorial(uint8_t tutorialId)
+{
+	if (m_owner) {
+		m_owner->sendTutorial(tutorialId);
+	}
+}
+
+void Spectators::sendAddMarker(const Position& pos, MapMarks_t markType, const std::string& desc)
+{
+	if (m_owner) {
+		m_owner->sendAddMarker(pos, markType, desc);
+	}
+}
+
+void Spectators::sendExtendedOpcode(uint8_t opcode, const std::string& buffer)
+{
+	if (m_owner) {
+		m_owner->sendExtendedOpcode(opcode, buffer);
+	}
+}
+
+void Spectators::sendRuleViolationsChannel(uint16_t channelId)
+{
+	if (m_owner) {
+		m_owner->sendRuleViolationsChannel(channelId);
+	}
+}
+
+void Spectators::sendRemoveReport(const std::string& name)
+{
+	if (m_owner) {
+		m_owner->sendRemoveReport(name);
+	}
+}
+
+void Spectators::sendLockRuleViolation()
+{
+	if (m_owner) {
+		m_owner->sendLockRuleViolation();
+	}
+}
+
+void Spectators::sendRuleViolationCancel(const std::string& name)
+{
+	if (m_owner) {
+		m_owner->sendRuleViolationCancel(name);
+	}
+}
+
+void Spectators::sendCreatureSkull(const Creature* creature)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCreatureSkull(creature);
+	for (const auto& it : m_spectators) {
+		it.first->sendCreatureSkull(creature);
+	}
+}
+
+void Spectators::sendCreatureShield(const Creature* creature)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCreatureShield(creature);
+	for (const auto& it : m_spectators) {
+		it.first->sendCreatureShield(creature);
+	}
+}
+
+void Spectators::sendCreatureEmblem(const Creature* creature)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCreatureEmblem(creature);
+	for (const auto& it : m_spectators) {
+		it.first->sendCreatureEmblem(creature);
+	}
+}
+
+void Spectators::sendCreatureWalkthrough(const Creature* creature, bool walkthrough)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCreatureWalkthrough(creature, walkthrough);
+	for (const auto& it : m_spectators) {
+		it.first->sendCreatureWalkthrough(creature, walkthrough);
+	}
+}
+
+void Spectators::sendShop(const ShopInfoList& shop)
+{
+	if (m_owner) {
+		m_owner->sendShop(shop);
+	}
+}
+
+void Spectators::sendCloseShop()
+{
+	if (m_owner) {
+		m_owner->sendCloseShop();
+	}
+}
+
+void Spectators::sendGoods(const ShopInfoList& shop)
+{
+	if (m_owner) {
+		m_owner->sendGoods(shop);
+	}
+}
+
+void Spectators::sendTradeItemRequest(const Player* player, const Item* item, bool ack)
+{
+	if (m_owner) {
+		m_owner->sendTradeItemRequest(player, item, ack);
+	}
+}
+
+void Spectators::sendCloseTrade()
+{
+	if (m_owner) {
+		m_owner->sendCloseTrade();
+	}
+}
+
+void Spectators::sendTextWindow(uint32_t windowTextId, Item* item, uint16_t maxLen, bool canWrite)
+{
+	if (m_owner) {
+		m_owner->sendTextWindow(windowTextId, item, maxLen, canWrite);
+	}
+}
+
+void Spectators::sendHouseWindow(uint32_t windowTextId, const std::string& text)
+{
+	if (m_owner) {
+		m_owner->sendHouseWindow(windowTextId, text);
+	}
+}
+
+void Spectators::sendOutfitWindow()
+{
+	if (m_owner) {
+		m_owner->sendOutfitWindow();
+	}
+}
+
+void Spectators::sendQuests()
+{
+	if (m_owner) {
+		m_owner->sendQuests();
+	}
+}
+
+void Spectators::sendQuestInfo(const Quest* quest)
+{
+	if (m_owner) {
+		m_owner->sendQuestInfo(quest);
+	}
+}
+
+void Spectators::sendVIPLogIn(uint32_t guid)
+{
+	if (m_owner) {
+		m_owner->sendVIPLogIn(guid);
+	}
+}
+
+void Spectators::sendVIPLogOut(uint32_t guid)
+{
+	if (m_owner) {
+		m_owner->sendVIPLogOut(guid);
+	}
+}
+
+void Spectators::sendVIP(uint32_t guid, const std::string& name, bool isOnline)
+{
+	if (m_owner) {
+		m_owner->sendVIP(guid, name, isOnline);
+	}
+}
+
+void Spectators::sendCreatureLight(const Creature* creature)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCreatureLight(creature);
+	for (const auto& it : m_spectators) {
+		it.first->sendCreatureLight(creature);
+	}
+}
+
+void Spectators::sendWorldLight(const LightInfo& lightInfo)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendWorldLight(lightInfo);
+	for (const auto& it : m_spectators) {
+		it.first->sendWorldLight(lightInfo);
+	}
+}
+
+void Spectators::sendCreatureSquare(const Creature* creature, uint8_t color)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCreatureSquare(creature, color);
+	for (const auto& it : m_spectators) {
+		it.first->sendCreatureSquare(creature, color);
+	}
+}
+
+void Spectators::sendAddTileItem(const Position& pos, uint32_t stackpos, const Item* item)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendAddTileItem(pos, stackpos, item);
+	for (const auto& it : m_spectators) {
+		it.first->sendAddTileItem(pos, stackpos, item);
+	}
+}
+
+void Spectators::sendUpdateTileItem(const Position& pos, uint32_t stackpos, const Item* item)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendUpdateTileItem(pos, stackpos, item);
+	for (const auto& it : m_spectators) {
+		it.first->sendUpdateTileItem(pos, stackpos, item);
+	}
+}
+
+void Spectators::sendRemoveTileItem(const Position& pos, uint32_t stackpos)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendRemoveTileItem(pos, stackpos);
+	for (const auto& it : m_spectators) {
+		it.first->sendRemoveTileItem(pos, stackpos);
+	}
+}
+
+void Spectators::sendUpdateTile(const Tile* tile, const Position& pos)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendUpdateTile(tile, pos);
+	for (const auto& it : m_spectators) {
+		it.first->sendUpdateTile(tile, pos);
+	}
+}
+
+void Spectators::sendAddCreature(const Creature* creature, const Position& pos, uint32_t stackpos)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendAddCreature(creature, pos, stackpos);
+	for (const auto& it : m_spectators) {
+		it.first->sendAddCreature(creature, pos, stackpos);
+	}
+}
+
+void Spectators::sendRemoveCreature(const Position& pos, uint32_t stackpos)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendRemoveCreature(pos, stackpos);
+	for (const auto& it : m_spectators) {
+		it.first->sendRemoveCreature(pos, stackpos);
+	}
+}
+
+void Spectators::sendMoveCreature(const Creature* creature, const Position& newPos, uint32_t newStackPos,
+	const Position& oldPos, uint32_t oldStackpos, bool teleport)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackpos, teleport);
+	for (const auto& it : m_spectators) {
+		it.first->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackpos, teleport);
+	}
+}
+
+void Spectators::sendAddContainerItem(uint8_t cid, const Item* item)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendAddContainerItem(cid, item);
+	for (const auto& it : m_spectators) {
+		it.first->sendAddContainerItem(cid, item);
+	}
+}
+
+void Spectators::sendUpdateContainerItem(uint8_t cid, uint8_t slot, const Item* item)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendUpdateContainerItem(cid, slot, item);
+	for (const auto& it : m_spectators) {
+		it.first->sendUpdateContainerItem(cid, slot, item);
+	}
+}
+
+void Spectators::sendRemoveContainerItem(uint8_t cid, uint8_t slot)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendRemoveContainerItem(cid, slot);
+	for (const auto& it : m_spectators) {
+		it.first->sendRemoveContainerItem(cid, slot);
+	}
+}
+
+void Spectators::sendContainer(uint32_t cid, const Container* container, bool hasParent)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendContainer(cid, container, hasParent);
+	for (const auto& it : m_spectators) {
+		it.first->sendContainer(cid, container, hasParent);
+	}
+}
+
+void Spectators::sendCloseContainer(uint32_t cid)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendCloseContainer(cid);
+	for (const auto& it : m_spectators) {
+		it.first->sendCloseContainer(cid);
+	}
+}
+
+void Spectators::sendAddInventoryItem(uint8_t slot, const Item* item)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendAddInventoryItem(slot, item);
+	for (const auto& it : m_spectators) {
+		it.first->sendAddInventoryItem(slot, item);
+	}
+}
+
+void Spectators::sendUpdateInventoryItem(uint8_t slot, const Item* item)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendUpdateInventoryItem(slot, item);
+	for (const auto& it : m_spectators) {
+		it.first->sendUpdateInventoryItem(slot, item);
+	}
+}
+
+void Spectators::sendRemoveInventoryItem(uint8_t slot)
+{
+	if (!m_owner) {
+		return;
+	}
+
+	m_owner->sendRemoveInventoryItem(slot);
+	for (const auto& it : m_spectators) {
+		it.first->sendRemoveInventoryItem(slot);
+	}
+}
+
+void Spectators::sendCastList()
+{
+	if (m_owner) {
+		m_owner->sendCastList();
 	}
 }

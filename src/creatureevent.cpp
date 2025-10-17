@@ -485,8 +485,8 @@ bool CreatureEvent::executeTradeAccept(Player* player, Player* target, Item* ite
 
 	lua_pushnumber(L, env.addThing(player));
 	lua_pushnumber(L, env.addThing(target));
-	otx::lua::pushThing(L, item, env.addThing(item));
-	otx::lua::pushThing(L, targetItem, env.addThing(targetItem));
+	otx::lua::pushThing(L, item);
+	otx::lua::pushThing(L, targetItem);
 	return otx::lua::callFunction(L, 4);
 }
 
@@ -720,7 +720,7 @@ bool CreatureEvent::executeDeath(Creature* creature, Item* corpse, const DeathLi
 	m_interface->pushFunction(m_scriptId);
 
 	lua_pushnumber(L, env.addThing(creature));
-	otx::lua::pushThing(L, corpse, env.addThing(corpse));
+	otx::lua::pushThing(L, corpse);
 	lua_createtable(L, deathList.size(), 0);
 	int index = 0;
 	for (const auto& it : deathList) {

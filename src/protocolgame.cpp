@@ -2010,9 +2010,20 @@ void ProtocolGame::sendStats()
 	AddPlayerStats(msg);
 }
 
-void ProtocolGame::sendTextMessage(MessageType_t mClass, const std::string& message)
+void ProtocolGame::sendTextMessage(MessageType_t type, const std::string& message)
 {
-	AddTextMessage(mClass, message);
+	/*if (type < MSG_STATUS_CONSOLE_RED || type > MSG_STATUS_CONSOLE_BLUE) {
+		return;
+	}*/
+
+	OutputMessage_ptr msg = getOutputBuffer();
+	if (!msg) {
+		return;
+	}
+
+	msg->addByte(0xB4);
+	msg->addByte(type);
+	msg->addString(message);
 }
 
 void ProtocolGame::sendClosePrivate(uint16_t channelId)
@@ -2340,17 +2351,6 @@ void ProtocolGame::sendCreatureChannelSay(const Creature* creature, MessageType_
 	}
 
 	AddCreatureSpeak(msg, creature, type, text, channelId, nullptr, statementId);
-}
-
-void ProtocolGame::sendStatsMessage(MessageType_t type, const std::string& message,
-	Position pos, MessageDetails* details /* = nullptr*/)
-{
-	AddTextMessage(type, message, &pos, details);
-}
-
-void ProtocolGame::sendCancel(const std::string& message)
-{
-	AddTextMessage(MSG_STATUS_SMALL, message);
 }
 
 void ProtocolGame::sendCancelTarget()
@@ -3034,35 +3034,6 @@ void ProtocolGame::AddMapDescription(OutputMessage_ptr msg, const Position& pos)
 	msg->addByte(0x64);
 	msg->addPosition(player->getPosition());
 	GetMapDescription(pos.x - 8, pos.y - 6, pos.z, 18, 14, msg);
-}
-
-void ProtocolGame::AddTextMessage(MessageType_t mClass, const std::string& message,
-	Position* pos /* = nullptr*/, MessageDetails* details /* = nullptr*/)
-{
-	if (mClass >= MSG_STATUS_CONSOLE_RED) {
-		if (mClass <= MSG_STATUS_CONSOLE_BLUE) {
-			OutputMessage_ptr msg = getOutputBuffer();
-			if (!msg) {
-				return;
-			}
-
-			msg->addByte(0xB4);
-			msg->addByte(mClass);
-			msg->addString(message);
-		}
-
-		if (details) {
-			OutputMessage_ptr msg = getOutputBuffer();
-			if (!msg) {
-				return;
-			}
-
-			AddAnimatedText(msg, *pos, details->color, std::to_string(details->value));
-			if (details->sub) {
-				AddAnimatedText(msg, *pos, details->sub->color, std::to_string(details->sub->value));
-			}
-		}
-	}
 }
 
 void ProtocolGame::AddAnimatedText(OutputMessage_ptr msg, const Position& pos,

@@ -26,82 +26,34 @@ class Container;
 class Tile;
 class Quest;
 
-typedef std::map<ProtocolGame*, std::pair<std::string, bool>> SpectatorList;
-typedef std::map<std::string, uint32_t> DataList;
-
-class Spectators
+class Spectators final
 {
 public:
-	Spectators(ProtocolGame_ptr client);
-	virtual ~Spectators() {}
+	explicit Spectators(ProtocolGame_ptr client);
 
-	void clear(bool full)
-	{
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			if (!it->first->twatchername.empty()) {
-				it->first->parseTelescopeBack(true);
-				continue;
-			}
-			it->first->disconnect();
-		}
-
-		m_spectators.clear();
-		m_mutes.clear();
-
-		m_id = 0;
-		if (!full) {
-			return;
-		}
-
-		m_bans.clear();
-		m_password = "";
-		m_broadcast = m_auth = false;
-		m_broadcast_time = 0;
-	}
+	void clear(bool full);
 
 	bool check(const std::string& _password);
 	void handle(ProtocolGame* client, const std::string& text, uint16_t channelId);
 	void sendLook(ProtocolGame* client, const Position& pos, uint16_t spriteId, int16_t stackpos);
 	void chat(uint16_t channelId);
 
-	StringVec list()
-	{
-		StringVec t;
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			t.push_back(it->second.first);
-		}
+	std::vector<std::string> list();
 
-		return t;
-	}
+	void kick(std::vector<std::string>&& list);
+	void mute(std::vector<std::string>&& mutes) { m_mutes = std::move(mutes); }
+	void ban(std::vector<std::string>&& bans);
 
-	void kick(StringVec list);
-	StringVec muteList() { return m_mutes; }
-	void mute(StringVec _mutes) { m_mutes = _mutes; }
-	DataList banList() { return m_bans; }
-	void ban(StringVec _bans);
+	const auto& muteList() { return m_mutes; }
+	const auto& banList() { return m_bans; }
 
-	bool banned(uint32_t ip) const
-	{
-		for (DataList::const_iterator it = m_bans.begin(); it != m_bans.end(); ++it) {
-			if (it->second == ip) {
-				return true;
-			}
-		}
-
-		return false;
-	}
+	bool banned(uint32_t ip) const;
 
 	ProtocolGame_ptr getOwner() const { return m_owner; }
-	void setOwner(ProtocolGame_ptr client)
-	{
-		m_owner = client;
-	}
-	void resetOwner()
-	{
-		m_owner.reset();
-	}
+	void setOwner(ProtocolGame_ptr client) { m_owner = std::move(client); }
+	void resetOwner() { m_owner.reset(); }
 
-	std::string getPassword() const { return m_password; }
+	const std::string& getPassword() const { return m_password; }
 	void setPassword(const std::string& value) { m_password = value; }
 
 	bool isBroadcasting() const { return m_broadcast; }
@@ -116,702 +68,125 @@ public:
 	int64_t getBroadcastTime() const;
 
 	// inherited
-	uint32_t getIP() const
-	{
+	uint32_t getIP() const {
 		if (!m_owner) {
 			return 0;
 		}
-
 		return m_owner->getIP();
 	}
 
-	bool logout(bool displayEffect, bool forceLogout)
-	{
+	bool logout(bool displayEffect, bool forceLogout) {
 		if (!m_owner) {
 			return true;
 		}
-
 		return m_owner->logout(displayEffect, forceLogout);
 	}
-
-	void disconnect()
-	{
+	void disconnect() {
 		if (m_owner) {
 			m_owner->disconnect();
 		}
 	}
 
 private:
-	friend class Player;
-
-	SpectatorList m_spectators;
-	StringVec m_mutes;
-	DataList m_bans;
-
-	ProtocolGame_ptr m_owner;
-	uint32_t m_id;
-	std::string m_password;
-	bool m_broadcast, m_auth;
-	int64_t m_broadcast_time;
-
 	// inherited
-	bool canSee(const Position& pos) const
-	{
-		if (!m_owner) {
-			return false;
-		}
-
-		return m_owner->canSee(pos);
-	}
+	bool canSee(const Position& pos) const;
 
 	void sendChannelMessage(std::string author, std::string text, MessageType_t type, uint16_t channel, bool fakeChat = false, uint32_t ip = 0);
 	void sendClosePrivate(uint16_t channelId);
 	void sendCreatePrivateChannel(uint16_t channelId, const std::string& channelName);
-	void sendChannelsDialog(const ChannelsList& channels)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendChannelsDialog(const ChannelsList& channels);
+	void sendChannel(uint16_t channelId, const std::string& channelName);
+	void sendOpenPrivateChannel(const std::string& receiver);
+	void sendIcons(int32_t icons);
+	void sendFYIBox(const std::string& message);
 
-		m_owner->sendChannelsDialog(channels);
-	}
-	void sendChannel(uint16_t channelId, const std::string& channelName)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendDistanceShoot(const Position& from, const Position& to, uint16_t type);
 
-		m_owner->sendChannel(channelId, channelName);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendChannel(channelId, channelName);
-		}
-	}
-	void sendOpenPrivateChannel(const std::string& receiver)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendMagicEffect(const Position& pos, uint16_t type);
 
-		m_owner->sendOpenPrivateChannel(receiver);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendOpenPrivateChannel(receiver);
-		}
-	}
-	void sendIcons(int32_t icons)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendIcons(icons);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendIcons(icons);
-		}
-	}
-	void sendFYIBox(const std::string& message)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendFYIBox(message);
-	}
-
-	void sendDistanceShoot(const Position& from, const Position& to, uint16_t type)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendDistanceShoot(from, to, type);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendDistanceShoot(from, to, type);
-		}
-	}
-
-	void sendMagicEffect(const Position& pos, uint16_t type)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendMagicEffect(pos, type);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendMagicEffect(pos, type);
-		}
-	}
-
-	void sendAnimatedText(const Position& pos, uint8_t color, const std::string& text)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendAnimatedText(pos, color, text);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendAnimatedText(pos, color, text);
-		}
-	}
-	void sendCreatureHealth(const Creature* creature)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCreatureHealth(creature);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCreatureHealth(creature);
-		}
-	}
-	void sendSkills()
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendSkills();
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendSkills();
-		}
-	}
-	void sendPing()
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendPing();
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendPing();
-		}
-	}
-	void sendCreatureTurn(const Creature* creature, int16_t stackpos)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCreatureTurn(creature, stackpos);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCreatureTurn(creature, stackpos);
-		}
-	}
+	void sendAnimatedText(const Position& pos, uint8_t color, const std::string& text);
+	void sendCreatureHealth(const Creature* creature);
+	void sendSkills();
+	void sendPing();
+	void sendCreatureTurn(const Creature* creature, int16_t stackpos);
 	void sendCreatureSay(const Creature* creature, MessageType_t type, const std::string& text, Position* pos, uint32_t statementId, bool fakeChat = false); // extended
 	void sendCreatureChannelSay(const Creature* creature, MessageType_t type, const std::string& text, uint16_t channelId, uint32_t statementId, bool fakeChat = false); // extended
 
-	void sendCancel(const std::string& message)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendCancelWalk();
+	void sendChangeSpeed(const Creature* creature, uint32_t speed);
+	void sendCancelTarget();
+	void sendCreatureOutfit(const Creature* creature, const Outfit_t& outfit);
+	void sendStats();
+	void sendTextMessage(MessageType_t type, const std::string& message);
+	void sendReLoginWindow();
 
-		m_owner->sendCancel(message);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCancel(message);
-		}
-	}
-	void sendCancelWalk()
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendTutorial(uint8_t tutorialId);
+	void sendAddMarker(const Position& pos, MapMarks_t markType, const std::string& desc);
+	void sendExtendedOpcode(uint8_t opcode, const std::string& buffer);
 
-		m_owner->sendCancelWalk();
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCancelWalk();
-		}
-	}
-	void sendChangeSpeed(const Creature* creature, uint32_t speed)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendRuleViolationsChannel(uint16_t channelId);
+	void sendRemoveReport(const std::string& name);
+	void sendLockRuleViolation();
+	void sendRuleViolationCancel(const std::string& name);
 
-		m_owner->sendChangeSpeed(creature, speed);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendChangeSpeed(creature, speed);
-		}
-	}
-	void sendCancelTarget()
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendCreatureSkull(const Creature* creature);
+	void sendCreatureShield(const Creature* creature);
+	void sendCreatureEmblem(const Creature* creature);
+	void sendCreatureWalkthrough(const Creature* creature, bool walkthrough);
 
-		m_owner->sendCancelTarget();
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCancelTarget();
-		}
-	}
-	void sendCreatureOutfit(const Creature* creature, const Outfit_t& outfit)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendShop(const ShopInfoList& shop);
+	void sendCloseShop();
+	void sendGoods(const ShopInfoList& shop);
+	void sendTradeItemRequest(const Player* player, const Item* item, bool ack);
+	void sendCloseTrade();
 
-		m_owner->sendCreatureOutfit(creature, outfit);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCreatureOutfit(creature, outfit);
-		}
-	}
-	void sendStats()
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendTextWindow(uint32_t windowTextId, Item* item, uint16_t maxLen, bool canWrite);
+	void sendHouseWindow(uint32_t windowTextId, const std::string& text);
 
-		m_owner->sendStats();
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendStats();
-		}
-	}
-	void sendTextMessage(MessageType_t mclass, const std::string& message)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendOutfitWindow();
+	void sendQuests();
+	void sendQuestInfo(const Quest* quest);
 
-		m_owner->sendTextMessage(mclass, message);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendTextMessage(mclass, message);
-		}
-	}
-	void sendStatsMessage(MessageType_t mclass, const std::string& message,
-		Position pos, MessageDetails* details = nullptr)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendVIPLogIn(uint32_t guid);
+	void sendVIPLogOut(uint32_t guid);
+	void sendVIP(uint32_t guid, const std::string& name, bool isOnline);
 
-		m_owner->sendStatsMessage(mclass, message, pos, details);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendStatsMessage(mclass, message, pos, details);
-		}
-	}
-	void sendReLoginWindow()
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendCreatureLight(const Creature* creature);
+	void sendWorldLight(const LightInfo& lightInfo);
 
-		m_owner->sendReLoginWindow();
-		clear(true); // just smoothly disconnect
-	}
+	void sendCreatureSquare(const Creature* creature, uint8_t color);
 
-	void sendTutorial(uint8_t tutorialId)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendAddTileItem(const Position& pos, uint32_t stackpos, const Item* item);
+	void sendUpdateTileItem(const Position& pos, uint32_t stackpos, const Item* item);
+	void sendRemoveTileItem(const Position& pos, uint32_t stackpos);
+	void sendUpdateTile(const Tile* tile, const Position& pos);
 
-		m_owner->sendTutorial(tutorialId);
-	}
-	void sendAddMarker(const Position& pos, MapMarks_t markType, const std::string& desc)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendAddCreature(const Creature* creature, const Position& pos, uint32_t stackpos);
+	void sendRemoveCreature(const Position& pos, uint32_t stackpos);
+	void sendMoveCreature(const Creature* creature, const Position& newPos, uint32_t newStackPos, const Position& oldPos, uint32_t oldStackpos, bool teleport);
 
-		m_owner->sendAddMarker(pos, markType, desc);
-	}
-	void sendExtendedOpcode(uint8_t opcode, const std::string& buffer)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendAddContainerItem(uint8_t cid, const Item* item);
+	void sendUpdateContainerItem(uint8_t cid, uint8_t slot, const Item* item);
+	void sendRemoveContainerItem(uint8_t cid, uint8_t slot);
 
-		m_owner->sendExtendedOpcode(opcode, buffer);
-	}
+	void sendContainer(uint32_t cid, const Container* container, bool hasParent);
+	void sendCloseContainer(uint32_t cid);
 
-	void sendRuleViolationsChannel(uint16_t channelId)
-	{
-		if (!m_owner) {
-			return;
-		}
+	void sendAddInventoryItem(uint8_t slot, const Item* item);
+	void sendUpdateInventoryItem(uint8_t slot, const Item* item);
+	void sendRemoveInventoryItem(uint8_t slot);
+	void sendCastList();
 
-		m_owner->sendRuleViolationsChannel(channelId);
-	}
-	void sendRemoveReport(const std::string& name)
-	{
-		if (!m_owner) {
-			return;
-		}
 
-		m_owner->sendRemoveReport(name);
-	}
-	void sendLockRuleViolation()
-	{
-		if (!m_owner) {
-			return;
-		}
+	std::string m_password;
+	std::vector<std::string> m_mutes;
+	std::map<std::string, uint32_t> m_bans;
+	std::map<ProtocolGame*, std::pair<std::string, bool>> m_spectators;
+	ProtocolGame_ptr m_owner;
+	int64_t m_broadcast_time = 0;
+	uint32_t m_id = 0;
+	bool m_broadcast = false;
+	bool m_auth = false;
 
-		m_owner->sendLockRuleViolation();
-	}
-	void sendRuleViolationCancel(const std::string& name)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendRuleViolationCancel(name);
-	}
-
-	void sendCreatureSkull(const Creature* creature)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCreatureSkull(creature);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCreatureSkull(creature);
-		}
-	}
-	void sendCreatureShield(const Creature* creature)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCreatureShield(creature);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCreatureShield(creature);
-		}
-	}
-	void sendCreatureEmblem(const Creature* creature)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCreatureEmblem(creature);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCreatureEmblem(creature);
-		}
-	}
-	void sendCreatureWalkthrough(const Creature* creature, bool walkthrough)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCreatureWalkthrough(creature, walkthrough);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCreatureWalkthrough(creature, walkthrough);
-		}
-	}
-
-	void sendShop(const ShopInfoList& shop)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendShop(shop);
-	}
-	void sendCloseShop()
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCloseShop();
-	}
-	void sendGoods(const ShopInfoList& shop)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendGoods(shop);
-	}
-	void sendTradeItemRequest(const Player* player, const Item* item, bool ack)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendTradeItemRequest(player, item, ack);
-	}
-	void sendCloseTrade()
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCloseTrade();
-	}
-
-	void sendTextWindow(uint32_t windowTextId, Item* item, uint16_t maxLen, bool canWrite)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendTextWindow(windowTextId, item, maxLen, canWrite);
-	}
-	void sendHouseWindow(uint32_t windowTextId, const std::string& text)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendHouseWindow(windowTextId, text);
-	}
-
-	void sendOutfitWindow()
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendOutfitWindow();
-	}
-	void sendQuests()
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendQuests();
-	}
-	void sendQuestInfo(const Quest* quest)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendQuestInfo(quest);
-	}
-
-	void sendVIPLogIn(uint32_t guid)
-	{
-		if (m_owner) {
-			m_owner->sendVIPLogIn(guid);
-		}
-	}
-	void sendVIPLogOut(uint32_t guid)
-	{
-		if (m_owner) {
-			m_owner->sendVIPLogOut(guid);
-		}
-	}
-	void sendVIP(uint32_t guid, const std::string& name, bool isOnline)
-	{
-		if (m_owner) {
-			m_owner->sendVIP(guid, name, isOnline);
-		}
-	}
-
-	void sendCreatureLight(const Creature* creature)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCreatureLight(creature);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCreatureLight(creature);
-		}
-	}
-	void sendWorldLight(const LightInfo& lightInfo)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendWorldLight(lightInfo);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendWorldLight(lightInfo);
-		}
-	}
-
-	void sendCreatureSquare(const Creature* creature, uint8_t color)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCreatureSquare(creature, color);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCreatureSquare(creature, color);
-		}
-	}
-
-	void sendAddTileItem(const Position& pos, uint32_t stackpos, const Item* item)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendAddTileItem(pos, stackpos, item);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendAddTileItem(pos, stackpos, item);
-		}
-	}
-	void sendUpdateTileItem(const Position& pos, uint32_t stackpos, const Item* item)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendUpdateTileItem(pos, stackpos, item);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendUpdateTileItem(pos, stackpos, item);
-		}
-	}
-	void sendRemoveTileItem(const Position& pos, uint32_t stackpos)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendRemoveTileItem(pos, stackpos);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendRemoveTileItem(pos, stackpos);
-		}
-	}
-	void sendUpdateTile(const Tile* tile, const Position& pos)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendUpdateTile(tile, pos);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendUpdateTile(tile, pos);
-		}
-	}
-
-	void sendAddCreature(const Creature* creature, const Position& pos, uint32_t stackpos)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendAddCreature(creature, pos, stackpos);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendAddCreature(creature, pos, stackpos);
-		}
-	}
-	void sendRemoveCreature(const Position& pos, uint32_t stackpos)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendRemoveCreature(pos, stackpos);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendRemoveCreature(pos, stackpos);
-		}
-	}
-	void sendMoveCreature(const Creature* creature, const Position& newPos, uint32_t newStackPos,
-		const Position& oldPos, uint32_t oldStackpos, bool teleport)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackpos, teleport);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackpos, teleport);
-		}
-	}
-
-	void sendAddContainerItem(uint8_t cid, const Item* item)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendAddContainerItem(cid, item);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendAddContainerItem(cid, item);
-		}
-	}
-	void sendUpdateContainerItem(uint8_t cid, uint8_t slot, const Item* item)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendUpdateContainerItem(cid, slot, item);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendUpdateContainerItem(cid, slot, item);
-		}
-	}
-	void sendRemoveContainerItem(uint8_t cid, uint8_t slot)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendRemoveContainerItem(cid, slot);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendRemoveContainerItem(cid, slot);
-		}
-	}
-
-	void sendContainer(uint32_t cid, const Container* container, bool hasParent)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendContainer(cid, container, hasParent);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendContainer(cid, container, hasParent);
-		}
-	}
-	void sendCloseContainer(uint32_t cid)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendCloseContainer(cid);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendCloseContainer(cid);
-		}
-	}
-
-	void sendAddInventoryItem(uint8_t slot, const Item* item)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendAddInventoryItem(slot, item);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendAddInventoryItem(slot, item);
-		}
-	}
-	void sendUpdateInventoryItem(uint8_t slot, const Item* item)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendUpdateInventoryItem(slot, item);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendUpdateInventoryItem(slot, item);
-		}
-	}
-	void sendRemoveInventoryItem(uint8_t slot)
-	{
-		if (!m_owner) {
-			return;
-		}
-
-		m_owner->sendRemoveInventoryItem(slot);
-		for (SpectatorList::iterator it = m_spectators.begin(); it != m_spectators.end(); ++it) {
-			it->first->sendRemoveInventoryItem(slot);
-		}
-	}
-	void sendCastList()
-	{
-		if (m_owner) {
-			m_owner->sendCastList();
-		}
-	}
+	friend class Player;
 };
