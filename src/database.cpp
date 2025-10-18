@@ -156,10 +156,6 @@ DBResultPtr Database::storeQuery(std::string_view query)
 {
 	std::lock_guard<std::recursive_mutex> lockGuard(databaseLock);
 
-#if ENABLE_OT_STATISTICS > 0
-	std::chrono::high_resolution_clock::time_point time_point = std::chrono::high_resolution_clock::now();
-#endif
-
 retry:
 	if (!executeDatabaseQuery(handle, query, retryQueries) && !retryQueries) {
 		return nullptr;
@@ -176,11 +172,6 @@ retry:
 		}
 		goto retry;
 	}
-
-#if ENABLE_OT_STATISTICS > 0
-	int64_t ns = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - time_point).count();
-	g_stats.addSqlStats(Stat(ns, std::string(query), ""));
-#endif
 
 	// retrieving results of query
 	DBResultPtr result = std::make_shared<DBResult>(std::move(res));
@@ -213,6 +204,39 @@ std::string Database::escapeBlob(const char* s, uint32_t length) const
 
 	escaped.push_back('\'');
 	return escaped;
+}
+
+bool Database::optimizeTables()
+{
+	std::ostringstream query;
+	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << escapeString(otx::config::getString(otx::config::SQL_DB)) << " AND `DATA_FREE` > 0";
+
+	DBResultPtr result = storeQuery(query.str());
+	if (!result) {
+		return false;
+	}
+
+	do {
+		std::clog << ">>> Optimizing table: " << result->getString("TABLE_NAME") << "... ";
+
+		query.str("");
+		query << "OPTIMIZE TABLE " << escapeString(result->getString("TABLE_NAME"));
+
+		if (executeQuery(query.str())) {
+			std::clog << "[success]" << std::endl;
+		} else {
+			std::clog << "[failure]" << std::endl;
+		}
+	} while (result->next());
+
+	return true;
+}
+
+bool Database::tableExists(const std::string& tableName)
+{
+	std::ostringstream query;
+	query << "SELECT 1 FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << escapeString(otx::config::getString(otx::config::SQL_DB)) << " AND `TABLE_NAME` = " << escapeString(tableName);
+	return storeQuery(query.str()) != nullptr;
 }
 
 DBResult::DBResult(MysqlResultPtr&& res) :

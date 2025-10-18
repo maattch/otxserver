@@ -19,7 +19,6 @@
 
 #include "chat.h"
 #include "configmanager.h"
-#include "databasemanager.h"
 #include "game.h"
 #include "iologindata.h"
 #include "monsters.h"
@@ -380,7 +379,7 @@ void otserv(ServiceManager* services)
 	std::clog << ">> Starting SQL connection" << std::endl;
 	if (g_database.connect()) {
 		std::clog << ">> Running Database Manager" << std::endl;
-		if (otx::config::getBoolean(otx::config::OPTIMIZE_DATABASE) && !DatabaseManager::getInstance()->optimizeTables()) {
+		if (otx::config::getBoolean(otx::config::OPTIMIZE_DATABASE) && !g_database.optimizeTables()) {
 			std::clog << "[Done] No tables to optimize." << std::endl;
 		}
 	} else {

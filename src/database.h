@@ -124,6 +124,9 @@ public:
 	uint64_t getAffectedRows() const { return mysql_affected_rows(handle.get()); }
 	bool setCharset(const char* charset) const { return mysql_set_character_set(handle.get(), charset) == 0; }
 
+	bool optimizeTables();
+	bool tableExists(const std::string& tableName);
+
 private:
 	std::recursive_mutex databaseLock;
 	MysqlPtr handle;

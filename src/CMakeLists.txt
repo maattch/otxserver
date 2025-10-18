@@ -13,7 +13,6 @@ set(SOURCE_FILES
 	${CMAKE_CURRENT_LIST_DIR}/creatureevent.cpp
 	${CMAKE_CURRENT_LIST_DIR}/cylinder.cpp
 	${CMAKE_CURRENT_LIST_DIR}/database.cpp
-	${CMAKE_CURRENT_LIST_DIR}/databasemanager.cpp
 	${CMAKE_CURRENT_LIST_DIR}/depot.cpp
 	${CMAKE_CURRENT_LIST_DIR}/dispatcher.cpp
 	${CMAKE_CURRENT_LIST_DIR}/fileloader.cpp

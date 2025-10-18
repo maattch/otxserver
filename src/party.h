@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "const.h"
+
 class Creature;
 class Player;
 class Party;

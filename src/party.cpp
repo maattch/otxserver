@@ -19,7 +19,6 @@
 
 #include "party.h"
 
-#include "chat.h"
 #include "configmanager.h"
 #include "game.h"
 #include "player.h"

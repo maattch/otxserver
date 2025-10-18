@@ -27,7 +27,6 @@
 #include "configmanager.h"
 #include "creatureevent.h"
 #include "database.h"
-#include "databasemanager.h"
 #include "game.h"
 #include "house.h"
 #include "housetile.h"
@@ -7344,7 +7343,7 @@ static int luaDatabaseLastInsertId(lua_State* L)
 static int luaDatabaseTableExists(lua_State* L)
 {
 	// db.tableExists(table)
-	lua_pushboolean(L, DatabaseManager::getInstance()->tableExists(otx::lua::getString(L, 1)));
+	lua_pushboolean(L, g_database.tableExists(otx::lua::getString(L, 1)));
 	return 1;
 }
 
